@@ -129,7 +129,7 @@ flags (CF-3), Prometheus text parser, live per-instance metrics from all
 members (MO-1). Local auth + roles + audit log skeleton (AU-1/2/3).
 *Exit:* against your test cloud, list members and live metrics.
 
-**Checkpoint after Phase 1:** revisit Ceph perf-counter and RBD stats settings (MO-7a, D23, `docs/CEPH-METRICS.md` §2) with the owner, measuring mgr load on the test cluster before and after.
+**Checkpoint after Phase 1:** owner briefly enables the Ceph perf-counter and RBD stats settings (MO-7a, D23, `docs/CEPH-METRICS.md` §2) to validate the already-built OSD latency and per-disk I/O views live, measuring mgr load before and after, then decides whether to keep them on.
 
 **Phase 2: Metrics history & dashboards.** Background scraper, SQLite
 store with rollups, query API with rate maths (MO-2). Cluster overview,
@@ -140,7 +140,7 @@ history (MO-6), network counters (MO-8).
 PR-1, IM-1/2, PJ-1, operations/warnings/events (CL-7/8), evacuate/restore (CL-3).
 
 **Phase 4: Networking & storage management + Ceph/OVN views.** NW-1/2/4/5,
-ST-1/2/3, Ceph dashboard (MO-7), OVN view from LXD API (MO-9).
+ST-1/2/3, Ceph dashboard (MO-7) incl. OSD latency + per-RBD-image I/O built against fixtures (MO-7a), OVN view from LXD API (MO-9).
 
 ### Post-MVP
 **Phase 5: Metric store evaluation** (MO-14): benchmark SQLite against
