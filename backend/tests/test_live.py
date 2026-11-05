@@ -31,6 +31,8 @@ def test_instance_totals():
         'lxd_disk_read_bytes_total{name="v",project="p",device="sda"} 100\n'
         'lxd_disk_read_bytes_total{name="v",project="p",device="sda1"} 90\n'
         'lxd_disk_read_bytes_total{name="v",project="p",device="loop3"} 5\n'
+        'lxd_disk_read_bytes_total{name="v",project="p",device="dm-0"} 7\n'
+        'lxd_disk_read_bytes_total{name="v",project="p",device="dm-1"} 7\n'
     )
     assert instance_totals(exp)[("p", "v")].values["disk_read"] == 100  # no double count
     assert c1.values["net_rx"] == 3000  # lo excluded

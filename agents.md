@@ -50,6 +50,7 @@ makes or alters a design decision.**
 | D37 | **Collector loops:** metrics (LXD every member + Ceph) every `interval_seconds`; member state + host NICs every `state_interval_seconds` (60); compaction every 5 min. Errors are recorded per job (`/api/metrics/status`) without stopping the loops. With the collector running, the live view reuses its scrapes instead of scraping on demand | One scrape feeds both live and history. | Accepted 2026-11-05 |
 | D38 | **Frontend libraries:** React Router 7.18.4 and uPlot 1.6.32 (both MIT), pinned exactly. Pages use real URLs (`/instances/:project/:name`, `/members/:name`, `/storage`, `/networks`), served by the SPA fallback; the time range lives in `?range=` so views are linkable. Charts are a thin uPlot wrapper; panels describe their queries declaratively and derive ratios (CPU %) and differences (filesystem used) client-side | Small, fast, no chart framework lock-in. | Accepted 2026-11-05 |
 | D39 | **Per-network traffic = sum of instance NIC counters**, mapping guest interfaces to LXD networks by MAC (`volatile.<dev>.hwaddr` = guest `hwaddr`), because VM guests rename interfaces and OVN networks report zero counters. Instance index cached 60 s (`/1.0/instances?recursion=2&all-projects=true`) | Verified on the test cloud: VMs (`enp5s0`) and containers (`eth0`) map; docker/ZeroTier interfaces inside guests correctly don't. | Accepted 2026-11-05 |
+| D40 | **Instance disk totals leave out `dm-*` devices** (plus partitions and loop devices, D34), via derived `mcui_instance_disk_{read,written}_bytes_total` used by Top-N and the live table. Per-device series still include `dm-*` so the instance page shows them. **Caveat:** an LXD pool with the `lvm` driver puts instance disks on `dm-*`; if one is added, totals must count those (check pool drivers) | Owner's `lsblk` on gw-ips-microcloud-1: `sdb3 → dm-0 (LUKS) → dm-1 (LVM root /)` and `→ dm-2 (LVM) → dm-4 (LUKS) → Ceph OSD`. Containers' I/O to the host root appears on both dm-0 and dm-1 (identical counters), so summing double-counted; their own disks are `rbdN`. | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -91,9 +92,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   collector (D37), SQLite chunked store with rollups and retention (D36), series
   selection (D34), Ceph recording (D35), `/api/metrics/{names,series,query,top,status}`.
   Validated live: 1,200 samples/round, LXD scrape 0.2 s, Ceph 0.07 s, member state
-  + host NICs 5 s (sequential calls). Open question: containers report identical
-  `dm-0`/`dm-1` counters (likely stacked device-mapper), which may double-count
-  container disk totals; not resolvable from the API alone.
+  + host NICs 5 s (sequential calls). The `dm-0`/`dm-1` question was resolved
+  as stacked LUKS + LVM on the hosts (D40).
 - **Phase 2b (UI): built 2026-11-05.** Router + layout; Overview (members,
   top-N with range, live table, links); Instances list; Instance page (CPU %,
   memory, disk throughput/IOPS, network bytes/packets/errors, filesystem used,
@@ -125,7 +125,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   `--type=metrics`. Both verified against `/1.0` and `/1.0/metrics` on :8443.
 - MicroCeph (Ceph 19.2.3 squid) mgr `prometheus` module **enabled**; `exclude_perf_counters=false` and `rbd_stats_pools=lxd_remote` turned on 2026-11-05 and **kept on** (D23). Active mgr was gw-ips-microcloud-1; standbys answer 200 with an empty body.
 - Metrics scraped on 8443 (no `core.metrics_address`) for now; see D22.
-- Members are on the 172.20.200.0/24 lab network (.11/.12/.13 = gw-ips-microcloud-1/2/3). Not reachable from the Claude dev VM (D26); reachable from the owner's Mac.
+- Members are on the 172.20.200.0/24 lab network (.11/.12/.13 = gw-ips-microcloud-1/2/3).
+- Host disks: OS on LUKS (`dm-0`) + LVM (`ubuntu-vg`: root LV `dm-1`, an OSD LV); OSDs are LUKS-encrypted (`luksosd-N`). LXD pools: `remote` (Ceph RBD), `remote-fs` (CephFS); no LVM pools. Not reachable from the Claude dev VM (D26); reachable from the owner's Mac.
 - Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac; dev config is `~/.config/mcui/config.toml` (data in `~/.local/share/mcui`).
 - LXD's filesystem metrics may omit a VM's `/` mount (seen on podman-1), so root FS can be unknown.
 

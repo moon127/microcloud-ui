@@ -66,11 +66,18 @@ def test_filesystem_filter():
         + 'lxd_disk_read_bytes_total{name="a",project="p",device="nvme0n1p2"} 1\n'
         + 'lxd_disk_read_bytes_total{name="a",project="p",device="sda"} 1\n'
         + 'lxd_disk_read_bytes_total{name="a",project="p",device="rbd0"} 1\n'
+        + 'lxd_disk_read_bytes_total{name="a",project="p",device="dm-1"} 4\n'
     )
-    kept = {(s.name, s.labels.get("mountpoint")) for s in lxd_samples("m", exp)}
+    kept = {
+        (s.name, s.labels.get("mountpoint"))
+        for s in lxd_samples("m", exp)
+        if s.name.startswith("lxd_")
+    }
     assert kept == {("lxd_filesystem_size_bytes", "/data"), ("lxd_disk_read_bytes_total", None)}
     devices = {s.labels["device"] for s in lxd_samples("m", exp) if s.name.startswith("lxd_disk")}
-    assert devices == {"sda", "rbd0"}  # partitions and loop devices skipped
+    assert devices == {"sda", "rbd0", "dm-1"}  # partitions and loop devices skipped
+    total = [s for s in lxd_samples("m", exp) if s.name == "mcui_instance_disk_read_bytes_total"]
+    assert [(t.value, t.kind) for t in total] == [(2.0, "counter")]  # sda + rbd0; dm left out
 
 
 def test_ceph_samples_from_real_cluster():

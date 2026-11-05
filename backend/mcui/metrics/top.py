@@ -20,7 +20,7 @@ PARTS: dict[str, tuple[tuple[str, ...], Fn, str]] = {
         "bytes_per_second",
     ),
     "disk": (
-        ("lxd_disk_read_bytes_total", "lxd_disk_written_bytes_total"),
+        ("mcui_instance_disk_read_bytes_total", "mcui_instance_disk_written_bytes_total"),
         "rate",
         "bytes_per_second",
     ),

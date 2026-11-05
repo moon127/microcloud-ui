@@ -14,12 +14,20 @@ from mcui.metrics.prom import Exposition
 from mcui.metrics.scrape import MemberScrape, Scraper
 
 # Partitions are already counted in their whole disk (VMs report both), and loop
-# devices are snap squashfs mounts inside VMs: both are skipped for disk I/O.
+# devices are snap squashfs mounts inside VMs: neither is stored.
 _SKIP_DISK = re.compile(r"^(?:(?:[sv]|xv|h)d[a-z]+\d+|nvme\d+n\d+p\d+|mmcblk\d+p\d+|loop\d+)$")
+# device-mapper devices are stacked (LUKS -> LVM -> fs on the hosts), so one I/O
+# shows on every layer: they're stored per device but left out of totals (D40).
+_STACKED = re.compile(r"^dm-\d+$")
+
+
+def stored_disk(device: str) -> bool:
+    return not _SKIP_DISK.match(device)
 
 
 def counted_disk(device: str) -> bool:
-    return not _SKIP_DISK.match(device)
+    """Whether a device's I/O is added to an instance's disk totals."""
+    return stored_disk(device) and not _STACKED.match(device)
 
 
 IDLE_CPU_MODES = frozenset({"idle", "iowait", "steal"})

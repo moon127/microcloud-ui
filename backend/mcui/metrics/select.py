@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any
 
-from mcui.metrics.live import counted_disk, effective_cpus, instance_totals, memory_used
+from mcui.metrics.live import effective_cpus, instance_totals, memory_used, stored_disk
 from mcui.metrics.prom import Exposition
 from mcui.metrics.store import Kind, Sample
 
@@ -125,6 +125,13 @@ CEPH: frozenset[str] = frozenset(
 CEPH_PREFIXES = ("ceph_rbd_",)
 
 
+# instance disk totals without stacked/partition double-counting (D40)
+DISK_TOTALS = {
+    "disk_read": "mcui_instance_disk_read_bytes_total",
+    "disk_written": "mcui_instance_disk_written_bytes_total",
+}
+
+
 def _keep_instance_sample(name: str, labels: Mapping[str, str]) -> bool:
     if name.startswith("lxd_filesystem_"):
         return labels.get("fstype") not in SKIP_FSTYPES and not labels.get(
@@ -133,7 +140,7 @@ def _keep_instance_sample(name: str, labels: Mapping[str, str]) -> bool:
     if name.startswith("lxd_network_"):
         return not labels.get("device", "").startswith(SKIP_NIC_PREFIXES)
     if name.startswith("lxd_disk_"):
-        return counted_disk(labels.get("device", ""))
+        return stored_disk(labels.get("device", ""))
     return True
 
 
@@ -165,6 +172,9 @@ def lxd_samples(member: str, exp: Exposition) -> list[Sample]:
         used = memory_used(t)
         if used is not None:
             out.append(Sample("mcui_instance_memory_used_bytes", base, used))
+        for key, metric in DISK_TOTALS.items():
+            if key in t.values:
+                out.append(Sample(metric, base, t.values[key], "counter"))
     return out
 
 

@@ -54,7 +54,7 @@ async def services(tmp_path):
                 ),
                 inst("busy", 1500 * i, metric="lxd_network_receive_bytes_total", device="eth0"),
                 inst("busy", 3000 * i, metric="lxd_network_transmit_bytes_total", device="eth0"),
-                inst("idle", 150 * i, metric="lxd_disk_read_bytes_total", device="sda"),
+                inst("idle", 150 * i, metric="mcui_instance_disk_read_bytes_total"),
             ],
         )
     return svc
@@ -75,7 +75,7 @@ async def test_names_series_query(app):
         await login(c, "viewer", "viewerpw")
         names = {n["name"]: n for n in (await c.get("/api/metrics/names")).json()}
         assert names["mcui_instance_cpus"]["series"] == 2
-        assert names["lxd_disk_read_bytes_total"]["kind"] == "counter"
+        assert names["mcui_instance_disk_read_bytes_total"]["kind"] == "counter"
 
         r = await c.get(
             "/api/metrics/series", params={"name": "mcui_instance_cpus", "match": "name=busy"}
