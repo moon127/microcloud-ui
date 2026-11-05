@@ -45,10 +45,18 @@ makes or alters a design decision.**
 | D16 | **Deployment: Python package + systemd unit, and an OCI container image** | Owner confirmed both. | Accepted 2026-11-05 |
 | D17 | **Manual dev run documented for macOS** (venv, `uvicorn --reload`, Vite dev server proxying `/api` + websockets) purely for development, separate from production deploy docs | Owner prototypes on a Mac. | Accepted 2026-11-05 |
 | D18 | **Stock `/ui` is treated as a behavioural reference only**: it is a static SPA calling the public LXD REST API, so full parity is achievable through our BFF. No lxd-ui (GPL-3.0) code is copied | Licence hygiene; we re-implement against the API. | Accepted 2026-11-05 |
-| D19 | **Feature detection from `api_extensions`** (`GET /1.0`); unsupported features hidden, not errored | MicroCloud may ship an older LXD than the latest API spec. | Proposed |
+| D19 | **Feature detection from `api_extensions`** (`GET /1.0`); unsupported features hidden, not errored. **Baseline LXD 5.21 LTS** | Test cloud runs LXD 5.21.8; the API reference in docs/ is from latest (6.x). | Accepted 2026-11-05 |
 | D20 | **Requirements live in `docs/REQUIREMENTS.md`** with IDs + tiers (MVP/P2/Later); commits reference IDs (e.g. `IN-2`) | Traceability. | Accepted 2026-11-05 |
 
 Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* when changed.
+
+## Test cloud facts (no secrets or IPs here)
+
+- LXD 5.21.8, clustered (MicroCloud). Cluster cert SAN: `gw-ips-microcloud-1`
+  plus loopback, so set `server_name = "gw-ips-microcloud-1"` and connect by IP.
+- Management cert: unrestricted client cert (option A). Metrics cert:
+  `--type=metrics`. Both verified against `/1.0` and `/1.0/metrics` on :8443.
+- Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac.
 
 ## Repo layout (target)
 

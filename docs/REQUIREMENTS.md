@@ -148,7 +148,7 @@ operations with progress and cancel.
 | NF-2 | ≥ 90% line+branch coverage for backend and frontend; tests in the same commit as features |
 | NF-3 | Always verify LXD's TLS certificate (pinned `server.crt`, optional `server_name`); never disable verification |
 | NF-4 | Scale target: up to 10 members, 1,000 instances, 15s scrape, < 1 GB SQLite/year at default rollups |
-| NF-5 | LXD compatibility: the LXD version MicroCloud ships (5.21 LTS / 6.x, to confirm); degrade gracefully |
+| NF-5 | LXD compatibility: **baseline LXD 5.21 LTS** (test cloud runs 5.21.8); newer 6.x features (replicators, placement groups, cluster links, image registries) are detected via `api_extensions` and hidden when absent |
 | NF-6 | Deploy as Python package + systemd unit and as an OCI container image |
 | NF-7 | Manual dev run on macOS documented (venv, backend with reload, Vite dev server) |
 | NF-8 | UI usable on desktop and tablet widths; keyboard accessible; light/dark |
@@ -159,7 +159,7 @@ installation or reconfiguration, enterprise storage drivers, multi-cluster
 management.
 
 ## 7. Open questions
-- **Q1** Which LXD version/snap channel and MicroCloud version does the test cluster run? Is `core.metrics_address` set?
+- ~~**Q1** LXD version?~~ **Answered 2026-11-05:** LXD 5.21.8, clustered. Cluster cert SAN is `DNS:gw-ips-microcloud-1` plus loopback only, so `server_name = "gw-ips-microcloud-1"`. Both the management cert (trusted) and the metrics cert were verified with curl on :8443. Still open: is `core.metrics_address` set, and the MicroCloud version.
 - **Q2** Do you agree with the MVP/P2 tiers above? Anything to promote or demote, such as the VGA console or file browser?
 - **Q3** What licence for this repo (private / MIT / Apache-2.0 / GPL-3.0)?
 - **Q4** Will the Mac reach the cluster's 8443/8444 and Ceph mgr 9283 directly, or through VPN/SSH tunnel?
