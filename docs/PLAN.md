@@ -129,6 +129,8 @@ flags (CF-3), Prometheus text parser, live per-instance metrics from all
 members (MO-1). Local auth + roles + audit log skeleton (AU-1/2/3).
 *Exit:* against your test cloud, list members and live metrics.
 
+**Checkpoint after Phase 1:** revisit Ceph perf-counter and RBD stats settings (MO-7a, D23, `docs/CEPH-METRICS.md` §2) with the owner, measuring mgr load on the test cluster before and after.
+
 **Phase 2: Metrics history & dashboards.** Background scraper, SQLite
 store with rollups, query API with rate maths (MO-2). Cluster overview,
 instance and member graphs, top-N (CL-1/2, MO-3/4/5). Storage pool capacity

@@ -16,7 +16,14 @@ If it isn't enabled:
 sudo microceph.ceph mgr module enable prometheus
 ```
 
-## 2. Recommended settings
+## 2. Recommended settings (DEFERRED on the test cloud)
+
+> **Status (2026-11-05):** only the module itself is enabled on the test cloud.
+> The two settings below add mgr load, so they are deferred until after Phase 1
+> and revisited then (see PLAN.md). microcloud-ui must **support but not require**
+> them: detect whether `ceph_osd_apply_latency_ms` / `ceph_rbd_*` series exist and
+> show "not enabled, see docs/CEPH-METRICS.md" instead of empty graphs.
+
 
 | Setting | Why |
 |---|---|
