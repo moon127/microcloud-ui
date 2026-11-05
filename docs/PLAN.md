@@ -129,7 +129,7 @@ flags (CF-3), Prometheus text parser, live per-instance metrics from all
 members (MO-1). Local auth + roles + audit log skeleton (AU-1/2/3).
 *Exit:* against your test cloud, list members and live metrics.
 
-**Checkpoint after Phase 1:** owner briefly enables the Ceph perf-counter and RBD stats settings (MO-7a, D23, `docs/CEPH-METRICS.md` §2) to confirm the OSD latency and per-RBD-image series and record them for the Phase 4 views (done 2026-11-05), measuring mgr load before and after, then decides whether to keep them on.
+**Checkpoint after Phase 1: ✅ done 2026-11-05.** The owner enabled the Ceph perf-counter and RBD stats settings (MO-7a, D23, `docs/CEPH-METRICS.md` §2); the OSD latency and per-RBD-image series were confirmed and recorded for the Phase 4 views, and the settings are kept on.
 
 **Phase 2: Metrics history & dashboards.** Background scraper, SQLite
 store with rollups, query API with rate maths (MO-2). Cluster overview,

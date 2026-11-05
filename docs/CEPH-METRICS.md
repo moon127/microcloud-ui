@@ -16,10 +16,10 @@ If it isn't enabled:
 sudo microceph.ceph mgr module enable prometheus
 ```
 
-## 2. Recommended settings (on the test cloud since 2026-11-05, under evaluation)
+## 2. Recommended settings (enabled on the test cloud since 2026-11-05)
 
-> **Status (2026-11-05):** the owner enabled both settings on the test cloud for
-> the MO-7a checkpoint. The UI views that use them are **not built yet**: they
+> **Status (2026-11-05):** both settings are enabled on the test cloud and kept
+> on after the MO-7a checkpoint (D23). The UI views that use them are **not built yet**: they
 > come in Phase 4 and will be built against the fixture recorded below.
 > microcloud-ui must **support but not require** the settings: detect whether
 > `ceph_osd_apply_latency_ms` / `ceph_rbd_*` series exist and show "not enabled,
@@ -35,7 +35,7 @@ sudo microceph.ceph mgr module enable prometheus
 > images) and `lxd_lxd` (LXD's own volume). BlueStore counters are the biggest
 > addition (858 samples). Scrubbed sample:
 > `backend/tests/fixtures/recorded/ceph_mgr_active_perf_rbd_on.txt`.
-> mgr CPU before/after is still to be measured on the host (§4).
+> The owner chose to keep them on; §4 shows how to check the mgr cost on other clusters.
 
 
 | Setting | Why |

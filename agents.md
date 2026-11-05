@@ -33,7 +33,7 @@ makes or alters a design decision.**
 | D5 | **Two LXD identities:** a full TLS client cert for API management, and a separate `--type=metrics` cert for scraping | Least privilege: metrics certs can only read `/1.0/metrics`. Either may be the same file if the owner prefers; config allows both. | Proposed |
 | D6 | **Server TLS verification is pinned** to the cluster's shared `cluster.crt` (standalone: `server.crt`; or a CA if PKI is used) with configurable `server_name`; never `verify=False` | In a cluster every member presents the same cluster cert. It's self-signed and IP SANs often don't match, so pin it and override SNI/hostname. | Accepted 2026-11-05 |
 | D22 | **Metrics scraped on API port 8443 by default**; dedicated `core.metrics_address` port supported via `[metrics] port` + per-member overrides; documented on both sides | Owner's choice for now; the dedicated port is the hardening path later. | Accepted 2026-11-05 |
-| D23 | **Ceph mgr prometheus: only the module is enabled for now.** The extra settings (`exclude_perf_counters=false`, needed because MicroCeph deploys no ceph-exporter, and `rbd_stats_pools` limited to LXD's pool) are **supported but optional**: the UI detects their series and explains how to enable them. Scrape every mgr host and use whichever answers with data | Owner deferred the load-adding settings on the small test cluster; the UI for both is built in Phase 4 (MO-7a) against fixtures; **enabled live 2026-11-05**, series confirmed and a scrubbed sample recorded; mgr CPU cost still to be measured, then the owner decides whether to keep them on. See docs/CEPH-METRICS.md. | Accepted 2026-11-05 |
+| D23 | **Ceph mgr prometheus: module plus both extra settings kept on** on the test cloud (`exclude_perf_counters=false`, needed because MicroCeph deploys no ceph-exporter, and `rbd_stats_pools=lxd_remote`). The UI still treats them as **optional**: it detects their series and explains how to enable them if absent, since other clusters may not have them. Scrape every mgr host and use whichever answers with data | Checkpoint 2026-11-05: series confirmed (6 OSDs, 34 RBD images), active-mgr response 267 KiB in ~35 ms; owner chose to keep them on. Phase 4 builds the OSD latency and per-RBD-image views (MO-7a) against the recorded fixture. See docs/CEPH-METRICS.md. | Accepted 2026-11-05 |
 | D24 | **Licence: MIT** (`LICENSE`). Dependencies must be MIT-compatible; copyleft libraries only as unmodified, separately loaded modules with their licence notices kept (e.g. spice-html5 for the VGA console, whose LGPL licence is to be confirmed when it's added). Never copy lxd-ui (GPL-3.0) code | Owner's choice. | Accepted 2026-11-05 |
 | D25 | **VGA console and file browser are MVP** (IN-9, IN-11). The backend proxies the LXD console websockets (data + control) so the browser never talks to LXD directly | Owner promoted them; the proxy keeps the cert server-side (D4). | Accepted 2026-11-05 |
 | D26 | **Live-test workflow:** the Claude session's dev VM **cannot** reach the test cloud (direct connects get "network unreachable"; the egress proxy refuses CONNECT with 403). So development and CI use recorded, scrubbed fixtures. The repo ships a recorder (`mcui record-fixtures`) and opt-in integration tests that the owner runs on the Mac and commits the scrubbed output | Keeps ≥90% coverage without live access; the owner does live validation. | Accepted 2026-11-05 |
@@ -80,7 +80,7 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   members (metrics cert, port 8443), integration tests pass, live rates sane.
   Fixtures recorded to `backend/tests/fixtures/recorded/` (scrubbed; contain the
   owner's free-text instance descriptions, so committing is the owner's call).
-  Next checkpoint: MO-7a (Ceph perf counters / RBD stats).
+  MO-7a checkpoint done 2026-11-05: Ceph extra stats confirmed and kept on (D23).
 - Next: **Phase 2**, metrics history & dashboards.
 
 ## Working conventions
@@ -99,7 +99,7 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   plus loopback, so set `server_name = "gw-ips-microcloud-1"` and connect by IP.
 - Management cert: unrestricted client cert (option A). Metrics cert:
   `--type=metrics`. Both verified against `/1.0` and `/1.0/metrics` on :8443.
-- MicroCeph (Ceph 19.2.3 squid) mgr `prometheus` module **enabled**; `exclude_perf_counters=false` and `rbd_stats_pools=lxd_remote` turned on 2026-11-05 for the MO-7a checkpoint (D23). Active mgr was gw-ips-microcloud-1; standbys answer 200 with an empty body.
+- MicroCeph (Ceph 19.2.3 squid) mgr `prometheus` module **enabled**; `exclude_perf_counters=false` and `rbd_stats_pools=lxd_remote` turned on 2026-11-05 and **kept on** (D23). Active mgr was gw-ips-microcloud-1; standbys answer 200 with an empty body.
 - Metrics scraped on 8443 (no `core.metrics_address`) for now; see D22.
 - Members are on the 172.20.200.0/24 lab network (.11/.12/.13 = gw-ips-microcloud-1/2/3). Not reachable from the Claude dev VM (D26); reachable from the owner's Mac.
 - Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac; dev config is `~/.config/mcui/config.toml` (data in `~/.local/share/mcui`).
