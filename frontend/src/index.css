@@ -46,3 +46,19 @@ h1 .muted { font-size: 0.9rem; font-weight: normal; }
 .hardware dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0 0 1rem; }
 .hardware dt { color: var(--muted); }
 .hardware dd { margin: 0; }
+button.danger { border-color: var(--error); color: var(--error); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+td.wrap { white-space: normal; min-width: 16rem; }
+.topbar .project { color: var(--muted); }
+.backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 0.4); display: grid; place-items: center; z-index: 20; }
+.dialog { background: var(--bg); color: var(--fg); padding: 1.25rem 1.5rem; border-radius: 8px; max-width: min(32rem, 92vw); box-shadow: 0 8px 30px rgb(0 0 0 / 0.3); }
+.dialog h2 { margin-top: 0; }
+.dialog-buttons { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+.toasts { position: fixed; right: 1rem; bottom: 1rem; list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; z-index: 30; max-width: min(28rem, 92vw); }
+.toast { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); box-shadow: 0 2px 10px rgb(0 0 0 / 0.15); }
+.toast.failed { border-color: var(--error); }
+.toast.done { border-color: #0e8420; }
+.toast button { border: none; padding: 0 0.25rem; }
+.yaml { display: grid; gap: 0.25rem; }
+.yaml textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; padding: 0.5rem; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: inherit; }
+.yaml textarea[aria-invalid="true"] { border-color: var(--error); }

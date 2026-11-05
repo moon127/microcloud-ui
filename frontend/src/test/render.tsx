@@ -2,6 +2,8 @@ import { render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { vi } from "vitest";
+import ActionsProvider from "../ActionsProvider";
+import { ProjectProvider } from "../ProjectProvider";
 import { SessionContext, type Session } from "../session";
 
 export function session(over: Partial<Session> = {}): Session {
@@ -14,11 +16,15 @@ export function renderAt(ui: ReactNode, { url = "/", path = "*", s = session() }
     session: s,
     ...render(
       <SessionContext.Provider value={s}>
-        <MemoryRouter initialEntries={[url]}>
-          <Routes>
-            <Route path={path} element={ui} />
-          </Routes>
-        </MemoryRouter>
+        <ProjectProvider>
+          <ActionsProvider>
+            <MemoryRouter initialEntries={[url]}>
+              <Routes>
+                <Route path={path} element={ui} />
+              </Routes>
+            </MemoryRouter>
+          </ActionsProvider>
+        </ProjectProvider>
       </SessionContext.Provider>,
     ),
   };

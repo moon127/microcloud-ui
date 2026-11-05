@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+from websockets.asyncio.client import ClientConnection, connect
+from websockets.exceptions import InvalidHandshake, InvalidStatus
 
 from mcui.lxd.tls import make_ssl_context
 
@@ -40,6 +42,8 @@ class LXDClient:
         self.endpoints = [e.rstrip("/") for e in endpoints]
         self.server_name = server_name
         self._current = 0
+        self._ssl = verify
+        self._timeout = timeout
         self._http = httpx.AsyncClient(verify=verify, timeout=timeout)
 
     @classmethod
@@ -124,6 +128,33 @@ class LXDClient:
 
     async def get(self, path: str, **params: Any) -> Any:
         return await self.query("GET", path, params=params or None)
+
+    async def websocket(
+        self, path: str, params: dict[str, str] | None = None, *, base: str | None = None
+    ) -> ClientConnection:
+        """Open an LXD websocket (events, exec/console streams) with the same mTLS."""
+        query = str(httpx.QueryParams(params or {}))
+        suffix = path + (f"?{query}" if query else "")
+        bases = [base.rstrip("/")] if base else self.endpoints
+        errors: list[str] = []
+        for ep in bases:
+            url = "wss://" + ep.split("://", 1)[-1] + suffix
+            try:
+                return await connect(
+                    url,
+                    ssl=self._ssl,
+                    server_hostname=self.server_name,
+                    open_timeout=self._timeout,
+                    max_size=None,
+                    ping_interval=None,
+                )
+            except InvalidStatus as e:
+                raise LXDError(
+                    f"websocket refused: HTTP {e.response.status_code}", e.response.status_code
+                ) from e
+            except (OSError, InvalidHandshake, TimeoutError) as e:
+                errors.append(f"{ep}: {type(e).__name__}: {e}")
+        raise LXDUnavailable("no LXD endpoint reachable: " + "; ".join(errors))
 
     async def aclose(self) -> None:
         await self._http.aclose()

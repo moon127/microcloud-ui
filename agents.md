@@ -51,6 +51,10 @@ makes or alters a design decision.**
 | D38 | **Frontend libraries:** React Router 7.18.4 and uPlot 1.6.32 (both MIT), pinned exactly. Pages use real URLs (`/instances/:project/:name`, `/members/:name`, `/storage`, `/networks`), served by the SPA fallback; the time range lives in `?range=` so views are linkable. Charts are a thin uPlot wrapper; panels describe their queries declaratively and derive ratios (CPU %) and differences (filesystem used) client-side | Small, fast, no chart framework lock-in. | Accepted 2026-11-05 |
 | D39 | **Per-network traffic = sum of instance NIC counters**, mapping guest interfaces to LXD networks by MAC (`volatile.<dev>.hwaddr` = guest `hwaddr`), because VM guests rename interfaces and OVN networks report zero counters. Instance index cached 60 s (`/1.0/instances?recursion=2&all-projects=true`) | Verified on the test cloud: VMs (`enp5s0`) and containers (`eth0`) map; docker/ZeroTier interfaces inside guests correctly don't. | Accepted 2026-11-05 |
 | D40 | **Instance disk totals leave out `dm-*` devices** (plus partitions and loop devices, D34), via derived `mcui_instance_disk_{read,written}_bytes_total` used by Top-N and the live table. Per-device series still include `dm-*` so the instance page shows them. **Caveat:** an LXD pool with the `lvm` driver puts instance disks on `dm-*`; if one is added, totals must count those (check pool drivers) | Owner's `lsblk` on gw-ips-microcloud-1: `sdb3 → dm-0 (LUKS) → dm-1 (LVM root /)` and `→ dm-2 (LVM) → dm-4 (LUKS) → Ceph OSD`. Containers' I/O to the host root appears on both dm-0 and dm-1 (identical counters), so summing double-counted; their own disks are `rbdN`. | Accepted 2026-11-05 |
+| D41 | **Live mutation tests are confined to an LXD project `mcui-test`** (tight limits, small Alpine containers) created on the test cloud for this purpose. Nothing outside it is changed by tests. Cluster-wide actions that can't be confined (member evacuate/restore, warning acknowledge/delete, cluster config) are fixture-tested only and live-tested by the owner | Owner approved 2026-11-05. | Accepted 2026-11-05 |
+| D42 | **Changes return the LXD operation at once; the browser follows it.** Mutating endpoints return `{operation, metadata}` without waiting; the UI's action tracker polls `GET /api/operations/{id}?wait=30` until it ends and shows a toast. The audit entry is written when the change is started (with the operation id), or with the error if LXD refused it | Long operations (evacuation, image downloads) don't hold HTTP requests open; one code path for every action. | Accepted 2026-11-05 |
+| D43 | **Browser websockets** (`/api/events`, later consoles): the socket is accepted, then closed with 4401 (not logged in) or 4403 (wrong Origin or role) so the browser can tell why; Origin's host must equal the request Host (no cross-site websocket hijacking); the Vite dev proxy keeps the browser's Host (`changeOrigin: false`). The events relay drops exact repeats because a clustered LXD sends every event twice (seen live) | Cookie auth alone isn't enough for websockets; SameSite=Strict plus the Origin check cover it. | Accepted 2026-11-05 |
+| D44 | **Project selection is a per-browser UI setting** (localStorage), "All projects" by default; lists use `all-projects=true` and filter client-side | No server state; matches how lists already work. | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -108,7 +112,12 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   typescript-eslint, lint-time only; fixed only in minimatch 11.0.1 (2026-10-27),
   which typescript-eslint doesn't accept yet. Revisit after 2026-11-10. Runtime
   deps: no advisories.
-- Next: **Phase 3**, instances, profiles, images, projects (management).
+- **Phase 3a (foundations): built 2026-11-05.** Operation helper, audited
+  changes (D42), `/api/events` websocket (D43), Operations and Warnings pages,
+  member evacuate/restore (fixture-tested only, D41), project switcher (D44),
+  confirm dialogs, action toasts, YAML editor. Live: sandbox project created, its
+  events seen once each through `/api/events`; cross-origin websocket refused.
+- Next: **Phase 3b**, instances (lifecycle, config, snapshots, logs, move).
 
 ## Working conventions
 
@@ -135,6 +144,7 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - Members are on the 172.20.200.0/24 lab network (.11/.12/.13 = gw-ips-microcloud-1/2/3).
 - Host disks: OS on LUKS (`dm-0`) + LVM (`ubuntu-vg`: root LV `dm-1`, an OSD LV); OSDs are LUKS-encrypted (`luksosd-N`). LXD pools: `remote` (Ceph RBD), `remote-fs` (CephFS) only. **No local instance storage** (no zfs/dir/lvm/btrfs pools), so only Ceph-backed instances are exercised; see Known gaps. Not reachable from the Claude dev VM (D26); reachable from the owner's Mac.
 - Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac; dev config is `~/.config/mcui/config.toml` (data in `~/.local/share/mcui`).
+- **Sandbox project `mcui-test`** (D41), created 2026-11-05: own images, profiles and volumes (`features.images/profiles/storage.volumes=true`), shared networks; default profile has a 2 GiB root on `remote` and **no NIC**, `limits.cpu=1`, `limits.memory=256MiB`; project limits 3 containers, 0 VMs, 2 CPU, 1 GiB RAM, 6 GiB disk. Remove with: delete its instances and images, then `lxc project delete mcui-test`.
 - LXD's filesystem metrics may omit a VM's `/` mount (seen on podman-1), so root FS can be unknown.
 
 ## Known gaps (not testable on the test cloud yet)

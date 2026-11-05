@@ -121,3 +121,35 @@ describe("history and inventory helpers", () => {
     ]);
   });
 });
+
+describe("phase 3 helpers", () => {
+  it("send the right method, URL and body", async () => {
+    setCsrf("t");
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    await api.fetchOperations();
+    await api.waitOperation("a/b");
+    await api.waitOperation("x", 5);
+    await api.cancelOperation("op 1");
+    await api.fetchWarnings();
+    await api.setWarningStatus("w1", "acknowledged");
+    await api.deleteWarning("w1");
+    await api.evacuateMember("m 1", "stop");
+    await api.evacuateMember("m1");
+    await api.restoreMember("m1");
+    await api.fetchProjects();
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/operations", "GET", null],
+      ["/api/operations/a%2Fb?wait=30", "GET", null],
+      ["/api/operations/x?wait=5", "GET", null],
+      ["/api/operations/op%201", "DELETE", null],
+      ["/api/warnings", "GET", null],
+      ["/api/warnings/w1", "PUT", '{"status":"acknowledged"}'],
+      ["/api/warnings/w1", "DELETE", null],
+      ["/api/cluster/members/m%201/evacuate", "POST", '{"mode":"stop"}'],
+      ["/api/cluster/members/m1/evacuate", "POST", "{}"],
+      ["/api/cluster/members/m1/restore", "POST", "{}"],
+      ["/api/projects", "GET", null],
+    ]);
+  });
+});

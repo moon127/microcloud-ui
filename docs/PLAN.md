@@ -138,6 +138,22 @@ history (MO-6), network counters (MO-8).
 
 **Phase 3: Instances, profiles, images, projects.** IN-1…12 (incl. VGA console IN-9 and file browser IN-11),
 PR-1, IM-1/2, PJ-1, operations/warnings/events (CL-7/8), evacuate/restore (CL-3).
+Every mutation: admin role + CSRF, audited with the LXD operation id (AU-3).
+Sub-phases, one commit each (approved 2026-11-05):
+- **3a Foundations:** LXD operation helper (start/wait/cancel/progress); `/api/events`
+  websocket relaying LXD events (cookie auth + Origin check); operations page with
+  cancel (CL-8); warnings list/acknowledge/delete (CL-7); member evacuate/restore
+  (CL-3); project switcher, confirm dialogs, form+YAML editor, action toasts.
+- **3b Instances:** list filters + bulk lifecycle (IN-1, IN-3); instance tabs for
+  config/devices (IN-4), snapshots (IN-5), logs (IN-10); rename/copy/move (IN-6),
+  publish as image (IN-12).
+- **3c Create instance (IN-2):** local or remote (simplestreams) image picker,
+  target, profiles, limits, root disk, NICs, disks, cloud-init, security, boot.
+- **3d Consoles:** exec terminal (IN-7, xterm.js), text console + log (IN-8),
+  VGA console (IN-9, spice-html5 LGPL module) — backend proxies LXD websockets.
+- **3e File browser (IN-11).**
+- **3f Profiles (PR-1), images (IM-1/2), projects (PJ-1).**
+Live tests that change things run only inside the `mcui-test` sandbox project (D41).
 
 **Phase 4: Networking & storage management + Ceph/OVN views.** Includes local pool support verified against recorded zfs/dir/lvm/btrfs fixtures (the test cloud is Ceph-only). NW-1/2/4/5,
 ST-1/2/3, Ceph dashboard (MO-7) incl. OSD latency + per-RBD-image I/O built against fixtures (MO-7a), OVN view from LXD API (MO-9).

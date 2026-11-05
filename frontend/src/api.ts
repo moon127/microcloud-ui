@@ -255,3 +255,70 @@ export interface NetworkTraffic {
 export function fetchNetworkTraffic(range: number): Promise<NetworkTraffic> {
   return api<NetworkTraffic>(`/api/metrics/network-traffic?range=${range}`);
 }
+
+// --- Phase 3: operations, warnings, projects, member state ---------------------
+
+export interface Operation {
+  id: string;
+  class?: string;
+  description: string;
+  created_at: string;
+  updated_at?: string;
+  status: string;
+  status_code?: number;
+  resources?: Record<string, string[]> | null;
+  metadata?: Record<string, unknown> | null;
+  may_cancel?: boolean;
+  err?: string;
+  location?: string;
+  project?: string;
+}
+
+/** Response of every mutating call: an LXD operation (async) or plain metadata. */
+export interface Started {
+  operation: Operation | null;
+  metadata: unknown;
+}
+
+export function send<T>(method: string, path: string, body?: unknown): Promise<T> {
+  return api<T>(path, { method, body: body === undefined ? undefined : JSON.stringify(body) });
+}
+
+export const fetchOperations = () => api<Operation[]>("/api/operations");
+export const waitOperation = (id: string, wait = 30) =>
+  api<Operation>(`/api/operations/${encodeURIComponent(id)}?wait=${wait}`);
+export const cancelOperation = (id: string) => send<void>("DELETE", `/api/operations/${encodeURIComponent(id)}`);
+
+export interface LxdWarning {
+  uuid: string;
+  project?: string;
+  type: string;
+  status: string;
+  severity: string;
+  count: number;
+  first_seen_at?: string;
+  last_seen_at: string;
+  last_message: string;
+  entity_url?: string;
+  location?: string;
+}
+
+export const fetchWarnings = () => api<LxdWarning[]>("/api/warnings");
+export const setWarningStatus = (uuid: string, status: "new" | "acknowledged") =>
+  send<Started>("PUT", `/api/warnings/${encodeURIComponent(uuid)}`, { status });
+export const deleteWarning = (uuid: string) => send<void>("DELETE", `/api/warnings/${encodeURIComponent(uuid)}`);
+
+export type EvacuationMode = "auto" | "migrate" | "live-migrate" | "stop";
+export const evacuateMember = (name: string, mode?: EvacuationMode) =>
+  send<Started>("POST", `/api/cluster/members/${encodeURIComponent(name)}/evacuate`, mode ? { mode } : {});
+export const restoreMember = (name: string) =>
+  send<Started>("POST", `/api/cluster/members/${encodeURIComponent(name)}/restore`, {});
+
+export interface Project {
+  name: string;
+  description: string;
+  config: Record<string, string>;
+  used_by: string[];
+}
+
+export const fetchProjects = () => api<Project[]>("/api/projects");

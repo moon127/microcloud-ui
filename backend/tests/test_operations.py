@@ -1,0 +1,93 @@
+import httpx
+import pytest
+import respx
+
+from mcui.lxd import operations
+from mcui.lxd.client import LXDError
+from tests.conftest import EP1, lxd_err, lxd_ok
+
+OP = {"id": "op1", "status": "Running", "created_at": "2026-01-01T00:00:00Z"}
+
+
+def async_resp(op=OP):
+    return httpx.Response(
+        202,
+        json={
+            "type": "async",
+            "status": "Operation created",
+            "operation": f"/1.0/operations/{op['id']}",
+            "metadata": op,
+        },
+    )
+
+
+@respx.mock
+async def test_start_async_and_sync(lxd):
+    respx.post(f"{EP1}/1.0/instances/c1/state").mock(return_value=async_resp())
+    st = await operations.start(lxd, "POST", "/1.0/instances/c1/state", json={"action": "start"})
+    assert st.operation_id == "op1" and st.as_dict() == {"operation": OP, "metadata": None}
+    respx.put(f"{EP1}/1.0/warnings/w").mock(return_value=lxd_ok({"x": 1}))
+    st = await operations.start(lxd, "PUT", "/1.0/warnings/w", json={})
+    assert st.operation_id is None and st.metadata == {"x": 1}
+
+
+@pytest.mark.parametrize(
+    "resp,msg",
+    [
+        (lxd_err("Instance is running", 400), "Instance is running"),
+        (httpx.Response(500, text="<html>"), "non-JSON"),
+        (httpx.Response(200, json=[1]), "HTTP 200"),
+        (httpx.Response(404, json={"type": "sync"}), "HTTP 404"),
+    ],
+)
+@respx.mock
+async def test_start_errors(lxd, resp, msg):
+    respx.delete(f"{EP1}/1.0/x").mock(return_value=resp)
+    with pytest.raises(LXDError, match=msg):
+        await operations.start(lxd, "DELETE", "/1.0/x")
+
+
+@respx.mock
+async def test_wait_get_cancel_list(lxd):
+    w = respx.get(f"{EP1}/1.0/operations/op1/wait").mock(
+        return_value=lxd_ok({**OP, "status": "Success"})
+    )
+    assert (await operations.wait(lxd, "op1", 999))["status"] == "Success"
+    assert w.calls.last.request.url.params["timeout"] == "30"
+    await operations.wait(lxd, "op1", -5)
+    assert w.calls.last.request.url.params["timeout"] == "0"
+    respx.get(f"{EP1}/1.0/operations/op1").mock(return_value=lxd_ok(OP))
+    assert (await operations.get(lxd, "op1"))["id"] == "op1"
+    c = respx.delete(f"{EP1}/1.0/operations/op1").mock(return_value=lxd_ok(None))
+    await operations.cancel(lxd, "op1")
+    assert c.called
+    respx.get(f"{EP1}/1.0/operations").mock(
+        return_value=lxd_ok(
+            {
+                "running": [{"id": "a", "created_at": "2026-01-02"}],
+                "success": [{"id": "b", "created_at": "2026-01-03"}],
+                "failure": None,
+            }
+        )
+    )
+    assert [o["id"] for o in await operations.list_all(lxd)] == ["b", "a"]
+    respx.get(f"{EP1}/1.0/operations").mock(return_value=lxd_ok(None))
+    assert await operations.list_all(lxd) == []
+
+
+@respx.mock
+async def test_run(lxd):
+    respx.post(f"{EP1}/1.0/x").mock(return_value=async_resp())
+    wait = respx.get(f"{EP1}/1.0/operations/op1/wait")
+    wait.mock(return_value=lxd_ok({**OP, "status": "Success"}))
+    st = await operations.run(lxd, "POST", "/1.0/x", timeout=5)
+    assert st.operation["status"] == "Success"
+    assert wait.calls.last.request.url.params["timeout"] == "5"
+    wait.mock(return_value=lxd_ok({**OP, "status": "Failure", "err": "boom"}))
+    with pytest.raises(LXDError, match="boom"):
+        await operations.run(lxd, "POST", "/1.0/x")
+    wait.mock(return_value=lxd_ok({**OP, "status": "Failure"}))
+    with pytest.raises(LXDError, match="operation failed"):
+        await operations.run(lxd, "POST", "/1.0/x")
+    respx.post(f"{EP1}/1.0/y").mock(return_value=lxd_ok({"done": True}))
+    assert (await operations.run(lxd, "POST", "/1.0/y")).metadata == {"done": True}

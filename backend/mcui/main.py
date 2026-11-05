@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 
 from mcui import __version__
-from mcui.api import auth, cluster, metrics
+from mcui.api import auth, cluster, metrics, ops
 from mcui.config import Settings, load_settings
 from mcui.lxd.client import LXDError, LXDUnavailable
 from mcui.services import Services, build_services
@@ -52,6 +52,7 @@ def create_app(
     app.include_router(auth.router)
     app.include_router(cluster.router)
     app.include_router(metrics.router)
+    app.include_router(ops.router)
 
     if static_dir is not None and (static_dir / "index.html").is_file():
         root = static_dir.resolve()

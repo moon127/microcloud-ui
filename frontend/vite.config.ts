@@ -8,7 +8,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api": { target: backend, changeOrigin: true, ws: true },
+      // keep the browser's Host so the backend's websocket Origin check matches
+      "/api": { target: backend, changeOrigin: false, ws: true },
     },
   },
   test: {

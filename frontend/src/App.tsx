@@ -1,14 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { ApiError, fetchMe, logout, setCsrf, type User } from "./api";
+import ActionsProvider from "./ActionsProvider";
 import Layout from "./Layout";
 import Login from "./Login";
 import InstancePage from "./pages/InstancePage";
 import InstancesPage from "./pages/InstancesPage";
 import MemberPage from "./pages/MemberPage";
 import NetworksPage from "./pages/NetworksPage";
+import OperationsPage from "./pages/OperationsPage";
 import Overview from "./pages/Overview";
 import StoragePage from "./pages/StoragePage";
+import WarningsPage from "./pages/WarningsPage";
+import { ProjectProvider } from "./ProjectProvider";
 import { SessionContext } from "./session";
 import "./index.css";
 
@@ -28,6 +32,8 @@ export function AppRoutes() {
         <Route path="members/:name" element={<MemberPage />} />
         <Route path="storage" element={<StoragePage />} />
         <Route path="networks" element={<NetworksPage />} />
+        <Route path="operations" element={<OperationsPage />} />
+        <Route path="warnings" element={<WarningsPage />} />
         <Route path="*" element={<p>Page not found.</p>} />
       </Route>
     </Routes>
@@ -92,9 +98,13 @@ export default function App() {
     case "user":
       return (
         <SessionContext.Provider value={session}>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
+          <ProjectProvider>
+            <ActionsProvider>
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </ActionsProvider>
+          </ProjectProvider>
         </SessionContext.Provider>
       );
   }

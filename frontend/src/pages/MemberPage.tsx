@@ -1,5 +1,18 @@
 import { useParams } from "react-router";
-import { fetchMemberResources, type Labels, type QueryResult, type Resources } from "../api";
+import { useState } from "react";
+import {
+  evacuateMember,
+  fetchMemberResources,
+  fetchMembers,
+  restoreMember,
+  type EvacuationMode,
+  type Labels,
+  type QueryResult,
+  type Resources,
+} from "../api";
+import { useActions } from "../actions";
+import Confirm from "../Confirm";
+import { useSession } from "../session";
 import MetricPanel from "../chart/MetricPanel";
 import { nonZero, type PanelQuery } from "../chart/panel";
 import { subtract } from "../chart/series";
@@ -26,6 +39,7 @@ export default function MemberPage() {
   return (
     <>
       <h1>{name}</h1>
+      <MemberActions name={name} />
       {res.error && <p role="alert">{res.error}</p>}
       {res.data && <Hardware r={res.data} />}
       <RangePicker />
@@ -146,5 +160,81 @@ function Hardware({ r }: { r: Resources }) {
         </dd>
       </dl>
     </section>
+  );
+}
+
+const MODES: { value: EvacuationMode | ""; label: string }[] = [
+  { value: "", label: "Default (per instance cluster.evacuate setting)" },
+  { value: "auto", label: "auto: migrate where possible, else stop" },
+  { value: "migrate", label: "migrate (cold)" },
+  { value: "live-migrate", label: "live-migrate (VMs)" },
+  { value: "stop", label: "stop instances, don't move them" },
+];
+
+function MemberActions({ name }: { name: string }) {
+  const { user } = useSession();
+  const { run, version } = useActions();
+  const members = useApi(`members:${version}`, fetchMembers);
+  const [confirm, setConfirm] = useState<"evacuate" | "restore" | null>(null);
+  const [mode, setMode] = useState<EvacuationMode | "">("");
+  const member = members.data?.find((m) => m.name === name);
+  if (!member) return null;
+  const admin = user.role === "admin";
+  return (
+    <p>
+      Status: <strong>{member.status}</strong>
+      {member.message ? ` (${member.message})` : ""} · roles: {member.roles.join(", ") || "none"}
+      {admin && (
+        <>
+          {" "}
+          {member.status === "Evacuated" ? (
+            <button type="button" onClick={() => setConfirm("restore")}>
+              Restore
+            </button>
+          ) : (
+            <button type="button" className="danger" onClick={() => setConfirm("evacuate")}>
+              Evacuate
+            </button>
+          )}
+        </>
+      )}
+      {confirm === "evacuate" && (
+        <Confirm
+          title={`Evacuate ${name}?`}
+          confirmLabel="Evacuate"
+          danger
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => {
+            setConfirm(null);
+            void run(`Evacuate ${name}`, () => evacuateMember(name, mode || undefined));
+          }}
+        >
+          <p>All instances on this member are moved or stopped, and no new ones are placed here until it is restored.</p>
+          <label>
+            Mode{" "}
+            <select value={mode} onChange={(e) => setMode(e.target.value as EvacuationMode | "")}>
+              {MODES.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </Confirm>
+      )}
+      {confirm === "restore" && (
+        <Confirm
+          title={`Restore ${name}?`}
+          confirmLabel="Restore"
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => {
+            setConfirm(null);
+            void run(`Restore ${name}`, () => restoreMember(name));
+          }}
+        >
+          <p>Instances evacuated from this member are moved back and started.</p>
+        </Confirm>
+      )}
+    </p>
   );
 }
