@@ -118,7 +118,7 @@ operations with progress and cancel.
 | MO-4 | Member graphs: aggregated instance CPU/memory/net/disk; host load and memory from `/cluster/members/{}/state`; LXD daemon health (API request rates and errors, ongoing ops, warnings, goroutines, uptime) | MVP |
 | MO-5 | Top-N tables (instances by CPU, memory, net, disk I/O) cluster-wide and per project/member | MVP |
 | MO-6 | Storage pool capacity & inode usage history per member (`/storage-pools/{}/resources`); volume usage (`/volumes/.../state`) | MVP |
-| MO-7 | Ceph dashboard from the ceph-mgr `prometheus` module (`:9283` on each mgr host, active mgr answers): health, OSD up/in, PG states, raw & per-pool capacity, client IOPS/throughput, OSD latency | MVP |
+| MO-7 | Ceph dashboard from the ceph-mgr `prometheus` module (`:9283` on each mgr host, active mgr answers): health (`ceph_health_detail` checks), OSD up/in, PG states, raw & per-pool capacity, client IOPS/throughput, OSD latency (needs `exclude_perf_counters=false`), per-RBD-image I/O mapped to LXD instances/volumes (needs `rbd_stats_pools`). Setup: `docs/CEPH-METRICS.md` | MVP |
 | MO-8 | Network graphs: per-network interface counters (`/networks/{}/state`), traffic aggregated from instance NICs per network | MVP |
 | MO-9 | OVN view from LXD API: OVN networks with uplink, router addresses, forwards/LBs/peers/ACLs, allocations; health summary | MVP |
 | MO-10 | Project quota usage over time (`/projects/{}/state`) | P2 |
