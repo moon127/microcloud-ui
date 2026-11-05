@@ -4,7 +4,7 @@ import { ApiError, fetchMe, logout, setCsrf, type User } from "./api";
 import ActionsProvider from "./ActionsProvider";
 import Layout from "./Layout";
 import Login from "./Login";
-import InstancePage from "./pages/InstancePage";
+import InstancePage from "./pages/instance/InstancePage";
 import InstancesPage from "./pages/InstancesPage";
 import MemberPage from "./pages/MemberPage";
 import NetworksPage from "./pages/NetworksPage";

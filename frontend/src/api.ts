@@ -198,14 +198,108 @@ export interface Instance {
   status: string;
   location: string;
   description: string;
+  profiles?: string[];
   nics: Record<string, string>;
 }
 
 export const fetchInstances = () => api<Instance[]>("/api/instances");
 
-export function fetchInstance(project: string, name: string): Promise<Instance> {
-  return api<Instance>(`/api/instances/${encodeURIComponent(project)}/${encodeURIComponent(name)}`);
+export interface Snapshot {
+  name: string;
+  created_at: string;
+  expires_at?: string;
+  stateful: boolean;
 }
+
+/** The full LXD instance, as GET /1.0/instances/{name}?recursion=1 returns it. */
+export interface InstanceFull {
+  project: string;
+  name: string;
+  type: string;
+  status: string;
+  location: string;
+  description: string;
+  architecture?: string;
+  ephemeral?: boolean;
+  stateful?: boolean;
+  profiles: string[];
+  config: Record<string, string>;
+  devices: Record<string, Record<string, string>>;
+  expanded_config?: Record<string, string>;
+  expanded_devices?: Record<string, Record<string, string>>;
+  created_at?: string;
+  last_used_at?: string;
+  snapshots?: Snapshot[] | null;
+}
+
+const inst = (project: string, name: string) =>
+  `/api/instances/${encodeURIComponent(project)}/${encodeURIComponent(name)}`;
+
+export function fetchInstance(project: string, name: string): Promise<InstanceFull> {
+  return api<InstanceFull>(inst(project, name));
+}
+
+export type StateAction = "start" | "stop" | "restart" | "freeze" | "unfreeze";
+
+export const changeState = (project: string, name: string, action: StateAction, force = false) =>
+  send<Started>("PUT", `${inst(project, name)}/state`, { action, force });
+
+export const deleteInstance = (project: string, name: string, force = false) =>
+  send<Started>("DELETE", `${inst(project, name)}${force ? "?force=true" : ""}`);
+
+export interface InstanceUpdate {
+  description: string;
+  config: Record<string, string>;
+  devices: Record<string, Record<string, string>>;
+  profiles: string[];
+  ephemeral: boolean;
+  stateful: boolean;
+  architecture?: string;
+}
+
+export const updateInstance = (project: string, name: string, body: InstanceUpdate) =>
+  send<Started>("PUT", inst(project, name), body);
+export const patchInstanceConfig = (project: string, name: string, config: Record<string, string>) =>
+  send<Started>("PATCH", `${inst(project, name)}/config`, { config });
+export const renameInstance = (project: string, name: string, to: string) =>
+  send<Started>("POST", `${inst(project, name)}/rename`, { name: to });
+export const moveInstance = (project: string, name: string, opts: { target?: string; pool?: string; live?: boolean }) =>
+  send<Started>("POST", `${inst(project, name)}/move`, opts);
+export const copyInstance = (
+  project: string,
+  name: string,
+  opts: { name: string; snapshot?: string; target?: string; start?: boolean; instance_only?: boolean },
+) => send<Started>("POST", `${inst(project, name)}/copy`, opts);
+export const createSnapshot = (
+  project: string,
+  name: string,
+  opts: { name: string; stateful?: boolean; expires_at?: string },
+) => send<Started>("POST", `${inst(project, name)}/snapshots`, opts);
+export const renameSnapshot = (project: string, name: string, snap: string, to: string) =>
+  send<Started>("POST", `${inst(project, name)}/snapshots/${encodeURIComponent(snap)}/rename`, { name: to });
+export const deleteSnapshot = (project: string, name: string, snap: string) =>
+  send<Started>("DELETE", `${inst(project, name)}/snapshots/${encodeURIComponent(snap)}`);
+export const restoreSnapshot = (project: string, name: string, snap: string) =>
+  send<Started>("POST", `${inst(project, name)}/snapshots/${encodeURIComponent(snap)}/restore`, {});
+export const publishInstance = (project: string, name: string, opts: { alias?: string; snapshot?: string }) =>
+  send<Started>("POST", `${inst(project, name)}/publish`, opts);
+
+export const fetchLogs = (project: string, name: string) => api<string[]>(`${inst(project, name)}/logs`);
+
+export async function fetchLog(project: string, name: string, file: string): Promise<string> {
+  const res = await fetch(`${inst(project, name)}/logs/${encodeURIComponent(file)}`, { credentials: "same-origin" });
+  if (!res.ok) throw new ApiError(res.status, `HTTP ${res.status}`);
+  return res.text();
+}
+
+export interface StoragePool {
+  name: string;
+  driver: string;
+  status: string;
+  description: string;
+}
+
+export const fetchStoragePools = () => api<StoragePool[]>("/api/storage-pools");
 
 export interface Member {
   name: string;

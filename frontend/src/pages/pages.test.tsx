@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../api";
 import { renderAt } from "../test/render";
 import { plots } from "../test/uplotMock";
-import InstancePage from "./InstancePage";
+import InstancePage from "./instance/InstancePage";
 import InstancesPage from "./InstancesPage";
 import MemberPage from "./MemberPage";
 import NetworksPage from "./NetworksPage";
@@ -50,6 +50,14 @@ const inst: api.Instance = {
   nics: { enp5s0: "ovn1", eth1: "ovn1" },
 };
 
+const full = (over: Partial<api.InstanceFull> = {}): api.InstanceFull => ({
+  ...inst,
+  profiles: ["default"],
+  config: {},
+  devices: {},
+  ...over,
+});
+
 describe("InstancesPage", () => {
   it("lists and filters instances", async () => {
     vi.spyOn(api, "fetchInstances").mockResolvedValue([
@@ -79,7 +87,7 @@ describe("InstancesPage", () => {
 
 describe("InstancePage", () => {
   it("draws the instance graphs", async () => {
-    vi.spyOn(api, "fetchInstance").mockResolvedValue(inst);
+    vi.spyOn(api, "fetchInstance").mockResolvedValue(full());
     data = {
       mcui_instance_cpu_busy_seconds_total: [{ labels: { name: "c1" }, points: [[10, 0.5]] }],
       mcui_instance_cpus: [{ labels: { name: "c1" }, points: [[10, 2]] }],
@@ -240,7 +248,7 @@ describe("NetworksPage", () => {
 describe("every panel with data", () => {
   it("instance page", async () => {
     fallback = everything;
-    vi.spyOn(api, "fetchInstance").mockResolvedValue({ ...inst, type: "container" });
+    vi.spyOn(api, "fetchInstance").mockResolvedValue(full({ type: "container" }));
     data = { lxd_filesystem_avail_bytes: [] };
     renderAt(<InstancePage />, { url: "/instances/default/c1", path: "/instances/:project/:name" });
     await vi.waitFor(() => expect(plots.length).toBe(9));

@@ -1,21 +1,16 @@
-import { useParams } from "react-router";
-import { fetchInstance, type Labels, type QueryResult } from "../api";
-import MetricPanel from "../chart/MetricPanel";
-import type { PanelQuery } from "../chart/panel";
-import { ratioPercent, subtract } from "../chart/series";
-import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
-import { MemberLink } from "../links";
-import { useRange } from "../range";
-import RangePicker from "../RangePicker";
-import { useApi } from "../useApi";
+import type { Labels, QueryResult } from "../../api";
+import MetricPanel from "../../chart/MetricPanel";
+import type { PanelQuery } from "../../chart/panel";
+import { ratioPercent, subtract } from "../../chart/series";
+import { formatBytes, formatNumber, formatPercent, formatRate } from "../../format";
+import { useRange } from "../../range";
+import RangePicker from "../../RangePicker";
 
 const perSecond = (v: number) => `${formatNumber(v)}/s`;
 const fixed = (label: string) => () => label;
 
-export default function InstancePage() {
-  const { project = "default", name = "" } = useParams();
+export default function Graphs({ project, name }: { project: string; name: string }) {
   const range = useRange();
-  const info = useApi(`instance:${project}/${name}`, () => fetchInstance(project, name));
   const match: Labels = { project, name };
   const q = (metric: string, extra: Omit<PanelQuery, "name"> = {}): PanelQuery => ({
     name: metric,
@@ -26,17 +21,6 @@ export default function InstancePage() {
 
   return (
     <>
-      <h1>
-        {project === "default" ? name : `${project}/${name}`}
-        {info.data && (
-          <span className="muted">
-            {" "}
-            {info.data.type === "virtual-machine" ? "VM" : "container"} · {info.data.status} · on{" "}
-            <MemberLink name={info.data.location} />
-          </span>
-        )}
-      </h1>
-      {info.error && <p role="alert">{info.error}</p>}
       <RangePicker />
       <div className="grid">
         <MetricPanel

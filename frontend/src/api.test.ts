@@ -153,3 +153,56 @@ describe("phase 3 helpers", () => {
     ]);
   });
 });
+
+describe("instance helpers", () => {
+  it("send the right method, URL and body", async () => {
+    setCsrf("t");
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    const upd = { description: "", config: {}, devices: {}, profiles: [], ephemeral: false, stateful: false };
+    await api.fetchInstance("p", "c 1");
+    await api.changeState("p", "c1", "stop", true);
+    await api.changeState("p", "c1", "start");
+    await api.deleteInstance("p", "c1");
+    await api.deleteInstance("p", "c1", true);
+    await api.updateInstance("p", "c1", upd);
+    await api.patchInstanceConfig("p", "c1", { a: "1" });
+    await api.renameInstance("p", "c1", "c2");
+    await api.moveInstance("p", "c1", { target: "m2" });
+    await api.copyInstance("p", "c1", { name: "c3", snapshot: "s1" });
+    await api.createSnapshot("p", "c1", { name: "s1" });
+    await api.renameSnapshot("p", "c1", "s 1", "s2");
+    await api.deleteSnapshot("p", "c1", "s1");
+    await api.restoreSnapshot("p", "c1", "s1");
+    await api.publishInstance("p", "c1", { alias: "g" });
+    await api.fetchLogs("p", "c1");
+    await api.fetchStoragePools();
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/instances/p/c%201", "GET", null],
+      ["/api/instances/p/c1/state", "PUT", '{"action":"stop","force":true}'],
+      ["/api/instances/p/c1/state", "PUT", '{"action":"start","force":false}'],
+      ["/api/instances/p/c1", "DELETE", null],
+      ["/api/instances/p/c1?force=true", "DELETE", null],
+      ["/api/instances/p/c1", "PUT", JSON.stringify(upd)],
+      ["/api/instances/p/c1/config", "PATCH", '{"config":{"a":"1"}}'],
+      ["/api/instances/p/c1/rename", "POST", '{"name":"c2"}'],
+      ["/api/instances/p/c1/move", "POST", '{"target":"m2"}'],
+      ["/api/instances/p/c1/copy", "POST", '{"name":"c3","snapshot":"s1"}'],
+      ["/api/instances/p/c1/snapshots", "POST", '{"name":"s1"}'],
+      ["/api/instances/p/c1/snapshots/s%201/rename", "POST", '{"name":"s2"}'],
+      ["/api/instances/p/c1/snapshots/s1", "DELETE", null],
+      ["/api/instances/p/c1/snapshots/s1/restore", "POST", "{}"],
+      ["/api/instances/p/c1/publish", "POST", '{"alias":"g"}'],
+      ["/api/instances/p/c1/logs", "GET", null],
+      ["/api/storage-pools", "GET", null],
+    ]);
+  });
+
+  it("fetches logs as text", async () => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response("line\n"))
+      .mockResolvedValueOnce(new Response("", { status: 404 }));
+    await expect(api.fetchLog("p", "c1", "lxc.log")).resolves.toBe("line\n");
+    await expect(api.fetchLog("p", "c1", "x")).rejects.toThrow("HTTP 404");
+  });
+});

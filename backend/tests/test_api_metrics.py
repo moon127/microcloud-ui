@@ -196,7 +196,9 @@ async def test_network_traffic(app, services):
 
     async def fake_get():
         return [
-            InstanceInfo("default", "busy", "container", "Running", "m1", "", {"eth0": "ovn1"}),
+            InstanceInfo(
+                "default", "busy", "container", "Running", "m1", "", nics={"eth0": "ovn1"}
+            ),
         ]
 
     services.instances.get = fake_get

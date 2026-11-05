@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Any
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
-from mcui.api.deps import LiveDep, LXDDep, ServicesDep, SessionDep
-from mcui.lxd.instances import InstanceIndex
+from mcui.api.deps import LiveDep, LXDDep, SessionDep
 from mcui.lxd.server import members, server_info
 
 router = APIRouter(prefix="/api")
@@ -38,23 +37,15 @@ async def member_resources(name: str, _: SessionDep, lxd: LXDDep) -> dict[str, A
     return data
 
 
-async def get_index(services: ServicesDep) -> InstanceIndex:
-    if services.instances is None:
-        raise HTTPException(status_code=503, detail="LXD is not configured")
-    return services.instances
-
-
-IndexDep = Annotated[InstanceIndex, Depends(get_index)]
-
-
-@router.get("/instances")
-async def instances(_: SessionDep, index: IndexDep) -> list[dict[str, Any]]:
-    return [i.as_dict() for i in await index.get()]
-
-
-@router.get("/instances/{project}/{name}")
-async def instance(project: str, name: str, _: SessionDep, index: IndexDep) -> dict[str, Any]:
-    for i in await index.get():
-        if (i.project, i.name) == (project, name):
-            return i.as_dict()
-    raise HTTPException(status_code=404, detail="no such instance")
+@router.get("/storage-pools")
+async def storage_pools(_: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
+    data = await lxd.get("/1.0/storage-pools", recursion=1)
+    return [
+        {
+            "name": p["name"],
+            "driver": p.get("driver", ""),
+            "status": p.get("status", ""),
+            "description": p.get("description", ""),
+        }
+        for p in data or []
+    ]

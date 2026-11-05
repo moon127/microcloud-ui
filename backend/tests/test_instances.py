@@ -58,6 +58,7 @@ def test_summarize():
         "status": "Running",
         "location": "m1",
         "description": "",
+        "profiles": [],
         "nics": {},
     }
 
@@ -76,3 +77,6 @@ async def test_index_caches(lxd):
     now[0] = 61
     await idx.get()
     assert route.call_count == 2
+    idx.invalidate()
+    await idx.get()
+    assert route.call_count == 3

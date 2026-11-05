@@ -10,7 +10,7 @@ from typing import Any
 
 from mcui.lxd.client import LXDClient
 
-CACHE_SECONDS = 60.0
+CACHE_SECONDS = 10.0  # short: lists must reflect changes made outside the UI
 
 
 @dataclass
@@ -21,6 +21,7 @@ class InstanceInfo:
     status: str
     location: str
     description: str
+    profiles: list[str] = field(default_factory=list)
     # guest interface name (as in lxd_network_* metrics) -> LXD network
     nics: dict[str, str] = field(default_factory=dict)
 
@@ -32,6 +33,7 @@ class InstanceInfo:
             "status": self.status,
             "location": self.location,
             "description": self.description,
+            "profiles": self.profiles,
             "nics": self.nics,
         }
 
@@ -67,6 +69,7 @@ def summarize(inst: dict[str, Any]) -> InstanceInfo:
         status=inst.get("status", ""),
         location=inst.get("location", ""),
         description=inst.get("description", ""),
+        profiles=list(inst.get("profiles") or []),
         nics=guest_nics(inst),
     )
 
@@ -97,6 +100,10 @@ class InstanceIndex:
                 )
                 self._at = self.clock()
             return self._items
+
+    def invalidate(self) -> None:
+        """Forget the cached list (after a change made through the UI)."""
+        self._items = None
 
     async def nic_networks(self) -> dict[tuple[str, str, str], str]:
         return {

@@ -202,6 +202,8 @@ async def test_member_resources_and_instances(app):
         {"name": "a", "project": "p", "type": "virtual-machine", "status": "Stopped"},
     ]
     respx.get(f"{EP1}/1.0/instances").mock(return_value=lxd_ok(insts))
+    respx.get(f"{EP1}/1.0/instances/b").mock(return_value=lxd_ok(insts[0]))
+    respx.get(f"{EP1}/1.0/instances/zzz").mock(return_value=lxd_err("Instance not found", 404))
     async with client(app) as c:
         await login(c, "viewer", "viewerpw")
         assert (await c.get("/api/cluster/members/m2/resources")).json() == {"cpu": {"total": 8}}
@@ -209,7 +211,7 @@ async def test_member_resources_and_instances(app):
         listed = (await c.get("/api/instances")).json()
         assert [i["name"] for i in listed] == ["a", "b"]
         assert (await c.get("/api/instances/p/b")).json()["location"] == "m1"
-        assert (await c.get("/api/instances/p/zzz")).status_code == 404
+        assert (await c.get("/api/instances/p/zzz")).status_code == 502
 
 
 async def test_instances_not_configured(tmp_path):
@@ -221,3 +223,18 @@ async def test_instances_not_configured(tmp_path):
     async with client(create_app(services=svc, static_dir=None)) as c:
         await login(c, "v", "pw")
         assert (await c.get("/api/instances")).status_code == 503
+
+
+@respx.mock
+async def test_storage_pools(app):
+    respx.get(f"{EP1}/1.0/storage-pools").mock(
+        return_value=lxd_ok(
+            [{"name": "remote", "driver": "ceph", "status": "Created"}, {"name": "x"}]
+        )
+    )
+    async with client(app) as c:
+        await login(c, "viewer", "viewerpw")
+        assert (await c.get("/api/storage-pools")).json() == [
+            {"name": "remote", "driver": "ceph", "status": "Created", "description": ""},
+            {"name": "x", "driver": "", "status": "", "description": ""},
+        ]

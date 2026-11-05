@@ -55,6 +55,8 @@ makes or alters a design decision.**
 | D42 | **Changes return the LXD operation at once; the browser follows it.** Mutating endpoints return `{operation, metadata}` without waiting; the UI's action tracker polls `GET /api/operations/{id}?wait=30` until it ends and shows a toast. The audit entry is written when the change is started (with the operation id), or with the error if LXD refused it | Long operations (evacuation, image downloads) don't hold HTTP requests open; one code path for every action. | Accepted 2026-11-05 |
 | D43 | **Browser websockets** (`/api/events`, later consoles): the socket is accepted, then closed with 4401 (not logged in) or 4403 (wrong Origin or role) so the browser can tell why; Origin's host must equal the request Host (no cross-site websocket hijacking); the Vite dev proxy keeps the browser's Host (`changeOrigin: false`). The events relay drops exact repeats because a clustered LXD sends every event twice (seen live) | Cookie auth alone isn't enough for websockets; SameSite=Strict plus the Origin check cover it. | Accepted 2026-11-05 |
 | D44 | **Project selection is a per-browser UI setting** (localStorage), "All projects" by default; lists use `all-projects=true` and filter client-side | No server state; matches how lists already work. | Accepted 2026-11-05 |
+| D45 | **Instance config is saved as a whole** (LXD `PUT` with every writable field: description, config incl. volatile keys, devices, profiles, ephemeral, stateful, architecture). The form fields and the YAML editors edit one shared draft, so they never disagree; snapshot schedules use `PATCH` of just those keys. YAML values are coerced to strings (LXD config is string-only) and devices must have a `type` | `PUT` is the only way to remove keys or devices; sending what LXD returned plus edits avoids resetting fields. | Accepted 2026-11-05 |
+| D46 | **"Delete" of a running instance stops it first** (force stop, then delete), like `lxc delete --force`, after a confirmation that says so. Path parameters (project, instance, snapshot, log file) are validated against LXD's name rules so encoded `..` or `/` never reach LXD URLs. The instance list cache is 10 s and is cleared after every change made through the UI | Matches CLI expectations; defence in depth for URL building; lists stay current. | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -117,7 +119,17 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   member evacuate/restore (fixture-tested only, D41), project switcher (D44),
   confirm dialogs, action toasts, YAML editor. Live: sandbox project created, its
   events seen once each through `/api/events`; cross-origin websocket refused.
-- Next: **Phase 3b**, instances (lifecycle, config, snapshots, logs, move).
+- **Phase 3b (instances): built 2026-11-05.** List filters (status/type/member/
+  profile/project) and bulk start/stop/restart/delete; instance page tabs:
+  overview graphs, configuration (form + YAML, D45), snapshots (take, restore,
+  rename, delete, new instance from, publish, schedule), logs; actions: lifecycle,
+  force stop, rename, copy, move (member/pool/live), publish, delete (D46).
+  Live in `mcui-test`: created an Alpine container and ran start/freeze/unfreeze/
+  restart, config update, snapshot create/rename/restore/delete, logs, copy from
+  snapshot, rename, move to another member, publish, delete and force delete, all
+  audited with operation ids. The sandbox keeps the Alpine image and a published
+  `mcui-test-image` for 3f.
+- Next: **Phase 3c**, create instance (IN-2).
 
 ## Working conventions
 
