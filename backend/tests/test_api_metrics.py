@@ -10,7 +10,8 @@ from tests.conftest import fast_store
 from tests.test_api import client, login, lxd_pair
 
 NOW = int(time.time())
-T = NOW - NOW % 15
+# both readings (T - 15 and T) fall in the same, already finished minute
+T = NOW - NOW % 60 - 30
 
 
 def inst(
