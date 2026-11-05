@@ -1,0 +1,1599 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "cpu": {
+      "architecture": "x86_64",
+      "sockets": [
+        {
+          "cache": [
+            {
+              "level": 1,
+              "size": 32768,
+              "type": "Data"
+            },
+            {
+              "level": 1,
+              "size": 32768,
+              "type": "Instruction"
+            },
+            {
+              "level": 2,
+              "size": 262144,
+              "type": "Unified"
+            },
+            {
+              "level": 3,
+              "size": 6291456,
+              "type": "Unified"
+            }
+          ],
+          "cores": [
+            {
+              "core": 0,
+              "die": 0,
+              "frequency": 799,
+              "threads": [
+                {
+                  "id": 0,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                },
+                {
+                  "id": 4,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 1
+                }
+              ]
+            },
+            {
+              "core": 1,
+              "die": 0,
+              "frequency": 800,
+              "threads": [
+                {
+                  "id": 1,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                },
+                {
+                  "id": 5,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 1
+                }
+              ]
+            },
+            {
+              "core": 2,
+              "die": 0,
+              "frequency": 800,
+              "threads": [
+                {
+                  "id": 2,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                },
+                {
+                  "id": 6,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 1
+                }
+              ]
+            },
+            {
+              "core": 3,
+              "die": 0,
+              "frequency": 799,
+              "threads": [
+                {
+                  "id": 3,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                },
+                {
+                  "id": 7,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 1
+                }
+              ]
+            }
+          ],
+          "frequency": 799,
+          "frequency_minimum": 800,
+          "frequency_turbo": 2200,
+          "name": "Intel(R) Xeon(R) CPU D-1518 @ 2.20GHz",
+          "socket": 0,
+          "vendor": "GenuineIntel"
+        }
+      ],
+      "total": 8
+    },
+    "gpu": {
+      "cards": [
+        {
+          "driver": "ast",
+          "driver_version": "6.8.0-101-generic",
+          "drm": {
+            "card_device": "226:0",
+            "card_name": "card0",
+            "control_device": "226:0",
+            "control_name": "controlD64",
+            "id": 0
+          },
+          "numa_node": 0,
+          "pci_address": "0000:0a:00.0",
+          "product": "ASPEED Graphics Family",
+          "product_id": "2000",
+          "vendor": "ASPEED Technology, Inc.",
+          "vendor_id": "1a03"
+        }
+      ],
+      "total": 1
+    },
+    "memory": {
+      "hugepages_size": 2097152,
+      "hugepages_total": 0,
+      "hugepages_used": 0,
+      "nodes": [
+        {
+          "hugepages_total": 0,
+          "hugepages_used": 0,
+          "numa_node": 0,
+          "total": 68719476736,
+          "used": 63230312448
+        }
+      ],
+      "total": 68719476736,
+      "used": 20797755392
+    },
+    "network": {
+      "cards": [
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "firmware_version": "3.25, 0x800005cc",
+          "numa_node": 0,
+          "pci_address": "0000:07:00.0",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:01",
+              "auto_negotiation": true,
+              "id": "eno1",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I210 Gigabit Network Connection",
+          "product_id": "1533",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "firmware_version": "3.25, 0x800005d0",
+          "numa_node": 0,
+          "pci_address": "0000:08:00.0",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:02",
+              "auto_negotiation": true,
+              "id": "eno2",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I210 Gigabit Network Connection",
+          "product_id": "1533",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "firmware_version": "1.63, 0x800009fb",
+          "numa_node": 0,
+          "pci_address": "0000:0b:00.0",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:03",
+              "auto_negotiation": true,
+              "id": "eno3",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 7,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "firmware_version": "1.63, 0x800009fb",
+          "numa_node": 0,
+          "pci_address": "0000:0b:00.1",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:04",
+              "auto_negotiation": true,
+              "id": "eno4",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 7,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "firmware_version": "1.63, 0x800009fb",
+          "numa_node": 0,
+          "pci_address": "0000:0b:00.2",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:05",
+              "auto_negotiation": true,
+              "id": "eno5",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 7,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "firmware_version": "1.63, 0x800009fb",
+          "numa_node": 0,
+          "pci_address": "0000:0b:00.3",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:06",
+              "auto_negotiation": true,
+              "id": "eno6",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 7,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "ixgbe",
+          "driver_version": "6.8.0-101-generic",
+          "firmware_version": "0x800005b9",
+          "numa_node": 0,
+          "pci_address": "0000:04:00.0",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:07",
+              "auto_negotiation": false,
+              "id": "eno7",
+              "link_detected": true,
+              "link_duplex": "full",
+              "link_speed": 10000,
+              "port": 0,
+              "port_type": "direct attach",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10000baseT/Full"
+              ],
+              "supported_ports": [
+                "fibre"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "Ethernet Connection X552 10 GbE SFP+",
+          "product_id": "15ac",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 63,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "ixgbe",
+          "driver_version": "6.8.0-101-generic",
+          "firmware_version": "0x800005b9",
+          "numa_node": 0,
+          "pci_address": "0000:04:00.1",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:08",
+              "auto_negotiation": false,
+              "id": "eno8",
+              "link_detected": true,
+              "link_duplex": "full",
+              "link_speed": 10000,
+              "port": 0,
+              "port_type": "direct attach",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10000baseT/Full"
+              ],
+              "supported_ports": [
+                "fibre"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "Ethernet Connection X552 10 GbE SFP+",
+          "product_id": "15ac",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 63,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        }
+      ],
+      "total": 8
+    },
+    "pci": {
+      "devices": [
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 10,
+          "numa_node": 0,
+          "pci_address": "0000:00:00.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D DMI2",
+          "product_id": "6f00",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 11,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D PCI Express Root Port 1",
+          "product_id": "6f02",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 12,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D PCI Express Root Port 1",
+          "product_id": "6f03",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 13,
+          "numa_node": 0,
+          "pci_address": "0000:00:02.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D PCI Express Root Port 2",
+          "product_id": "6f04",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 14,
+          "numa_node": 0,
+          "pci_address": "0000:00:02.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D PCI Express Root Port 2",
+          "product_id": "6f06",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 15,
+          "numa_node": 0,
+          "pci_address": "0000:00:03.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D PCI Express Root Port 3",
+          "product_id": "6f08",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 16,
+          "numa_node": 0,
+          "pci_address": "0000:00:03.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D PCI Express Root Port 3",
+          "product_id": "6f0a",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 17,
+          "numa_node": 0,
+          "pci_address": "0000:00:05.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Map/VTd_Misc/System Management",
+          "product_id": "6f28",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 18,
+          "numa_node": 0,
+          "pci_address": "0000:00:05.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D IIO Hot Plug",
+          "product_id": "6f29",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 19,
+          "numa_node": 0,
+          "pci_address": "0000:00:05.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D IIO RAS/Control Status/Global Errors",
+          "product_id": "6f2a",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "xhci_hcd",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 20,
+          "numa_node": 0,
+          "pci_address": "0000:00:14.0",
+          "product": "8 Series/C220 Series Chipset Family USB xHCI",
+          "product_id": "8c31",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 21,
+          "numa_node": 0,
+          "pci_address": "0000:00:16.0",
+          "product": "8 Series/C220 Series Chipset Family MEI Controller #1",
+          "product_id": "8c3a",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 21,
+          "numa_node": 0,
+          "pci_address": "0000:00:16.1",
+          "product": "8 Series/C220 Series Chipset Family MEI Controller #2",
+          "product_id": "8c3b",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ehci-pci",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 22,
+          "numa_node": 0,
+          "pci_address": "0000:00:1a.0",
+          "product": "8 Series/C220 Series Chipset Family USB EHCI #2",
+          "product_id": "8c2d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 23,
+          "numa_node": 0,
+          "pci_address": "0000:00:1c.0",
+          "product": "8 Series/C220 Series Chipset Family PCI Express Root Port #1",
+          "product_id": "8c10",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 24,
+          "numa_node": 0,
+          "pci_address": "0000:00:1c.1",
+          "product": "8 Series/C220 Series Chipset Family PCI Express Root Port #2",
+          "product_id": "8c12",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 25,
+          "numa_node": 0,
+          "pci_address": "0000:00:1c.3",
+          "product": "8 Series/C220 Series Chipset Family PCI Express Root Port #4",
+          "product_id": "8c16",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 26,
+          "numa_node": 0,
+          "pci_address": "0000:00:1c.4",
+          "product": "8 Series/C220 Series Chipset Family PCI Express Root Port #5",
+          "product_id": "8c18",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ehci-pci",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 27,
+          "numa_node": 0,
+          "pci_address": "0000:00:1d.0",
+          "product": "8 Series/C220 Series Chipset Family USB EHCI #1",
+          "product_id": "8c26",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "lpc_ich",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 28,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.0",
+          "product": "C224 Series Chipset Family Server Standard SKU LPC Controller",
+          "product_id": "8c54",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ahci",
+          "driver_version": "3.0",
+          "iommu_group": 28,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.2",
+          "product": "8 Series/C220 Series Chipset Family 6-port SATA Controller 1 [AHCI mode]",
+          "product_id": "8c02",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "i801_smbus",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 28,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.3",
+          "product": "8 Series/C220 Series Chipset Family SMBus Controller",
+          "product_id": "8c22",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "intel_pch_thermal",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 28,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.6",
+          "product": "8 Series Chipset Family Thermal Management Controller",
+          "product_id": "8c24",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 29,
+          "numa_node": 0,
+          "pci_address": "0000:03:00.0",
+          "product": "Xeon Processor D Family QuickData Technology Register DMA Channel 0",
+          "product_id": "6f50",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 29,
+          "numa_node": 0,
+          "pci_address": "0000:03:00.1",
+          "product": "Xeon Processor D Family QuickData Technology Register DMA Channel 1",
+          "product_id": "6f51",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 29,
+          "numa_node": 0,
+          "pci_address": "0000:03:00.2",
+          "product": "Xeon Processor D Family QuickData Technology Register DMA Channel 2",
+          "product_id": "6f52",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 29,
+          "numa_node": 0,
+          "pci_address": "0000:03:00.3",
+          "product": "Xeon Processor D Family QuickData Technology Register DMA Channel 3",
+          "product_id": "6f53",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ixgbe",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 30,
+          "numa_node": 0,
+          "pci_address": "0000:04:00.0",
+          "product": "Ethernet Connection X552 10 GbE SFP+",
+          "product_id": "15ac",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ixgbe",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 31,
+          "numa_node": 0,
+          "pci_address": "0000:04:00.1",
+          "product": "Ethernet Connection X552 10 GbE SFP+",
+          "product_id": "15ac",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 32,
+          "numa_node": 0,
+          "pci_address": "0000:07:00.0",
+          "product": "I210 Gigabit Network Connection",
+          "product_id": "1533",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 33,
+          "numa_node": 0,
+          "pci_address": "0000:08:00.0",
+          "product": "I210 Gigabit Network Connection",
+          "product_id": "1533",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 34,
+          "numa_node": 0,
+          "pci_address": "0000:09:00.0",
+          "product": "AST1150 PCI-to-PCI Bridge",
+          "product_id": "1150",
+          "vendor": "ASPEED Technology, Inc.",
+          "vendor_id": "1a03",
+          "vpd": {}
+        },
+        {
+          "driver": "ast",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 34,
+          "numa_node": 0,
+          "pci_address": "0000:0a:00.0",
+          "product": "ASPEED Graphics Family",
+          "product_id": "2000",
+          "vendor": "ASPEED Technology, Inc.",
+          "vendor_id": "1a03",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 35,
+          "numa_node": 0,
+          "pci_address": "0000:0b:00.0",
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 36,
+          "numa_node": 0,
+          "pci_address": "0000:0b:00.1",
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 37,
+          "numa_node": 0,
+          "pci_address": "0000:0b:00.2",
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:0b:00.3",
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0b.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D R3 QPI Link 0/1",
+          "product_id": "6f81",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "bdx_uncore",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0b.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D R3 QPI Link 0/1",
+          "product_id": "6f36",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "bdx_uncore",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0b.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D R3 QPI Link 0/1",
+          "product_id": "6f37",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0b.3",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D R3 QPI Link Debug",
+          "product_id": "6f76",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 1,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0c.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Caching Agent",
+          "product_id": "6fe0",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 1,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0c.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Caching Agent",
+          "product_id": "6fe1",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 1,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0c.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Caching Agent",
+          "product_id": "6fe2",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 1,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0c.3",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Caching Agent",
+          "product_id": "6fe3",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 2,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0f.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Caching Agent",
+          "product_id": "6ff8",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 2,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0f.4",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Caching Agent",
+          "product_id": "6ffc",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 2,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0f.5",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Caching Agent",
+          "product_id": "6ffd",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 2,
+          "numa_node": 0,
+          "pci_address": "0000:ff:0f.6",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Caching Agent",
+          "product_id": "6ffe",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 3,
+          "numa_node": 0,
+          "pci_address": "0000:ff:10.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D R2PCIe Agent",
+          "product_id": "6f1d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "bdx_uncore",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 3,
+          "numa_node": 0,
+          "pci_address": "0000:ff:10.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D R2PCIe Agent",
+          "product_id": "6f34",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 3,
+          "numa_node": 0,
+          "pci_address": "0000:ff:10.5",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Ubox",
+          "product_id": "6f1e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 3,
+          "numa_node": 0,
+          "pci_address": "0000:ff:10.6",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Ubox",
+          "product_id": "6f7d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 3,
+          "numa_node": 0,
+          "pci_address": "0000:ff:10.7",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Ubox",
+          "product_id": "6f1f",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 4,
+          "numa_node": 0,
+          "pci_address": "0000:ff:12.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Home Agent 0",
+          "product_id": "6fa0",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "bdx_uncore",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 4,
+          "numa_node": 0,
+          "pci_address": "0000:ff:12.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Home Agent 0",
+          "product_id": "6f30",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:ff:13.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Target Address/Thermal/RAS",
+          "product_id": "6fa8",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:ff:13.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Target Address/Thermal/RAS",
+          "product_id": "6f71",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:ff:13.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel Target Address Decoder",
+          "product_id": "6faa",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:ff:13.3",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel Target Address Decoder",
+          "product_id": "6fab",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:ff:13.4",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel Target Address Decoder",
+          "product_id": "6fac",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:ff:13.5",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel Target Address Decoder",
+          "product_id": "6fad",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:ff:13.6",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D DDRIO Channel 0/1 Broadcast",
+          "product_id": "6fae",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:ff:13.7",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D DDRIO Global Broadcast",
+          "product_id": "6faf",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "bdx_uncore",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:ff:14.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel 0 Thermal Control",
+          "product_id": "6fb0",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "bdx_uncore",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:ff:14.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel 1 Thermal Control",
+          "product_id": "6fb1",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:ff:14.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel 0 Error",
+          "product_id": "6fb2",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:ff:14.3",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel 1 Error",
+          "product_id": "6fb3",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:ff:14.4",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D DDRIO Channel 0/1 Interface",
+          "product_id": "6fbc",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:ff:14.5",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D DDRIO Channel 0/1 Interface",
+          "product_id": "6fbd",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:ff:14.6",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D DDRIO Channel 0/1 Interface",
+          "product_id": "6fbe",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:ff:14.7",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D DDRIO Channel 0/1 Interface",
+          "product_id": "6fbf",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "bdx_uncore",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 7,
+          "numa_node": 0,
+          "pci_address": "0000:ff:15.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel 2 Thermal Control",
+          "product_id": "6fb4",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "bdx_uncore",
+          "driver_version": "6.8.0-101-generic",
+          "iommu_group": 7,
+          "numa_node": 0,
+          "pci_address": "0000:ff:15.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel 3 Thermal Control",
+          "product_id": "6fb5",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 7,
+          "numa_node": 0,
+          "pci_address": "0000:ff:15.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel 2 Error",
+          "product_id": "6fb6",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 7,
+          "numa_node": 0,
+          "pci_address": "0000:ff:15.3",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Memory Controller 0 - Channel 3 Error",
+          "product_id": "6fb7",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 8,
+          "numa_node": 0,
+          "pci_address": "0000:ff:1e.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Power Control Unit",
+          "product_id": "6f98",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 8,
+          "numa_node": 0,
+          "pci_address": "0000:ff:1e.1",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Power Control Unit",
+          "product_id": "6f99",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 8,
+          "numa_node": 0,
+          "pci_address": "0000:ff:1e.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Power Control Unit",
+          "product_id": "6f9a",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 8,
+          "numa_node": 0,
+          "pci_address": "0000:ff:1e.3",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Power Control Unit",
+          "product_id": "6fc0",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 8,
+          "numa_node": 0,
+          "pci_address": "0000:ff:1e.4",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Power Control Unit",
+          "product_id": "6f9c",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 9,
+          "numa_node": 0,
+          "pci_address": "0000:ff:1f.0",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Power Control Unit",
+          "product_id": "6f88",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 9,
+          "numa_node": 0,
+          "pci_address": "0000:ff:1f.2",
+          "product": "Xeon E7 v4/Xeon E5 v4/Xeon E3 v4/Xeon D Power Control Unit",
+          "product_id": "6f8a",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        }
+      ],
+      "total": 83
+    },
+    "storage": {
+      "disks": [
+        {
+          "block_size": 512,
+          "device": "8:0",
+          "device_fs_uuid": "60b776da-f23d-4257-9658-f37547dac649",
+          "device_id": "wwn-0x500a0751f00a68a9",
+          "device_path": "pci-0000:00:1f.2-ata-4.0",
+          "firmware_version": "MU02",
+          "id": "sda",
+          "model": "CT120BX100SSD1",
+          "mounted": false,
+          "numa_node": 0,
+          "partitions": [],
+          "read_only": false,
+          "removable": false,
+          "rpm": 0,
+          "serial": "SCRUBBED",
+          "size": 120034123776,
+          "type": "scsi"
+        },
+        {
+          "block_size": 512,
+          "device": "8:16",
+          "device_fs_uuid": "",
+          "device_id": "wwn-0x5001b444a553db8f",
+          "device_path": "pci-0000:00:1f.2-ata-5.0",
+          "firmware_version": "6100",
+          "id": "sdb",
+          "model": "WD Blue SA510 M.",
+          "mounted": true,
+          "numa_node": 0,
+          "partitions": [
+            {
+              "device": "8:17",
+              "device_fs_uuid": "3E12-6BAE",
+              "id": "sdb1",
+              "mounted": true,
+              "partition": 1,
+              "read_only": false,
+              "size": 1127219200
+            },
+            {
+              "device": "8:18",
+              "device_fs_uuid": "b9901bf6-658e-4eaf-a44e-4fdcee7103c6",
+              "id": "sdb2",
+              "mounted": true,
+              "partition": 2,
+              "read_only": false,
+              "size": 2147483648
+            },
+            {
+              "device": "8:19",
+              "device_fs_uuid": "0c2be035-ab86-4a42-8599-cf5df99f1219",
+              "id": "sdb3",
+              "mounted": false,
+              "partition": 3,
+              "read_only": false,
+              "size": 996927340544
+            }
+          ],
+          "read_only": false,
+          "removable": false,
+          "rpm": 0,
+          "serial": "SCRUBBED",
+          "size": 1000204886016,
+          "type": "scsi"
+        }
+      ],
+      "total": 5
+    },
+    "system": {
+      "chassis": {
+        "serial": "SCRUBBED",
+        "type": "Other",
+        "vendor": "Supermicro",
+        "version": "0123456789"
+      },
+      "family": "To be filled by O.E.M.",
+      "firmware": {
+        "date": "02/06/2024",
+        "vendor": "American Megatrends Inc.",
+        "version": "2.6"
+      },
+      "motherboard": {
+        "product": "X10SDV-TP8F",
+        "serial": "SCRUBBED",
+        "vendor": "Supermicro",
+        "version": "1.10"
+      },
+      "product": "SYS-5018D-FN8T",
+      "serial": "SCRUBBED",
+      "sku": "To be filled by O.E.M.",
+      "type": "physical",
+      "uuid": "SCRUBBED",
+      "vendor": "Supermicro",
+      "version": "0123456789"
+    },
+    "usb": {
+      "devices": [
+        {
+          "bus_address": 3,
+          "device_address": 5,
+          "interfaces": [
+            {
+              "class": "Human Interface Device",
+              "class_id": 3,
+              "driver": "usbhid",
+              "driver_version": "6.8.0-101-generic",
+              "number": 0,
+              "subclass": "Boot Interface Subclass",
+              "subclass_id": 1
+            },
+            {
+              "class": "Human Interface Device",
+              "class_id": 3,
+              "driver": "usbhid",
+              "driver_version": "6.8.0-101-generic",
+              "number": 1,
+              "subclass": "Boot Interface Subclass",
+              "subclass_id": 1
+            }
+          ],
+          "product": "Virtual mouse/keyboard device",
+          "product_id": "2419",
+          "serial": "",
+          "speed": 1.5,
+          "vendor": "ATEN International Co., Ltd",
+          "vendor_id": "0557"
+        }
+      ],
+      "total": 1
+    }
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

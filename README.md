@@ -4,7 +4,7 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** Phase 1 (connectivity, live metrics, local auth) done and validated against the test cloud. See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
+**Status:** Phases 1–2 done: connectivity, local auth, live metrics, metric history with graphs for instances, members, storage (incl. Ceph) and networks. See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
 ## Development setup
@@ -76,8 +76,10 @@ mcui -c ~/.config/mcui/config.toml serve --reload           # or: MCUI_CONFIG=..
 ```
 
 Sign in at http://localhost:5173 (Vite) or http://127.0.0.1:8000 (`make serve`).
-The dashboard lists cluster members and live per-instance CPU, memory, disk and
-network, refreshed every 15 s.
+Pages: Overview (members, top instances, live table), Instances, an instance
+page with history graphs, a member page with hardware and host graphs, Storage
+(LXD pools and Ceph) and Networks. Pick the time range (15 min to 1 year) above
+the graphs. History is collected in the background into `<data_dir>/metrics.db`.
 
 Other user commands: `mcui user list`, `mcui user passwd <name>`, `mcui user delete <name>`
 (also available to admins via the `/api/users` endpoints).

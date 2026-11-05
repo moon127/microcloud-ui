@@ -7,6 +7,7 @@ import json
 import re
 from collections.abc import Callable
 from pathlib import Path
+from typing import Any
 
 from mcui.config import Settings
 from mcui.lxd.client import LXDClient, LXDError
@@ -71,6 +72,18 @@ class Scrubber:
         return _IPV6.sub(self._ipv6, text)
 
 
+REDACT_KEYS = frozenset({"serial", "uuid", "wwn", "machine_id"})
+
+
+def redact(value: Any) -> Any:
+    """Blank hardware identifiers (serials, UUIDs, WWNs) anywhere in a JSON document."""
+    if isinstance(value, dict):
+        return {k: "SCRUBBED" if k in REDACT_KEYS and v else redact(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [redact(v) for v in value]
+    return value
+
+
 def _fname(path: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "_", path.strip("/")) or "root"
 
@@ -102,6 +115,7 @@ async def record(
         "/1.0/warnings?recursion=1",
     ]
     paths += [f"/1.0/cluster/members/{m.name}/state" for m in ms if info.clustered]
+    paths += [f"/1.0/resources?target={m.name}" for m in ms if info.clustered]
     for p in paths:
         path, _, query = p.partition("?")
         params = dict(kv.split("=", 1) for kv in query.split("&")) if query else None
@@ -112,7 +126,7 @@ async def record(
             failures += 1
             continue
         try:
-            text = json.dumps(r.json(), indent=2, sort_keys=True) + "\n"
+            text = json.dumps(redact(r.json()), indent=2, sort_keys=True) + "\n"
         except ValueError:
             text = r.text
         write(_fname(p) + ".json", text)

@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from mcui.auth.store import Store
 from mcui.config import Settings
 from mcui.lxd.client import LXDClient
+from mcui.lxd.instances import InstanceIndex
 from mcui.metrics.ceph import CephScraper
 from mcui.metrics.collector import Collector
 from mcui.metrics.live import LiveMetrics
@@ -24,6 +25,7 @@ class Services:
     metrics: MetricStore | None = None
     collector: Collector | None = None
     ceph: CephScraper | None = None
+    instances: InstanceIndex | None = None
 
     async def start(self) -> None:
         if self.collector is not None and self.settings.metrics.collect:
@@ -94,4 +96,6 @@ def build_services(
     history = metrics_store or open_metric_store(settings)
     ceph = CephScraper(settings.ceph) if settings.ceph.enabled else None
     collector = Collector(api, live, history, settings, ceph)
-    return Services(settings, store, api, metrics, live, history, collector, ceph)
+    return Services(
+        settings, store, api, metrics, live, history, collector, ceph, InstanceIndex(api)
+    )

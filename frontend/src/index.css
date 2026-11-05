@@ -31,3 +31,18 @@ table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
 th, td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
 th { color: var(--muted); font-weight: 600; }
 td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.topbar { padding: 0.75rem 2rem; border-bottom: 1px solid var(--line); align-items: center; }
+.topbar nav { display: flex; gap: 1rem; flex: 1; margin-left: 1.5rem; flex-wrap: wrap; }
+.topbar nav a { color: var(--muted); text-decoration: none; padding: 0.2rem 0; border-bottom: 2px solid transparent; }
+.topbar nav a.active { color: var(--fg); border-bottom-color: var(--accent); }
+a { color: var(--accent); }
+h1 .muted { font-size: 0.9rem; font-weight: normal; }
+.ranges { display: flex; gap: 0.25rem; margin: 0.5rem 0 1rem; flex-wrap: wrap; }
+.ranges button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(30rem, 100%), 1fr)); gap: 1rem; }
+.chart { margin: 0; padding: 0.75rem; border: 1px solid var(--line); border-radius: 6px; min-width: 0; }
+.chart figcaption { font-weight: 600; margin-bottom: 0.5rem; }
+.chart .u-legend { font-size: 0.8rem; color: var(--fg); }
+.hardware dl { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin: 0 0 1rem; }
+.hardware dt { color: var(--muted); }
+.hardware dd { margin: 0; }

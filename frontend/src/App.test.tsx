@@ -1,7 +1,8 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import App from "./App";
+import App, { AppRoutes } from "./App";
 import * as api from "./api";
+import { renderAt } from "./test/render";
 
 const me = { user: { username: "alice", role: "viewer" as const }, csrf: "c" };
 const live: api.LiveMetrics = { scraped_at: null, interval_seconds: 15, members: [], instances: [] };
@@ -9,6 +10,8 @@ const live: api.LiveMetrics = { scraped_at: null, interval_seconds: 15, members:
 beforeEach(() => {
   vi.spyOn(api, "fetchServer").mockReturnValue(new Promise(() => {}));
   vi.spyOn(api, "fetchLiveMetrics").mockResolvedValue(live);
+  vi.spyOn(api, "fetchTop").mockResolvedValue({ metric: "cpu", unit: "percent", rows: [] });
+  vi.spyOn(api, "fetchInstances").mockResolvedValue([]);
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -60,5 +63,18 @@ describe("App", () => {
     unmount();
     reject(new Error("late"));
     await Promise.resolve();
+  });
+});
+
+describe("routes", () => {
+  it("renders pages inside the layout and a not-found page", async () => {
+    renderAt(<AppRoutes />, { url: "/instances" });
+    expect(await screen.findByRole("heading", { name: "Instances" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Instances" })).toHaveClass("active");
+  });
+
+  it("shows not found for unknown paths", () => {
+    renderAt(<AppRoutes />, { url: "/nope" });
+    expect(screen.getByText("Page not found.")).toBeInTheDocument();
   });
 });

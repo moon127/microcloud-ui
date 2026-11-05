@@ -189,3 +189,24 @@ async def test_collect_disabled(tmp_path):
     assert not svc.collector.running
     await svc.aclose()
     assert (tmp_path / "metrics.db").is_file()
+
+
+async def test_network_traffic(app, services):
+    from mcui.lxd.instances import InstanceInfo
+
+    async def fake_get():
+        return [
+            InstanceInfo("default", "busy", "container", "Running", "m1", "", {"eth0": "ovn1"}),
+        ]
+
+    services.instances.get = fake_get
+    async with client(app) as c:
+        await login(c, "viewer", "viewerpw")
+        body = (await c.get("/api/metrics/network-traffic", params={"range": 600})).json()
+        assert body["resolution"] == 0
+        assert body["rx"] == [{"labels": {"network": "ovn1"}, "points": [[T, 100.0]]}]
+        assert body["tx"] == [{"labels": {"network": "ovn1"}, "points": [[T, 200.0]]}]
+        r = await c.get("/api/metrics/network-traffic", params={"res": 7})
+        assert r.status_code == 400
+        body = (await c.get("/api/metrics/network-traffic", params={"res": 60})).json()
+        assert body["rx"][0]["points"] == [[T - T % 60, 1500 / 60]]  # one 1500 B increase

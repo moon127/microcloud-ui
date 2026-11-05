@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { api, ApiError, fetchHealth, fetchLiveMetrics, fetchMe, fetchServer, login, logout, setCsrf } from "./api";
+import * as api from "./api";
+import { ApiError, fetchHealth, fetchLiveMetrics, fetchMe, fetchServer, login, logout, setCsrf } from "./api";
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
 
@@ -34,8 +35,8 @@ describe("api", () => {
   it("sends credentials, JSON content type and CSRF only on unsafe methods", async () => {
     const f = vi.fn().mockImplementation(() => Promise.resolve(json({})));
     setCsrf("tok");
-    await api("/a", {}, f);
-    await api("/b", { method: "post", body: "{}" }, f);
+    await api.api("/a", {}, f);
+    await api.api("/b", { method: "post", body: "{}" }, f);
     expect((f.mock.calls[0][1] as RequestInit).credentials).toBe("same-origin");
     expect(headersOf(f, 0).get("X-CSRF-Token")).toBeNull();
     expect(headersOf(f, 0).get("Content-Type")).toBeNull();
@@ -46,13 +47,13 @@ describe("api", () => {
 
   it("omits CSRF header when no token is known", async () => {
     const f = vi.fn().mockResolvedValue(json({}));
-    await api("/b", { method: "DELETE" }, f);
+    await api.api("/b", { method: "DELETE" }, f);
     expect(headersOf(f).get("X-CSRF-Token")).toBeNull();
   });
 
   it("raises ApiError with the backend detail", async () => {
     const f = vi.fn().mockResolvedValue(json({ detail: "LXD: Forbidden" }, 502));
-    const err = await api("/x", {}, f).catch((e: unknown) => e);
+    const err = await api.api("/x", {}, f).catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ApiError);
     expect((err as ApiError).status).toBe(502);
     expect((err as ApiError).message).toBe("LXD: Forbidden");
@@ -60,12 +61,12 @@ describe("api", () => {
 
   it("falls back to the status when detail is missing or not a string", async () => {
     const f = vi.fn().mockResolvedValue(json({ detail: [{ msg: "x" }] }, 422));
-    await expect(api("/x", {}, f)).rejects.toThrow("HTTP 422");
+    await expect(api.api("/x", {}, f)).rejects.toThrow("HTTP 422");
   });
 
   it("returns undefined for 204", async () => {
     const f = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
-    await expect(api("/x", { method: "POST" }, f)).resolves.toBeUndefined();
+    await expect(api.api("/x", { method: "POST" }, f)).resolves.toBeUndefined();
   });
 });
 
@@ -83,7 +84,7 @@ describe("session helpers", () => {
     await logout();
     expect(((f.mock.calls[1][1] as RequestInit).headers as Headers).get("X-CSRF-Token")).toBe("c1");
     await fetchMe();
-    await api("/api/x", { method: "POST" });
+    await api.api("/api/x", { method: "POST" });
     expect(((f.mock.calls[3][1] as RequestInit).headers as Headers).get("X-CSRF-Token")).toBe("c2");
   });
 
@@ -92,5 +93,31 @@ describe("session helpers", () => {
     await fetchServer();
     await fetchLiveMetrics();
     expect(f.mock.calls.map((c) => c[0])).toEqual(["/api/server", "/api/metrics/live"]);
+  });
+});
+
+describe("history and inventory helpers", () => {
+  it("build the right URLs", async () => {
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    await api.queryMetric({ name: "m", range: 900, fn: "rate", match: { project: "p", name: "a b" }, by: ["device", "name"] });
+    await api.queryMetric({ name: "m", range: 60 });
+    await api.fetchTop("disk", 3600, 5);
+    await api.fetchTop("cpu", 60);
+    await api.fetchInstances();
+    await api.fetchInstance("my proj", "a/b");
+    await api.fetchMembers();
+    await api.fetchMemberResources("m 1");
+    await api.fetchNetworkTraffic(86400);
+    expect(f.mock.calls.map((c) => c[0])).toEqual([
+      "/api/metrics/query?name=m&range=900&fn=rate&match=project%3Dp&match=name%3Da+b&by=device&by=name",
+      "/api/metrics/query?name=m&range=60",
+      "/api/metrics/top?metric=disk&range=3600&limit=5",
+      "/api/metrics/top?metric=cpu&range=60&limit=10",
+      "/api/instances",
+      "/api/instances/my%20proj/a%2Fb",
+      "/api/cluster/members",
+      "/api/cluster/members/m%201/resources",
+      "/api/metrics/network-traffic?range=86400",
+    ]);
   });
 });

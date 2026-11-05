@@ -1,7 +1,15 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { BrowserRouter, Route, Routes } from "react-router";
 import { ApiError, fetchMe, logout, setCsrf, type User } from "./api";
-import Dashboard from "./Dashboard";
+import Layout from "./Layout";
 import Login from "./Login";
+import InstancePage from "./pages/InstancePage";
+import InstancesPage from "./pages/InstancesPage";
+import MemberPage from "./pages/MemberPage";
+import NetworksPage from "./pages/NetworksPage";
+import Overview from "./pages/Overview";
+import StoragePage from "./pages/StoragePage";
+import { SessionContext } from "./session";
 import "./index.css";
 
 type State =
@@ -9,6 +17,22 @@ type State =
   | { kind: "anonymous" }
   | { kind: "user"; user: User }
   | { kind: "error"; message: string };
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<Overview />} />
+        <Route path="instances" element={<InstancesPage />} />
+        <Route path="instances/:project/:name" element={<InstancePage />} />
+        <Route path="members/:name" element={<MemberPage />} />
+        <Route path="storage" element={<StoragePage />} />
+        <Route path="networks" element={<NetworksPage />} />
+        <Route path="*" element={<p>Page not found.</p>} />
+      </Route>
+    </Routes>
+  );
+}
 
 export default function App() {
   const [state, setState] = useState<State>({ kind: "loading" });
@@ -39,6 +63,12 @@ export default function App() {
       .then(expired);
   }, [expired]);
 
+  const user = state.kind === "user" ? state.user : null;
+  const session = useMemo(
+    () => (user ? { user, onExpired: expired, onLogout: signOut } : null),
+    [user, expired, signOut],
+  );
+
   switch (state.kind) {
     case "loading":
       return (
@@ -60,6 +90,12 @@ export default function App() {
         </main>
       );
     case "user":
-      return <Dashboard user={state.user} onLogout={signOut} onExpired={expired} />;
+      return (
+        <SessionContext.Provider value={session}>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </SessionContext.Provider>
+      );
   }
 }

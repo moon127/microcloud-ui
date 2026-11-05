@@ -8,7 +8,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from mcui.api.deps import ServicesDep, SessionDep
-from mcui.metrics.store import RESOLUTIONS, Fn, MetricStore
+from mcui.metrics.store import RESOLUTIONS, Fn, MetricStore, SeriesData, aggregate
 from mcui.metrics.top import TopMetric, top
 
 router = APIRouter(prefix="/api/metrics")
@@ -104,3 +104,38 @@ async def status(_: SessionDep, services: ServicesDep, store: StoreDep) -> dict[
         "jobs": c.status_dict() if c else {},
         "store": await store.stats(),
     }
+
+
+@router.get("/network-traffic")
+async def network_traffic(
+    _: SessionDep,
+    services: ServicesDep,
+    store: StoreDep,
+    range: Annotated[int, Query(ge=60)] = 3600,  # noqa: A002
+    res: int | None = None,
+) -> dict[str, Any]:
+    """Bytes/s per LXD network, summed from the NICs of instances on it (MO-8)."""
+    if services.instances is None:  # pragma: no cover - store implies LXD is configured
+        raise HTTPException(status_code=503, detail="LXD is not configured")
+    if res is not None and res not in RESOLUTIONS:
+        raise HTTPException(status_code=400, detail=f"res must be one of {RESOLUTIONS}")
+    nics = await services.instances.nic_networks()
+    s, e = time_range(None, None, range)
+    out: dict[str, Any] = {"start": s, "end": e}
+    for key, name in (
+        ("rx", "lxd_network_receive_bytes_total"),
+        ("tx", "lxd_network_transmit_bytes_total"),
+    ):
+        result = await store.query(name, None, s, e, fn="rate", res=res)
+        mapped = []
+        for series in result.series:
+            lab = series.labels
+            net = nics.get((lab.get("project", ""), lab.get("name", ""), lab.get("device", "")))
+            if net is not None:
+                mapped.append(SeriesData({"network": net}, series.points))
+        step = result.resolution or services.settings.metrics.interval_seconds
+        out["resolution"] = result.resolution
+        out[key] = [
+            {"labels": a.labels, "points": a.points} for a in aggregate(mapped, ["network"], step)
+        ]
+    return out

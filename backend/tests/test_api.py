@@ -186,3 +186,38 @@ async def test_not_configured(tmp_path):
         for path in ("/api/server", "/api/metrics/live"):
             r = await c.get(path)
             assert r.status_code == 503 and r.json()["detail"] == "LXD is not configured"
+
+
+@respx.mock
+async def test_member_resources_and_instances(app):
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(fixture_json("server_clustered.json")))
+    respx.get(f"{EP1}/1.0/cluster/members", params={"recursion": "1"}).mock(
+        return_value=lxd_ok(fixture_json("cluster_members.json"))
+    )
+    respx.get(f"{EP1}/1.0/resources", params={"target": "m2"}).mock(
+        return_value=lxd_ok({"cpu": {"total": 8}})
+    )
+    insts = [
+        {"name": "b", "project": "p", "type": "container", "status": "Running", "location": "m1"},
+        {"name": "a", "project": "p", "type": "virtual-machine", "status": "Stopped"},
+    ]
+    respx.get(f"{EP1}/1.0/instances").mock(return_value=lxd_ok(insts))
+    async with client(app) as c:
+        await login(c, "viewer", "viewerpw")
+        assert (await c.get("/api/cluster/members/m2/resources")).json() == {"cpu": {"total": 8}}
+        assert (await c.get("/api/cluster/members/nope/resources")).status_code == 404
+        listed = (await c.get("/api/instances")).json()
+        assert [i["name"] for i in listed] == ["a", "b"]
+        assert (await c.get("/api/instances/p/b")).json()["location"] == "m1"
+        assert (await c.get("/api/instances/p/zzz")).status_code == 404
+
+
+async def test_instances_not_configured(tmp_path):
+    store = fast_store()
+    store.add_user("v", "pw")
+    svc = build_services(
+        Settings(server={"data_dir": str(tmp_path), "secure_cookies": False}), store=store
+    )
+    async with client(create_app(services=svc, static_dir=None)) as c:
+        await login(c, "v", "pw")
+        assert (await c.get("/api/instances")).status_code == 503

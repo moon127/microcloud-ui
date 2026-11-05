@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatBytes, formatDuration, formatPercent, formatRate } from "./format";
+import { formatBytes, formatDuration, formatNumber, formatPercent, formatRate } from "./format";
 
 describe("format", () => {
   it("formats bytes", () => {
@@ -27,5 +27,15 @@ describe("format", () => {
     expect(formatDuration(3 * 3600 + 5 * 60)).toBe("3h 5m");
     expect(formatDuration(2 * 86400 + 3600)).toBe("2d 1h");
     expect(formatDuration(undefined)).toBe("–");
+  });
+
+  it("formats plain numbers compactly", () => {
+    expect(formatNumber(0)).toBe("0");
+    expect(formatNumber(0.123)).toBe("0.12");
+    expect(formatNumber(42)).toBe("42");
+    expect(formatNumber(1500)).toBe("1.5k");
+    expect(formatNumber(2.5e6)).toBe("2.5M");
+    expect(formatNumber(-3e9)).toBe("-3.0G");
+    expect(formatNumber(null)).toBe("–");
   });
 });

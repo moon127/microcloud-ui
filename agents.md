@@ -48,6 +48,8 @@ makes or alters a design decision.**
 | D35 | **Ceph metrics are recorded from Phase 2**, so the Phase 4 Ceph views have history from day one. mgr endpoints default to every member on :9283; the last active mgr is tried first, failover is automatic | Owner agreed 2026-11-05. | Accepted 2026-11-05 |
 | D36 | **Store format:** separate `metrics.db` (WAL). New samples go to a `head` table; each finished hour is packed per series into a zlib chunk (delta timestamps + XOR-delta float64) and a 1-minute rollup chunk; each finished day gets a 1-hour chunk. Rollups keep avg/max/increase (resets handled), so rate = increase/step at any resolution. Queries stitch packed chunks with on-the-fly rollups of unpacked data; resolution is chosen from retention. A 4× scrape-interval gap breaks rate continuity. All DB work runs on one dedicated thread. Estimated ~680 MB/year for the test cloud (1,200 series, pessimistic noise); NF-4's 1,000-instance target would need ~20× that, which is MO-14's job | Simple, dependency-free, fits our scale; the `MetricStore` facade keeps a later switch cheap. | Proposed |
 | D37 | **Collector loops:** metrics (LXD every member + Ceph) every `interval_seconds`; member state + host NICs every `state_interval_seconds` (60); compaction every 5 min. Errors are recorded per job (`/api/metrics/status`) without stopping the loops. With the collector running, the live view reuses its scrapes instead of scraping on demand | One scrape feeds both live and history. | Accepted 2026-11-05 |
+| D38 | **Frontend libraries:** React Router 7.18.4 and uPlot 1.6.32 (both MIT), pinned exactly. Pages use real URLs (`/instances/:project/:name`, `/members/:name`, `/storage`, `/networks`), served by the SPA fallback; the time range lives in `?range=` so views are linkable. Charts are a thin uPlot wrapper; panels describe their queries declaratively and derive ratios (CPU %) and differences (filesystem used) client-side | Small, fast, no chart framework lock-in. | Accepted 2026-11-05 |
+| D39 | **Per-network traffic = sum of instance NIC counters**, mapping guest interfaces to LXD networks by MAC (`volatile.<dev>.hwaddr` = guest `hwaddr`), because VM guests rename interfaces and OVN networks report zero counters. Instance index cached 60 s (`/1.0/instances?recursion=2&all-projects=true`) | Verified on the test cloud: VMs (`enp5s0`) and containers (`eth0`) map; docker/ZeroTier interfaces inside guests correctly don't. | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -92,7 +94,18 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   + host NICs 5 s (sequential calls). Open question: containers report identical
   `dm-0`/`dm-1` counters (likely stacked device-mapper), which may double-count
   container disk totals; not resolvable from the API alone.
-- Next: **Phase 2b**, router, charts (uPlot) and pages (CL-1/2, MO-3..MO-8 UI).
+- **Phase 2b (UI): built 2026-11-05.** Router + layout; Overview (members,
+  top-N with range, live table, links); Instances list; Instance page (CPU %,
+  memory, disk throughput/IOPS, network bytes/packets/errors, filesystem used,
+  processes, OOM kills); Member page (hardware from `/1.0/resources`, load,
+  memory, instances' CPU/memory, host NICs, LXD API and daemon); Storage (LXD pool
+  usage per member, Ceph pool usage/throughput/IOPS, raw capacity); Networks
+  (per-network traffic from instance NICs, host interfaces). Recorder now also
+  captures `/1.0/resources` with serials/UUIDs blanked. Coverage: backend 99.8%,
+  frontend 100% lines / 99.5% branches / 94.8% functions.
+  Dev-only npm advisories (Vitest 3 chain) need a Vitest major upgrade; runtime
+  deps have none.
+- Next: **Phase 3**, instances, profiles, images, projects (management).
 
 ## Working conventions
 

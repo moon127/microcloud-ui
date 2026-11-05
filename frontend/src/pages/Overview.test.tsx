@@ -1,9 +1,8 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import * as api from "./api";
-import Dashboard from "./Dashboard";
-
-const user: api.User = { username: "alice", role: "admin" };
+import { act, fireEvent, screen, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as api from "../api";
+import { renderAt, session } from "../test/render";
+import Overview from "./Overview";
 
 const server: api.ServerInfo = {
   version: "5.21.8",
@@ -91,21 +90,30 @@ const live: api.LiveMetrics = {
   ],
 };
 
+beforeEach(() => {
+  vi.spyOn(api, "fetchTop").mockImplementation((metric) =>
+    Promise.resolve({
+      metric,
+      unit: "percent",
+      rows: metric === "cpu" ? [{ project: "web", name: "busy", value: 23.3 }] : [],
+    }),
+  );
+});
+
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
-function renderDash(props: Partial<Parameters<typeof Dashboard>[0]> = {}) {
-  return render(<Dashboard user={user} onLogout={vi.fn()} onExpired={vi.fn()} {...props} />);
+function renderDash(props: { onExpired?: () => void } = {}) {
+  return renderAt(<Overview />, { s: session(props) });
 }
 
-describe("Dashboard", () => {
+describe("Overview", () => {
   it("renders server, members and instances sorted by CPU", async () => {
     vi.spyOn(api, "fetchServer").mockResolvedValue(server);
     vi.spyOn(api, "fetchLiveMetrics").mockResolvedValue(live);
-    const onLogout = vi.fn();
-    renderDash({ onLogout });
+    renderDash();
     expect(await screen.findByText(/LXD 5.21.8 · cluster · via https:\/\/192.0.2.1:8443/)).toHaveTextContent(
       "unavailable: storage_buckets, network_peers",
     );
@@ -116,7 +124,7 @@ describe("Dashboard", () => {
     expect(members.getAllByText("1d 1h")).toHaveLength(2);
 
     const rows = within(screen.getByRole("region", { name: "Instances" })).getAllByRole("row");
-    expect(rows.map((r) => r.firstChild?.textContent)).toEqual(["Name", "busy", "nototal", "idle"]);
+    expect(rows.map((r) => r.firstChild?.textContent)).toEqual(["Name", "web/busy", "nototal", "idle"]);
     expect(rows[1]).toHaveTextContent("VM");
     expect(rows[1]).toHaveTextContent("23.3%");
     expect(rows[1]).toHaveTextContent("512 MiB / 2.0 GiB");
@@ -125,9 +133,22 @@ describe("Dashboard", () => {
     expect(rows[2]).toHaveTextContent("1.0 KiB");
     expect(rows[3]).toHaveTextContent("container");
     expect(screen.getByText(/every 15s/)).toBeInTheDocument();
+    expect(within(rows[1]).getByRole("link", { name: "web/busy" })).toHaveAttribute("href", "/instances/web/busy");
+    expect(members.getByRole("link", { name: "m2" })).toHaveAttribute("href", "/members/m2");
 
-    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
-    expect(onLogout).toHaveBeenCalled();
+    const top = within(screen.getByRole("figure", { name: "Top CPU" }));
+    expect(await top.findByRole("link", { name: "web/busy" })).toBeInTheDocument();
+    expect(top.getByText("23.3%")).toBeInTheDocument();
+    expect(within(screen.getByRole("figure", { name: "Top Memory" })).getByText("No data yet.")).toBeInTheDocument();
+  });
+
+  it("shows top-N errors", async () => {
+    vi.spyOn(api, "fetchServer").mockResolvedValue(server);
+    vi.spyOn(api, "fetchLiveMetrics").mockResolvedValue(live);
+    vi.spyOn(api, "fetchTop").mockRejectedValue(new Error("no history"));
+    renderDash();
+    const top = within(screen.getByRole("figure", { name: "Top Disk I/O" }));
+    expect(await top.findByRole("alert")).toHaveTextContent("no history");
   });
 
   it("filters instances", async () => {

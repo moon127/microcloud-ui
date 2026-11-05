@@ -30,3 +30,22 @@ export function formatDuration(seconds: number | null | undefined): string {
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m ${s % 60}s`;
 }
+
+export function formatNumber(n: number | null | undefined): string {
+  if (n == null || !Number.isFinite(n)) return "–";
+  const a = Math.abs(n);
+  if (a >= 1e9) return `${(n / 1e9).toFixed(1)}G`;
+  if (a >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (a >= 1e3) return `${(n / 1e3).toFixed(1)}k`;
+  return a >= 10 || n === 0 ? n.toFixed(0) : n.toFixed(2);
+}
+
+export const RANGES: { label: string; seconds: number }[] = [
+  { label: "15m", seconds: 900 },
+  { label: "1h", seconds: 3600 },
+  { label: "6h", seconds: 21600 },
+  { label: "24h", seconds: 86400 },
+  { label: "7d", seconds: 604800 },
+  { label: "30d", seconds: 2592000 },
+  { label: "1y", seconds: 31536000 },
+];

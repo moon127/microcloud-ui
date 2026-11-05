@@ -1,29 +1,32 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router";
 import {
   ApiError,
   fetchLiveMetrics,
   fetchServer,
+  fetchTop,
   type InstanceLive,
   type LiveMetrics,
   type MemberLive,
   type ServerInfo,
-  type User,
-} from "./api";
-import { formatBytes, formatDuration, formatPercent, formatRate } from "./format";
+  type TopMetric,
+  type TopResult,
+} from "../api";
+import { formatBytes, formatDuration, formatPercent, formatRate } from "../format";
+import { useRange } from "../range";
+import RangePicker from "../RangePicker";
+import { useSession } from "../session";
+import { useApi } from "../useApi";
+import { InstanceLink } from "../links";
 
 const DEFAULT_INTERVAL_S = 15;
-
-interface Props {
-  user: User;
-  onLogout: () => void;
-  onExpired: () => void;
-}
 
 function message(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
-export default function Dashboard({ user, onLogout, onExpired }: Props) {
+export default function Overview() {
+  const { onExpired } = useSession();
   const [server, setServer] = useState<ServerInfo | null>(null);
   const [live, setLive] = useState<LiveMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -76,17 +79,7 @@ export default function Dashboard({ user, onLogout, onExpired }: Props) {
   }, [live, filter]);
 
   return (
-    <main>
-      <header className="topbar">
-        <h1>microcloud-ui</h1>
-        <span>
-          {user.username} ({user.role}){" "}
-          <button type="button" onClick={onLogout}>
-            Sign out
-          </button>
-        </span>
-      </header>
-
+    <>
       {error && <p role="alert">{error}</p>}
 
       <section aria-label="Server">
@@ -114,6 +107,8 @@ export default function Dashboard({ user, onLogout, onExpired }: Props) {
         {live ? <MembersTable members={live.members} /> : <p role="status">Loading metrics…</p>}
       </section>
 
+      <TopSection />
+
       <section aria-label="Instances">
         <h2>Instances (live)</h2>
         <input
@@ -131,7 +126,54 @@ export default function Dashboard({ user, onLogout, onExpired }: Props) {
           </p>
         )}
       </section>
-    </main>
+    </>
+  );
+}
+
+const TOP: { metric: TopMetric; title: string; format: (v: number) => string }[] = [
+  { metric: "cpu", title: "CPU", format: formatPercent },
+  { metric: "memory", title: "Memory", format: formatBytes },
+  { metric: "net", title: "Network", format: formatRate },
+  { metric: "disk", title: "Disk I/O", format: formatRate },
+];
+
+function TopSection() {
+  const range = useRange();
+  return (
+    <section aria-label="Top instances">
+      <h2>Top instances</h2>
+      <RangePicker />
+      <div className="grid">
+        {TOP.map((t) => (
+          <TopTable key={t.metric} {...t} range={range} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function TopTable({ metric, title, format, range }: (typeof TOP)[number] & { range: number }) {
+  const { data, error } = useApi<TopResult>(`top:${metric}:${range}`, () => fetchTop(metric, range, 5), 60_000);
+  return (
+    <figure className="chart" aria-label={`Top ${title}`}>
+      <figcaption>{title} (average)</figcaption>
+      {error && <p role="alert">{error}</p>}
+      {data && data.rows.length === 0 && <p className="muted">No data yet.</p>}
+      {data && data.rows.length > 0 && (
+        <table>
+          <tbody>
+            {data.rows.map((r) => (
+              <tr key={`${r.project}/${r.name}`}>
+                <td>
+                  <InstanceLink project={r.project} name={r.name} />
+                </td>
+                <td className="num">{format(r.value)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </figure>
   );
 }
 
@@ -154,7 +196,9 @@ function MembersTable({ members }: { members: MemberLive[] }) {
         <tbody>
           {members.map((m) => (
             <tr key={m.name}>
-              <td>{m.name}</td>
+              <td>
+                <Link to={`/members/${encodeURIComponent(m.name)}`}>{m.name}</Link>
+              </td>
               <td>{m.status}</td>
               <td>{m.roles.join(", ")}</td>
               <td>
@@ -203,7 +247,9 @@ function InstancesTable({ rows }: { rows: InstanceLive[] }) {
         <tbody>
           {rows.map((i) => (
             <tr key={`${i.member}/${i.project}/${i.name}`}>
-              <td>{i.name}</td>
+              <td>
+                <InstanceLink project={i.project} name={i.name} />
+              </td>
               <td>{i.project}</td>
               <td>{i.member}</td>
               <td>{i.type === "virtual-machine" ? "VM" : "container"}</td>

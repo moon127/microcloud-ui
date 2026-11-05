@@ -51,6 +51,9 @@ async def test_record_writes_scrubbed_files(settings, lxd, tmp_path):
     respx.get(f"{EP1}/1.0/warnings").mock(return_value=lxd_ok([]))
     respx.get(f"{EP1}/1.0/cluster/members/m1/state").mock(return_value=lxd_ok({}))
     respx.get(f"{EP1}/1.0/cluster/members/m2/state").mock(return_value=lxd_ok({}))
+    respx.get(f"{EP1}/1.0/resources").mock(
+        return_value=lxd_ok({"system": {"serial": "ABC123", "uuid": "u-1", "vendor": "X"}})
+    )
     respx.get("https://10.20.30.1:8443/1.0/metrics").mock(
         return_value=httpx.Response(200, text='lxd_uptime_seconds{addr="10.20.30.1"} 1\n')
     )
@@ -67,6 +70,8 @@ async def test_record_writes_scrubbed_files(settings, lxd, tmp_path):
         "1.0_cluster_members_m2_state.json",
         "1.0_cluster_members_recursion_1.json",
         "1.0_instances_recursion_2_all-projects_true.json",
+        "1.0_resources_target_m1.json",
+        "1.0_resources_target_m2.json",
         "1.0_storage-pools_recursion_1.json",
         "1.0_warnings_recursion_1.json",
         "metrics_m1.txt",
@@ -74,5 +79,7 @@ async def test_record_writes_scrubbed_files(settings, lxd, tmp_path):
     everything = "".join(p.read_text() for p in out.iterdir())
     assert "10.20.30.1" not in everything
     assert (out / "1.0_storage-pools_recursion_1.json").read_text() == "not json"
+    res = json.loads((out / "1.0_resources_target_m1.json").read_text())["metadata"]["system"]
+    assert res == {"serial": "SCRUBBED", "uuid": "SCRUBBED", "vendor": "X"}
     assert any("FAIL metrics m2" in line for line in log)
     assert log[-1].startswith("Scrubbed ")
