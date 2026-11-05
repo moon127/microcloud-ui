@@ -237,3 +237,28 @@ describe("create-instance helpers", () => {
     ]);
   });
 });
+
+describe("console helpers", () => {
+  it("send the right method, URL and body; fetch logs as text", async () => {
+    setCsrf("t");
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    await api.startExec("p", "c1", { cols: 80, rows: 24 });
+    await api.startConsole("p", "c1", { type: "vga" });
+    await api.clearConsoleLog("p", "c1");
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/instances/p/c1/exec", "POST", '{"cols":80,"rows":24}'],
+      ["/api/instances/p/c1/console", "POST", '{"type":"vga"}'],
+      ["/api/instances/p/c1/console-log", "DELETE", null],
+    ]);
+    f.mockResolvedValueOnce(new Response("boot\n")).mockResolvedValueOnce(new Response("LXD: not running", { status: 502 }));
+    f.mockResolvedValueOnce(new Response("", { status: 500 }));
+    await expect(api.fetchConsoleLog("p", "c1")).resolves.toBe("boot\n");
+    await expect(api.fetchConsoleLog("p", "c1")).rejects.toThrow("LXD: not running");
+    await expect(api.fetchConsoleLog("p", "c1")).rejects.toThrow("HTTP 500");
+    expect(api.streamUrl("a b")).toBe(`ws://${window.location.host}/api/streams/a%20b`);
+    vi.stubGlobal("location", { ...window.location, protocol: "https:", host: "ui.example" });
+    expect(api.streamUrl("x")).toBe("wss://ui.example/api/streams/x");
+    vi.unstubAllGlobals();
+  });
+});

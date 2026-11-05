@@ -5,7 +5,8 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from collections import deque
-from collections.abc import Callable
+from collections.abc import Callable, Coroutine
+from typing import Any
 from urllib.parse import urlsplit
 
 from fastapi import WebSocket
@@ -32,14 +33,18 @@ def same_origin(ws: WebSocket) -> bool:
     return urlsplit(origin).netloc == host
 
 
-async def authenticate(ws: WebSocket, *, admin: bool = False) -> Session | None:
+async def authenticate(
+    ws: WebSocket, *, admin: bool = False, subprotocols: tuple[str, ...] = ()
+) -> Session | None:
     """Accept the socket and return the session, or close it with a reason and return ``None``.
 
     Accepting first lets the browser see the close code (4401/4403) instead of a
     bare failed handshake.
     """
     services: Services = ws.app.state.services
-    await ws.accept()
+    offered = ws.scope.get("subprotocols") or []
+    chosen = next((p for p in subprotocols if p in offered), None)
+    await ws.accept(subprotocol=chosen)
     if not same_origin(ws):
         await ws.close(code=POLICY, reason="cross-origin websocket refused")
         return None
@@ -75,6 +80,56 @@ class Dedupe:
         return True
 
 
+async def relay_stream(
+    client: WebSocket, data: ClientConnection, control: ClientConnection | None
+) -> None:
+    """Console/terminal relay: browser binary frames go to LXD's data channel, browser
+    text frames (JSON such as window-resize) to the control channel."""
+
+    async def down() -> None:
+        async for msg in data:
+            if isinstance(msg, bytes):
+                await client.send_bytes(msg)
+            else:
+                await client.send_text(msg)
+
+    async def up() -> None:
+        while True:
+            msg = await client.receive()
+            if msg["type"] == "websocket.disconnect":
+                return
+            if msg.get("bytes") is not None:
+                await data.send(msg["bytes"])
+            elif msg.get("text") is not None and control is not None:
+                await control.send(msg["text"])
+
+    await _pump(client, data, down, up)
+
+
+async def _pump(
+    client: WebSocket,
+    upstream: ClientConnection,
+    down: Callable[[], Coroutine[Any, Any, None]],
+    up: Callable[[], Coroutine[Any, Any, None]],
+) -> None:
+    tasks = [asyncio.create_task(down()), asyncio.create_task(up())]
+    try:
+        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+        for t in pending:
+            t.cancel()
+        for t in tasks:
+            with contextlib.suppress(
+                asyncio.CancelledError, ConnectionClosed, WebSocketDisconnect, RuntimeError, OSError
+            ):
+                await t
+    finally:
+        await upstream.close()
+        if client.client_state == WebSocketState.CONNECTED:
+            # the browser may vanish between the check and the close
+            with contextlib.suppress(RuntimeError, OSError):
+                await client.close()
+
+
 async def relay(
     client: WebSocket,
     upstream: ClientConnection,
@@ -108,19 +163,4 @@ async def relay(
             elif msg.get("text") is not None:
                 await upstream.send(msg["text"])
 
-    tasks = [asyncio.create_task(down()), asyncio.create_task(up())]
-    try:
-        done, pending = await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-        for t in pending:
-            t.cancel()
-        for t in tasks:
-            with contextlib.suppress(
-                asyncio.CancelledError, ConnectionClosed, WebSocketDisconnect, RuntimeError, OSError
-            ):
-                await t
-    finally:
-        await upstream.close()
-        if client.client_state == WebSocketState.CONNECTED:
-            # the browser may vanish between the check and the close
-            with contextlib.suppress(RuntimeError, OSError):
-                await client.close()
+    await _pump(client, upstream, down, up)

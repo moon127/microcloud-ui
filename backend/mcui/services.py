@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from mcui.auth.store import Store
 from mcui.config import Settings
@@ -14,6 +14,7 @@ from mcui.metrics.collector import Collector
 from mcui.metrics.live import LiveMetrics
 from mcui.metrics.scrape import Scraper
 from mcui.metrics.store import H1, M1, RAW, MetricStore
+from mcui.streams import StreamRegistry
 
 
 @dataclass
@@ -28,6 +29,7 @@ class Services:
     ceph: CephScraper | None = None
     instances: InstanceIndex | None = None
     remotes: RemoteCatalog | None = None
+    streams: StreamRegistry = field(default_factory=StreamRegistry)
 
     async def start(self) -> None:
         if self.collector is not None and self.settings.metrics.collect:

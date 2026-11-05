@@ -51,7 +51,20 @@ async def start(
 async def wait(client: LXDClient, op_id: str, timeout: int = MAX_WAIT) -> dict[str, Any]:
     """Wait up to ``timeout`` seconds; returns the operation (maybe still running)."""
     timeout = max(0, min(timeout, MAX_WAIT))
-    op: dict[str, Any] = await client.get(f"/1.0/operations/{op_id}/wait", timeout=timeout)
+    # LXD holds the request for up to ``timeout`` s, so the HTTP timeout must be longer
+    try:
+        op: dict[str, Any] = await client.query(
+            "GET",
+            f"/1.0/operations/{op_id}/wait",
+            params={"timeout": timeout},
+            timeout=timeout + 15,
+        )
+    except LXDError as e:
+        # an expired wait is reported as an error (seen live: "context deadline
+        # exceeded"); the operation is simply still running
+        if e.status == 504 or "deadline exceeded" in str(e):
+            return await get(client, op_id)
+        raise
     return op
 
 

@@ -77,3 +77,5 @@ fieldset.inline { display: flex; gap: 1rem; align-items: end; }
 .create section { margin-bottom: 1.25rem; }
 .image-list { max-height: 22rem; overflow: auto; border: 1px solid var(--line); border-radius: 6px; }
 tr.selected td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.xterm-box { height: min(32rem, 65vh); background: #000; padding: 4px; border-radius: 6px; }
+.spice-screen { min-height: 24rem; background: #000; border-radius: 6px; overflow: auto; }

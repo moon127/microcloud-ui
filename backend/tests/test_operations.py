@@ -54,6 +54,7 @@ async def test_wait_get_cancel_list(lxd):
     )
     assert (await operations.wait(lxd, "op1", 999))["status"] == "Success"
     assert w.calls.last.request.url.params["timeout"] == "30"
+    assert w.calls.last.request.extensions["timeout"]["read"] == 45  # outlives LXD's wait
     await operations.wait(lxd, "op1", -5)
     assert w.calls.last.request.url.params["timeout"] == "0"
     respx.get(f"{EP1}/1.0/operations/op1").mock(return_value=lxd_ok(OP))
@@ -91,3 +92,16 @@ async def test_run(lxd):
         await operations.run(lxd, "POST", "/1.0/x")
     respx.post(f"{EP1}/1.0/y").mock(return_value=lxd_ok({"done": True}))
     assert (await operations.run(lxd, "POST", "/1.0/y")).metadata == {"done": True}
+
+
+@respx.mock
+async def test_wait_expiry_returns_running_operation(lxd):
+    w = respx.get(f"{EP1}/1.0/operations/op1/wait")
+    w.mock(return_value=lxd_err("context deadline exceeded", 504))
+    respx.get(f"{EP1}/1.0/operations/op1").mock(return_value=lxd_ok(OP))
+    assert (await operations.wait(lxd, "op1"))["status"] == "Running"
+    w.mock(return_value=lxd_err("context deadline exceeded", 500))  # older LXD: 500 + message
+    assert (await operations.wait(lxd, "op1"))["status"] == "Running"
+    w.mock(return_value=lxd_err("Operation not found", 404))
+    with pytest.raises(LXDError, match="not found"):
+        await operations.wait(lxd, "op1")

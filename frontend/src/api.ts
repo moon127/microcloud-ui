@@ -487,3 +487,35 @@ export interface NewInstance {
 }
 
 export const createInstance = (body: NewInstance) => send<Started>("POST", "/api/instances", body);
+
+// --- Phase 3d: consoles ---------------------------------------------------------
+
+export interface StreamStart {
+  id: string;
+  kind: "exec" | "console" | "vga";
+  operation: string;
+}
+
+export const startExec = (project: string, name: string, size: { cols: number; rows: number }) =>
+  send<StreamStart>("POST", `${inst(project, name)}/exec`, size);
+export const startConsole = (
+  project: string,
+  name: string,
+  opts: { type: "console" | "vga"; cols?: number; rows?: number },
+) => send<StreamStart>("POST", `${inst(project, name)}/console`, opts);
+
+export async function fetchConsoleLog(project: string, name: string): Promise<string> {
+  const res = await fetch(`${inst(project, name)}/console-log`, { credentials: "same-origin" });
+  const text = await res.text();
+  if (!res.ok) throw new ApiError(res.status, text || `HTTP ${res.status}`);
+  return text;
+}
+
+export const clearConsoleLog = (project: string, name: string) =>
+  send<Started>("DELETE", `${inst(project, name)}/console-log`);
+
+/** The browser websocket for a started terminal/console stream. */
+export function streamUrl(id: string): string {
+  const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+  return `${proto}//${window.location.host}/api/streams/${encodeURIComponent(id)}`;
+}

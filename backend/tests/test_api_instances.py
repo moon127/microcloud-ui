@@ -114,6 +114,14 @@ async def test_delete_plain_and_forced(app, services):
         await c.delete("/api/instances/p/c1", params={"force": "true"}, headers=h)
         assert body(stop) == {"action": "stop", "force": True, "timeout": -1}
         assert last_audit(services)[4] == {"force": True}
+        # a failed stop is audited as a failed delete
+        respx.get(f"{EP1}/1.0/operations/op1/wait").mock(
+            return_value=lxd_ok({**OP, "status": "Failure", "err": "stop timed out"})
+        )
+        r = await c.delete("/api/instances/p/c1", params={"force": "true"}, headers=h)
+        assert r.status_code == 502
+        assert last_audit(services)[0:3] == ("instance.delete", "p/c1", False)
+        assert last_audit(services)[4] == {"force": True, "error": "stop timed out"}
         state.mock(return_value=lxd_ok({"status": "Stopped"}))
         stop.reset()
         await c.delete("/api/instances/p/c1", params={"force": "true"}, headers=h)

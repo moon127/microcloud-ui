@@ -6,6 +6,7 @@ and CSRF token, and is audited with its LXD operation (D42).
 
 from __future__ import annotations
 
+from collections.abc import Awaitable
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Response
@@ -45,6 +46,21 @@ class Ctx:
         self, session: Session, store: Store, lxd: LXDClient, index: InstanceIndex
     ) -> None:
         self.session, self.store, self.lxd, self.index = session, store, lxd, index
+
+    async def audit(
+        self,
+        action: str,
+        project: str,
+        name: str,
+        call: Awaitable[operations.Started],
+        detail: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """Audit an arbitrary sequence of LXD calls as one change."""
+        st = await audited(
+            self.session, self.store, action, f"{project}/{name}", call, detail=detail
+        )
+        self.index.invalidate()
+        return st.as_dict()
 
     async def change(
         self,
@@ -212,24 +228,27 @@ async def change_state(
 async def delete_instance(
     project: ProjectName, name: InstName, ctx: CtxDep, force: bool = False
 ) -> dict[str, Any]:
-    """Delete; with ``force`` a running instance is stopped first (like ``lxc delete -f``)."""
-    if force:
-        st = await ctx.lxd.get(f"{_inst(name)}/state", project=project)
-        if st and st.get("status") != "Stopped":
-            await operations.run(
-                ctx.lxd,
-                "PUT",
-                f"{_inst(name)}/state",
-                json={"action": "stop", "force": True, "timeout": -1},
-                params={"project": project},
-            )
-    return await ctx.change(
-        "instance.delete",
-        project,
-        name,
-        "DELETE",
-        _inst(name),
-        detail={"force": True} if force else None,
+    """Delete; with ``force`` a running instance is stopped first (like ``lxc delete -f``).
+
+    The stop and the delete are audited as one change, so a failed stop is recorded too.
+    """
+    params = {"project": project}
+
+    async def call() -> operations.Started:
+        if force:
+            st = await ctx.lxd.get(f"{_inst(name)}/state", project=project)
+            if st and st.get("status") != "Stopped":
+                await operations.run(
+                    ctx.lxd,
+                    "PUT",
+                    f"{_inst(name)}/state",
+                    json={"action": "stop", "force": True, "timeout": -1},
+                    params=params,
+                )
+        return await operations.start(ctx.lxd, "DELETE", _inst(name), params=params)
+
+    return await ctx.audit(
+        "instance.delete", project, name, call(), detail={"force": True} if force else None
     )
 
 

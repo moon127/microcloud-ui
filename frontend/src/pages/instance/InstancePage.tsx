@@ -5,6 +5,7 @@ import { MemberLink } from "../../links";
 import { useApi } from "../../useApi";
 import Actions from "./Actions";
 import ConfigTab from "./ConfigTab";
+import ConsoleTab from "./ConsoleTab";
 import Graphs from "./Graphs";
 import LogsTab from "./LogsTab";
 import SnapshotsTab from "./SnapshotsTab";
@@ -12,6 +13,7 @@ import SnapshotsTab from "./SnapshotsTab";
 const TABS = [
   { id: "overview", label: "Overview" },
   { id: "config", label: "Configuration" },
+  { id: "console", label: "Console" },
   { id: "snapshots", label: "Snapshots" },
   { id: "logs", label: "Logs" },
 ] as const;
@@ -61,6 +63,7 @@ export default function InstancePage() {
       </nav>
       {tab === "overview" && <Graphs project={project} name={name} />}
       {tab === "config" && inst && <ConfigTab inst={inst} />}
+      {tab === "console" && inst && <ConsoleTab key={`${inst.status}`} inst={inst} />}
       {tab === "snapshots" && inst && <SnapshotsTab inst={inst} />}
       {tab === "logs" && <LogsTab project={project} name={name} />}
     </>

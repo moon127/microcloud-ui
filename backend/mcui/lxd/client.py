@@ -69,10 +69,16 @@ class LXDClient:
         return {"sni_hostname": self.server_name} if self.server_name else {}
 
     async def _send(
-        self, method: str, url: str, params: dict[str, Any] | None, json: Any
+        self,
+        method: str,
+        url: str,
+        params: dict[str, Any] | None,
+        json: Any,
+        timeout: float | None = None,
     ) -> httpx.Response:
+        kw: dict[str, Any] = {"timeout": timeout} if timeout is not None else {}
         return await self._http.request(
-            method, url, params=params, json=json, extensions=self._extensions()
+            method, url, params=params, json=json, extensions=self._extensions(), **kw
         )
 
     async def raw(
@@ -83,11 +89,15 @@ class LXDClient:
         params: dict[str, Any] | None = None,
         json: Any = None,
         base: str | None = None,
+        timeout: float | None = None,
     ) -> httpx.Response:
-        """Send a request. With ``base`` only that server is tried, else failover."""
+        """Send a request. With ``base`` only that server is tried, else failover.
+
+        ``timeout`` overrides the client's default (long-polls such as operation waits).
+        """
         if base is not None:
             try:
-                return await self._send(method, base.rstrip("/") + path, params, json)
+                return await self._send(method, base.rstrip("/") + path, params, json, timeout)
             except httpx.TransportError as e:
                 raise LXDUnavailable(_describe(e)) from e
         errors: list[str] = []
@@ -96,7 +106,7 @@ class LXDClient:
             idx = (self._current + i) % n
             ep = self.endpoints[idx]
             try:
-                r = await self._send(method, ep + path, params, json)
+                r = await self._send(method, ep + path, params, json, timeout)
             except httpx.TransportError as e:
                 errors.append(f"{ep}: {_describe(e)}")
                 continue
@@ -112,9 +122,10 @@ class LXDClient:
         params: dict[str, Any] | None = None,
         json: Any = None,
         base: str | None = None,
+        timeout: float | None = None,
     ) -> Any:
         """Send a request and return the response ``metadata``; raise on LXD errors."""
-        r = await self.raw(method, path, params=params, json=json, base=base)
+        r = await self.raw(method, path, params=params, json=json, base=base, timeout=timeout)
         try:
             body = r.json()
         except ValueError as e:
