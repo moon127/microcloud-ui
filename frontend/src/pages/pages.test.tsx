@@ -221,11 +221,12 @@ describe("NetworksPage", () => {
       tx: [{ labels: { network: "ovn1" }, points: [[10, 2]] }],
     });
     data = {
+      mcui_host_network_receive_bytes_total: [{ labels: { member: "m1", network: "bond0" }, points: [[10, 4]] }],
       mcui_host_network_transmit_bytes_total: [{ labels: { member: "m1", network: "bond0" }, points: [[10, 3]] }],
     };
     renderAt(<NetworksPage />, { url: "/networks?range=86400" });
     await vi.waitFor(() => expect(plots.length).toBe(3));
-    expect(titles()).toEqual(expect.arrayContaining([["ovn1 rx"], ["ovn1 tx"], ["m1 bond0 tx"]]));
+    expect(titles()).toEqual(expect.arrayContaining([["ovn1 rx"], ["ovn1 tx"], ["m1 bond0 rx", "m1 bond0 tx"]]));
     expect(api.fetchNetworkTraffic).toHaveBeenCalledWith(86400);
   });
 

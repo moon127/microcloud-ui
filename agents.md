@@ -37,7 +37,7 @@ makes or alters a design decision.**
 | D24 | **Licence: MIT** (`LICENSE`). Dependencies must be MIT-compatible; copyleft libraries only as unmodified, separately loaded modules with their licence notices kept (e.g. spice-html5 for the VGA console, whose LGPL licence is to be confirmed when it's added). Never copy lxd-ui (GPL-3.0) code | Owner's choice. | Accepted 2026-11-05 |
 | D25 | **VGA console and file browser are MVP** (IN-9, IN-11). The backend proxies the LXD console websockets (data + control) so the browser never talks to LXD directly | Owner promoted them; the proxy keeps the cert server-side (D4). | Accepted 2026-11-05 |
 | D26 | **Live-test workflow:** the Claude session's dev VM **cannot** reach the test cloud (direct connects get "network unreachable"; the egress proxy refuses CONNECT with 403). So development and CI use recorded, scrubbed fixtures. The repo ships a recorder (`mcui record-fixtures`) and opt-in integration tests that the owner runs on the Mac and commits the scrubbed output | Keeps ≥90% coverage without live access; the owner does live validation. | Accepted 2026-11-05 |
-| D27 | **Tooling specifics:** setuptools (>=77) with an editable install, argparse CLI (no extra dependency), pytest-asyncio auto mode, coverage branch + `fail_under=90` in pyproject; Vitest v3 + v8 coverage thresholds 90 on all four metrics; React 19 + Vite 6 + TS 5.8; the Vite dev server proxies `/api` (incl. websockets) to `MCUI_BACKEND` (default :8000). CI matrix: Python 3.10 and 3.12, Node 22 | Minimal, standard, fast. | Accepted 2026-11-05 |
+| D27 | **Tooling specifics:** setuptools (>=77) with an editable install, argparse CLI (no extra dependency), pytest-asyncio auto mode, coverage branch + `fail_under=90` in pyproject; Vitest 4 (4.1.12, upgraded from 3 on 2026-11-05 for GHSA-82fw-gwwq-j7x9 / GHSA-qxg6-89mg-rqv8) + v8 coverage thresholds 90 on all four metrics; React 19 + Vite 6 + TS 5.8; the Vite dev server proxies `/api` (incl. websockets) to `MCUI_BACKEND` (default :8000). CI matrix: Python 3.10 and 3.12, Node 22 | Minimal, standard, fast. | Accepted 2026-11-05 |
 | D28 | **Key-file permission rule:** refuse private keys with *any* group/other permission bits (OpenSSH-style), stricter than CF-1's "world-readable" wording | A group-readable key is just as leaked on a shared host. | Proposed |
 | D29 | **TLS pinning implementation:** `ssl.create_default_context(cafile=server_cert)` (no system CAs) + client cert; hostname checked against `server_name` via httpx's `sni_hostname` request extension. No extra verify flags: OpenSSL accepts LXD's self-signed `CA:FALSE` cert as an anchor. Covered by real-handshake tests (`tests/test_tls.py`) | Verified on Python 3.14/OpenSSL 3.6; CI runs it on 3.10 and 3.12. | Accepted 2026-11-05 |
 | D30 | **Sessions:** random 256-bit token in an HttpOnly, SameSite=Strict cookie (`Secure` unless `server.secure_cookies=false`); only its SHA-256 is stored. CSRF: per-session token returned by login/`/api/auth/me`, required as `X-CSRF-Token` on every non-GET request. Password change logs the user out everywhere. The last admin can't be deleted or demoted. Users, sessions and audit share one SQLite DB in `server.data_dir` | Simple, stateless for the browser, no extra deps beyond argon2-cffi (MIT). | Proposed |
@@ -103,8 +103,11 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   (per-network traffic from instance NICs, host interfaces). Recorder now also
   captures `/1.0/resources` with serials/UUIDs blanked. Coverage: backend 99.8%,
   frontend 100% lines / 99.5% branches / 94.8% functions.
-  Dev-only npm advisories (Vitest 3 chain) need a Vitest major upgrade; runtime
-  deps have none.
+  Vitest upgraded 3 → 4.1.12 (2026-11-05), clearing the critical dev-tool
+  advisories. Remaining: moderate `minimatch` ReDoS (GHSA-g3hv-75wg-m249) via
+  typescript-eslint, lint-time only; fixed only in minimatch 11.0.1 (2026-10-27),
+  which typescript-eslint doesn't accept yet. Revisit after 2026-11-10. Runtime
+  deps: no advisories.
 - Next: **Phase 3**, instances, profiles, images, projects (management).
 
 ## Working conventions
@@ -115,7 +118,11 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   (`make … VENV=$HOME/mcui-venv`) and deletes `frontend/node_modules` after
   use, so no Linux binaries are left in the owner's macOS checkout.
 - New Python deps go in `backend/pyproject.toml`; new JS deps via `npm install`
-  (commit `package-lock.json`). Check licences (D24).
+  (commit `package-lock.json`). Check licences (D24). Pin exact versions at
+  least two weeks old.
+- npm 10.9 (bundled with Node 22) can crash with `Cannot read properties of null
+  (reading 'edgesOut')` when changing deps; use `npx -y npm@11.6.2 install …`
+  to update the lockfile. `npm ci` with npm 10 reads the result fine.
 
 ## Test cloud facts (no secrets or IPs here)
 
