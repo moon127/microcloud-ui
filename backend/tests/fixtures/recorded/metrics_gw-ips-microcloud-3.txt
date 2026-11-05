@@ -1,0 +1,600 @@
+# HELP lxd_api_requests_completed_total The total number of completed API requests.
+# TYPE lxd_api_requests_completed_total counter
+lxd_api_requests_completed_total{entity_type="image",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="image",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="image",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="profile",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="profile",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="profile",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="project",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="project",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="project",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="certificate",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="certificate",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="certificate",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="instance",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="instance",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="instance",result="succeeded"} 3
+lxd_api_requests_completed_total{entity_type="network",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="network",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="network",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="cluster_member",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="cluster_member",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="cluster_member",result="succeeded"} 1
+lxd_api_requests_completed_total{entity_type="operation",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="operation",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="operation",result="succeeded"} 7
+lxd_api_requests_completed_total{entity_type="storage_pool",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="storage_pool",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="storage_pool",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="warning",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="warning",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="warning",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="server",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="server",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="server",result="succeeded"} 6
+lxd_api_requests_completed_total{entity_type="identity",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="identity",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="identity",result="succeeded"} 0
+# HELP lxd_api_requests_ongoing The number of API requests currently being handled.
+# TYPE lxd_api_requests_ongoing gauge
+lxd_api_requests_ongoing{entity_type="image"} 0
+lxd_api_requests_ongoing{entity_type="profile"} 0
+lxd_api_requests_ongoing{entity_type="project"} 0
+lxd_api_requests_ongoing{entity_type="certificate"} 0
+lxd_api_requests_ongoing{entity_type="instance"} 0
+lxd_api_requests_ongoing{entity_type="network"} 0
+lxd_api_requests_ongoing{entity_type="cluster_member"} 0
+lxd_api_requests_ongoing{entity_type="operation"} 0
+lxd_api_requests_ongoing{entity_type="storage_pool"} 0
+lxd_api_requests_ongoing{entity_type="warning"} 0
+lxd_api_requests_ongoing{entity_type="server"} 4
+lxd_api_requests_ongoing{entity_type="identity"} 0
+# HELP lxd_cpu_effective_total The total number of effective CPUs.
+# TYPE lxd_cpu_effective_total gauge
+lxd_cpu_effective_total{name="nginx-proxy-manager",project="default",type="container"} 2
+lxd_cpu_effective_total{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_effective_total{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_cpu_seconds_total The total number of CPU time used in seconds.
+# TYPE lxd_cpu_seconds_total counter
+lxd_cpu_seconds_total{cpu="0",mode="system",name="nginx-proxy-manager",project="default",type="container"} 63762.993724
+lxd_cpu_seconds_total{cpu="0",mode="user",name="nginx-proxy-manager",project="default",type="container"} 25462.676065
+lxd_cpu_seconds_total{cpu="0",mode="iowait",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 245093.84
+lxd_cpu_seconds_total{cpu="0",mode="irq",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_seconds_total{cpu="0",mode="idle",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 5.1457161e+06
+lxd_cpu_seconds_total{cpu="0",mode="nice",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 380.75
+lxd_cpu_seconds_total{cpu="0",mode="softirq",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 6552.45
+lxd_cpu_seconds_total{cpu="0",mode="steal",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 59551.47
+lxd_cpu_seconds_total{cpu="0",mode="system",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 356023.5
+lxd_cpu_seconds_total{cpu="0",mode="user",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.48880257e+06
+lxd_cpu_seconds_total{cpu="1",mode="iowait",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 226592.75
+lxd_cpu_seconds_total{cpu="1",mode="irq",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_seconds_total{cpu="1",mode="idle",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 5.09451556e+06
+lxd_cpu_seconds_total{cpu="1",mode="nice",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 428.13
+lxd_cpu_seconds_total{cpu="1",mode="softirq",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 8827.19
+lxd_cpu_seconds_total{cpu="1",mode="steal",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 63032.96
+lxd_cpu_seconds_total{cpu="1",mode="system",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 367929.97
+lxd_cpu_seconds_total{cpu="1",mode="user",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.53377572e+06
+lxd_cpu_seconds_total{cpu="0",mode="iowait",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 52529.13
+lxd_cpu_seconds_total{cpu="0",mode="irq",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_seconds_total{cpu="0",mode="idle",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.148766334e+07
+lxd_cpu_seconds_total{cpu="0",mode="nice",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 525.86
+lxd_cpu_seconds_total{cpu="0",mode="softirq",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5796.25
+lxd_cpu_seconds_total{cpu="0",mode="steal",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 34494.8
+lxd_cpu_seconds_total{cpu="0",mode="system",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 277575.55
+lxd_cpu_seconds_total{cpu="0",mode="user",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 496824.4
+lxd_cpu_seconds_total{cpu="1",mode="iowait",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 57291.31
+lxd_cpu_seconds_total{cpu="1",mode="irq",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_seconds_total{cpu="1",mode="idle",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.152294943e+07
+lxd_cpu_seconds_total{cpu="1",mode="nice",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 765.74
+lxd_cpu_seconds_total{cpu="1",mode="softirq",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 6871.09
+lxd_cpu_seconds_total{cpu="1",mode="steal",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 32167.64
+lxd_cpu_seconds_total{cpu="1",mode="system",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 281488.82
+lxd_cpu_seconds_total{cpu="1",mode="user",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 495160.98
+# HELP lxd_disk_read_bytes_total The total number of bytes read.
+# TYPE lxd_disk_read_bytes_total counter
+lxd_disk_read_bytes_total{device="rbd2",name="nginx-proxy-manager",project="default",type="container"} 6.88902443008e+11
+lxd_disk_read_bytes_total{device="sdb",name="nginx-proxy-manager",project="default",type="container"} 3.629056e+06
+lxd_disk_read_bytes_total{device="dm-0",name="nginx-proxy-manager",project="default",type="container"} 3.629056e+06
+lxd_disk_read_bytes_total{device="dm-1",name="nginx-proxy-manager",project="default",type="container"} 3.629056e+06
+lxd_disk_read_bytes_total{device="sda13",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 4.460032e+06
+lxd_disk_read_bytes_total{device="sda15",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 7.605248e+06
+lxd_disk_read_bytes_total{device="loop0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 14336
+lxd_disk_read_bytes_total{device="loop3",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop5",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop6",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="sda14",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 6.02112e+06
+lxd_disk_read_bytes_total{device="loop1",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop2",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop4",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop7",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="sda",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.385035264e+09
+lxd_disk_read_bytes_total{device="sda1",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.008729088e+09
+lxd_disk_read_bytes_total{device="sda13",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.19424e+06
+lxd_disk_read_bytes_total{device="sda15",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 8.264704e+06
+lxd_disk_read_bytes_total{device="loop1",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop2",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop4",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="sda",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 2.37056512e+09
+lxd_disk_read_bytes_total{device="sda1",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.80696832e+09
+lxd_disk_read_bytes_total{device="sda14",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 8.35584e+06
+lxd_disk_read_bytes_total{device="loop0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 40960
+lxd_disk_read_bytes_total{device="loop3",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_disk_reads_completed_total The total number of completed reads.
+# TYPE lxd_disk_reads_completed_total counter
+lxd_disk_reads_completed_total{device="rbd2",name="nginx-proxy-manager",project="default",type="container"} 5.525109e+06
+lxd_disk_reads_completed_total{device="sdb",name="nginx-proxy-manager",project="default",type="container"} 886
+lxd_disk_reads_completed_total{device="dm-0",name="nginx-proxy-manager",project="default",type="container"} 886
+lxd_disk_reads_completed_total{device="dm-1",name="nginx-proxy-manager",project="default",type="container"} 886
+lxd_disk_reads_completed_total{device="sda13",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 228
+lxd_disk_reads_completed_total{device="sda15",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 201
+lxd_disk_reads_completed_total{device="loop0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 11
+lxd_disk_reads_completed_total{device="loop3",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop5",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop6",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="sda14",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1408
+lxd_disk_reads_completed_total{device="loop1",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop2",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop4",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop7",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="sda",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 78360
+lxd_disk_reads_completed_total{device="sda1",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 71998
+lxd_disk_reads_completed_total{device="sda13",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 276
+lxd_disk_reads_completed_total{device="sda15",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 224
+lxd_disk_reads_completed_total{device="loop1",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop2",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop4",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="sda",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 115892
+lxd_disk_reads_completed_total{device="sda1",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 106775
+lxd_disk_reads_completed_total{device="sda14",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1978
+lxd_disk_reads_completed_total{device="loop0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 40
+lxd_disk_reads_completed_total{device="loop3",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_disk_written_bytes_total The total number of bytes written.
+# TYPE lxd_disk_written_bytes_total counter
+lxd_disk_written_bytes_total{device="rbd2",name="nginx-proxy-manager",project="default",type="container"} 1.4559072731136e+13
+lxd_disk_written_bytes_total{device="sdb",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="dm-0",name="nginx-proxy-manager",project="default",type="container"} 3.5004416e+07
+lxd_disk_written_bytes_total{device="dm-1",name="nginx-proxy-manager",project="default",type="container"} 3.514368e+07
+lxd_disk_written_bytes_total{device="sda13",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 5.68779776e+08
+lxd_disk_written_bytes_total{device="sda15",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1024
+lxd_disk_written_bytes_total{device="loop0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop3",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop5",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop6",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="sda14",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop1",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop2",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop4",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop7",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="sda",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.650582600704e+12
+lxd_disk_written_bytes_total{device="sda1",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.650013770752e+12
+lxd_disk_written_bytes_total{device="sda13",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 8.31685632e+08
+lxd_disk_written_bytes_total{device="sda15",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1024
+lxd_disk_written_bytes_total{device="loop1",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop2",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop4",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="sda",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 2.75061718016e+11
+lxd_disk_written_bytes_total{device="sda1",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 2.74229982208e+11
+lxd_disk_written_bytes_total{device="sda14",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop3",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_disk_writes_completed_total The total number of completed writes.
+# TYPE lxd_disk_writes_completed_total counter
+lxd_disk_writes_completed_total{device="rbd2",name="nginx-proxy-manager",project="default",type="container"} 1.2601525e+07
+lxd_disk_writes_completed_total{device="sdb",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="dm-0",name="nginx-proxy-manager",project="default",type="container"} 8546
+lxd_disk_writes_completed_total{device="dm-1",name="nginx-proxy-manager",project="default",type="container"} 8580
+lxd_disk_writes_completed_total{device="sda13",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 714
+lxd_disk_writes_completed_total{device="sda15",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 2
+lxd_disk_writes_completed_total{device="loop0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop3",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop5",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop6",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="sda14",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop1",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop2",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop4",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop7",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="sda",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.70732623e+08
+lxd_disk_writes_completed_total{device="sda1",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.70731893e+08
+lxd_disk_writes_completed_total{device="sda13",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1066
+lxd_disk_writes_completed_total{device="sda15",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 2
+lxd_disk_writes_completed_total{device="loop1",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop2",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop4",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="sda",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 3.5394464e+07
+lxd_disk_writes_completed_total{device="sda1",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 3.5393382e+07
+lxd_disk_writes_completed_total{device="sda14",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop3",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_filesystem_avail_bytes The number of available space in bytes.
+# TYPE lxd_filesystem_avail_bytes gauge
+lxd_filesystem_avail_bytes{device="/dev/rbd2",fstype="ext4",mountpoint="/",name="nginx-proxy-manager",project="default",type="container"} 3.6737232896e+10
+lxd_filesystem_avail_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/var/lib/containers/storage/overlay",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 6.4151154688e+10
+lxd_filesystem_avail_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 8.0908288e+08
+lxd_filesystem_avail_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.02828032e+08
+lxd_filesystem_avail_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-journald.service",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_avail_bytes{device="shm",fstype="tmpfs",mountpoint="/var/lib/containers/storage/overlay-containers/0000000000000000000000000000000000000000000000000000000000000011/userdata/shm",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 6.5536e+07
+lxd_filesystem_avail_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 3.7687296e+07
+lxd_filesystem_avail_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.384566784e+10
+lxd_filesystem_avail_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 7.83249408e+08
+lxd_filesystem_avail_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.02828032e+08
+lxd_filesystem_avail_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-networkd.service",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_avail_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 3.817472e+07
+# HELP lxd_filesystem_free_bytes The number of free space in bytes.
+# TYPE lxd_filesystem_free_bytes gauge
+lxd_filesystem_free_bytes{device="/dev/rbd2",fstype="ext4",mountpoint="/",name="nginx-proxy-manager",project="default",type="container"} 3.910144e+10
+lxd_filesystem_free_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/var/lib/containers/storage/overlay",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 6.4167931904e+10
+lxd_filesystem_free_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 8.7949312e+08
+lxd_filesystem_free_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.02828032e+08
+lxd_filesystem_free_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-journald.service",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_free_bytes{device="shm",fstype="tmpfs",mountpoint="/var/lib/containers/storage/overlay-containers/0000000000000000000000000000000000000000000000000000000000000011/userdata/shm",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 6.5536e+07
+lxd_filesystem_free_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 3.7687296e+07
+lxd_filesystem_free_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.3862445056e+10
+lxd_filesystem_free_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 8.53659648e+08
+lxd_filesystem_free_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.02828032e+08
+lxd_filesystem_free_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-networkd.service",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_free_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 3.817472e+07
+# HELP lxd_filesystem_size_bytes The size of the filesystem in bytes.
+# TYPE lxd_filesystem_size_bytes gauge
+lxd_filesystem_size_bytes{device="/dev/rbd2",fstype="ext4",mountpoint="/",name="nginx-proxy-manager",project="default",type="container"} 5.2654358528e+10
+lxd_filesystem_size_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/var/lib/containers/storage/overlay",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 7.6878503936e+10
+lxd_filesystem_size_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.03643136e+09
+lxd_filesystem_size_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.09395456e+08
+lxd_filesystem_size_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-journald.service",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_size_bytes{device="shm",fstype="tmpfs",mountpoint="/var/lib/containers/storage/overlay-containers/0000000000000000000000000000000000000000000000000000000000000011/userdata/shm",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 6.5536e+07
+lxd_filesystem_size_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 5.24288e+07
+lxd_filesystem_size_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 6.1255049216e+10
+lxd_filesystem_size_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.03643136e+09
+lxd_filesystem_size_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.09395456e+08
+lxd_filesystem_size_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-networkd.service",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_size_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.24288e+07
+# HELP lxd_go_alloc_bytes Number of bytes allocated and still in use.
+# TYPE lxd_go_alloc_bytes gauge
+lxd_go_alloc_bytes 1.9044736e+07
+# HELP lxd_go_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE lxd_go_alloc_bytes_total counter
+lxd_go_alloc_bytes_total 1.3022790808e+10
+# HELP lxd_go_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table.
+# TYPE lxd_go_buck_hash_sys_bytes gauge
+lxd_go_buck_hash_sys_bytes 1.942117e+06
+# HELP lxd_go_frees_total Total number of frees.
+# TYPE lxd_go_frees_total counter
+lxd_go_frees_total 1.33263869e+08
+# HELP lxd_go_gc_sys_bytes Number of bytes used for garbage collection system metadata.
+# TYPE lxd_go_gc_sys_bytes gauge
+lxd_go_gc_sys_bytes 4.474096e+06
+# HELP lxd_go_goroutines Number of goroutines that currently exist.
+# TYPE lxd_go_goroutines gauge
+lxd_go_goroutines 84
+# HELP lxd_go_heap_alloc_bytes Number of heap bytes allocated and still in use.
+# TYPE lxd_go_heap_alloc_bytes gauge
+lxd_go_heap_alloc_bytes 1.9044736e+07
+# HELP lxd_go_heap_idle_bytes Number of heap bytes waiting to be used.
+# TYPE lxd_go_heap_idle_bytes gauge
+lxd_go_heap_idle_bytes 1.45408e+07
+# HELP lxd_go_heap_inuse_bytes Number of heap bytes that are in use.
+# TYPE lxd_go_heap_inuse_bytes gauge
+lxd_go_heap_inuse_bytes 2.5042944e+07
+# HELP lxd_go_heap_objects Number of allocated objects.
+# TYPE lxd_go_heap_objects gauge
+lxd_go_heap_objects 128971
+# HELP lxd_go_heap_released_bytes Number of heap bytes released to OS.
+# TYPE lxd_go_heap_released_bytes gauge
+lxd_go_heap_released_bytes 6.406144e+06
+# HELP lxd_go_heap_sys_bytes Number of heap bytes obtained from system.
+# TYPE lxd_go_heap_sys_bytes gauge
+lxd_go_heap_sys_bytes 3.9583744e+07
+# HELP lxd_go_lookups_total Total number of pointer lookups.
+# TYPE lxd_go_lookups_total counter
+lxd_go_lookups_total 0
+# HELP lxd_go_mallocs_total Total number of mallocs.
+# TYPE lxd_go_mallocs_total counter
+lxd_go_mallocs_total 1.3339284e+08
+# HELP lxd_go_mcache_inuse_bytes Number of bytes in use by mcache structures.
+# TYPE lxd_go_mcache_inuse_bytes gauge
+lxd_go_mcache_inuse_bytes 18368
+# HELP lxd_go_mcache_sys_bytes Number of bytes used for mcache structures obtained from system.
+# TYPE lxd_go_mcache_sys_bytes gauge
+lxd_go_mcache_sys_bytes 32144
+# HELP lxd_go_mspan_inuse_bytes Number of bytes in use by mspan structures.
+# TYPE lxd_go_mspan_inuse_bytes gauge
+lxd_go_mspan_inuse_bytes 402720
+# HELP lxd_go_mspan_sys_bytes Number of bytes used for mspan structures obtained from system.
+# TYPE lxd_go_mspan_sys_bytes gauge
+lxd_go_mspan_sys_bytes 473280
+# HELP lxd_go_next_gc_bytes Number of heap bytes when next garbage collection will take place.
+# TYPE lxd_go_next_gc_bytes gauge
+lxd_go_next_gc_bytes 3.2582154e+07
+# HELP lxd_go_other_sys_bytes Number of bytes used for other system allocations.
+# TYPE lxd_go_other_sys_bytes gauge
+lxd_go_other_sys_bytes 1.447112e+06
+# HELP lxd_go_stack_inuse_bytes Number of bytes in use by the stack allocator.
+# TYPE lxd_go_stack_inuse_bytes gauge
+lxd_go_stack_inuse_bytes 2.359296e+06
+# HELP lxd_go_stack_sys_bytes Number of bytes obtained from system for stack allocator.
+# TYPE lxd_go_stack_sys_bytes gauge
+lxd_go_stack_sys_bytes 2.359296e+06
+# HELP lxd_go_sys_bytes Number of bytes obtained from system.
+# TYPE lxd_go_sys_bytes gauge
+lxd_go_sys_bytes 5.0311789e+07
+# HELP lxd_instances The number of instances.
+# TYPE lxd_instances gauge
+lxd_instances{project="default",type="container"} 1
+lxd_instances{project="default",type="virtual-machine"} 3
+# HELP lxd_memory_Active_anon_bytes The amount of anonymous memory on active LRU list.
+# TYPE lxd_memory_Active_anon_bytes gauge
+lxd_memory_Active_anon_bytes{name="nginx-proxy-manager",project="default",type="container"} 1.32681728e+08
+lxd_memory_Active_anon_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 5.74349312e+08
+lxd_memory_Active_anon_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 8.18024448e+08
+# HELP lxd_memory_Active_bytes The amount of memory on active LRU list.
+# TYPE lxd_memory_Active_bytes gauge
+lxd_memory_Active_bytes{name="nginx-proxy-manager",project="default",type="container"} 3.95317248e+08
+lxd_memory_Active_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 5.111447552e+09
+lxd_memory_Active_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.067372544e+09
+# HELP lxd_memory_Active_file_bytes The amount of file-backed memory on active LRU list.
+# TYPE lxd_memory_Active_file_bytes gauge
+lxd_memory_Active_file_bytes{name="nginx-proxy-manager",project="default",type="container"} 2.6263552e+08
+lxd_memory_Active_file_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 4.53709824e+09
+lxd_memory_Active_file_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 2.49348096e+08
+# HELP lxd_memory_Cached_bytes The amount of cached memory.
+# TYPE lxd_memory_Cached_bytes gauge
+lxd_memory_Cached_bytes{name="nginx-proxy-manager",project="default",type="container"} 2.96656896e+09
+lxd_memory_Cached_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.1636736e+10
+lxd_memory_Cached_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.119041536e+09
+# HELP lxd_memory_Dirty_bytes The amount of memory waiting to get written back to the disk.
+# TYPE lxd_memory_Dirty_bytes gauge
+lxd_memory_Dirty_bytes{name="nginx-proxy-manager",project="default",type="container"} 4096
+lxd_memory_Dirty_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 462848
+lxd_memory_Dirty_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 4096
+# HELP lxd_memory_HugepagesFree_bytes The amount of free memory for hugetlb.
+# TYPE lxd_memory_HugepagesFree_bytes gauge
+lxd_memory_HugepagesFree_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_HugepagesFree_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_memory_HugepagesTotal_bytes The amount of used memory for hugetlb.
+# TYPE lxd_memory_HugepagesTotal_bytes gauge
+lxd_memory_HugepagesTotal_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_HugepagesTotal_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_memory_Inactive_anon_bytes The amount of anonymous memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_anon_bytes gauge
+lxd_memory_Inactive_anon_bytes{name="nginx-proxy-manager",project="default",type="container"} 9.138176e+06
+lxd_memory_Inactive_anon_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_Inactive_anon_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.06496e+06
+# HELP lxd_memory_Inactive_bytes The amount of memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_bytes gauge
+lxd_memory_Inactive_bytes{name="nginx-proxy-manager",project="default",type="container"} 2.7068416e+09
+lxd_memory_Inactive_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 7.197519872e+09
+lxd_memory_Inactive_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 4.887437312e+09
+# HELP lxd_memory_Inactive_file_bytes The amount of file-backed memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_file_bytes gauge
+lxd_memory_Inactive_file_bytes{name="nginx-proxy-manager",project="default",type="container"} 2.697703424e+09
+lxd_memory_Inactive_file_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 7.197519872e+09
+lxd_memory_Inactive_file_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 4.886372352e+09
+# HELP lxd_memory_Mapped_bytes The amount of mapped memory.
+# TYPE lxd_memory_Mapped_bytes gauge
+lxd_memory_Mapped_bytes{name="nginx-proxy-manager",project="default",type="container"} 1.19181312e+08
+lxd_memory_Mapped_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 2.726912e+08
+lxd_memory_Mapped_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.15145728e+08
+# HELP lxd_memory_MemAvailable_bytes The amount of available memory.
+# TYPE lxd_memory_MemAvailable_bytes gauge
+lxd_memory_MemAvailable_bytes{name="nginx-proxy-manager",project="default",type="container"} 8.262017024e+09
+lxd_memory_MemAvailable_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.5547273216e+10
+lxd_memory_MemAvailable_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 6.775259136e+09
+# HELP lxd_memory_MemFree_bytes The amount of free memory.
+# TYPE lxd_memory_MemFree_bytes gauge
+lxd_memory_MemFree_bytes{name="nginx-proxy-manager",project="default",type="container"} 5.295448064e+09
+lxd_memory_MemFree_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 3.526656e+09
+lxd_memory_MemFree_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.369686016e+09
+# HELP lxd_memory_MemTotal_bytes The amount of used memory.
+# TYPE lxd_memory_MemTotal_bytes gauge
+lxd_memory_MemTotal_bytes{name="nginx-proxy-manager",project="default",type="container"} 8.589934592e+09
+lxd_memory_MemTotal_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.674299392e+10
+lxd_memory_MemTotal_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 8.314781696e+09
+# HELP lxd_memory_OOM_kills_total The number of out of memory kills.
+# TYPE lxd_memory_OOM_kills_total counter
+lxd_memory_OOM_kills_total{name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_memory_OOM_kills_total{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_OOM_kills_total{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_memory_RSS_bytes The amount of anonymous and swap cache memory.
+# TYPE lxd_memory_RSS_bytes gauge
+lxd_memory_RSS_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.195720704e+09
+lxd_memory_RSS_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.53952256e+09
+# HELP lxd_memory_Shmem_bytes The amount of cached filesystem data that is swap-backed.
+# TYPE lxd_memory_Shmem_bytes gauge
+lxd_memory_Shmem_bytes{name="nginx-proxy-manager",project="default",type="container"} 6.238208e+06
+lxd_memory_Shmem_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 2.0508672e+07
+lxd_memory_Shmem_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 7.2196096e+07
+# HELP lxd_memory_Swap_bytes The amount of used swap memory.
+# TYPE lxd_memory_Swap_bytes gauge
+lxd_memory_Swap_bytes{name="nginx-proxy-manager",project="default",type="container"} 2.0025344e+07
+lxd_memory_Swap_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_Swap_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_memory_Unevictable_bytes The amount of unevictable memory.
+# TYPE lxd_memory_Unevictable_bytes gauge
+lxd_memory_Unevictable_bytes{name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_memory_Unevictable_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.3574144e+07
+lxd_memory_Unevictable_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.3676544e+07
+# HELP lxd_memory_Writeback_bytes The amount of memory queued for syncing to disk.
+# TYPE lxd_memory_Writeback_bytes gauge
+lxd_memory_Writeback_bytes{name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_memory_Writeback_bytes{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_Writeback_bytes{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_network_receive_bytes_total The amount of received bytes on a given interface.
+# TYPE lxd_network_receive_bytes_total counter
+lxd_network_receive_bytes_total{device="lo",name="nginx-proxy-manager",project="default",type="container"} 6.9069662e+07
+lxd_network_receive_bytes_total{device="eth0",name="nginx-proxy-manager",project="default",type="container"} 1.745118973665e+13
+lxd_network_receive_bytes_total{device="enp5s0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 2.5752903717e+11
+lxd_network_receive_bytes_total{device="lo",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 2.941869648e+09
+lxd_network_receive_bytes_total{device="docker0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_bytes_total{device="veth12771d6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.12170189e+08
+lxd_network_receive_bytes_total{device="veth2608cc8",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 6.889798e+06
+lxd_network_receive_bytes_total{device="veth290a946",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.32199099e+08
+lxd_network_receive_bytes_total{device="vethccbedf5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 9.845057578e+09
+lxd_network_receive_bytes_total{device="vethd0f0817",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 6.50124796e+08
+lxd_network_receive_bytes_total{device="vethdd266c7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 6.510870065e+09
+lxd_network_receive_bytes_total{device="br-0512b94118fb",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 308
+lxd_network_receive_bytes_total{device="br-5b34d7b2ef2d",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 3.80244978e+08
+lxd_network_receive_bytes_total{device="enp5s0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 2.1175806519e+10
+lxd_network_receive_bytes_total{device="lo",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.1702935e+07
+lxd_network_receive_bytes_total{device="vetha084578",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 7.444787e+07
+lxd_network_receive_bytes_total{device="vethc519544",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 6.60989343e+08
+# HELP lxd_network_receive_drop_total The amount of received dropped bytes on a given interface.
+# TYPE lxd_network_receive_drop_total counter
+lxd_network_receive_drop_total{device="lo",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="eth0",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="enp5s0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="lo",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="docker0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="veth12771d6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="veth2608cc8",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="veth290a946",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="vethccbedf5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="vethd0f0817",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="vethdd266c7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="br-0512b94118fb",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="br-5b34d7b2ef2d",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="enp5s0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="lo",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="vetha084578",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="vethc519544",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_network_receive_errs_total The amount of received errors on a given interface.
+# TYPE lxd_network_receive_errs_total counter
+lxd_network_receive_errs_total{device="lo",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="eth0",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="enp5s0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="lo",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="docker0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="veth12771d6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="veth2608cc8",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="veth290a946",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="vethccbedf5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="vethd0f0817",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="vethdd266c7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="br-0512b94118fb",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="br-5b34d7b2ef2d",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="enp5s0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="lo",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="vetha084578",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="vethc519544",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_network_receive_packets_total The amount of received packets on a given interface.
+# TYPE lxd_network_receive_packets_total counter
+lxd_network_receive_packets_total{device="lo",name="nginx-proxy-manager",project="default",type="container"} 350190
+lxd_network_receive_packets_total{device="eth0",name="nginx-proxy-manager",project="default",type="container"} 2.337954321e+09
+lxd_network_receive_packets_total{device="enp5s0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.63891129e+08
+lxd_network_receive_packets_total{device="lo",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 2.7702295e+07
+lxd_network_receive_packets_total{device="docker0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_packets_total{device="veth12771d6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.286623e+06
+lxd_network_receive_packets_total{device="veth2608cc8",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 19652
+lxd_network_receive_packets_total{device="veth290a946",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 510528
+lxd_network_receive_packets_total{device="vethccbedf5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 3.0137655e+07
+lxd_network_receive_packets_total{device="vethd0f0817",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 6.341032e+06
+lxd_network_receive_packets_total{device="vethdd266c7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 4.2405711e+07
+lxd_network_receive_packets_total{device="br-0512b94118fb",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 11
+lxd_network_receive_packets_total{device="br-5b34d7b2ef2d",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 4.300681e+06
+lxd_network_receive_packets_total{device="enp5s0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 9.821255e+06
+lxd_network_receive_packets_total{device="lo",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 131886
+lxd_network_receive_packets_total{device="vetha084578",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 103689
+lxd_network_receive_packets_total{device="vethc519544",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 7.571828e+06
+# HELP lxd_network_transmit_bytes_total The amount of transmitted bytes on a given interface.
+# TYPE lxd_network_transmit_bytes_total counter
+lxd_network_transmit_bytes_total{device="lo",name="nginx-proxy-manager",project="default",type="container"} 6.9069662e+07
+lxd_network_transmit_bytes_total{device="eth0",name="nginx-proxy-manager",project="default",type="container"} 6.024779792316e+12
+lxd_network_transmit_bytes_total{device="enp5s0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.567275373e+10
+lxd_network_transmit_bytes_total{device="lo",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 2.941869648e+09
+lxd_network_transmit_bytes_total{device="docker0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_bytes_total{device="veth12771d6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.20662371e+08
+lxd_network_transmit_bytes_total{device="veth2608cc8",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 9.856098e+06
+lxd_network_transmit_bytes_total{device="veth290a946",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.07243219e+08
+lxd_network_transmit_bytes_total{device="vethccbedf5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.434957421e+09
+lxd_network_transmit_bytes_total{device="vethd0f0817",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.6583598878e+10
+lxd_network_transmit_bytes_total{device="vethdd266c7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.0506282143e+10
+lxd_network_transmit_bytes_total{device="br-0512b94118fb",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 526
+lxd_network_transmit_bytes_total{device="br-5b34d7b2ef2d",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.6348620193e+10
+lxd_network_transmit_bytes_total{device="enp5s0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.53686847e+08
+lxd_network_transmit_bytes_total{device="lo",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.1702935e+07
+lxd_network_transmit_bytes_total{device="vetha084578",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 7.1660489e+07
+lxd_network_transmit_bytes_total{device="vethc519544",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.076384528e+09
+# HELP lxd_network_transmit_drop_total The amount of transmitted dropped bytes on a given interface.
+# TYPE lxd_network_transmit_drop_total counter
+lxd_network_transmit_drop_total{device="lo",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="eth0",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="enp5s0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="lo",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="docker0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="veth12771d6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="veth2608cc8",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="veth290a946",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="vethccbedf5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="vethd0f0817",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="vethdd266c7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="br-0512b94118fb",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="br-5b34d7b2ef2d",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="enp5s0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="lo",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="vetha084578",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="vethc519544",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_network_transmit_errs_total The amount of transmitted errors on a given interface.
+# TYPE lxd_network_transmit_errs_total counter
+lxd_network_transmit_errs_total{device="lo",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="eth0",name="nginx-proxy-manager",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="enp5s0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="lo",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="docker0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="veth12771d6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="veth2608cc8",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="veth290a946",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="vethccbedf5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="vethd0f0817",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="vethdd266c7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="br-0512b94118fb",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="br-5b34d7b2ef2d",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="enp5s0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="lo",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="vetha084578",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="vethc519544",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_network_transmit_packets_total The amount of transmitted packets on a given interface.
+# TYPE lxd_network_transmit_packets_total counter
+lxd_network_transmit_packets_total{device="lo",name="nginx-proxy-manager",project="default",type="container"} 350190
+lxd_network_transmit_packets_total{device="eth0",name="nginx-proxy-manager",project="default",type="container"} 2.325281456e+09
+lxd_network_transmit_packets_total{device="enp5s0",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 1.29737616e+08
+lxd_network_transmit_packets_total{device="lo",name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 2.7702295e+07
+lxd_network_transmit_packets_total{device="docker0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_packets_total{device="veth12771d6",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 1.302548e+06
+lxd_network_transmit_packets_total{device="veth2608cc8",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 23287
+lxd_network_transmit_packets_total{device="veth290a946",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 738763
+lxd_network_transmit_packets_total{device="vethccbedf5",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 3.324091e+07
+lxd_network_transmit_packets_total{device="vethd0f0817",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 8.821559e+06
+lxd_network_transmit_packets_total{device="vethdd266c7",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 3.771284e+07
+lxd_network_transmit_packets_total{device="br-0512b94118fb",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5
+lxd_network_transmit_packets_total{device="br-5b34d7b2ef2d",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 7.019539e+06
+lxd_network_transmit_packets_total{device="enp5s0",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 5.734507e+06
+lxd_network_transmit_packets_total{device="lo",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 131886
+lxd_network_transmit_packets_total{device="vetha084578",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 110145
+lxd_network_transmit_packets_total{device="vethc519544",name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 9.171539e+06
+# HELP lxd_operations_total The number of running operations
+# TYPE lxd_operations_total counter
+lxd_operations_total 0
+# HELP lxd_procs_total The number of running processes.
+# TYPE lxd_procs_total gauge
+lxd_procs_total{name="nginx-proxy-manager",project="default",type="container"} 61
+lxd_procs_total{name="podman-1",project="default",state="RUNNING",type="virtual-machine"} 41
+lxd_procs_total{name="runtipi",project="default",state="RUNNING",type="virtual-machine"} 68
+# HELP lxd_uptime_seconds The daemon uptime in seconds.
+# TYPE lxd_uptime_seconds counter
+lxd_uptime_seconds 522459.753444292
+# HELP lxd_warnings_total The number of active warnings.
+# TYPE lxd_warnings_total counter
+lxd_warnings_total 1
+# EOF

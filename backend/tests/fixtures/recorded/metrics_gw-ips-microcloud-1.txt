@@ -1,0 +1,473 @@
+# HELP lxd_api_requests_completed_total The total number of completed API requests.
+# TYPE lxd_api_requests_completed_total counter
+lxd_api_requests_completed_total{entity_type="image",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="image",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="image",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="profile",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="profile",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="profile",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="project",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="project",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="project",result="succeeded"} 6
+lxd_api_requests_completed_total{entity_type="certificate",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="certificate",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="certificate",result="succeeded"} 4
+lxd_api_requests_completed_total{entity_type="instance",result="succeeded"} 8
+lxd_api_requests_completed_total{entity_type="instance",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="instance",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="network",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="network",result="succeeded"} 1
+lxd_api_requests_completed_total{entity_type="network",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="cluster_member",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="cluster_member",result="succeeded"} 8
+lxd_api_requests_completed_total{entity_type="cluster_member",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="operation",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="operation",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="operation",result="succeeded"} 81
+lxd_api_requests_completed_total{entity_type="storage_pool",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="storage_pool",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="storage_pool",result="succeeded"} 3
+lxd_api_requests_completed_total{entity_type="warning",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="warning",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="warning",result="succeeded"} 1
+lxd_api_requests_completed_total{entity_type="server",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="server",result="error_client"} 6
+lxd_api_requests_completed_total{entity_type="server",result="succeeded"} 40
+lxd_api_requests_completed_total{entity_type="identity",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="identity",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="identity",result="succeeded"} 4
+# HELP lxd_api_requests_ongoing The number of API requests currently being handled.
+# TYPE lxd_api_requests_ongoing gauge
+lxd_api_requests_ongoing{entity_type="image"} 0
+lxd_api_requests_ongoing{entity_type="profile"} 0
+lxd_api_requests_ongoing{entity_type="project"} 0
+lxd_api_requests_ongoing{entity_type="certificate"} 0
+lxd_api_requests_ongoing{entity_type="instance"} 0
+lxd_api_requests_ongoing{entity_type="network"} 0
+lxd_api_requests_ongoing{entity_type="cluster_member"} 2
+lxd_api_requests_ongoing{entity_type="operation"} 1
+lxd_api_requests_ongoing{entity_type="storage_pool"} 0
+lxd_api_requests_ongoing{entity_type="warning"} 0
+lxd_api_requests_ongoing{entity_type="server"} 6
+lxd_api_requests_ongoing{entity_type="identity"} 0
+# HELP lxd_cpu_effective_total The total number of effective CPUs.
+# TYPE lxd_cpu_effective_total gauge
+lxd_cpu_effective_total{name="dns-legacy",project="default",type="container"} 8
+lxd_cpu_effective_total{name="releases-mirror",project="default",type="container"} 1
+lxd_cpu_effective_total{name="test-routing",project="default",type="container"} 8
+lxd_cpu_effective_total{name="mirrors",project="default",type="container"} 2
+# HELP lxd_cpu_seconds_total The total number of CPU time used in seconds.
+# TYPE lxd_cpu_seconds_total counter
+lxd_cpu_seconds_total{cpu="0",mode="system",name="dns-legacy",project="default",type="container"} 13492.404166
+lxd_cpu_seconds_total{cpu="0",mode="user",name="dns-legacy",project="default",type="container"} 15251.561713
+lxd_cpu_seconds_total{cpu="0",mode="system",name="releases-mirror",project="default",type="container"} 222009.665308
+lxd_cpu_seconds_total{cpu="0",mode="user",name="releases-mirror",project="default",type="container"} 236815.479835
+lxd_cpu_seconds_total{cpu="0",mode="system",name="test-routing",project="default",type="container"} 310046.11885
+lxd_cpu_seconds_total{cpu="0",mode="user",name="test-routing",project="default",type="container"} 164537.971555
+lxd_cpu_seconds_total{cpu="0",mode="system",name="mirrors",project="default",type="container"} 505.406359
+lxd_cpu_seconds_total{cpu="0",mode="user",name="mirrors",project="default",type="container"} 366.106943
+# HELP lxd_disk_read_bytes_total The total number of bytes read.
+# TYPE lxd_disk_read_bytes_total counter
+lxd_disk_read_bytes_total{device="rbd3",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd2",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd1",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="dm-0",name="dns-legacy",project="default",type="container"} 16384
+lxd_disk_read_bytes_total{device="dm-1",name="dns-legacy",project="default",type="container"} 16384
+lxd_disk_read_bytes_total{device="sdb",name="dns-legacy",project="default",type="container"} 16384
+lxd_disk_read_bytes_total{device="rbd0",name="dns-legacy",project="default",type="container"} 3.548659712e+09
+lxd_disk_read_bytes_total{device="loop14",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd2",name="releases-mirror",project="default",type="container"} 5.85488658432e+12
+lxd_disk_read_bytes_total{device="rbd3",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd1",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd0",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="sdb",name="releases-mirror",project="default",type="container"} 5.6857300992e+10
+lxd_disk_read_bytes_total{device="dm-0",name="releases-mirror",project="default",type="container"} 5.6857300992e+10
+lxd_disk_read_bytes_total{device="dm-1",name="releases-mirror",project="default",type="container"} 5.6857300992e+10
+lxd_disk_read_bytes_total{device="rbd0",name="test-routing",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="sdb",name="test-routing",project="default",type="container"} 4096
+lxd_disk_read_bytes_total{device="loop12",name="test-routing",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd1",name="test-routing",project="default",type="container"} 3.930415104e+09
+lxd_disk_read_bytes_total{device="rbd3",name="test-routing",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd2",name="test-routing",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="dm-0",name="test-routing",project="default",type="container"} 4096
+lxd_disk_read_bytes_total{device="dm-1",name="test-routing",project="default",type="container"} 4096
+lxd_disk_read_bytes_total{device="loop15",name="mirrors",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd3",name="mirrors",project="default",type="container"} 3.5907584e+08
+# HELP lxd_disk_reads_completed_total The total number of completed reads.
+# TYPE lxd_disk_reads_completed_total counter
+lxd_disk_reads_completed_total{device="rbd3",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd2",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd1",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="dm-0",name="dns-legacy",project="default",type="container"} 4
+lxd_disk_reads_completed_total{device="dm-1",name="dns-legacy",project="default",type="container"} 4
+lxd_disk_reads_completed_total{device="sdb",name="dns-legacy",project="default",type="container"} 4
+lxd_disk_reads_completed_total{device="rbd0",name="dns-legacy",project="default",type="container"} 58550
+lxd_disk_reads_completed_total{device="loop14",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd2",name="releases-mirror",project="default",type="container"} 5.1414583e+07
+lxd_disk_reads_completed_total{device="rbd3",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd1",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd0",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="sdb",name="releases-mirror",project="default",type="container"} 1.3881127e+07
+lxd_disk_reads_completed_total{device="dm-0",name="releases-mirror",project="default",type="container"} 1.3881127e+07
+lxd_disk_reads_completed_total{device="dm-1",name="releases-mirror",project="default",type="container"} 1.3881127e+07
+lxd_disk_reads_completed_total{device="rbd0",name="test-routing",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="sdb",name="test-routing",project="default",type="container"} 1
+lxd_disk_reads_completed_total{device="loop12",name="test-routing",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd1",name="test-routing",project="default",type="container"} 69012
+lxd_disk_reads_completed_total{device="rbd3",name="test-routing",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd2",name="test-routing",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="dm-0",name="test-routing",project="default",type="container"} 1
+lxd_disk_reads_completed_total{device="dm-1",name="test-routing",project="default",type="container"} 1
+lxd_disk_reads_completed_total{device="loop15",name="mirrors",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd3",name="mirrors",project="default",type="container"} 4596
+# HELP lxd_disk_written_bytes_total The total number of bytes written.
+# TYPE lxd_disk_written_bytes_total counter
+lxd_disk_written_bytes_total{device="rbd3",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd2",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd1",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="dm-0",name="dns-legacy",project="default",type="container"} 1.216512e+06
+lxd_disk_written_bytes_total{device="dm-1",name="dns-legacy",project="default",type="container"} 237568
+lxd_disk_written_bytes_total{device="sdb",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd0",name="dns-legacy",project="default",type="container"} 5.8814820352e+10
+lxd_disk_written_bytes_total{device="loop14",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd2",name="releases-mirror",project="default",type="container"} 2.797041156096e+12
+lxd_disk_written_bytes_total{device="rbd3",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd1",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd0",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="sdb",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="dm-0",name="releases-mirror",project="default",type="container"} 4.412807168e+10
+lxd_disk_written_bytes_total{device="dm-1",name="releases-mirror",project="default",type="container"} 4.4127268864e+10
+lxd_disk_written_bytes_total{device="rbd0",name="test-routing",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="sdb",name="test-routing",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="loop12",name="test-routing",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd1",name="test-routing",project="default",type="container"} 9.1286450176e+10
+lxd_disk_written_bytes_total{device="rbd3",name="test-routing",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd2",name="test-routing",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="dm-0",name="test-routing",project="default",type="container"} 1.08544e+06
+lxd_disk_written_bytes_total{device="dm-1",name="test-routing",project="default",type="container"} 143360
+lxd_disk_written_bytes_total{device="loop15",name="mirrors",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd3",name="mirrors",project="default",type="container"} 8.69339136e+08
+# HELP lxd_disk_writes_completed_total The total number of completed writes.
+# TYPE lxd_disk_writes_completed_total counter
+lxd_disk_writes_completed_total{device="rbd3",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd2",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd1",name="dns-legacy",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="dm-0",name="dns-legacy",project="default",type="container"} 312
+lxd_disk_writes_completed_total{device="dm-1",name="dns-legacy",project="default",type="container"} 73
+lxd_disk_writes_completed_total{device="sdb",name="dns-legacy",project="default",type="container"} 38
+lxd_disk_writes_completed_total{device="rbd0",name="dns-legacy",project="default",type="container"} 4.065134e+06
+lxd_disk_writes_completed_total{device="loop14",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd2",name="releases-mirror",project="default",type="container"} 2.2139238e+07
+lxd_disk_writes_completed_total{device="rbd3",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd1",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd0",name="releases-mirror",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="sdb",name="releases-mirror",project="default",type="container"} 40
+lxd_disk_writes_completed_total{device="dm-0",name="releases-mirror",project="default",type="container"} 1.0773469e+07
+lxd_disk_writes_completed_total{device="dm-1",name="releases-mirror",project="default",type="container"} 1.0773273e+07
+lxd_disk_writes_completed_total{device="rbd0",name="test-routing",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="sdb",name="test-routing",project="default",type="container"} 27
+lxd_disk_writes_completed_total{device="loop12",name="test-routing",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd1",name="test-routing",project="default",type="container"} 9.390511e+06
+lxd_disk_writes_completed_total{device="rbd3",name="test-routing",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd2",name="test-routing",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="dm-0",name="test-routing",project="default",type="container"} 274
+lxd_disk_writes_completed_total{device="dm-1",name="test-routing",project="default",type="container"} 44
+lxd_disk_writes_completed_total{device="loop15",name="mirrors",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd3",name="mirrors",project="default",type="container"} 167854
+# HELP lxd_filesystem_avail_bytes The number of available space in bytes.
+# TYPE lxd_filesystem_avail_bytes gauge
+lxd_filesystem_avail_bytes{device="/dev/rbd0",fstype="ext4",mountpoint="/",name="dns-legacy",project="default",type="container"} 9.145106432e+09
+lxd_filesystem_avail_bytes{device="/dev/rbd2",fstype="ext4",mountpoint="/",name="releases-mirror",project="default",type="container"} 1.889107968e+09
+lxd_filesystem_avail_bytes{device="/dev/rbd1",fstype="ext4",mountpoint="/",name="test-routing",project="default",type="container"} 4.1826738176e+10
+lxd_filesystem_avail_bytes{device="/dev/rbd3",fstype="ext4",mountpoint="/",name="mirrors",project="default",type="container"} 4.8071118848e+10
+# HELP lxd_filesystem_free_bytes The number of free space in bytes.
+# TYPE lxd_filesystem_free_bytes gauge
+lxd_filesystem_free_bytes{device="/dev/rbd0",fstype="ext4",mountpoint="/",name="dns-legacy",project="default",type="container"} 1.0161803264e+10
+lxd_filesystem_free_bytes{device="/dev/rbd2",fstype="ext4",mountpoint="/",name="releases-mirror",project="default",type="container"} 5.327028224e+09
+lxd_filesystem_free_bytes{device="/dev/rbd1",fstype="ext4",mountpoint="/",name="test-routing",project="default",type="container"} 4.419094528e+10
+lxd_filesystem_free_bytes{device="/dev/rbd3",fstype="ext4",mountpoint="/",name="mirrors",project="default",type="container"} 5.0435325952e+10
+# HELP lxd_filesystem_size_bytes The size of the filesystem in bytes.
+# TYPE lxd_filesystem_size_bytes gauge
+lxd_filesystem_size_bytes{device="/dev/rbd0",fstype="ext4",mountpoint="/",name="dns-legacy",project="default",type="container"} 1.9503599616e+10
+lxd_filesystem_size_bytes{device="/dev/rbd2",fstype="ext4",mountpoint="/",name="releases-mirror",project="default",type="container"} 7.9076016128e+10
+lxd_filesystem_size_bytes{device="/dev/rbd1",fstype="ext4",mountpoint="/",name="test-routing",project="default",type="container"} 5.2654358528e+10
+lxd_filesystem_size_bytes{device="/dev/rbd3",fstype="ext4",mountpoint="/",name="mirrors",project="default",type="container"} 5.2654358528e+10
+# HELP lxd_go_alloc_bytes Number of bytes allocated and still in use.
+# TYPE lxd_go_alloc_bytes gauge
+lxd_go_alloc_bytes 1.603656e+07
+# HELP lxd_go_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE lxd_go_alloc_bytes_total counter
+lxd_go_alloc_bytes_total 1.11935035944e+11
+# HELP lxd_go_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table.
+# TYPE lxd_go_buck_hash_sys_bytes gauge
+lxd_go_buck_hash_sys_bytes 3.009002e+06
+# HELP lxd_go_frees_total Total number of frees.
+# TYPE lxd_go_frees_total counter
+lxd_go_frees_total 1.136587485e+09
+# HELP lxd_go_gc_sys_bytes Number of bytes used for garbage collection system metadata.
+# TYPE lxd_go_gc_sys_bytes gauge
+lxd_go_gc_sys_bytes 4.790528e+06
+# HELP lxd_go_goroutines Number of goroutines that currently exist.
+# TYPE lxd_go_goroutines gauge
+lxd_go_goroutines 108
+# HELP lxd_go_heap_alloc_bytes Number of heap bytes allocated and still in use.
+# TYPE lxd_go_heap_alloc_bytes gauge
+lxd_go_heap_alloc_bytes 1.603656e+07
+# HELP lxd_go_heap_idle_bytes Number of heap bytes waiting to be used.
+# TYPE lxd_go_heap_idle_bytes gauge
+lxd_go_heap_idle_bytes 4.7620096e+07
+# HELP lxd_go_heap_inuse_bytes Number of heap bytes that are in use.
+# TYPE lxd_go_heap_inuse_bytes gauge
+lxd_go_heap_inuse_bytes 2.4764416e+07
+# HELP lxd_go_heap_objects Number of allocated objects.
+# TYPE lxd_go_heap_objects gauge
+lxd_go_heap_objects 116199
+# HELP lxd_go_heap_released_bytes Number of heap bytes released to OS.
+# TYPE lxd_go_heap_released_bytes gauge
+lxd_go_heap_released_bytes 3.4873344e+07
+# HELP lxd_go_heap_sys_bytes Number of heap bytes obtained from system.
+# TYPE lxd_go_heap_sys_bytes gauge
+lxd_go_heap_sys_bytes 7.2384512e+07
+# HELP lxd_go_lookups_total Total number of pointer lookups.
+# TYPE lxd_go_lookups_total counter
+lxd_go_lookups_total 0
+# HELP lxd_go_mallocs_total Total number of mallocs.
+# TYPE lxd_go_mallocs_total counter
+lxd_go_mallocs_total 1.136703684e+09
+# HELP lxd_go_mcache_inuse_bytes Number of bytes in use by mcache structures.
+# TYPE lxd_go_mcache_inuse_bytes gauge
+lxd_go_mcache_inuse_bytes 18368
+# HELP lxd_go_mcache_sys_bytes Number of bytes used for mcache structures obtained from system.
+# TYPE lxd_go_mcache_sys_bytes gauge
+lxd_go_mcache_sys_bytes 32144
+# HELP lxd_go_mspan_inuse_bytes Number of bytes in use by mspan structures.
+# TYPE lxd_go_mspan_inuse_bytes gauge
+lxd_go_mspan_inuse_bytes 463680
+# HELP lxd_go_mspan_sys_bytes Number of bytes used for mspan structures obtained from system.
+# TYPE lxd_go_mspan_sys_bytes gauge
+lxd_go_mspan_sys_bytes 783360
+# HELP lxd_go_next_gc_bytes Number of heap bytes when next garbage collection will take place.
+# TYPE lxd_go_next_gc_bytes gauge
+lxd_go_next_gc_bytes 3.4831722e+07
+# HELP lxd_go_other_sys_bytes Number of bytes used for other system allocations.
+# TYPE lxd_go_other_sys_bytes gauge
+lxd_go_other_sys_bytes 1.658368e+06
+# HELP lxd_go_stack_inuse_bytes Number of bytes in use by the stack allocator.
+# TYPE lxd_go_stack_inuse_bytes gauge
+lxd_go_stack_inuse_bytes 3.11296e+06
+# HELP lxd_go_stack_sys_bytes Number of bytes obtained from system for stack allocator.
+# TYPE lxd_go_stack_sys_bytes gauge
+lxd_go_stack_sys_bytes 3.11296e+06
+# HELP lxd_go_sys_bytes Number of bytes obtained from system.
+# TYPE lxd_go_sys_bytes gauge
+lxd_go_sys_bytes 8.5770874e+07
+# HELP lxd_instances The number of instances.
+# TYPE lxd_instances gauge
+lxd_instances{project="default",type="container"} 4
+lxd_instances{project="default",type="virtual-machine"} 0
+# HELP lxd_memory_Active_anon_bytes The amount of anonymous memory on active LRU list.
+# TYPE lxd_memory_Active_anon_bytes gauge
+lxd_memory_Active_anon_bytes{name="dns-legacy",project="default",type="container"} 1.964032e+08
+lxd_memory_Active_anon_bytes{name="releases-mirror",project="default",type="container"} 2.31542784e+08
+lxd_memory_Active_anon_bytes{name="test-routing",project="default",type="container"} 1.223389184e+09
+lxd_memory_Active_anon_bytes{name="mirrors",project="default",type="container"} 2.6447872e+07
+# HELP lxd_memory_Active_bytes The amount of memory on active LRU list.
+# TYPE lxd_memory_Active_bytes gauge
+lxd_memory_Active_bytes{name="dns-legacy",project="default",type="container"} 7.50129152e+08
+lxd_memory_Active_bytes{name="releases-mirror",project="default",type="container"} 2.035933184e+09
+lxd_memory_Active_bytes{name="test-routing",project="default",type="container"} 1.9182592e+09
+lxd_memory_Active_bytes{name="mirrors",project="default",type="container"} 9.5399936e+07
+# HELP lxd_memory_Active_file_bytes The amount of file-backed memory on active LRU list.
+# TYPE lxd_memory_Active_file_bytes gauge
+lxd_memory_Active_file_bytes{name="dns-legacy",project="default",type="container"} 5.53725952e+08
+lxd_memory_Active_file_bytes{name="releases-mirror",project="default",type="container"} 1.8043904e+09
+lxd_memory_Active_file_bytes{name="test-routing",project="default",type="container"} 6.94870016e+08
+lxd_memory_Active_file_bytes{name="mirrors",project="default",type="container"} 6.8952064e+07
+# HELP lxd_memory_Cached_bytes The amount of cached memory.
+# TYPE lxd_memory_Cached_bytes gauge
+lxd_memory_Cached_bytes{name="dns-legacy",project="default",type="container"} 2.404827136e+09
+lxd_memory_Cached_bytes{name="releases-mirror",project="default",type="container"} 7.325036544e+09
+lxd_memory_Cached_bytes{name="test-routing",project="default",type="container"} 1.925255168e+09
+lxd_memory_Cached_bytes{name="mirrors",project="default",type="container"} 2.3662592e+08
+# HELP lxd_memory_Dirty_bytes The amount of memory waiting to get written back to the disk.
+# TYPE lxd_memory_Dirty_bytes gauge
+lxd_memory_Dirty_bytes{name="dns-legacy",project="default",type="container"} 0
+lxd_memory_Dirty_bytes{name="releases-mirror",project="default",type="container"} 77824
+lxd_memory_Dirty_bytes{name="test-routing",project="default",type="container"} 122880
+lxd_memory_Dirty_bytes{name="mirrors",project="default",type="container"} 0
+# HELP lxd_memory_Inactive_anon_bytes The amount of anonymous memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_anon_bytes gauge
+lxd_memory_Inactive_anon_bytes{name="dns-legacy",project="default",type="container"} 1.14348032e+08
+lxd_memory_Inactive_anon_bytes{name="releases-mirror",project="default",type="container"} 5.2875264e+07
+lxd_memory_Inactive_anon_bytes{name="test-routing",project="default",type="container"} 4.01338368e+08
+lxd_memory_Inactive_anon_bytes{name="mirrors",project="default",type="container"} 106496
+# HELP lxd_memory_Inactive_bytes The amount of memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_bytes gauge
+lxd_memory_Inactive_bytes{name="dns-legacy",project="default",type="container"} 1.897750528e+09
+lxd_memory_Inactive_bytes{name="releases-mirror",project="default",type="container"} 5.573193728e+09
+lxd_memory_Inactive_bytes{name="test-routing",project="default",type="container"} 1.631506432e+09
+lxd_memory_Inactive_bytes{name="mirrors",project="default",type="container"} 1.67317504e+08
+# HELP lxd_memory_Inactive_file_bytes The amount of file-backed memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_file_bytes gauge
+lxd_memory_Inactive_file_bytes{name="dns-legacy",project="default",type="container"} 1.783402496e+09
+lxd_memory_Inactive_file_bytes{name="releases-mirror",project="default",type="container"} 5.520318464e+09
+lxd_memory_Inactive_file_bytes{name="test-routing",project="default",type="container"} 1.230168064e+09
+lxd_memory_Inactive_file_bytes{name="mirrors",project="default",type="container"} 1.67211008e+08
+# HELP lxd_memory_Mapped_bytes The amount of mapped memory.
+# TYPE lxd_memory_Mapped_bytes gauge
+lxd_memory_Mapped_bytes{name="dns-legacy",project="default",type="container"} 1.74866432e+08
+lxd_memory_Mapped_bytes{name="releases-mirror",project="default",type="container"} 1.17874688e+08
+lxd_memory_Mapped_bytes{name="test-routing",project="default",type="container"} 1.59412224e+08
+lxd_memory_Mapped_bytes{name="mirrors",project="default",type="container"} 4.118528e+07
+# HELP lxd_memory_MemAvailable_bytes The amount of available memory.
+# TYPE lxd_memory_MemAvailable_bytes gauge
+lxd_memory_MemAvailable_bytes{name="dns-legacy",project="default",type="container"} 6.694887424e+10
+lxd_memory_MemAvailable_bytes{name="releases-mirror",project="default",type="container"} 7.998816256e+09
+lxd_memory_MemAvailable_bytes{name="test-routing",project="default",type="container"} 6.538655744e+10
+lxd_memory_MemAvailable_bytes{name="mirrors",project="default",type="container"} 6.7271589888e+10
+# HELP lxd_memory_MemFree_bytes The amount of free memory.
+# TYPE lxd_memory_MemFree_bytes gauge
+lxd_memory_MemFree_bytes{name="dns-legacy",project="default",type="container"} 6.4544047104e+10
+lxd_memory_MemFree_bytes{name="releases-mirror",project="default",type="container"} 6.73779712e+08
+lxd_memory_MemFree_bytes{name="test-routing",project="default",type="container"} 6.3461302272e+10
+lxd_memory_MemFree_bytes{name="mirrors",project="default",type="container"} 6.7034963968e+10
+# HELP lxd_memory_MemTotal_bytes The amount of used memory.
+# TYPE lxd_memory_MemTotal_bytes gauge
+lxd_memory_MemTotal_bytes{name="dns-legacy",project="default",type="container"} 6.731710464e+10
+lxd_memory_MemTotal_bytes{name="releases-mirror",project="default",type="container"} 8.589934592e+09
+lxd_memory_MemTotal_bytes{name="test-routing",project="default",type="container"} 6.731710464e+10
+lxd_memory_MemTotal_bytes{name="mirrors",project="default",type="container"} 6.731710464e+10
+# HELP lxd_memory_OOM_kills_total The number of out of memory kills.
+# TYPE lxd_memory_OOM_kills_total counter
+lxd_memory_OOM_kills_total{name="dns-legacy",project="default",type="container"} 0
+lxd_memory_OOM_kills_total{name="releases-mirror",project="default",type="container"} 0
+lxd_memory_OOM_kills_total{name="test-routing",project="default",type="container"} 0
+lxd_memory_OOM_kills_total{name="mirrors",project="default",type="container"} 0
+# HELP lxd_memory_Shmem_bytes The amount of cached filesystem data that is swap-backed.
+# TYPE lxd_memory_Shmem_bytes gauge
+lxd_memory_Shmem_bytes{name="dns-legacy",project="default",type="container"} 6.7698688e+07
+lxd_memory_Shmem_bytes{name="releases-mirror",project="default",type="container"} 335872
+lxd_memory_Shmem_bytes{name="test-routing",project="default",type="container"} 217088
+lxd_memory_Shmem_bytes{name="mirrors",project="default",type="container"} 462848
+# HELP lxd_memory_Swap_bytes The amount of used swap memory.
+# TYPE lxd_memory_Swap_bytes gauge
+lxd_memory_Swap_bytes{name="dns-legacy",project="default",type="container"} 225280
+lxd_memory_Swap_bytes{name="releases-mirror",project="default",type="container"} 2.77274624e+08
+lxd_memory_Swap_bytes{name="test-routing",project="default",type="container"} 90112
+lxd_memory_Swap_bytes{name="mirrors",project="default",type="container"} 0
+# HELP lxd_memory_Unevictable_bytes The amount of unevictable memory.
+# TYPE lxd_memory_Unevictable_bytes gauge
+lxd_memory_Unevictable_bytes{name="dns-legacy",project="default",type="container"} 0
+lxd_memory_Unevictable_bytes{name="releases-mirror",project="default",type="container"} 4096
+lxd_memory_Unevictable_bytes{name="test-routing",project="default",type="container"} 16384
+lxd_memory_Unevictable_bytes{name="mirrors",project="default",type="container"} 0
+# HELP lxd_memory_Writeback_bytes The amount of memory queued for syncing to disk.
+# TYPE lxd_memory_Writeback_bytes gauge
+lxd_memory_Writeback_bytes{name="dns-legacy",project="default",type="container"} 0
+lxd_memory_Writeback_bytes{name="releases-mirror",project="default",type="container"} 0
+lxd_memory_Writeback_bytes{name="test-routing",project="default",type="container"} 0
+lxd_memory_Writeback_bytes{name="mirrors",project="default",type="container"} 0
+# HELP lxd_network_receive_bytes_total The amount of received bytes on a given interface.
+# TYPE lxd_network_receive_bytes_total counter
+lxd_network_receive_bytes_total{device="eth0",name="dns-legacy",project="default",type="container"} 3.941414379e+09
+lxd_network_receive_bytes_total{device="lo",name="dns-legacy",project="default",type="container"} 2.419057489e+09
+lxd_network_receive_bytes_total{device="lo",name="releases-mirror",project="default",type="container"} 4.5578034665e+10
+lxd_network_receive_bytes_total{device="eth0",name="releases-mirror",project="default",type="container"} 2.8660976160526e+13
+lxd_network_receive_bytes_total{device="lo",name="test-routing",project="default",type="container"} 1.265144e+06
+lxd_network_receive_bytes_total{device="zt5u4q22jr",name="test-routing",project="default",type="container"} 1.9607865091e+10
+lxd_network_receive_bytes_total{device="eth0",name="test-routing",project="default",type="container"} 2.8683594965e+10
+lxd_network_receive_bytes_total{device="lo",name="mirrors",project="default",type="container"} 0
+lxd_network_receive_bytes_total{device="eth0",name="mirrors",project="default",type="container"} 9.729434e+06
+# HELP lxd_network_receive_drop_total The amount of received dropped bytes on a given interface.
+# TYPE lxd_network_receive_drop_total counter
+lxd_network_receive_drop_total{device="eth0",name="dns-legacy",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="lo",name="dns-legacy",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="lo",name="releases-mirror",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="eth0",name="releases-mirror",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="lo",name="test-routing",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="zt5u4q22jr",name="test-routing",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="eth0",name="test-routing",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="lo",name="mirrors",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="eth0",name="mirrors",project="default",type="container"} 0
+# HELP lxd_network_receive_errs_total The amount of received errors on a given interface.
+# TYPE lxd_network_receive_errs_total counter
+lxd_network_receive_errs_total{device="eth0",name="dns-legacy",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="lo",name="dns-legacy",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="lo",name="releases-mirror",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="eth0",name="releases-mirror",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="lo",name="test-routing",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="zt5u4q22jr",name="test-routing",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="eth0",name="test-routing",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="lo",name="mirrors",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="eth0",name="mirrors",project="default",type="container"} 0
+# HELP lxd_network_receive_packets_total The amount of received packets on a given interface.
+# TYPE lxd_network_receive_packets_total counter
+lxd_network_receive_packets_total{device="eth0",name="dns-legacy",project="default",type="container"} 2.7688152e+07
+lxd_network_receive_packets_total{device="lo",name="dns-legacy",project="default",type="container"} 6.800373e+06
+lxd_network_receive_packets_total{device="lo",name="releases-mirror",project="default",type="container"} 2.89501578e+08
+lxd_network_receive_packets_total{device="eth0",name="releases-mirror",project="default",type="container"} 1.268505046e+10
+lxd_network_receive_packets_total{device="lo",name="test-routing",project="default",type="container"} 10267
+lxd_network_receive_packets_total{device="zt5u4q22jr",name="test-routing",project="default",type="container"} 7.5123756e+07
+lxd_network_receive_packets_total{device="eth0",name="test-routing",project="default",type="container"} 1.00176815e+08
+lxd_network_receive_packets_total{device="lo",name="mirrors",project="default",type="container"} 0
+lxd_network_receive_packets_total{device="eth0",name="mirrors",project="default",type="container"} 142710
+# HELP lxd_network_transmit_bytes_total The amount of transmitted bytes on a given interface.
+# TYPE lxd_network_transmit_bytes_total counter
+lxd_network_transmit_bytes_total{device="eth0",name="dns-legacy",project="default",type="container"} 4.325787281e+09
+lxd_network_transmit_bytes_total{device="lo",name="dns-legacy",project="default",type="container"} 2.419057489e+09
+lxd_network_transmit_bytes_total{device="lo",name="releases-mirror",project="default",type="container"} 4.5578034665e+10
+lxd_network_transmit_bytes_total{device="eth0",name="releases-mirror",project="default",type="container"} 1.5524486158878e+13
+lxd_network_transmit_bytes_total{device="lo",name="test-routing",project="default",type="container"} 1.265144e+06
+lxd_network_transmit_bytes_total{device="zt5u4q22jr",name="test-routing",project="default",type="container"} 5.548546052e+09
+lxd_network_transmit_bytes_total{device="eth0",name="test-routing",project="default",type="container"} 1.4468988038e+10
+lxd_network_transmit_bytes_total{device="lo",name="mirrors",project="default",type="container"} 0
+lxd_network_transmit_bytes_total{device="eth0",name="mirrors",project="default",type="container"} 1.543902e+06
+# HELP lxd_network_transmit_drop_total The amount of transmitted dropped bytes on a given interface.
+# TYPE lxd_network_transmit_drop_total counter
+lxd_network_transmit_drop_total{device="eth0",name="dns-legacy",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="lo",name="dns-legacy",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="lo",name="releases-mirror",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="eth0",name="releases-mirror",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="lo",name="test-routing",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="zt5u4q22jr",name="test-routing",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="eth0",name="test-routing",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="lo",name="mirrors",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="eth0",name="mirrors",project="default",type="container"} 0
+# HELP lxd_network_transmit_errs_total The amount of transmitted errors on a given interface.
+# TYPE lxd_network_transmit_errs_total counter
+lxd_network_transmit_errs_total{device="eth0",name="dns-legacy",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="lo",name="dns-legacy",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="lo",name="releases-mirror",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="eth0",name="releases-mirror",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="lo",name="test-routing",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="zt5u4q22jr",name="test-routing",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="eth0",name="test-routing",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="lo",name="mirrors",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="eth0",name="mirrors",project="default",type="container"} 0
+# HELP lxd_network_transmit_packets_total The amount of transmitted packets on a given interface.
+# TYPE lxd_network_transmit_packets_total counter
+lxd_network_transmit_packets_total{device="eth0",name="dns-legacy",project="default",type="container"} 2.7873339e+07
+lxd_network_transmit_packets_total{device="lo",name="dns-legacy",project="default",type="container"} 6.800373e+06
+lxd_network_transmit_packets_total{device="lo",name="releases-mirror",project="default",type="container"} 2.89501578e+08
+lxd_network_transmit_packets_total{device="eth0",name="releases-mirror",project="default",type="container"} 7.612203567e+09
+lxd_network_transmit_packets_total{device="lo",name="test-routing",project="default",type="container"} 10267
+lxd_network_transmit_packets_total{device="zt5u4q22jr",name="test-routing",project="default",type="container"} 7.3150981e+07
+lxd_network_transmit_packets_total{device="eth0",name="test-routing",project="default",type="container"} 1.02036512e+08
+lxd_network_transmit_packets_total{device="lo",name="mirrors",project="default",type="container"} 0
+lxd_network_transmit_packets_total{device="eth0",name="mirrors",project="default",type="container"} 9705
+# HELP lxd_operations_total The number of running operations
+# TYPE lxd_operations_total counter
+lxd_operations_total 0
+# HELP lxd_procs_total The number of running processes.
+# TYPE lxd_procs_total gauge
+lxd_procs_total{name="dns-legacy",project="default",type="container"} 226
+lxd_procs_total{name="releases-mirror",project="default",type="container"} 307
+lxd_procs_total{name="test-routing",project="default",type="container"} 124
+lxd_procs_total{name="mirrors",project="default",type="container"} 68
+# HELP lxd_uptime_seconds The daemon uptime in seconds.
+# TYPE lxd_uptime_seconds counter
+lxd_uptime_seconds 3.582967619840988e+06
+# HELP lxd_warnings_total The number of active warnings.
+# TYPE lxd_warnings_total counter
+lxd_warnings_total 1
+# EOF

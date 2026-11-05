@@ -4,7 +4,7 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** Phase 0 (scaffold) complete. See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
+**Status:** Phase 1 (connectivity, live metrics, local auth) done and validated against the test cloud. See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
 ## Development setup
@@ -61,9 +61,37 @@ cd frontend && npm run dev             # open http://localhost:5173
 make serve                             # open http://127.0.0.1:8000
 ```
 
-From Phase 1 the backend also takes a config file with LXD endpoints and
-certificates (`mcui serve --config config.toml`, see `docs/CONFIGURATION.md`),
-and `mcui check` tests the connection to the cluster.
+## Connecting to your MicroCloud
+
+1. Create the certificates and trust them in LXD: [`docs/LXD-CREDENTIALS.md`](docs/LXD-CREDENTIALS.md).
+2. Write a `config.toml` (git-ignored), e.g. `~/.config/mcui/config.toml`; see
+   [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md). For plain-http local dev set
+   `secure_cookies = false` under `[server]`.
+3. Check it, create a login, and run:
+
+```bash
+mcui -c ~/.config/mcui/config.toml check                    # endpoints, trust, members, metrics, features
+mcui -c ~/.config/mcui/config.toml user add admin --role admin   # prompts for a password
+mcui -c ~/.config/mcui/config.toml serve --reload           # or: MCUI_CONFIG=... make dev-backend
+```
+
+Sign in at http://localhost:5173 (Vite) or http://127.0.0.1:8000 (`make serve`).
+The dashboard lists cluster members and live per-instance CPU, memory, disk and
+network, refreshed every 15 s.
+
+Other user commands: `mcui user list`, `mcui user passwd <name>`, `mcui user delete <name>`
+(also available to admins via the `/api/users` endpoints).
+
+### Live tests and fixtures (run on a machine that reaches the cluster)
+
+```bash
+cd backend
+MCUI_IT_CONFIG=~/.config/mcui/config.toml ../.venv/bin/pytest tests/integration -q --no-cov
+../.venv/bin/mcui -c ~/.config/mcui/config.toml record-fixtures --out tests/fixtures/recorded
+```
+
+`record-fixtures` replaces IPs, MACs, fingerprints and certificates with
+placeholders; review the files before committing them.
 
 > If you copy `frontend/node_modules` between machines (e.g. from a Linux VM),
 > delete it and run `npm ci` again: it contains platform-specific binaries.

@@ -1,0 +1,77 @@
+# HELP lxd_cpu_effective_total The total number of effective CPUs.
+# TYPE lxd_cpu_effective_total gauge
+lxd_cpu_effective_total{name="c1",project="default",type="container"} 2
+lxd_cpu_effective_total{name="v1",project="web",type="virtual-machine"} 0
+# HELP lxd_cpu_seconds_total The total number of CPU time used in seconds.
+# TYPE lxd_cpu_seconds_total counter
+lxd_cpu_seconds_total{cpu="0",mode="system",name="c1",project="default",type="container"} 13
+lxd_cpu_seconds_total{cpu="0",mode="user",name="c1",project="default",type="container"} 24
+lxd_cpu_seconds_total{cpu="0",mode="idle",name="v1",project="web",type="virtual-machine"} 9000
+lxd_cpu_seconds_total{cpu="0",mode="iowait",name="v1",project="web",type="virtual-machine"} 12
+lxd_cpu_seconds_total{cpu="1",mode="idle",name="v1",project="web",type="virtual-machine"} 9000
+lxd_cpu_seconds_total{cpu="0",mode="user",name="v1",project="web",type="virtual-machine"} 53
+# HELP lxd_disk_read_bytes_total The total number of bytes read.
+# TYPE lxd_disk_read_bytes_total counter
+lxd_disk_read_bytes_total{device="sda",name="c1",project="default",type="container"} 25000
+lxd_disk_read_bytes_total{device="sdb",name="c1",project="default",type="container"} 1000
+# HELP lxd_disk_written_bytes_total The total number of bytes written.
+# TYPE lxd_disk_written_bytes_total counter
+lxd_disk_written_bytes_total{device="sda",name="c1",project="default",type="container"} 5000
+# HELP lxd_disk_reads_completed_total The total number of completed reads.
+# TYPE lxd_disk_reads_completed_total counter
+lxd_disk_reads_completed_total{device="sda",name="c1",project="default",type="container"} 100
+# HELP lxd_disk_writes_completed_total The total number of completed writes.
+# TYPE lxd_disk_writes_completed_total counter
+lxd_disk_writes_completed_total{device="sda",name="c1",project="default",type="container"} 50
+# HELP lxd_filesystem_avail_bytes The number of available space in bytes.
+# TYPE lxd_filesystem_avail_bytes gauge
+lxd_filesystem_avail_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="v1",project="web",type="virtual-machine"} 6e+09
+lxd_filesystem_avail_bytes{device="root",fstype="zfs",mountpoint="/",name="c1",project="default",type="container"} 3e+09
+lxd_filesystem_avail_bytes{device="/dev/sdb1",fstype="ext4",mountpoint="/data",name="v1",project="web",type="virtual-machine"} 1e+09
+# HELP lxd_filesystem_size_bytes The size of the filesystem in bytes.
+# TYPE lxd_filesystem_size_bytes gauge
+lxd_filesystem_size_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="v1",project="web",type="virtual-machine"} 1e+10
+lxd_filesystem_size_bytes{device="root",fstype="zfs",mountpoint="/",name="c1",project="default",type="container"} 1e+10
+# HELP lxd_memory_MemAvailable_bytes The amount of available memory.
+# TYPE lxd_memory_MemAvailable_bytes gauge
+lxd_memory_MemAvailable_bytes{name="c1",project="default",type="container"} 1.5e+09
+lxd_memory_MemAvailable_bytes{name="v1",project="web",type="virtual-machine"} 5e+08
+# HELP lxd_memory_MemTotal_bytes The amount of used memory.
+# TYPE lxd_memory_MemTotal_bytes gauge
+lxd_memory_MemTotal_bytes{name="c1",project="default",type="container"} 2e+09
+lxd_memory_MemTotal_bytes{name="v1",project="web",type="virtual-machine"} 1e+09
+# HELP lxd_memory_RSS_bytes The amount of anonymous and swap cache memory.
+# TYPE lxd_memory_RSS_bytes gauge
+lxd_memory_RSS_bytes{name="c1",project="default",type="container"} 4e+08
+# HELP lxd_memory_Cached_bytes The amount of cached memory.
+# TYPE lxd_memory_Cached_bytes gauge
+lxd_memory_Cached_bytes{name="c1",project="default",type="container"} 1e+08
+# HELP lxd_memory_Swap_bytes The amount of used swap memory.
+# TYPE lxd_memory_Swap_bytes gauge
+lxd_memory_Swap_bytes{name="c1",project="default",type="container"} 0
+# HELP lxd_memory_OOM_kills_total The number of out of memory kills.
+# TYPE lxd_memory_OOM_kills_total counter
+lxd_memory_OOM_kills_total{name="c1",project="default",type="container"} 1
+# HELP lxd_network_receive_bytes_total The amount of received bytes on a given interface.
+# TYPE lxd_network_receive_bytes_total counter
+lxd_network_receive_bytes_total{device="eth0",name="c1",project="default",type="container"} 1500
+lxd_network_receive_bytes_total{device="lo",name="c1",project="default",type="container"} 999999
+# HELP lxd_network_transmit_bytes_total The amount of transmitted bytes on a given interface.
+# TYPE lxd_network_transmit_bytes_total counter
+lxd_network_transmit_bytes_total{device="eth0",name="c1",project="default",type="container"} 2000
+# HELP lxd_procs_total The number of running processes.
+# TYPE lxd_procs_total gauge
+lxd_procs_total{name="c1",project="default",type="container"} 42
+# HELP lxd_api_requests_ongoing The number of ongoing requests.
+# TYPE lxd_api_requests_ongoing gauge
+lxd_api_requests_ongoing{entity_type="instance"} 1
+lxd_api_requests_ongoing{entity_type="server"} 2
+# HELP lxd_go_goroutines Number of goroutines that currently exist.
+# TYPE lxd_go_goroutines gauge
+lxd_go_goroutines 321
+# HELP lxd_uptime_seconds The daemon uptime in seconds.
+# TYPE lxd_uptime_seconds gauge
+lxd_uptime_seconds 1015
+# HELP lxd_warnings_total The number of active warnings.
+# TYPE lxd_warnings_total counter
+lxd_warnings_total 3

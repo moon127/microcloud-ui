@@ -16,8 +16,8 @@ makes or alters a design decision.**
   (Vitest `coverage.thresholds` = 90). CI/pre-commit fails below this.
 - **No live cluster in unit tests.** LXD/Ceph/OVN are mocked at the HTTP
   layer (`respx`) using recorded fixtures under `tests/fixtures/`. Optional
-  integration tests against a real MicroCloud are opt-in via env vars
-  (`MCUI_IT_URL`, `MCUI_IT_CERT`, `MCUI_IT_KEY`) and skipped otherwise.
+  integration tests against a real MicroCloud are opt-in via `MCUI_IT_CONFIG`
+  (path to a config.toml, D32) and skipped otherwise.
 - **Secrets never committed:** client certs/keys, fixtures scrubbed of real
   IPs/fingerprints. `.gitignore` covers `*.key`, `*.crt`, `*.pem`, `.env`, `data/`.
 - Python setup is documented in README (venv + pip). Keep it accurate.
@@ -33,11 +33,17 @@ makes or alters a design decision.**
 | D5 | **Two LXD identities:** a full TLS client cert for API management, and a separate `--type=metrics` cert for scraping | Least privilege: metrics certs can only read `/1.0/metrics`. Either may be the same file if the owner prefers; config allows both. | Proposed |
 | D6 | **Server TLS verification is pinned** to the cluster's shared `cluster.crt` (standalone: `server.crt`; or a CA if PKI is used) with configurable `server_name`; never `verify=False` | In a cluster every member presents the same cluster cert. It's self-signed and IP SANs often don't match, so pin it and override SNI/hostname. | Accepted 2026-11-05 |
 | D22 | **Metrics scraped on API port 8443 by default**; dedicated `core.metrics_address` port supported via `[metrics] port` + per-member overrides; documented on both sides | Owner's choice for now; the dedicated port is the hardening path later. | Accepted 2026-11-05 |
-| D23 | **Ceph mgr prometheus: only the module is enabled for now.** The extra settings (`exclude_perf_counters=false`, needed because MicroCeph deploys no ceph-exporter, and `rbd_stats_pools` limited to LXD's pool) are **supported but optional**: the UI detects their series and explains how to enable them. Scrape every mgr host and use whichever answers with data | Owner deferred the load-adding settings on the small test cluster; code for both is built and fixture-tested in MVP (MO-7a); live test when the owner briefly enables them. See docs/CEPH-METRICS.md. | Accepted 2026-11-05 |
+| D23 | **Ceph mgr prometheus: only the module is enabled for now.** The extra settings (`exclude_perf_counters=false`, needed because MicroCeph deploys no ceph-exporter, and `rbd_stats_pools` limited to LXD's pool) are **supported but optional**: the UI detects their series and explains how to enable them. Scrape every mgr host and use whichever answers with data | Owner deferred the load-adding settings on the small test cluster; the UI for both is built in Phase 4 (MO-7a) against fixtures; **enabled live 2026-11-05**, series confirmed and a scrubbed sample recorded; mgr CPU cost still to be measured, then the owner decides whether to keep them on. See docs/CEPH-METRICS.md. | Accepted 2026-11-05 |
 | D24 | **Licence: MIT** (`LICENSE`). Dependencies must be MIT-compatible; copyleft libraries only as unmodified, separately loaded modules with their licence notices kept (e.g. spice-html5 for the VGA console, whose LGPL licence is to be confirmed when it's added). Never copy lxd-ui (GPL-3.0) code | Owner's choice. | Accepted 2026-11-05 |
 | D25 | **VGA console and file browser are MVP** (IN-9, IN-11). The backend proxies the LXD console websockets (data + control) so the browser never talks to LXD directly | Owner promoted them; the proxy keeps the cert server-side (D4). | Accepted 2026-11-05 |
 | D26 | **Live-test workflow:** the Claude session's dev VM **cannot** reach the test cloud (direct connects get "network unreachable"; the egress proxy refuses CONNECT with 403). So development and CI use recorded, scrubbed fixtures. The repo ships a recorder (`mcui record-fixtures`) and opt-in integration tests that the owner runs on the Mac and commits the scrubbed output | Keeps ≥90% coverage without live access; the owner does live validation. | Accepted 2026-11-05 |
 | D27 | **Tooling specifics:** setuptools (>=77) with an editable install, argparse CLI (no extra dependency), pytest-asyncio auto mode, coverage branch + `fail_under=90` in pyproject; Vitest v3 + v8 coverage thresholds 90 on all four metrics; React 19 + Vite 6 + TS 5.8; the Vite dev server proxies `/api` (incl. websockets) to `MCUI_BACKEND` (default :8000). CI matrix: Python 3.10 and 3.12, Node 22 | Minimal, standard, fast. | Accepted 2026-11-05 |
+| D28 | **Key-file permission rule:** refuse private keys with *any* group/other permission bits (OpenSSH-style), stricter than CF-1's "world-readable" wording | A group-readable key is just as leaked on a shared host. | Proposed |
+| D29 | **TLS pinning implementation:** `ssl.create_default_context(cafile=server_cert)` (no system CAs) + client cert; hostname checked against `server_name` via httpx's `sni_hostname` request extension. No extra verify flags: OpenSSL accepts LXD's self-signed `CA:FALSE` cert as an anchor. Covered by real-handshake tests (`tests/test_tls.py`) | Verified on Python 3.14/OpenSSL 3.6; CI runs it on 3.10 and 3.12. | Accepted 2026-11-05 |
+| D30 | **Sessions:** random 256-bit token in an HttpOnly, SameSite=Strict cookie (`Secure` unless `server.secure_cookies=false`); only its SHA-256 is stored. CSRF: per-session token returned by login/`/api/auth/me`, required as `X-CSRF-Token` on every non-GET request. Password change logs the user out everywhere. The last admin can't be deleted or demoted. Users, sessions and audit share one SQLite DB in `server.data_dir` | Simple, stateless for the browser, no extra deps beyond argon2-cffi (MIT). | Proposed |
+| D31 | **Live metrics are scraped on demand** (at most every 10 s, the last two scrapes kept in memory) until the Phase 2 background scraper exists. CPU % = rate of `lxd_cpu_seconds_total` excluding `idle`/`iowait`/`steal`, divided by `lxd_cpu_effective_total` (VMs report 0 there on LXD 5.21, so their vCPUs are counted from the distinct `cpu` labels); network excludes `lo`; root FS is the `/` mount; a counter decrease is a reset | Gives Phase 1 live numbers without a scheduler; same rate maths will move into the store (D9). | Proposed |
+| D32 | **Integration tests use one env var, `MCUI_IT_CONFIG`** (path to a normal config.toml), instead of the `MCUI_IT_URL/CERT/KEY` trio | The config already carries endpoints, both certs, server cert and `server_name`; one file avoids duplicating them. | Proposed |
+| D33 | **`mcui serve` uses a uvicorn app factory** (`mcui.main:create_app`, settings from `$MCUI_CONFIG`; `--config` sets it) | Works with `--reload` (child processes re-read the env). | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -62,7 +68,20 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   static serving with traversal protection, `mcui` CLI (`serve`), React+TS+Vite
   frontend showing backend health, Makefile, pre-commit hook, GitHub Actions CI.
   Coverage: backend 100%, frontend 100%.
-- Next: **Phase 1**, connectivity and live metrics (see docs/PLAN.md).
+- **Phase 1 (connectivity & live metrics): built 2026-11-05.** TOML+env config with
+  key-permission checks (CF-1); async LXD client with pinned mTLS, `server_name`
+  override and endpoint failover (CF-2, NF-3); `api_extensions` feature flags (CF-3);
+  `mcui check`; Prometheus text parser; per-member metrics scraping with port
+  overrides/fallback (CF-4) and live per-instance rates (MO-1); local users
+  (argon2), sessions, CSRF, admin/viewer roles, audit log (AU-1/2/3); `mcui user …`;
+  `mcui record-fixtures` with scrubbing (D26); React login + members + live
+  instances dashboard. Coverage: backend 100%, frontend 100% lines / 98.6% branches.
+  **Exit criterion met 2026-11-05** from the owner's Mac: `mcui check` OK on all 3
+  members (metrics cert, port 8443), integration tests pass, live rates sane.
+  Fixtures recorded to `backend/tests/fixtures/recorded/` (scrubbed; contain the
+  owner's free-text instance descriptions, so committing is the owner's call).
+  Next checkpoint: MO-7a (Ceph perf counters / RBD stats).
+- Next: **Phase 2**, metrics history & dashboards.
 
 ## Working conventions
 
@@ -76,14 +95,15 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 
 ## Test cloud facts (no secrets or IPs here)
 
-- LXD 5.21.8, clustered (MicroCloud). Cluster cert SAN: `gw-ips-microcloud-1`
+- LXD 5.21.8 on gw-ips-microcloud-1, 5.21.9 on -2 and -3 (seen 2026-11-05), clustered (MicroCloud). Cluster cert SAN: `gw-ips-microcloud-1`
   plus loopback, so set `server_name = "gw-ips-microcloud-1"` and connect by IP.
 - Management cert: unrestricted client cert (option A). Metrics cert:
   `--type=metrics`. Both verified against `/1.0` and `/1.0/metrics` on :8443.
-- MicroCeph mgr `prometheus` module **enabled** (defaults only; perf counters and RBD stats deferred, see D23/MO-7a).
+- MicroCeph (Ceph 19.2.3 squid) mgr `prometheus` module **enabled**; `exclude_perf_counters=false` and `rbd_stats_pools=lxd_remote` turned on 2026-11-05 for the MO-7a checkpoint (D23). Active mgr was gw-ips-microcloud-1; standbys answer 200 with an empty body.
 - Metrics scraped on 8443 (no `core.metrics_address`) for now; see D22.
-- Members are on the 172.20.200.0/24 lab network. Not reachable from the Claude dev VM (D26); reachable from the owner's Mac.
-- Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac.
+- Members are on the 172.20.200.0/24 lab network (.11/.12/.13 = gw-ips-microcloud-1/2/3). Not reachable from the Claude dev VM (D26); reachable from the owner's Mac.
+- Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac; dev config is `~/.config/mcui/config.toml` (data in `~/.local/share/mcui`).
+- LXD's filesystem metrics may omit a VM's `/` mount (seen on podman-1), so root FS can be unknown.
 
 ## Repo layout (target)
 
@@ -92,8 +112,11 @@ backend/            Python package `mcui`
   mcui/lxd/         async LXD REST client, operations, websockets
   mcui/metrics/     scraper, parser, store (sqlite / prometheus), query API
   mcui/api/         FastAPI routers (BFF)
-  mcui/auth/        users, sessions, OIDC
-  tests/            pytest; fixtures/ recorded LXD responses
+  mcui/auth/        users, sessions, audit (SQLite)
+  mcui/config.py    settings (TOML + env)
+  mcui/check.py     `mcui check`; mcui/record.py `mcui record-fixtures`
+  tests/            pytest; fixtures/lxd hand-written, fixtures/recorded from the
+                    test cloud; integration/ opt-in live tests (MCUI_IT_CONFIG)
 frontend/           React + TS + Vite SPA
 docs/PLAN.md        phased delivery plan
 Makefile            dev tasks (make help)

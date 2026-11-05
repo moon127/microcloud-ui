@@ -123,13 +123,13 @@ agents.md with any decision.
 pytest, respx, ruff, mypy), `frontend/` (Vite, React, TS, Vitest), Makefile,
 coverage gates, health endpoint, README setup including the macOS dev run (NF-7).
 
-**Phase 1: Connectivity & live metrics.** Config + mTLS client with
+**Phase 1: Connectivity & live metrics. ✅ Done 2026-11-05 (exit test passed against the test cloud).** Config + mTLS client with
 pinned server cert (CF-1/2, NF-3), `mcui check`, `api_extensions` feature
 flags (CF-3), Prometheus text parser, live per-instance metrics from all
 members (MO-1). Local auth + roles + audit log skeleton (AU-1/2/3).
 *Exit:* against your test cloud, list members and live metrics.
 
-**Checkpoint after Phase 1:** owner briefly enables the Ceph perf-counter and RBD stats settings (MO-7a, D23, `docs/CEPH-METRICS.md` §2) to validate the already-built OSD latency and per-disk I/O views live, measuring mgr load before and after, then decides whether to keep them on.
+**Checkpoint after Phase 1:** owner briefly enables the Ceph perf-counter and RBD stats settings (MO-7a, D23, `docs/CEPH-METRICS.md` §2) to confirm the OSD latency and per-RBD-image series and record them for the Phase 4 views (done 2026-11-05), measuring mgr load before and after, then decides whether to keep them on.
 
 **Phase 2: Metrics history & dashboards.** Background scraper, SQLite
 store with rollups, query API with rate maths (MO-2). Cluster overview,

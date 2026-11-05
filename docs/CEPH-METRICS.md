@@ -16,14 +16,26 @@ If it isn't enabled:
 sudo microceph.ceph mgr module enable prometheus
 ```
 
-## 2. Recommended settings (DEFERRED on the test cloud)
+## 2. Recommended settings (on the test cloud since 2026-11-05, under evaluation)
 
-> **Status (2026-11-05):** only the module itself is enabled on the test cloud.
-> The two settings below add mgr load, so they stay off for now. The features
-> that use them are built and fixture-tested; the owner will enable them briefly
-> for a live test at the post-Phase-1 checkpoint (see PLAN.md). microcloud-ui must **support but not require**
-> them: detect whether `ceph_osd_apply_latency_ms` / `ceph_rbd_*` series exist and
-> show "not enabled, see docs/CEPH-METRICS.md" instead of empty graphs.
+> **Status (2026-11-05):** the owner enabled both settings on the test cloud for
+> the MO-7a checkpoint. The UI views that use them are **not built yet**: they
+> come in Phase 4 and will be built against the fixture recorded below.
+> microcloud-ui must **support but not require** the settings: detect whether
+> `ceph_osd_apply_latency_ms` / `ceph_rbd_*` series exist and show "not enabled,
+> see docs/CEPH-METRICS.md" instead of empty graphs.
+>
+> **Observed with both on (Ceph 19.2.3 squid, 3 mgr hosts):** the active mgr
+> (gw-ips-microcloud-1) returns 267 KiB, 2,784 samples in 656 families, in
+> ~35 ms; the standbys return HTTP 200 with an empty body. OSD latency is present
+> (`ceph_osd_apply/commit_latency_ms`, `ceph_osd_op_r/w_latency_sum/count`, 6
+> OSDs) and per-image RBD counters cover 34 images in `lxd_remote` (labels
+> `pool`, `namespace`, `image`). LXD image names map to objects as
+> `container_<name>`, `virtual-machine_<name>`, `image_<fingerprint>…` (cached
+> images) and `lxd_lxd` (LXD's own volume). BlueStore counters are the biggest
+> addition (858 samples). Scrubbed sample:
+> `backend/tests/fixtures/recorded/ceph_mgr_active_perf_rbd_on.txt`.
+> mgr CPU before/after is still to be measured on the host (§4).
 
 
 | Setting | Why |
@@ -67,7 +79,15 @@ curl -s "http://<active-mgr-ip>:9283/metrics" | grep -E '^ceph_health_status|^ce
 - `ceph_osd_apply_latency_ms` appearing shows `exclude_perf_counters false` worked.
 - `ceph_rbd_*` series appear once the pool has images, after up to one refresh interval.
 
-## 4. Firewall
+## 4. Measuring the mgr cost
+The prometheus module collects on its own `scrape_interval`, so the cost is in
+the mgr process, not in our requests. On the active mgr host, sample ceph-mgr
+CPU for a minute with the settings on, then again after reverting:
+```bash
+top -b -d 15 -n 5 -p "$(pgrep -d, -f ceph-mgr)" | grep ceph-mgr
+```
+
+## 5. Firewall
 Allow TCP 9283 to every mgr host from wherever microcloud-ui runs. Scrape all
 mgr hosts: the mgr can fail over, and the active one is whichever answers with data.
 

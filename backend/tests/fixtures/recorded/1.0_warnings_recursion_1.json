@@ -1,0 +1,62 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "count": 9,
+      "entity_url": "/1.0/cluster/members/gw-ips-microcloud-3",
+      "first_seen_at": "2026-10-30T15:35:08.001138846Z",
+      "last_message": "Failed to send heartbeat request: Put \"https://192.0.2.3:8443/internal/database\": dial tcp 192.0.2.3:8443: connect: connection refused",
+      "last_seen_at": "2026-10-30T15:35:18.209366818Z",
+      "location": "gw-ips-microcloud-1",
+      "project": "",
+      "severity": "low",
+      "status": "resolved",
+      "type": "Offline cluster member",
+      "uuid": "3a1dc2f1-bdb9-4421-a5f5-6ba0f226f535"
+    },
+    {
+      "count": 14,
+      "entity_url": "",
+      "first_seen_at": "2025-10-14T13:51:07.608432432Z",
+      "last_message": "per-instance network priority will be ignored. Please use per-device limits.priority instead",
+      "last_seen_at": "2026-10-30T15:35:25.111874275Z",
+      "location": "gw-ips-microcloud-3",
+      "project": "",
+      "severity": "low",
+      "status": "new",
+      "type": "Couldn't find the CGroup network priority controller",
+      "uuid": "865d1da4-e755-466f-b7ee-cdfe5fc434d7"
+    },
+    {
+      "count": 15,
+      "entity_url": "",
+      "first_seen_at": "2025-09-28T19:38:08.531020627Z",
+      "last_message": "per-instance network priority will be ignored. Please use per-device limits.priority instead",
+      "last_seen_at": "2026-09-25T05:26:58.553331005Z",
+      "location": "gw-ips-microcloud-1",
+      "project": "",
+      "severity": "low",
+      "status": "new",
+      "type": "Couldn't find the CGroup network priority controller",
+      "uuid": "920a1622-54dc-4f09-b7c2-a577daf84a5f"
+    },
+    {
+      "count": 13,
+      "entity_url": "",
+      "first_seen_at": "2025-09-28T20:45:09.371966585Z",
+      "last_message": "per-instance network priority will be ignored. Please use per-device limits.priority instead",
+      "last_seen_at": "2026-10-30T10:21:18.122790117Z",
+      "location": "gw-ips-microcloud-2",
+      "project": "",
+      "severity": "low",
+      "status": "new",
+      "type": "Couldn't find the CGroup network priority controller",
+      "uuid": "eefea52a-95c5-45c4-aa41-8b5ae699e37e"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

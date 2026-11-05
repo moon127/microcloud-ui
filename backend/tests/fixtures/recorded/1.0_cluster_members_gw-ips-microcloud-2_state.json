@@ -1,0 +1,47 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "storage_pools": {
+      "remote": {
+        "inodes": {
+          "total": 0,
+          "used": 0
+        },
+        "space": {
+          "total": 812840724298,
+          "used": 704373040970
+        }
+      },
+      "remote-fs": {
+        "inodes": {
+          "total": 0,
+          "used": 0
+        },
+        "space": {
+          "total": 108464701440
+        }
+      }
+    },
+    "sysinfo": {
+      "buffered_ram": 3927642112,
+      "free_ram": 2891485184,
+      "free_swap": 7909404672,
+      "load_averages": [
+        0.69,
+        0.72,
+        0.84
+      ],
+      "logical_cpus": 8,
+      "processes": 1543,
+      "shared_ram": 8574652416,
+      "total_ram": 67317440512,
+      "total_swap": 8589930496,
+      "uptime": 13070822
+    }
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

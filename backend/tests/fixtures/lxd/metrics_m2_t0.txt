@@ -1,0 +1,6 @@
+# TYPE lxd_cpu_seconds_total counter
+lxd_cpu_seconds_total{cpu="0",mode="user",name="c2",project="default",type="container"} 5
+# TYPE lxd_cpu_effective_total gauge
+lxd_cpu_effective_total{name="c2",project="default",type="container"} 4
+# TYPE lxd_uptime_seconds gauge
+lxd_uptime_seconds 50

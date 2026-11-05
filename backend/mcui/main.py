@@ -2,23 +2,54 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 
 from mcui import __version__
+from mcui.api import auth, cluster
+from mcui.config import Settings, load_settings
+from mcui.lxd.client import LXDError, LXDUnavailable
+from mcui.services import Services, build_services
 
 DEFAULT_STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
 
 
-def create_app(static_dir: Path | None = DEFAULT_STATIC_DIR) -> FastAPI:
-    """Build the app. Serves the built SPA from ``static_dir`` when it exists."""
-    app = FastAPI(title="microcloud-ui", version=__version__)
+def create_app(
+    settings: Settings | None = None,
+    *,
+    services: Services | None = None,
+    static_dir: Path | None = DEFAULT_STATIC_DIR,
+) -> FastAPI:
+    """Build the app. Serves the built SPA from ``static_dir`` when it exists.
+
+    With no arguments, settings come from ``$MCUI_CONFIG`` (see ``mcui serve``).
+    """
+    if services is None:
+        services = build_services(settings or load_settings())
+
+    @asynccontextmanager
+    async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+        yield
+        await services.aclose()
+
+    app = FastAPI(title="microcloud-ui", version=__version__, lifespan=lifespan)
+    app.state.services = services
+
+    @app.exception_handler(LXDError)
+    async def lxd_error(_: Request, exc: LXDError) -> JSONResponse:
+        status = 503 if isinstance(exc, LXDUnavailable) else 502
+        return JSONResponse({"detail": f"LXD: {exc}"}, status_code=status)
 
     @app.get("/api/health")
-    async def health() -> dict[str, str]:
-        return {"status": "ok", "version": __version__}
+    async def health() -> dict[str, object]:
+        return {"status": "ok", "version": __version__, "lxd_configured": services.lxd is not None}
+
+    app.include_router(auth.router)
+    app.include_router(cluster.router)
 
     if static_dir is not None and (static_dir / "index.html").is_file():
         root = static_dir.resolve()
@@ -33,6 +64,3 @@ def create_app(static_dir: Path | None = DEFAULT_STATIC_DIR) -> FastAPI:
             return FileResponse(root / "index.html")
 
     return app
-
-
-app = create_app()

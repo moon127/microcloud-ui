@@ -1,0 +1,9 @@
+[
+  {"server_name": "m1", "url": "https://192.0.2.1:8443", "database": true, "status": "Online",
+   "message": "Fully operational", "architecture": "x86_64", "failure_domain": "default",
+   "description": "", "config": {}, "groups": ["default"],
+   "roles": ["database-leader", "database"]},
+  {"server_name": "m2", "url": "https://192.0.2.2:8443", "database": true, "status": "Online",
+   "message": "Fully operational", "architecture": "x86_64", "failure_domain": "default",
+   "description": "", "config": {}, "groups": ["default"], "roles": ["database"]}
+]

@@ -1,0 +1,27 @@
+{
+  "api_extensions": ["storage_zfs_remove_snapshots", "clustering", "metrics", "network_acl",
+    "network_forward", "network_load_balancer", "network_peer", "network_dns",
+    "storage_buckets", "access_management", "clustering_evacuation", "console_vga_type"],
+  "api_status": "stable",
+  "api_version": "1.0",
+  "auth": "trusted",
+  "auth_methods": ["tls"],
+  "auth_user_method": "tls",
+  "auth_user_name": "0000000000000000000000000000000000000000000000000000000000000001",
+  "config": {"cluster.https_address": "192.0.2.1:8443", "core.https_address": "192.0.2.1:8443"},
+  "environment": {
+    "addresses": ["192.0.2.1:8443"],
+    "architectures": ["x86_64", "i686"],
+    "certificate": "-----BEGIN CERTIFICATE-----\nSCRUBBED\n-----END CERTIFICATE-----\n",
+    "driver": "lxc | qemu",
+    "kernel": "Linux",
+    "project": "default",
+    "server": "lxd",
+    "server_clustered": true,
+    "server_event_mode": "full-mesh",
+    "server_name": "m1",
+    "server_version": "5.21.8",
+    "storage": "ceph | zfs"
+  },
+  "public": false
+}
