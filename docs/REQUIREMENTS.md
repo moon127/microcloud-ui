@@ -1,6 +1,6 @@
 # microcloud-ui — Requirements
 
-Status: **draft for sign-off**. Each requirement has an ID and a tier:
+Status: **signed off 2026-11-05** (Q1–Q3 answered; Q4 network reachability to be settled before Phase 1 live tests). Each requirement has an ID and a tier:
 **MVP** (first usable release), **P2** (after MVP), **Later** (nice to have).
 Change tiers here; record the reason in `agents.md`.
 
@@ -31,7 +31,7 @@ and the LXD REST spec (`docs/lxd-api-surface.md`):
   `/1.0/storage-pools/{}/resources` (capacity), `/1.0/projects/{}/state`
   (quota usage), `/1.0/network-acls/{}/log`, `/1.0/instances/{}/backups`.
 - LXD-UI is GPL-3.0. **We do not copy its code**; we only use it as a
-  behavioural reference. (Licence for this repo: see open question Q3.)
+  behavioural reference. This repo is MIT-licensed (D24).
 
 ## 2. Functional requirements: management (parity with /ui)
 
@@ -63,9 +63,9 @@ operations with progress and cancel.
 | IN-6 | Rename, copy, move to another member, storage pool or project | MVP (member/pool), P2 (project) |
 | IN-7 | Interactive terminal (exec websocket ↔ xterm.js) | MVP |
 | IN-8 | Text console (containers & VMs) and console log | MVP |
-| IN-9 | Graphical VM console (SPICE over websocket) | P2 |
+| IN-9 | Graphical VM console (SPICE over websocket, proxied by the backend) incl. send-key shortcuts (Ctrl+Alt+Del etc.) | MVP |
 | IN-10 | Instance logs (`/logs`) | MVP |
-| IN-11 | File browser: list, upload, download, create, delete (`/files`, `/sftp`) | P2 |
+| IN-11 | File browser: browse, upload, download, create file/dir, delete, follow symlinks (`/files`; `/sftp` where available) | MVP |
 | IN-12 | Publish instance/snapshot as image | MVP |
 | IN-13 | Backups: create, export/download, import | P2 |
 | IN-14 | Placement groups | Later |
@@ -162,6 +162,6 @@ management.
 
 ## 7. Open questions
 - ~~**Q1** LXD version?~~ **Answered 2026-11-05:** LXD 5.21.8, clustered. Cluster cert SAN is `DNS:gw-ips-microcloud-1` plus loopback only, so `server_name = "gw-ips-microcloud-1"`. Both the management cert (trusted) and the metrics cert were verified with curl on :8443. Metrics stay on 8443 for now (no `core.metrics_address`). MicroCloud version still to confirm.
-- **Q2** Do you agree with the MVP/P2 tiers above? Anything to promote or demote, such as the VGA console or file browser?
-- **Q3** What licence for this repo (private / MIT / Apache-2.0 / GPL-3.0)?
+- ~~**Q2**~~ Do you agree with the MVP/P2 tiers above? **Answered 2026-11-05:** tiers accepted, with the VGA console (IN-9) and file browser (IN-11) promoted to MVP.
+- ~~**Q3**~~ Licence: **MIT** (answered 2026-11-05).
 - **Q4** Will the Mac reach the cluster's 8443/8444 and Ceph mgr 9283 directly, or through VPN/SSH tunnel?

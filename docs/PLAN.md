@@ -136,7 +136,7 @@ store with rollups, query API with rate maths (MO-2). Cluster overview,
 instance and member graphs, top-N (CL-1/2, MO-3/4/5). Storage pool capacity
 history (MO-6), network counters (MO-8).
 
-**Phase 3: Instances, profiles, images, projects.** IN-1…8, IN-10, IN-12,
+**Phase 3: Instances, profiles, images, projects.** IN-1…12 (incl. VGA console IN-9 and file browser IN-11),
 PR-1, IM-1/2, PJ-1, operations/warnings/events (CL-7/8), evacuate/restore (CL-3).
 
 **Phase 4: Networking & storage management + Ceph/OVN views.** NW-1/2/4/5,
@@ -149,8 +149,7 @@ on ingest, query latency, disk use and ops burden; implement the chosen
 adapter. Alerts (MO-13), export (MO-15), node_exporter (MO-12), project quota
 history (MO-10).
 
-**Phase 6: Remaining parity.** VGA console (IN-9), file browser (IN-11),
-backups (IN-13, ST-4), project moves and restrictions (IN-6, PJ-2), ISO
+**Phase 6: Remaining parity.** Backups (IN-13, ST-4), project moves and restrictions (IN-6, PJ-2), ISO
 upload (IM-3), sriov, LBs, peers, zones, ACL logs (NW-3/4/6/7), cluster groups
 and config (CL-4/5), identities view (AC-1). Login options evaluation (AU-4).
 

@@ -67,3 +67,6 @@ Configuration reference, including how to switch metrics to a dedicated port:
 [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md).
 Never commit certs or keys (they are git-ignored).
 
+## Licence
+
+MIT, see [`LICENSE`](LICENSE).
