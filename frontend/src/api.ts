@@ -519,3 +519,55 @@ export function streamUrl(id: string): string {
   const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
   return `${proto}//${window.location.host}/api/streams/${encodeURIComponent(id)}`;
 }
+
+// --- Phase 3e: file browser ---------------------------------------------------------
+
+export interface FileMeta {
+  type: "file" | "directory" | "symlink" | "unknown" | string;
+  mode?: string;
+  uid?: string;
+  gid?: string;
+  modified?: string;
+  size?: number | null;
+}
+
+export interface FileEntry extends FileMeta {
+  name: string;
+}
+
+export interface FileView extends FileMeta {
+  path: string;
+  entries?: FileEntry[];
+  truncated?: boolean;
+  target?: string;
+  resolved?: string;
+}
+
+const files = (project: string, name: string) => `${inst(project, name)}/files`;
+const withPath = (path: string) => `?path=${encodeURIComponent(path)}`;
+
+export const browseFiles = (project: string, name: string, path: string) =>
+  api<FileView>(`${files(project, name)}${withPath(path)}`);
+
+/** A same-origin link the browser can download (the session cookie authorises it). */
+export const downloadUrl = (project: string, name: string, path: string) =>
+  `${files(project, name)}/download${withPath(path)}`;
+
+export async function uploadFile(project: string, name: string, path: string, file: Blob, mode = "0644"): Promise<Started> {
+  const res = await fetch(`${files(project, name)}/upload${withPath(path)}&mode=${mode}`, {
+    method: "POST",
+    body: file,
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/octet-stream", ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}) },
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { detail?: unknown };
+    throw new ApiError(res.status, typeof body.detail === "string" ? body.detail : `HTTP ${res.status}`);
+  }
+  return (await res.json()) as Started;
+}
+
+export const makeDirectory = (project: string, name: string, path: string) =>
+  send<Started>("POST", `${files(project, name)}/mkdir${withPath(path)}`);
+export const deleteFile = (project: string, name: string, path: string) =>
+  send<Started>("DELETE", `${files(project, name)}${withPath(path)}`);

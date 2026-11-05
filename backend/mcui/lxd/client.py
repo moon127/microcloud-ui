@@ -75,8 +75,14 @@ class LXDClient:
         params: dict[str, Any] | None,
         json: Any,
         timeout: float | None = None,
+        headers: dict[str, str] | None = None,
+        content: Any = None,
     ) -> httpx.Response:
         kw: dict[str, Any] = {"timeout": timeout} if timeout is not None else {}
+        if headers:
+            kw["headers"] = headers
+        if content is not None:
+            kw["content"] = content
         return await self._http.request(
             method, url, params=params, json=json, extensions=self._extensions(), **kw
         )
@@ -90,14 +96,19 @@ class LXDClient:
         json: Any = None,
         base: str | None = None,
         timeout: float | None = None,
+        headers: dict[str, str] | None = None,
+        content: Any = None,
     ) -> httpx.Response:
         """Send a request. With ``base`` only that server is tried, else failover.
 
-        ``timeout`` overrides the client's default (long-polls such as operation waits).
+        ``timeout`` overrides the client's default (long-polls such as operation waits);
+        ``content`` may be bytes or an async iterator (streamed uploads).
         """
         if base is not None:
             try:
-                return await self._send(method, base.rstrip("/") + path, params, json, timeout)
+                return await self._send(
+                    method, base.rstrip("/") + path, params, json, timeout, headers, content
+                )
             except httpx.TransportError as e:
                 raise LXDUnavailable(_describe(e)) from e
         errors: list[str] = []
@@ -106,7 +117,7 @@ class LXDClient:
             idx = (self._current + i) % n
             ep = self.endpoints[idx]
             try:
-                r = await self._send(method, ep + path, params, json, timeout)
+                r = await self._send(method, ep + path, params, json, timeout, headers, content)
             except httpx.TransportError as e:
                 errors.append(f"{ep}: {_describe(e)}")
                 continue
@@ -136,6 +147,18 @@ class LXDClient:
             msg = body.get("error") or f"HTTP {r.status_code}"
             raise LXDError(str(msg), int(body.get("error_code") or r.status_code))
         return body.get("metadata")
+
+    async def open_stream(
+        self, method: str, path: str, *, params: dict[str, Any] | None = None
+    ) -> httpx.Response:
+        """Start a request whose body is read incrementally; the caller must ``aclose()`` it."""
+        req = self._http.build_request(
+            method, self.endpoint + path, params=params, extensions=self._extensions()
+        )
+        try:
+            return await self._http.send(req, stream=True)
+        except httpx.TransportError as e:
+            raise LXDUnavailable(f"{self.endpoint}: {_describe(e)}") from e
 
     async def get(self, path: str, **params: Any) -> Any:
         return await self.query("GET", path, params=params or None)
