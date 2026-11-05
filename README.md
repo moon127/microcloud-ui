@@ -4,58 +4,69 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** planning. See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
+**Status:** Phase 0 (scaffold) complete. See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
-## Development setup (Python backend)
+## Development setup
 
-Requires Python 3.10+ and Node 20+ (for the frontend).
+Requires **Python 3.10+**, **Node 20+** (22 recommended) and `make`.
+On macOS: `brew install python@3.12 node` (the bundled `python3` may be too old).
 
 ```bash
-# create and activate a virtual environment
+git clone <repo> microcloud-ui && cd microcloud-ui
+
+# Python backend in a virtual environment (created at ./.venv)
 python3 -m venv .venv
 source .venv/bin/activate
-
-# install the backend with dev/test dependencies (editable)
 pip install --upgrade pip
-pip install -e "backend[dev]"
+pip install -e "backend[dev]"          # editable install + test/lint tools
 
-# run the tests with coverage (must stay >= 90%)
-pytest --cov --cov-branch --cov-fail-under=90
+# Frontend
+cd frontend && npm ci && cd ..
 
-# leave the venv when done
-deactivate
+# or do both in one go:  make install
+
+make hooks                             # optional: lint + tests run before every commit
 ```
 
-> The `backend/` package lands in Phase 0; these commands become live then.
+`make help` lists every target. The common ones:
+
+| Command | What it does |
+|---|---|
+| `make test` | backend `pytest --cov` + frontend `vitest --coverage`; fails below 90% |
+| `make lint` | ruff, ruff format check, mypy (strict), eslint, tsc |
+| `make dev-backend` | API with auto-reload on http://127.0.0.1:8000 |
+| `make dev-frontend` | Vite dev server on http://localhost:5173, proxying `/api` to :8000 |
+| `make serve` | build the SPA and serve everything from the backend on :8000 |
+
+Use a different venv location with `make test VENV=~/venvs/mcui`.
+
+Leave the venv with `deactivate`.
 
 ## Manual run for development (macOS)
 
-For prototyping only; production uses the systemd unit or container image.
+For prototyping only; production uses the systemd unit or container image (Phase 7).
 
 ```bash
-# one-off prerequisites (Homebrew); macOS's bundled python3 may be too old
-brew install python@3.12 node
-
-# backend: venv as above, then
-cp config.example.toml config.toml        # edit LXD endpoints + cert paths
-mkdir -p ~/.config/mcui/certs && chmod 700 ~/.config/mcui/certs
-#   client/metrics certs + lxd-cluster.crt, see docs/LXD-CREDENTIALS.md
 source .venv/bin/activate
-mcui check --config config.toml           # verifies TLS, trust type, cluster members
-uvicorn mcui.main:app --reload --port 8000  # API on http://127.0.0.1:8000 (MCUI_CONFIG=config.toml)
 
-# frontend (second terminal): hot reload, proxies /api and websockets to :8000
-cd frontend
-npm install
-npm run dev                               # open http://localhost:5173
+# Terminal 1: backend with auto-reload
+mcui serve --reload                    # or: make dev-backend
+curl http://127.0.0.1:8000/api/health  # {"status":"ok","version":"..."}
 
-# or a single process serving the built SPA
-(cd frontend && npm run build) && mcui serve --config config.toml   # http://127.0.0.1:8000
+# Terminal 2: frontend with hot reload
+cd frontend && npm run dev             # open http://localhost:5173
+
+# Or a single process serving the built SPA:
+make serve                             # open http://127.0.0.1:8000
 ```
 
-The first run creates a local `admin` user and prints a one-time password.
-Development data (SQLite metrics, users) lives in `./data/`, which git ignores.
+From Phase 1 the backend also takes a config file with LXD endpoints and
+certificates (`mcui serve --config config.toml`, see `docs/CONFIGURATION.md`),
+and `mcui check` tests the connection to the cluster.
+
+> If you copy `frontend/node_modules` between machines (e.g. from a Linux VM),
+> delete it and run `npm ci` again: it contains platform-specific binaries.
 
 ## LXD certificates
 

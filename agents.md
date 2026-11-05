@@ -37,6 +37,7 @@ makes or alters a design decision.**
 | D24 | **Licence: MIT** (`LICENSE`). Dependencies must be MIT-compatible; copyleft libraries only as unmodified, separately loaded modules with their licence notices kept (e.g. spice-html5 for the VGA console, whose LGPL licence is to be confirmed when it's added). Never copy lxd-ui (GPL-3.0) code | Owner's choice. | Accepted 2026-11-05 |
 | D25 | **VGA console and file browser are MVP** (IN-9, IN-11). The backend proxies the LXD console websockets (data + control) so the browser never talks to LXD directly | Owner promoted them; the proxy keeps the cert server-side (D4). | Accepted 2026-11-05 |
 | D26 | **Live-test workflow:** the Claude session's dev VM **cannot** reach the test cloud (direct connects get "network unreachable"; the egress proxy refuses CONNECT with 403). So development and CI use recorded, scrubbed fixtures. The repo ships a recorder (`mcui record-fixtures`) and opt-in integration tests that the owner runs on the Mac and commits the scrubbed output | Keeps ≥90% coverage without live access; the owner does live validation. | Accepted 2026-11-05 |
+| D27 | **Tooling specifics:** setuptools (>=77) with an editable install, argparse CLI (no extra dependency), pytest-asyncio auto mode, coverage branch + `fail_under=90` in pyproject; Vitest v3 + v8 coverage thresholds 90 on all four metrics; React 19 + Vite 6 + TS 5.8; the Vite dev server proxies `/api` (incl. websockets) to `MCUI_BACKEND` (default :8000). CI matrix: Python 3.10 and 3.12, Node 22 | Minimal, standard, fast. | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -54,6 +55,24 @@ makes or alters a design decision.**
 | D20 | **Requirements live in `docs/REQUIREMENTS.md`** with IDs + tiers (MVP/P2/Later); commits reference IDs (e.g. `IN-2`) | Traceability. | Accepted 2026-11-05 |
 
 Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* when changed.
+
+## Status
+
+- **Phase 0 (scaffold): done 2026-11-05.** FastAPI app factory, `/api/health`, SPA
+  static serving with traversal protection, `mcui` CLI (`serve`), React+TS+Vite
+  frontend showing backend health, Makefile, pre-commit hook, GitHub Actions CI.
+  Coverage: backend 100%, frontend 100%.
+- Next: **Phase 1**, connectivity and live metrics (see docs/PLAN.md).
+
+## Working conventions
+
+- `make lint test` must pass before every commit (`make hooks` installs it as
+  the pre-commit hook, which also checks the commit email).
+- The Claude session's Linux dev VM keeps its venv outside the repo
+  (`make … VENV=$HOME/mcui-venv`) and deletes `frontend/node_modules` after
+  use, so no Linux binaries are left in the owner's macOS checkout.
+- New Python deps go in `backend/pyproject.toml`; new JS deps via `npm install`
+  (commit `package-lock.json`). Check licences (D24).
 
 ## Test cloud facts (no secrets or IPs here)
 
@@ -77,6 +96,9 @@ backend/            Python package `mcui`
   tests/            pytest; fixtures/ recorded LXD responses
 frontend/           React + TS + Vite SPA
 docs/PLAN.md        phased delivery plan
+Makefile            dev tasks (make help)
+scripts/pre-commit  lint+test+email gate
+CLAUDE.md           points Claude Code at this file
 docs/REQUIREMENTS.md  requirement IDs and tiers
 docs/lxd-api-surface.md  LXD REST path reference
 docs/CONFIGURATION.md    config reference (tool side)

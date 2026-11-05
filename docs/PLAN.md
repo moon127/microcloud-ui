@@ -119,7 +119,7 @@ the same commit with coverage ≥90% (backend and frontend), and updates
 agents.md with any decision.
 
 ### MVP
-**Phase 0: Scaffold.** pyproject (FastAPI, httpx, pydantic-settings,
+**Phase 0: Scaffold. ✅ Done 2026-11-05.** pyproject (FastAPI, httpx, pydantic-settings,
 pytest, respx, ruff, mypy), `frontend/` (Vite, React, TS, Vitest), Makefile,
 coverage gates, health endpoint, README setup including the macOS dev run (NF-7).
 
