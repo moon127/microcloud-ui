@@ -104,7 +104,7 @@ client_key  = "/etc/mcui/client.key"
 [metrics]
 cert = "/etc/mcui/metrics.crt"      # --type=metrics; defaults to client_cert
 key  = "/etc/mcui/metrics.key"
-port = 8444                         # core.metrics_address port; falls back to 8443
+port = 8443                         # default; 8444 if core.metrics_address enabled (docs/CONFIGURATION.md)
 interval_seconds = 15
 store = "sqlite"                    # only option for MVP (D8)
 

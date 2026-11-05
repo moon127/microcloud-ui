@@ -63,5 +63,7 @@ The backend talks to LXD with mutual TLS; browsers never need a certificate.
 Step-by-step guide covering key generation on macOS, trusting the certs in
 LXD, fetching the shared `cluster.crt` for verification, and testing with
 curl: [`docs/LXD-CREDENTIALS.md`](docs/LXD-CREDENTIALS.md).
+Configuration reference, including how to switch metrics to a dedicated port:
+[`docs/CONFIGURATION.md`](docs/CONFIGURATION.md).
 Never commit certs or keys (they are git-ignored).
 

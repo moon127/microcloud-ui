@@ -112,17 +112,47 @@ If your member IPs aren't listed (usual for the self-signed cluster cert),
 set `server_name` in microcloud-ui's config to one of the listed DNS names.
 The connection is still fully verified against the pinned cert.
 
-## 5. Optional: dedicated metrics port
+## 5. Optional: dedicated metrics port (LXD side)
 
-`core.metrics_address` is a **per-member** setting, so set it on each member:
+**Current setup: not used.** Metrics are scraped on the normal API port 8443.
+
+A dedicated metrics listener serves **only** `/1.0/metrics`, so you can open
+it to a monitoring host without exposing the full API. `core.metrics_address`
+is a **per-member** setting, so set it on every member. Run this on any member:
 
 ```bash
+# enable on all members
 for m in $(lxc cluster list -f csv -c n); do
   lxc config set core.metrics_address ":8444" --target "$m"
 done
+
+# check
+for m in $(lxc cluster list -f csv -c n); do
+  echo "$m: $(lxc config get core.metrics_address --target "$m")"
+done
 ```
 
-Without it, `/1.0/metrics` is still served on the normal 8443 port.
+To bind to one address instead of all, use e.g. `"10.0.0.11:8444"` per member.
+Allow TCP 8444 from wherever microcloud-ui runs (host firewall or any ACLs in
+between).
+
+Check from your Mac which certificate the new port presents. Normally it's the
+same cluster certificate, so the fingerprint should match step 4:
+
+```bash
+openssl s_client -connect <member-ip>:8444 </dev/null 2>/dev/null | openssl x509 -noout -fingerprint -sha256
+```
+
+To turn it off again:
+
+```bash
+for m in $(lxc cluster list -f csv -c n); do
+  lxc config unset core.metrics_address --target "$m"
+done
+```
+
+Then switch microcloud-ui over by setting `[metrics] port = 8444`. See
+"Metrics port (tool side)" in `docs/CONFIGURATION.md`.
 
 ## 6. Quick test from your Mac (before microcloud-ui exists)
 

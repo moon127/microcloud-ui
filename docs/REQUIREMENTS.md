@@ -138,6 +138,7 @@ operations with progress and cancel.
 | AU-4 | Further login options (OIDC/Entra ID etc.) evaluated after MVP | P2 |
 | CF-1 | Config file (TOML) + env overrides; certs/keys by path; refuse to start if key files are world-readable | MVP |
 | CF-2 | Multiple LXD endpoints for failover; `mcui check` CLI validates connectivity, trust type and API extensions | MVP |
+| CF-4 | Metrics port configurable: default 8443 (API port), optional dedicated `core.metrics_address` port (e.g. 8444), per-member overrides, optional fallback; documented for both the tool (`docs/CONFIGURATION.md`) and LXD (`docs/LXD-CREDENTIALS.md` §5) | MVP |
 | CF-3 | Feature detection via `api_extensions`: hide unsupported features rather than error | MVP |
 
 ## 5. Non-functional
@@ -159,7 +160,7 @@ installation or reconfiguration, enterprise storage drivers, multi-cluster
 management.
 
 ## 7. Open questions
-- ~~**Q1** LXD version?~~ **Answered 2026-11-05:** LXD 5.21.8, clustered. Cluster cert SAN is `DNS:gw-ips-microcloud-1` plus loopback only, so `server_name = "gw-ips-microcloud-1"`. Both the management cert (trusted) and the metrics cert were verified with curl on :8443. Still open: is `core.metrics_address` set, and the MicroCloud version.
+- ~~**Q1** LXD version?~~ **Answered 2026-11-05:** LXD 5.21.8, clustered. Cluster cert SAN is `DNS:gw-ips-microcloud-1` plus loopback only, so `server_name = "gw-ips-microcloud-1"`. Both the management cert (trusted) and the metrics cert were verified with curl on :8443. Metrics stay on 8443 for now (no `core.metrics_address`). MicroCloud version still to confirm.
 - **Q2** Do you agree with the MVP/P2 tiers above? Anything to promote or demote, such as the VGA console or file browser?
 - **Q3** What licence for this repo (private / MIT / Apache-2.0 / GPL-3.0)?
 - **Q4** Will the Mac reach the cluster's 8443/8444 and Ceph mgr 9283 directly, or through VPN/SSH tunnel?

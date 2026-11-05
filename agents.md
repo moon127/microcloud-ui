@@ -32,6 +32,7 @@ makes or alters a design decision.**
 | D4 | **Backend-for-frontend (BFF):** the server holds the LXD client cert/key and talks mTLS to LXD; browsers never see or need the cert | Browsers can't present a client cert without OS keychain installs; also lets us enforce our own auth/RBAC and audit. | Proposed |
 | D5 | **Two LXD identities:** a full TLS client cert for API management, and a separate `--type=metrics` cert for scraping | Least privilege: metrics certs can only read `/1.0/metrics`. Either may be the same file if the owner prefers; config allows both. | Proposed |
 | D6 | **Server TLS verification is pinned** to the cluster's shared `cluster.crt` (standalone: `server.crt`; or a CA if PKI is used) with configurable `server_name`; never `verify=False` | In a cluster every member presents the same cluster cert. It's self-signed and IP SANs often don't match, so pin it and override SNI/hostname. | Accepted 2026-11-05 |
+| D22 | **Metrics scraped on API port 8443 by default**; dedicated `core.metrics_address` port supported via `[metrics] port` + per-member overrides; documented on both sides | Owner's choice for now; the dedicated port is the hardening path later. | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -56,6 +57,7 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   plus loopback, so set `server_name = "gw-ips-microcloud-1"` and connect by IP.
 - Management cert: unrestricted client cert (option A). Metrics cert:
   `--type=metrics`. Both verified against `/1.0` and `/1.0/metrics` on :8443.
+- Metrics scraped on 8443 (no `core.metrics_address`) for now; see D22.
 - Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac.
 
 ## Repo layout (target)
@@ -71,4 +73,6 @@ frontend/           React + TS + Vite SPA
 docs/PLAN.md        phased delivery plan
 docs/REQUIREMENTS.md  requirement IDs and tiers
 docs/lxd-api-surface.md  LXD REST path reference
+docs/CONFIGURATION.md    config reference (tool side)
+docs/LXD-CREDENTIALS.md  certs + LXD-side setup
 ```
