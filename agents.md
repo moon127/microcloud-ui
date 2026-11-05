@@ -126,9 +126,21 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - MicroCeph (Ceph 19.2.3 squid) mgr `prometheus` module **enabled**; `exclude_perf_counters=false` and `rbd_stats_pools=lxd_remote` turned on 2026-11-05 and **kept on** (D23). Active mgr was gw-ips-microcloud-1; standbys answer 200 with an empty body.
 - Metrics scraped on 8443 (no `core.metrics_address`) for now; see D22.
 - Members are on the 172.20.200.0/24 lab network (.11/.12/.13 = gw-ips-microcloud-1/2/3).
-- Host disks: OS on LUKS (`dm-0`) + LVM (`ubuntu-vg`: root LV `dm-1`, an OSD LV); OSDs are LUKS-encrypted (`luksosd-N`). LXD pools: `remote` (Ceph RBD), `remote-fs` (CephFS); no LVM pools. Not reachable from the Claude dev VM (D26); reachable from the owner's Mac.
+- Host disks: OS on LUKS (`dm-0`) + LVM (`ubuntu-vg`: root LV `dm-1`, an OSD LV); OSDs are LUKS-encrypted (`luksosd-N`). LXD pools: `remote` (Ceph RBD), `remote-fs` (CephFS) only. **No local instance storage** (no zfs/dir/lvm/btrfs pools), so only Ceph-backed instances are exercised; see Known gaps. Not reachable from the Claude dev VM (D26); reachable from the owner's Mac.
 - Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac; dev config is `~/.config/mcui/config.toml` (data in `~/.local/share/mcui`).
 - LXD's filesystem metrics may omit a VM's `/` mount (seen on podman-1), so root FS can be unknown.
+
+## Known gaps (not testable on the test cloud yet)
+
+The test cloud only has Ceph-backed storage, so everything below is either
+unbuilt or built but untested against real data. Close each one with recorded
+fixtures from a cluster (or a throwaway LXD VM) that has the pool type.
+
+| Gap | Risk | Status |
+|---|---|---|
+| **Local storage pools** (zfs, dir, lvm, btrfs) | Pool capacity history (MO-6) reads `/cluster/members/{}/state` `storage_pools`, which should cover them but is unverified. Instance disk totals (D40) skip `dm-*`: an **lvm** pool, or a **dir** pool on a LUKS/LVM host root, would make instances' disks invisible in totals. zfs VM volumes appear as `zdN` and containers on zfs as the pool's physical disks, both counted but unverified. Management of local pools (ST-2/ST-3) is Phase 4 | Unbuilt management; metrics untested |
+| **Standalone (non-clustered) LXD** | Member state is skipped on 404 (no host load/pool usage); everything else uses the single endpoint | Fixture-tested only |
+| **Other network types** (bridge-managed, macvlan, sriov) | Instance-NIC mapping by MAC (D39) should work; host-NIC collection filters by type | Untested live |
 
 ## Repo layout (target)
 

@@ -139,7 +139,7 @@ history (MO-6), network counters (MO-8).
 **Phase 3: Instances, profiles, images, projects.** IN-1…12 (incl. VGA console IN-9 and file browser IN-11),
 PR-1, IM-1/2, PJ-1, operations/warnings/events (CL-7/8), evacuate/restore (CL-3).
 
-**Phase 4: Networking & storage management + Ceph/OVN views.** NW-1/2/4/5,
+**Phase 4: Networking & storage management + Ceph/OVN views.** Includes local pool support verified against recorded zfs/dir/lvm/btrfs fixtures (the test cloud is Ceph-only). NW-1/2/4/5,
 ST-1/2/3, Ceph dashboard (MO-7) incl. OSD latency + per-RBD-image I/O built against fixtures (MO-7a), OVN view from LXD API (MO-9).
 
 ### Post-MVP
@@ -167,6 +167,12 @@ placement groups, image registries, buckets, LXD auth management.
 - WebSocket proxy tests with an in-process fake LXD websocket.
 - Frontend: Vitest + Testing Library (≥90%); Playwright e2e against a mocked backend.
 - Opt-in integration suite against a real MicroCloud (env-var gated).
+- **Coverage gap: local storage.** The test cloud has only Ceph pools (RBD and
+  CephFS), so local pools (zfs, dir, lvm, btrfs) are untested: capacity
+  history, instance disk totals (D40 skips `dm-*`, which an lvm pool or a dir
+  pool on an encrypted/LVM root would use) and Phase 4 pool management. Before
+  Phase 4 is called done, record fixtures from an LXD with each local driver
+  (a throwaway LXD VM is enough) and add tests; see agents.md "Known gaps".
 
 ## 5. What I need from you
 See open questions in `docs/REQUIREMENTS.md` §7, then the test-cloud IPs and certs:
