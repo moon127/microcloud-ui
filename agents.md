@@ -26,21 +26,26 @@ makes or alters a design decision.**
 
 | # | Decision | Rationale | Status |
 |---|----------|-----------|--------|
-| D1 | **Backend in Python** (>=3.10; dev VM is 3.10, MicroCloud hosts on 24.04 have 3.12) | Owner's preference. | Accepted |
+| D1 | **Backend in Python** (>=3.10; dev VM is 3.10, MicroCloud hosts on 24.04 have 3.12) | Owner's preference. | Accepted 2026-11-05 |
 | D2 | **FastAPI + Uvicorn**, fully async | Native async + WebSocket support (needed for terminal/console/event proxying), OpenAPI for free, easy testing via `httpx.AsyncClient`. | Proposed |
 | D3 | **Own thin async LXD client on `httpx`**, not `pylxd` | pylxd is synchronous (requests), lags newer API extensions (OVN load balancers, replicators, placement groups…). A thin client over the REST API covers everything, is trivially mockable with `respx`, and we only model what we use. | Proposed |
 | D4 | **Backend-for-frontend (BFF):** the server holds the LXD client cert/key and talks mTLS to LXD; browsers never see or need the cert | Browsers can't present a client cert without OS keychain installs; also lets us enforce our own auth/RBAC and audit. | Proposed |
 | D5 | **Two LXD identities:** a full TLS client cert for API management, and a separate `--type=metrics` cert for scraping | Least privilege: metrics certs can only read `/1.0/metrics`. Either may be the same file if the owner prefers; config allows both. | Proposed |
 | D6 | **Server TLS verification is pinned** to the cluster's `server.crt` (or its CA) with configurable `server_name`; never `verify=False` | LXD certs are self-signed and IP SANs often don't match; pinning is safe and works. | Proposed |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
-| D8 | **Metrics storage: pluggable `MetricStore` interface**; default **SQLite** (WAL) with rollups (raw 15s → 24h, 1m → 14d, 1h → 1y); optional **external Prometheus/VictoriaMetrics** query backend | No embeddable Prometheus TSDB in Python; SQLite is zero-ops and adequate for a small edge cluster. Owners who already run Prometheus can point at it instead. | Proposed |
+| D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
 | D9 | **Counters stored raw, rates computed at query time** (handle counter resets) | Same semantics as PromQL `rate()`; keeps ingest simple. | Proposed |
 | D10 | **Frontend: React + TypeScript + Vite**, served as static files by FastAPI | Parity features (terminal, VGA console, complex forms) need a real SPA; xterm.js and spice-html5 are JS. Charts: uPlot (tiny, fast for time series). | Proposed |
 | D11 | **Ceph metrics via ceph-mgr `prometheus` module** (port 9283, unauthenticated, active mgr only) plus LXD `storage-pools/<pool>/resources` | Standard MicroCeph path; scrape all mgr hosts and keep whichever answers. | Proposed |
 | D12 | **OVN visibility via LXD API first**, optional node agent later | MicroOVN ships no Prometheus exporter. LXD exposes OVN networks, forwards, LBs, peers, ACLs, ACL logs, allocations. Deeper NB/SB/OVS stats need `microovn.ovn-nbctl` / `ovs-appctl` on nodes → Phase 5 optional agent or ovn-exporter. | Proposed |
-| D13 | **UI auth: local users first (argon2 hashed), OIDC later**; sessions are HttpOnly cookies + CSRF token | Simple start; Entra ID/OIDC in a later phase. | Proposed |
+| D13 | **UI auth: local users only for MVP** (argon2 hashed, roles admin/viewer); HttpOnly session cookie + CSRF token. Other login options (OIDC etc.) evaluated post-MVP | Owner: local is fine for now. | Accepted 2026-11-05 |
 | D14 | **Config via `config.toml` + env overrides** (pydantic-settings) | 12-factor friendly, easy to template. | Proposed |
 | D15 | **Tooling:** ruff (lint+format), mypy (strict on `app/`), pytest + pytest-asyncio + respx + pytest-cov; frontend ESLint, Vitest, Testing Library, Playwright (e2e, not counted in coverage) | Standard, fast. | Proposed |
+| D16 | **Deployment: Python package + systemd unit, and an OCI container image** | Owner confirmed both. | Accepted 2026-11-05 |
+| D17 | **Manual dev run documented for macOS** (venv, `uvicorn --reload`, Vite dev server proxying `/api` + websockets) purely for development, separate from production deploy docs | Owner prototypes on a Mac. | Accepted 2026-11-05 |
+| D18 | **Stock `/ui` is treated as a behavioural reference only**: it is a static SPA calling the public LXD REST API, so full parity is achievable through our BFF. No lxd-ui (GPL-3.0) code is copied | Licence hygiene; we re-implement against the API. | Accepted 2026-11-05 |
+| D19 | **Feature detection from `api_extensions`** (`GET /1.0`); unsupported features hidden, not errored | MicroCloud may ship an older LXD than the latest API spec. | Proposed |
+| D20 | **Requirements live in `docs/REQUIREMENTS.md`** with IDs + tiers (MVP/P2/Later); commits reference IDs (e.g. `IN-2`) | Traceability. | Accepted 2026-11-05 |
 
 Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* when changed.
 
@@ -55,4 +60,6 @@ backend/            Python package `mcui`
   tests/            pytest; fixtures/ recorded LXD responses
 frontend/           React + TS + Vite SPA
 docs/PLAN.md        phased delivery plan
+docs/REQUIREMENTS.md  requirement IDs and tiers
+docs/lxd-api-surface.md  LXD REST path reference
 ```

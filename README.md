@@ -4,8 +4,8 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** planning. See [`docs/PLAN.md`](docs/PLAN.md) and the design log in
-[`agents.md`](agents.md).
+**Status:** planning. See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
+[`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
 ## Development setup (Python backend)
 
@@ -28,6 +28,34 @@ deactivate
 ```
 
 > The `backend/` package lands in Phase 0; these commands become live then.
+
+## Manual run for development (macOS)
+
+For prototyping only; production uses the systemd unit or container image.
+
+```bash
+# one-off prerequisites (Homebrew); macOS's bundled python3 may be too old
+brew install python@3.12 node
+
+# backend: venv as above, then
+cp config.example.toml config.toml        # edit LXD endpoints + cert paths
+mkdir -p ~/.config/mcui/certs && chmod 700 ~/.config/mcui/certs
+#   put client.crt/.key, metrics.crt/.key, server.crt in there; keys chmod 600
+source .venv/bin/activate
+mcui check --config config.toml           # verifies TLS, trust type, cluster members
+uvicorn mcui.main:app --reload --port 8000  # API on http://127.0.0.1:8000 (MCUI_CONFIG=config.toml)
+
+# frontend (second terminal): hot reload, proxies /api and websockets to :8000
+cd frontend
+npm install
+npm run dev                               # open http://localhost:5173
+
+# or a single process serving the built SPA
+(cd frontend && npm run build) && mcui serve --config config.toml   # http://127.0.0.1:8000
+```
+
+The first run creates a local `admin` user and prints a one-time password.
+Development data (SQLite metrics, users) lives in `./data/`, which git ignores.
 
 ## LXD certificates
 

@@ -5,7 +5,8 @@ covers the day-to-day functionality of the stock LXD/MicroCloud UI **and** adds
 the missing observability: per-instance CPU/memory/disk/network history, Ceph
 and local storage capacity/performance, and OVN network internals.
 
-See `agents.md` for the design-decision log (D1–D15 referenced below).
+See `agents.md` for the design-decision log, `docs/REQUIREMENTS.md` for requirement
+IDs/tiers, and `docs/lxd-api-surface.md` for the LXD REST reference.
 
 ## 1. What the research found
 
@@ -48,8 +49,13 @@ React + TypeScript + Vite SPA, GPL-3.0, v0.22 latest. Covers instances
 networks (bridge/OVN/physical, ACLs, forwards, load balancers, peering),
 storage pools/volumes/buckets, images, projects, cluster members/groups,
 placement groups, replicators, permissions/identities/OIDC, warnings,
-operations. **It has no metrics/graphs.** We will not fork it (licence +
-we want a Python backend); we re-implement against the same REST API.
+operations. It is a static SPA served by LXD at `/ui` that calls the
+public REST API directly, so full parity is achievable from our backend.
+Its only metrics are **live**: it polls `/1.0/metrics` every 15s and keeps
+the last 6 samples (~90s) in browser memory (instance CPU/memory/root FS,
+member CPU/memory). It keeps no history and has no disk-I/O, network,
+storage, Ceph or OVN stats. We will not fork it (GPL-3.0, and we want a
+Python backend); see `docs/REQUIREMENTS.md` §1.
 
 ### MicroCeph
 `ceph mgr module enable prometheus` → metrics on each mgr host `:9283`
@@ -98,8 +104,7 @@ cert = "/etc/mcui/metrics.crt"      # --type=metrics; defaults to client_cert
 key  = "/etc/mcui/metrics.key"
 port = 8444                         # core.metrics_address port; falls back to 8443
 interval_seconds = 15
-store = "sqlite"                    # or "prometheus"
-prometheus_url = ""
+store = "sqlite"                    # only option for MVP (D8)
 
 [ceph]
 mgr_endpoints = ["http://10.0.0.11:9283", "http://10.0.0.12:9283"]
@@ -107,64 +112,49 @@ mgr_endpoints = ["http://10.0.0.11:9283", "http://10.0.0.12:9283"]
 
 ## 3. Phased delivery
 
-Every phase: tests in the same commit, coverage ≥90% (backend and frontend),
-agents.md updated with any decision.
+Requirement IDs refer to `docs/REQUIREMENTS.md`. Every phase ships tests in
+the same commit with coverage ≥90% (backend and frontend), and updates
+agents.md with any decision.
 
-**Phase 0 — Scaffold (½–1 day)**
-pyproject (FastAPI, httpx, pydantic-settings, pytest, respx, ruff, mypy),
-`frontend/` Vite+React+TS+Vitest, Makefile (`make test`, `make lint`, `make dev`),
-coverage gates, pre-commit hook, health endpoint, README setup.
+### MVP
+**Phase 0: Scaffold.** pyproject (FastAPI, httpx, pydantic-settings,
+pytest, respx, ruff, mypy), `frontend/` (Vite, React, TS, Vitest), Makefile,
+coverage gates, health endpoint, README setup including the macOS dev run (NF-7).
 
-**Phase 1 — LXD connectivity & metrics client (core)**
-- Config loader; mTLS `httpx` client with pinned server cert + `server_name`.
-- Connection test endpoint + CLI (`mcui check`) reporting trust type, API
-  extensions, cluster members.
-- Prometheus text parser (via `prometheus_client.parser`) → typed samples.
-- One-shot "live metrics" API: scrape all members, merge, return per-instance
-  current CPU%/mem/disk/net.
-- *Exit:* against your test MicroCloud, list members and live per-instance metrics.
+**Phase 1: Connectivity & live metrics.** Config + mTLS client with
+pinned server cert (CF-1/2, NF-3), `mcui check`, `api_extensions` feature
+flags (CF-3), Prometheus text parser, live per-instance metrics from all
+members (MO-1). Local auth + roles + audit log skeleton (AU-1/2/3).
+*Exit:* against your test cloud, list members and live metrics.
 
-**Phase 2 — Metrics history & dashboards**
-- Background scraper (per member, jitter, backoff, member auto-discovery).
-- SQLite store with rollups + retention; query API (range, step, rate).
-- Prometheus store adapter (PromQL passthrough for the same queries).
-- UI: cluster overview (members, instance counts, top-N by CPU/mem/net),
-  instance detail graphs (CPU, memory breakdown, disk I/O per device,
-  filesystem usage, network per NIC, OOM kills), member detail.
+**Phase 2: Metrics history & dashboards.** Background scraper, SQLite
+store with rollups, query API with rate maths (MO-2). Cluster overview,
+instance and member graphs, top-N (CL-1/2, MO-3/4/5). Storage pool capacity
+history (MO-6), network counters (MO-8).
 
-**Phase 3 — Instance & image management (parity, part 1)**
-List/filter/search, create (from image/profile), start/stop/restart/freeze,
-edit config & devices, snapshots (create/restore/schedule), migrate/move
-between members, delete; images list/import/delete; operations & warnings
-views; live updates via `/1.0/events`.
-Terminal via xterm.js ↔ exec websocket proxy; text console; VGA console
-(spice-html5) as stretch.
+**Phase 3: Instances, profiles, images, projects.** IN-1…8, IN-10, IN-12,
+PR-1, IM-1/2, PJ-1, operations/warnings/events (CL-7/8), evacuate/restore (CL-3).
 
-**Phase 4 — Storage & networking (parity, part 2) + their stats**
-- Storage pools/volumes/buckets CRUD; pool capacity per member (local) and
-  Ceph pool usage; volume snapshots.
-- Ceph dashboard from ceph-mgr metrics: health, OSD up/in, PG states,
-  raw/used capacity, per-pool usage, IOPS/throughput/latency.
-- Networks CRUD (bridge, OVN, physical/VLAN, macvlan), ACLs, forwards,
-  load balancers, peers, zones; network state + allocations view; OVN ACL
-  log viewer; per-NIC traffic aggregated by network.
+**Phase 4: Networking & storage management + Ceph/OVN views.** NW-1/2/4/5,
+ST-1/2/3, Ceph dashboard (MO-7), OVN view from LXD API (MO-9).
 
-**Phase 5 — OVN/OVS internals (optional agent)**
-Small read-only node agent (Python, same repo) or ovn-exporter that runs
-`microovn inspect --format=json`, `ovn-nbctl`/`ovn-sbctl` (logical
-switches/routers/ports, chassis, port bindings, NB/SB DB size & leader) and
-`ovs-appctl` datapath stats; exposed as Prometheus text so the same scraper
-ingests it. Topology view (logical router ↔ switches ↔ instances ↔ uplink).
+### Post-MVP
+**Phase 5: Metric store evaluation** (MO-14): benchmark SQLite against
+Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
+on ingest, query latency, disk use and ops burden; implement the chosen
+adapter. Alerts (MO-13), export (MO-15), node_exporter (MO-12), project quota
+history (MO-10).
 
-**Phase 6 — Projects, profiles, cluster, auth hardening**
-Projects (with limits/usage graphs), profiles, cluster members/groups
-(evacuate/restore), placement groups; OIDC login (e.g. Entra ID); roles
-(viewer/operator/admin); audit log; alerting thresholds (optional,
-e.g. pool > 85%, OOM kills, member down) with webhook.
+**Phase 6: Remaining parity.** VGA console (IN-9), file browser (IN-11),
+backups (IN-13, ST-4), project moves and restrictions (IN-6, PJ-2), ISO
+upload (IM-3), sriov, LBs, peers, zones, ACL logs (NW-3/4/6/7), cluster groups
+and config (CL-4/5), identities view (AC-1). Login options evaluation (AU-4).
 
-**Phase 7 — Packaging**
-Single wheel + systemd unit; OCI image; docs for running it as an LXD
-container on the MicroCloud itself.
+**Phase 7: Packaging.** Wheel + systemd unit, OCI image, docs for running
+on the MicroCloud itself as an LXD instance (NF-6).
+
+**Later:** OVN/OVS node agent (MO-11), cluster links/replicators,
+placement groups, image registries, buckets, LXD auth management.
 
 ## 4. Test strategy
 - Unit: parser, rollups, rate maths (incl. counter resets), config, auth.
@@ -175,11 +165,7 @@ container on the MicroCloud itself.
 - Frontend: Vitest + Testing Library (≥90%); Playwright e2e against a mocked backend.
 - Opt-in integration suite against a real MicroCloud (env-var gated).
 
-## 5. What I need from you (for Phase 1)
-1. IP(s) of your MicroCloud members and LXD port(s); whether `core.metrics_address` is set.
-2. A client cert/key trusted on the cluster (`lxc config trust add client.crt`)
-   — ideally restricted to a test project at first — and a metrics cert
-   (`lxc config trust add metrics.crt --type=metrics`).
-3. The cluster's `server.crt` (`/var/snap/lxd/common/lxd/server.crt`).
-4. Whether MicroCeph's mgr prometheus module is enabled (and which hosts).
-5. Network reachability from where the backend will run (your Mac's dev VM?).
+## 5. What I need from you
+See open questions in `docs/REQUIREMENTS.md` §7, then the test-cloud IPs and certs:
+member IPs/ports, a trusted client cert+key, a `--type=metrics` cert+key, the cluster
+`server.crt`, and Ceph mgr hosts if the prometheus module is enabled.
