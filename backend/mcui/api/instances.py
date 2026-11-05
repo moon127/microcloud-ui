@@ -17,6 +17,7 @@ from mcui.auth.store import Session, Store
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient
 from mcui.lxd.instances import InstanceIndex
+from mcui.lxd.remotes import REMOTES
 
 router = APIRouter(prefix="/api/instances")
 
@@ -80,6 +81,73 @@ CtxDep = Annotated[Ctx, Depends(get_ctx)]
 
 def _inst(name: str) -> str:
     return f"/1.0/instances/{name}"
+
+
+# --- creating (IN-2) -----------------------------------------------------------
+
+
+class ImageSource(BaseModel):
+    remote: Literal["local", "images", "ubuntu"] = "local"
+    alias: str | None = Field(default=None, max_length=200)
+    fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{12,64}$")
+
+
+class NewInstance(BaseModel):
+    name: str = Field(pattern=NAME, max_length=63)
+    type: Literal["container", "virtual-machine"] = "container"
+    project: str = Field(default="default", pattern=NAME, max_length=63)
+    target: str | None = Field(default=None, pattern=r"^@?[A-Za-z0-9][A-Za-z0-9._-]*$")
+    image: ImageSource
+    description: str = ""
+    profiles: list[str] = Field(default_factory=lambda: ["default"])
+    config: dict[str, str] = Field(default_factory=dict)
+    devices: dict[str, dict[str, str]] = Field(default_factory=dict)
+    start: bool = True
+
+
+def image_source(img: ImageSource) -> dict[str, str]:
+    if img.remote == "local":
+        if img.fingerprint:
+            return {"type": "image", "fingerprint": img.fingerprint}
+        if img.alias:
+            return {"type": "image", "alias": img.alias}
+        raise HTTPException(status_code=400, detail="choose an image (alias or fingerprint)")
+    if not img.alias:
+        raise HTTPException(status_code=400, detail="choose a remote image alias")
+    return {
+        "type": "image",
+        "alias": img.alias,
+        "server": REMOTES[img.remote],
+        "protocol": "simplestreams",
+        "mode": "pull",
+    }
+
+
+@router.post("")
+async def create_instance(body: NewInstance, ctx: CtxDep) -> dict[str, Any]:
+    payload = {
+        "name": body.name,
+        "type": body.type,
+        "description": body.description,
+        "profiles": body.profiles,
+        "config": body.config,
+        "devices": body.devices,
+        "start": body.start,
+        "source": image_source(body.image),
+    }
+    return await ctx.change(
+        "instance.create",
+        body.project,
+        body.name,
+        "POST",
+        "/1.0/instances",
+        json=payload,
+        params={"target": body.target} if body.target else None,
+        detail={
+            "image": f"{body.image.remote}:{body.image.alias or body.image.fingerprint}",
+            "type": body.type,
+        },
+    )
 
 
 # --- reading -----------------------------------------------------------------

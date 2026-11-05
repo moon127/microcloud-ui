@@ -8,6 +8,7 @@ from mcui.auth.store import Store
 from mcui.config import Settings
 from mcui.lxd.client import LXDClient
 from mcui.lxd.instances import InstanceIndex
+from mcui.lxd.remotes import RemoteCatalog
 from mcui.metrics.ceph import CephScraper
 from mcui.metrics.collector import Collector
 from mcui.metrics.live import LiveMetrics
@@ -26,6 +27,7 @@ class Services:
     collector: Collector | None = None
     ceph: CephScraper | None = None
     instances: InstanceIndex | None = None
+    remotes: RemoteCatalog | None = None
 
     async def start(self) -> None:
         if self.collector is not None and self.settings.metrics.collect:
@@ -38,6 +40,8 @@ class Services:
             await c.aclose()
         if self.ceph is not None:
             await self.ceph.aclose()
+        if self.remotes is not None:
+            await self.remotes.aclose()
         if self.metrics is not None:
             await self.metrics.aclose()
         self.store.close()
@@ -97,5 +101,14 @@ def build_services(
     ceph = CephScraper(settings.ceph) if settings.ceph.enabled else None
     collector = Collector(api, live, history, settings, ceph)
     return Services(
-        settings, store, api, metrics, live, history, collector, ceph, InstanceIndex(api)
+        settings,
+        store,
+        api,
+        metrics,
+        live,
+        history,
+        collector,
+        ceph,
+        InstanceIndex(api),
+        RemoteCatalog(),
     )

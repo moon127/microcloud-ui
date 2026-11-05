@@ -23,7 +23,8 @@ export function useApi<T>(key: string, load: () => Promise<T>, refreshMs?: numbe
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
-    setState((s) => ({ ...s, loading: true }));
+    // keep showing old data while reloading, but not an old error
+    setState((s) => ({ ...s, error: null, loading: true }));
 
     async function run() {
       try {

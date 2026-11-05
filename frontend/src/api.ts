@@ -416,3 +416,74 @@ export interface Project {
 }
 
 export const fetchProjects = () => api<Project[]>("/api/projects");
+
+// --- Phase 3c: create instance -------------------------------------------------
+
+export interface LocalImage {
+  fingerprint: string;
+  aliases: string[];
+  description: string;
+  type: string;
+  architecture: string;
+  size: number;
+  created_at: string;
+  uploaded_at: string;
+  last_used_at: string;
+  cached: boolean;
+  public: boolean;
+  auto_update: boolean;
+  properties: Record<string, string>;
+  project: string;
+}
+
+export interface RemoteImage {
+  alias: string;
+  aliases: string[];
+  os: string;
+  release: string;
+  release_title: string;
+  variant: string;
+  arch: string;
+  container: boolean;
+  vm: boolean;
+  version: string;
+}
+
+export interface Profile {
+  name: string;
+  description: string;
+  config: Record<string, string>;
+  devices: Record<string, Record<string, string>>;
+  used_by: string[];
+  project: string;
+}
+
+export interface Network {
+  name: string;
+  type: string;
+  managed: boolean;
+  description: string;
+  status: string;
+  config: Record<string, string>;
+}
+
+const q = (project: string) => `?project=${encodeURIComponent(project)}`;
+export const fetchLocalImages = (project: string) => api<LocalImage[]>(`/api/images${q(project)}`);
+export const fetchRemoteImages = (remote: "images" | "ubuntu") => api<RemoteImage[]>(`/api/images/remote/${remote}`);
+export const fetchProfiles = (project: string) => api<Profile[]>(`/api/profiles${q(project)}`);
+export const fetchNetworks = (project: string) => api<Network[]>(`/api/networks${q(project)}`);
+
+export interface NewInstance {
+  name: string;
+  type: "container" | "virtual-machine";
+  project: string;
+  target?: string;
+  image: { remote: "local" | "images" | "ubuntu"; alias?: string; fingerprint?: string };
+  description: string;
+  profiles: string[];
+  config: Record<string, string>;
+  devices: Record<string, Record<string, string>>;
+  start: boolean;
+}
+
+export const createInstance = (body: NewInstance) => send<Started>("POST", "/api/instances", body);

@@ -57,6 +57,7 @@ makes or alters a design decision.**
 | D44 | **Project selection is a per-browser UI setting** (localStorage), "All projects" by default; lists use `all-projects=true` and filter client-side | No server state; matches how lists already work. | Accepted 2026-11-05 |
 | D45 | **Instance config is saved as a whole** (LXD `PUT` with every writable field: description, config incl. volatile keys, devices, profiles, ephemeral, stateful, architecture). The form fields and the YAML editors edit one shared draft, so they never disagree; snapshot schedules use `PATCH` of just those keys. YAML values are coerced to strings (LXD config is string-only) and devices must have a `type` | `PUT` is the only way to remove keys or devices; sending what LXD returned plus edits avoids resetting fields. | Accepted 2026-11-05 |
 | D46 | **"Delete" of a running instance stops it first** (force stop, then delete), like `lxc delete --force`, after a confirmation that says so. Path parameters (project, instance, snapshot, log file) are validated against LXD's name rules so encoded `..` or `/` never reach LXD URLs. The instance list cache is 10 s and is cleared after every change made through the UI | Matches CLI expectations; defence in depth for URL building; lists stay current. | Accepted 2026-11-05 |
+| D47 | **Remote image catalogues are read by the backend** from the simplestreams index of two named remotes only (`images` → images.lxd.canonical.com, `ubuntu` → cloud-images.ubuntu.com/releases), summarised to products that offer a container (`lxd.tar.xz` + squashfs/rootfs) or VM (`lxd.tar.xz` + disk image) build, filtered to the cluster's architectures, cached 6 h. The browser picks a remote by name; the backend sets the server URL, so the UI can't point LXD at arbitrary image servers | LXD has no "list remote images" API; `images:` is 0.3 MB and `ubuntu:` 18.8 MB, ~1 s each. | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -129,7 +130,13 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   snapshot, rename, move to another member, publish, delete and force delete, all
   audited with operation ids. The sandbox keeps the Alpine image and a published
   `mcui-test-image` for 3f.
-- Next: **Phase 3c**, create instance (IN-2).
+- **Phase 3c (create instance): built 2026-11-05.** `/instances/new` wizard:
+  image picker (local, `images:`, `ubuntu:`; D47), project, member or `@group`,
+  profiles, CPU/memory, root pool/size, NICs (managed networks, static IPv4),
+  extra volume disks, cloud-init, security/boot, start; request preview. Live in
+  `mcui-test`: created from a local image (with placement, root size, limits,
+  cloud-init) and from `images:alpine/edge`.
+- Next: **Phase 3d**, consoles (terminal, text console, VGA).
 
 ## Working conventions
 

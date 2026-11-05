@@ -4,6 +4,7 @@ import { ApiError, fetchMe, logout, setCsrf, type User } from "./api";
 import ActionsProvider from "./ActionsProvider";
 import Layout from "./Layout";
 import Login from "./Login";
+import CreateInstancePage from "./pages/create/CreateInstancePage";
 import InstancePage from "./pages/instance/InstancePage";
 import InstancesPage from "./pages/InstancesPage";
 import MemberPage from "./pages/MemberPage";
@@ -28,6 +29,7 @@ export function AppRoutes() {
       <Route element={<Layout />}>
         <Route index element={<Overview />} />
         <Route path="instances" element={<InstancesPage />} />
+        <Route path="instances/new" element={<CreateInstancePage />} />
         <Route path="instances/:project/:name" element={<InstancePage />} />
         <Route path="members/:name" element={<MemberPage />} />
         <Route path="storage" element={<StoragePage />} />

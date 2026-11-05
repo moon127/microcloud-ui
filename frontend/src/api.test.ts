@@ -206,3 +206,34 @@ describe("instance helpers", () => {
     await expect(api.fetchLog("p", "c1", "x")).rejects.toThrow("HTTP 404");
   });
 });
+
+describe("create-instance helpers", () => {
+  it("send the right method, URL and body", async () => {
+    setCsrf("t");
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    const body: api.NewInstance = {
+      name: "a",
+      type: "container",
+      project: "p",
+      image: { remote: "images", alias: "alpine/edge" },
+      description: "",
+      profiles: ["default"],
+      config: {},
+      devices: {},
+      start: true,
+    };
+    await api.fetchLocalImages("my p");
+    await api.fetchRemoteImages("ubuntu");
+    await api.fetchProfiles("p");
+    await api.fetchNetworks("p");
+    await api.createInstance(body);
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/images?project=my%20p", "GET", null],
+      ["/api/images/remote/ubuntu", "GET", null],
+      ["/api/profiles?project=p", "GET", null],
+      ["/api/networks?project=p", "GET", null],
+      ["/api/instances", "POST", JSON.stringify(body)],
+    ]);
+  });
+});

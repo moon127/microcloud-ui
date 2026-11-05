@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router";
 import { changeState, deleteInstance, fetchInstances, type Instance, type Started, type StateAction } from "../api";
 import { useActions } from "../actions";
 import Confirm from "../Confirm";
@@ -71,6 +72,13 @@ export default function InstancesPage() {
   return (
     <>
       <h1>Instances{project ? ` in ${project}` : ""}</h1>
+      {admin && (
+        <p>
+          <Link className="button primary" to="/instances/new">
+            Create instance
+          </Link>
+        </p>
+      )}
       {error && <p role="alert">{error}</p>}
       <div className="filters">
         <label className="field">
