@@ -7,6 +7,9 @@ import { useApi } from "./useApi";
 const NAV = [
   { to: "/", label: "Overview", end: true },
   { to: "/instances", label: "Instances" },
+  { to: "/profiles", label: "Profiles" },
+  { to: "/images", label: "Images" },
+  { to: "/projects", label: "Projects" },
   { to: "/storage", label: "Storage" },
   { to: "/networks", label: "Networks" },
   { to: "/operations", label: "Operations" },

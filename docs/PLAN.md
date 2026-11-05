@@ -136,7 +136,7 @@ store with rollups, query API with rate maths (MO-2). Cluster overview,
 instance and member graphs, top-N (CL-1/2, MO-3/4/5). Storage pool capacity
 history (MO-6), network counters (MO-8).
 
-**Phase 3: Instances, profiles, images, projects.** IN-1…12 (incl. VGA console IN-9 and file browser IN-11),
+**Phase 3: Instances, profiles, images, projects. ✅ Built 2026-11-05** (owner live checks: `docs/LIVE-TESTS.md`). IN-1…12 (incl. VGA console IN-9 and file browser IN-11),
 PR-1, IM-1/2, PJ-1, operations/warnings/events (CL-7/8), evacuate/restore (CL-3).
 Every mutation: admin role + CSRF, audited with the LXD operation id (AU-3).
 Sub-phases, one commit each (approved 2026-11-05):

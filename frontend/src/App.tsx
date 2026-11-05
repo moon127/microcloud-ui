@@ -6,6 +6,11 @@ import Layout from "./Layout";
 import Login from "./Login";
 import CreateInstancePage from "./pages/create/CreateInstancePage";
 import InstancePage from "./pages/instance/InstancePage";
+import ImagesPage from "./pages/manage/ImagesPage";
+import ProfilePage from "./pages/manage/ProfilePage";
+import ProfilesPage from "./pages/manage/ProfilesPage";
+import ProjectPage from "./pages/manage/ProjectPage";
+import ProjectsPage from "./pages/manage/ProjectsPage";
 import InstancesPage from "./pages/InstancesPage";
 import MemberPage from "./pages/MemberPage";
 import NetworksPage from "./pages/NetworksPage";
@@ -32,6 +37,11 @@ export function AppRoutes() {
         <Route path="instances/new" element={<CreateInstancePage />} />
         <Route path="instances/:project/:name" element={<InstancePage />} />
         <Route path="members/:name" element={<MemberPage />} />
+        <Route path="profiles" element={<ProfilesPage />} />
+        <Route path="profiles/:project/:name" element={<ProfilePage />} />
+        <Route path="images" element={<ImagesPage />} />
+        <Route path="projects" element={<ProjectsPage />} />
+        <Route path="projects/:name" element={<ProjectPage />} />
         <Route path="storage" element={<StoragePage />} />
         <Route path="networks" element={<NetworksPage />} />
         <Route path="operations" element={<OperationsPage />} />

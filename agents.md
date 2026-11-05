@@ -61,6 +61,7 @@ makes or alters a design decision.**
 | D48 | **Consoles via backend-held streams:** `POST …/exec` or `…/console` starts the LXD operation; the backend keeps the websocket secrets and the member URL (operations' websockets live on the member running them) and returns an opaque stream id. The browser attaches with `ws /api/streams/{id}` (admin, same user only, Origin-checked): binary frames are data, text frames are LXD control messages. The backend attaches LXD's **control** channel itself and holds it, ref-counted, while any browser connection is open, because LXD waits for every channel: seen live, a missing control channel left exec pending and a later force-stop failed with "unexpected EOF". SPICE opens several data connections to the same stream (subprotocol `binary`); they share one control channel. xterm.js and spice-html5 are lazy-loaded chunks | Secrets never reach the browser (D4); one browser socket per session. | Accepted 2026-11-05 |
 | D49 | **Operation waits outlive LXD's own wait** (HTTP timeout = wait + 15 s), and an expired wait (LXD answers "context deadline exceeded") returns the still-running operation instead of an error | Seen live: 10 s client timeout vs 30 s wait made long creates (45 s image download) look like "LXD unreachable". | Accepted 2026-11-05 |
 | D50 | **File browser over LXD's `/files` API:** listings are names only, so each entry's type/mode/owner/size/mtime comes from a HEAD (works on 5.21 although `file_head` isn't advertised), 16 in parallel, first 500 entries; downloads and uploads stream through the backend (no buffering); paths must be absolute and are normalised; deletes are not recursive (LXD refuses non-empty folders) and `/` can't be deleted; changes audited as `file.*` | Verified live: 3 MB upload/download round trip byte-identical with mode applied. | Accepted 2026-11-05 |
+| D51 | **Profiles, images, projects:** profiles and projects are edited as a whole (description + config, plus devices for profiles) with the shared YAML/validation used for instances; the `default` profile and project can't be renamed or deleted (UI and API). Image upload takes a **unified tarball** as the raw body (streamed); split meta+rootfs uploads are not supported yet; an alias given with an upload is added once LXD reports the fingerprint (waits up to 10 min). Remote imports use the named remotes only (D47). Project create/rename/delete are fixture-tested only (outside the sandbox, D41) | Covers PR-1, IM-1/2, PJ-1 at MVP depth. | Accepted 2026-11-05 |
 | D21 | **Management cert is an unrestricted client cert or a fine-grained TLS identity with `server admin`**; restricted (project-confined) certs are unsupported for management. Metrics use a separate `--type=metrics` cert. Keys generated with `openssl ecparam` (LibreSSL-safe) | The app manages cluster-wide objects (pools, networks, members). See `docs/LXD-CREDENTIALS.md`. | Accepted 2026-11-05 |
 | D7 | **Scrape every cluster member individually** for `/1.0/metrics` (members discovered from `GET /1.0/cluster/members`) | LXD only returns metrics for instances on the member queried. Respect LXD's 8s metrics cache: default interval 15s, minimum 10s. | Proposed |
 | D8 | **Metrics storage: SQLite only for MVP** (WAL, rollups raw 15s → 24h, 1m → 14d, 1h → 1y) behind a pluggable `MetricStore` interface. Prometheus, VictoriaMetrics and other stores are **evaluated post-MVP** (MO-14) | Zero-ops for a small edge cluster; the interface keeps the later switch cheap. | Accepted 2026-11-05 |
@@ -151,7 +152,16 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - **Phase 3e (file browser): built 2026-11-05.** Files tab: path box, breadcrumbs,
   typed listing with size/mode/owner/mtime, folders and symlinks navigable
   (follow), downloads, upload (multiple files), new folder, delete (D50).
-- Next: **Phase 3f**, profiles, images, projects.
+- **Phase 3f (profiles, images, projects): built 2026-11-05.** Profiles list/
+  detail (form + YAML, used-by links, copy, rename, delete), Images (aliases add/
+  remove, edit description/auto-update/public, delete, import from `images:`/
+  `ubuntu:`, upload a unified tarball), Projects list/detail (features on create,
+  config YAML, rename, delete) (D51). Live in the sandbox: profile CRUD, image
+  alias/edit/import/delete, project update.
+- **Phase 3 is built.** What still needs the owner live (browser, VM, cluster-wide
+  actions): `docs/LIVE-TESTS.md`.
+- Next: **Phase 4**, networking & storage management + Ceph/OVN views
+  (incl. local-pool fixtures, see Known gaps).
 
 ## Working conventions
 

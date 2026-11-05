@@ -80,3 +80,5 @@ tr.selected td { background: color-mix(in srgb, var(--accent) 12%, transparent);
 .xterm-box { height: min(32rem, 65vh); background: #000; padding: 4px; border-radius: 6px; }
 .spice-screen { min-height: 24rem; background: #000; border-radius: 6px; overflow: auto; }
 button.link { border: none; background: none; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
+.chip { display: inline-flex; align-items: center; gap: 0.2rem; padding: 0 0.4rem; margin: 0 0.25rem 0.15rem 0; border: 1px solid var(--line); border-radius: 999px; font-size: 0.85rem; }
+.chip button { border: none; padding: 0 0.15rem; line-height: 1; }

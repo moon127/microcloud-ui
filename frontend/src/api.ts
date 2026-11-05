@@ -571,3 +571,70 @@ export const makeDirectory = (project: string, name: string, path: string) =>
   send<Started>("POST", `${files(project, name)}/mkdir${withPath(path)}`);
 export const deleteFile = (project: string, name: string, path: string) =>
   send<Started>("DELETE", `${files(project, name)}${withPath(path)}`);
+
+// --- Phase 3f: profiles, images, projects -------------------------------------------
+
+const pq = (project: string, name: string) => `${encodeURIComponent(project)}/${encodeURIComponent(name)}`;
+
+export interface ProfileFull extends Profile {
+  name: string;
+}
+
+export const fetchProfile = (project: string, name: string) => api<ProfileFull>(`/api/profiles/${pq(project, name)}`);
+export const createProfile = (
+  project: string,
+  name: string,
+  body: { description: string; config: Record<string, string>; devices: Record<string, Record<string, string>> },
+) => send<Started>("POST", "/api/profiles", { project, name, ...body });
+export const updateProfile = (
+  project: string,
+  name: string,
+  body: { description: string; config: Record<string, string>; devices: Record<string, Record<string, string>> },
+) => send<Started>("PUT", `/api/profiles/${pq(project, name)}`, body);
+export const renameProfile = (project: string, name: string, to: string) =>
+  send<Started>("POST", `/api/profiles/${pq(project, name)}/rename`, { name: to });
+export const deleteProfile = (project: string, name: string) => send<Started>("DELETE", `/api/profiles/${pq(project, name)}`);
+
+export const updateImage = (
+  project: string,
+  fingerprint: string,
+  body: { properties: Record<string, string>; public: boolean; auto_update: boolean },
+) => send<Started>("PUT", `/api/images/${pq(project, fingerprint)}`, body);
+export const deleteImage = (project: string, fingerprint: string) =>
+  send<Started>("DELETE", `/api/images/${pq(project, fingerprint)}`);
+export const addImageAlias = (project: string, fingerprint: string, alias: string) =>
+  send<Started>("POST", `/api/images/${pq(project, fingerprint)}/aliases`, { name: alias });
+export const deleteImageAlias = (project: string, alias: string) =>
+  send<Started>("DELETE", `/api/images/${encodeURIComponent(project)}/aliases/${alias.split("/").map(encodeURIComponent).join("/")}`);
+export const importImage = (body: {
+  project: string;
+  remote: "images" | "ubuntu";
+  alias: string;
+  local_alias?: string;
+  auto_update: boolean;
+  vm: boolean;
+}) => send<Started>("POST", "/api/images/import", body);
+
+export async function uploadImage(project: string, file: File, alias?: string): Promise<Started> {
+  const q = new URLSearchParams({ project, filename: file.name, ...(alias ? { alias } : {}) });
+  const res = await fetch(`/api/images/upload?${q}`, {
+    method: "POST",
+    body: file,
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/octet-stream", ...(csrfToken ? { "X-CSRF-Token": csrfToken } : {}) },
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { detail?: unknown };
+    throw new ApiError(res.status, typeof body.detail === "string" ? body.detail : `HTTP ${res.status}`);
+  }
+  return (await res.json()) as Started;
+}
+
+export const fetchProject = (name: string) => api<Project>(`/api/projects/${encodeURIComponent(name)}`);
+export const createProject = (name: string, body: { description: string; config: Record<string, string> }) =>
+  send<Started>("POST", "/api/projects", { name, ...body });
+export const updateProject = (name: string, body: { description: string; config: Record<string, string> }) =>
+  send<Started>("PUT", `/api/projects/${encodeURIComponent(name)}`, body);
+export const renameProject = (name: string, to: string) =>
+  send<Started>("POST", `/api/projects/${encodeURIComponent(name)}/rename`, { name: to });
+export const deleteProject = (name: string) => send<Started>("DELETE", `/api/projects/${encodeURIComponent(name)}`);
