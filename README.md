@@ -40,7 +40,7 @@ brew install python@3.12 node
 # backend: venv as above, then
 cp config.example.toml config.toml        # edit LXD endpoints + cert paths
 mkdir -p ~/.config/mcui/certs && chmod 700 ~/.config/mcui/certs
-#   put client.crt/.key, metrics.crt/.key, server.crt in there; keys chmod 600
+#   client/metrics certs + lxd-cluster.crt, see docs/LXD-CREDENTIALS.md
 source .venv/bin/activate
 mcui check --config config.toml           # verifies TLS, trust type, cluster members
 uvicorn mcui.main:app --reload --port 8000  # API on http://127.0.0.1:8000 (MCUI_CONFIG=config.toml)
@@ -60,21 +60,8 @@ Development data (SQLite metrics, users) lives in `./data/`, which git ignores.
 ## LXD certificates
 
 The backend talks to LXD with mutual TLS; browsers never need a certificate.
+Step-by-step guide covering key generation on macOS, trusting the certs in
+LXD, fetching the shared `cluster.crt` for verification, and testing with
+curl: [`docs/LXD-CREDENTIALS.md`](docs/LXD-CREDENTIALS.md).
+Never commit certs or keys (they are git-ignored).
 
-```bash
-# management identity
-openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:secp384r1 -sha384 \
-  -keyout client.key -nodes -out client.crt -days 3650 -subj "/CN=microcloud-ui"
-lxc config trust add client.crt
-
-# metrics-only identity (can only read /1.0/metrics)
-openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:secp384r1 -sha384 \
-  -keyout metrics.key -nodes -out metrics.crt -days 3650 -subj "/CN=microcloud-ui-metrics"
-lxc config trust add metrics.crt --type=metrics
-
-# optional: dedicated metrics listener on every member
-lxc config set core.metrics_address ":8444"
-```
-
-Copy the cluster's `/var/snap/lxd/common/lxd/server.crt` too so the backend can
-verify LXD. Never commit certs or keys (they are git-ignored).

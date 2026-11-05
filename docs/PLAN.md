@@ -16,8 +16,10 @@ IDs/tiers, and `docs/lxd-api-surface.md` for the LXD REST reference.
 - Auth: mTLS with a client cert. Recommended: a dedicated metrics cert,
   `lxc config trust add metrics.crt --type=metrics` (can only read metrics).
   `core.metrics_authentication=false` exists but is not recommended.
-- Client needs the server's `server.crt` (from `/var/snap/lxd/common/lxd/`) to
-  verify, and a `server_name` override when the SAN doesn't match the IP.
+- Client verifies LXD against the cluster's shared `cluster.crt`
+  (`/var/snap/lxd/common/lxd/cluster.crt`, identical on all members; standalone
+  servers use `server.crt`), with a `server_name` override when the SAN
+  doesn't list the IP. See `docs/LXD-CREDENTIALS.md`.
 - **Per-member:** each cluster member only reports its own instances → scrape
   every member. Project filter via `?project=`. Results cached ~8s; scraping is
   relatively expensive — 15s default interval is fine.
@@ -94,7 +96,7 @@ rates computed at query time (D9).
 ```toml
 [lxd]
 endpoints   = ["https://10.0.0.11:8443", "https://10.0.0.12:8443"]  # any member; failover
-server_cert = "/etc/mcui/lxd-server.crt"
+server_cert = "/etc/mcui/lxd-cluster.crt"   # shared cluster.crt (pinned)
 server_name = "microcloud"          # optional SAN override
 client_cert = "/etc/mcui/client.crt"
 client_key  = "/etc/mcui/client.key"
