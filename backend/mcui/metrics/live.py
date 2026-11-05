@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from typing import Any
@@ -11,6 +12,15 @@ from mcui.lxd.client import LXDClient
 from mcui.lxd.server import Member, members
 from mcui.metrics.prom import Exposition
 from mcui.metrics.scrape import MemberScrape, Scraper
+
+# Partitions are already counted in their whole disk (VMs report both), and loop
+# devices are snap squashfs mounts inside VMs: both are skipped for disk I/O.
+_SKIP_DISK = re.compile(r"^(?:(?:[sv]|xv|h)d[a-z]+\d+|nvme\d+n\d+p\d+|mmcblk\d+p\d+|loop\d+)$")
+
+
+def counted_disk(device: str) -> bool:
+    return not _SKIP_DISK.match(device)
+
 
 IDLE_CPU_MODES = frozenset({"idle", "iowait", "steal"})
 MIN_SCRAPE_AGE = 10.0  # LXD caches /1.0/metrics for ~8s (D7)
@@ -79,7 +89,8 @@ def instance_totals(exp: Exposition) -> dict[InstanceKey, Totals]:
         elif s.name in _GAUGES:
             t.add(_GAUGES[s.name], s.value)
         elif s.name in _SUMMED:
-            t.add(_SUMMED[s.name], s.value)
+            if counted_disk(s.labels.get("device", "")):
+                t.add(_SUMMED[s.name], s.value)
         elif s.name in _NET:
             if s.labels.get("device") != "lo":
                 t.add(_NET[s.name], s.value)
@@ -97,6 +108,19 @@ def daemon_values(exp: Exposition) -> dict[str, float]:
             key = _DAEMON[s.name]
             out[key] = out.get(key, 0.0) + s.value
     return out
+
+
+def effective_cpus(t: Totals) -> float | None:
+    """CPUs available to the instance. VMs report lxd_cpu_effective_total 0 on LXD
+    5.21, so their vCPUs are counted from the per-CPU samples instead."""
+    return t.values.get("cpus") or float(len(t.cpu_ids)) or None
+
+
+def memory_used(t: Totals) -> float | None:
+    c = t.values
+    if "mem_total" in c and "mem_available" in c:
+        return c["mem_total"] - c["mem_available"]
+    return None
 
 
 def counter_rate(prev: float | None, cur: float | None, dt: float) -> float | None:
@@ -142,12 +166,9 @@ def instance_live(
         return counter_rate(p.get(k), c.get(k), dt) if prev else None
 
     cpu = rate("cpu_busy")
-    # VMs report lxd_cpu_effective_total 0; count their vCPUs instead
-    cpus = c.get("cpus") or float(len(cur.cpu_ids)) or None
+    cpus = effective_cpus(cur)
     cpu_pct = cpu / cpus * 100 if cpu is not None and cpus else None
-    used = None
-    if "mem_total" in c and "mem_available" in c:
-        used = c["mem_total"] - c["mem_available"]
+    used = memory_used(cur)
     rootfs_used = None
     if "rootfs_size" in c and "rootfs_avail" in c:
         rootfs_used = c["rootfs_size"] - c["rootfs_avail"]
@@ -187,7 +208,11 @@ class _MemberState:
 
 
 class LiveMetrics:
-    """Scrapes on demand, at most every ``min_age`` seconds, keeping two samples."""
+    """The last two scrapes of every member.
+
+    Scrapes on demand (at most every ``min_age`` seconds) unless ``passive``, in
+    which case the background collector calls ``refresh`` on its schedule.
+    """
 
     def __init__(
         self,
@@ -204,16 +229,31 @@ class LiveMetrics:
         self._state: dict[str, _MemberState] = {}
         self._last: float | None = None
         self._lock = asyncio.Lock()
+        self.passive = False
 
     async def snapshot(self) -> dict[str, Any]:
         async with self._lock:
-            if self._last is None or self.clock() - self._last >= self.min_age:
-                await self.refresh()
+            stale = self._last is None or self.clock() - self._last >= self.min_age
+            if self._last is None or (stale and not self.passive):
+                await self._refresh()
         return self._build()
 
-    async def refresh(self) -> None:
+    async def refresh(self) -> list[tuple[Member, MemberScrape]]:
+        """Discover members and scrape them all; returns this round's results."""
+        async with self._lock:
+            return await self._refresh()
+
+    async def _refresh(self) -> list[tuple[Member, MemberScrape]]:
         ms = await members(self.api)
         scrapes = await self.scraper.scrape_all(ms)
+        self._update(ms, scrapes)
+        return list(zip(ms, scrapes, strict=True))
+
+    @property
+    def members(self) -> list[Member]:
+        return [st.member for st in self._state.values()]
+
+    def _update(self, ms: list[Member], scrapes: list[MemberScrape]) -> None:
         new: dict[str, _MemberState] = {}
         for m, s in zip(ms, scrapes, strict=True):
             old = self._state.get(m.name)

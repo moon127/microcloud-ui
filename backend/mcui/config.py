@@ -94,6 +94,11 @@ class MetricsSettings(_Section):
     store: Literal["sqlite"] = "sqlite"
     member_overrides: dict[str, str] = Field(default_factory=dict)
     fallback_to_api_port: bool = False
+    collect: bool = True  # background collection + history (Phase 2)
+    state_interval_seconds: int = Field(default=60, ge=15)
+    retention_raw_hours: int = Field(default=24, ge=1)
+    retention_1m_days: int = Field(default=14, ge=1)
+    retention_1h_days: int = Field(default=365, ge=1)
 
     @model_validator(mode="after")
     def _pair(self) -> MetricsSettings:
@@ -106,7 +111,11 @@ class MetricsSettings(_Section):
 
 
 class CephSettings(_Section):
+    enabled: bool = True
+    # empty: http://<each member>:<mgr_port>; the active mgr is whichever has data
     mgr_endpoints: list[str] = Field(default_factory=list)
+    mgr_port: int = Field(default=9283, ge=1, le=65535)
+    timeout_seconds: float = Field(default=10.0, gt=0)
 
 
 class Settings(BaseSettings):

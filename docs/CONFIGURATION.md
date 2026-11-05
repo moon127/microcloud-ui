@@ -30,7 +30,23 @@ key  = "~/.config/mcui/certs/metrics.key"
 port = 8443                                 # see "Metrics port" below
 interval_seconds = 15                       # min 10 (LXD caches metrics ~8s)
 store = "sqlite"
+collect = true                              # background collection + history (metrics.db in data_dir)
+state_interval_seconds = 60                 # member load/memory, pool usage, host NIC counters
+retention_raw_hours = 24
+retention_1m_days = 14
+retention_1h_days = 365
+
+[ceph]
+enabled = true                              # record ceph-mgr prometheus metrics
+mgr_endpoints = []                          # empty: http://<each member>:<mgr_port>
+mgr_port = 9283
+timeout_seconds = 10
 ```
+
+History lives in `<data_dir>/metrics.db`. Expect roughly 0.5–0.7 GB a year
+for a three-member cluster with ~10 instances and Ceph at the defaults; see
+D36 in agents.md. `GET /api/metrics/status` shows each collection job's last
+run, error and sample count, and the store size.
 
 ## Validation (CF-1)
 

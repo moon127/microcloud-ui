@@ -26,6 +26,13 @@ def test_instance_totals():
     assert c1.type == "container"
     assert c1.values["cpu_busy"] == 30
     assert c1.values["disk_read"] == 11000  # summed over devices
+
+    exp = parse(
+        'lxd_disk_read_bytes_total{name="v",project="p",device="sda"} 100\n'
+        'lxd_disk_read_bytes_total{name="v",project="p",device="sda1"} 90\n'
+        'lxd_disk_read_bytes_total{name="v",project="p",device="loop3"} 5\n'
+    )
+    assert instance_totals(exp)[("p", "v")].values["disk_read"] == 100  # no double count
     assert c1.values["net_rx"] == 3000  # lo excluded
     assert c1.values["rootfs_size"] == 1e10 and c1.values["rootfs_avail"] == 3e9
     v1 = t[("web", "v1")]

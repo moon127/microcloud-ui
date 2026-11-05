@@ -131,7 +131,7 @@ members (MO-1). Local auth + roles + audit log skeleton (AU-1/2/3).
 
 **Checkpoint after Phase 1: ✅ done 2026-11-05.** The owner enabled the Ceph perf-counter and RBD stats settings (MO-7a, D23, `docs/CEPH-METRICS.md` §2); the OSD latency and per-RBD-image series were confirmed and recorded for the Phase 4 views, and the settings are kept on.
 
-**Phase 2: Metrics history & dashboards.** Background scraper, SQLite
+**Phase 2: Metrics history & dashboards.** (2a: collector, store, query API ✅ built 2026-11-05; 2b: UI next.) Background scraper, SQLite
 store with rollups, query API with rate maths (MO-2). Cluster overview,
 instance and member graphs, top-N (CL-1/2, MO-3/4/5). Storage pool capacity
 history (MO-6), network counters (MO-8).
