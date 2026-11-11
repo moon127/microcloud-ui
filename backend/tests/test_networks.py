@@ -130,7 +130,7 @@ async def test_create_bridge_in_a_cluster(app, services):
 
 
 @respx.mock
-async def test_create_ovn_and_standalone_skip_pending(app):
+async def test_create_ovn_skips_pending(app):
     clustered()
     post = respx.post(NETS).mock(return_value=lxd_ok(None))
     async with client(app) as c:
@@ -141,7 +141,10 @@ async def test_create_ovn_and_standalone_skip_pending(app):
             headers=h,
         )
         assert post.call_count == 1 and params(post) == {"project": "p"}
-    respx.reset()
+
+
+@respx.mock
+async def test_create_standalone_skips_pending(app):
     standalone()
     post = respx.post(NETS).mock(return_value=lxd_ok(None))
     async with client(app) as c:

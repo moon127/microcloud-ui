@@ -21,6 +21,7 @@ from mcui.api import (
     metrics,
     networks,
     ops,
+    storage,
     streams,
 )
 from mcui.config import Settings, load_settings
@@ -72,6 +73,7 @@ def create_app(
     app.include_router(manage.router)
     app.include_router(networks.router)
     app.include_router(acls.router)
+    app.include_router(storage.router)
 
     if static_dir is not None and (static_dir / "index.html").is_file():
         root = static_dir.resolve()

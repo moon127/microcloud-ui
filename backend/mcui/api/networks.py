@@ -1,16 +1,14 @@
 """Networks: detail, per-member state and config, leases, allocations, changes (NW-1, NW-2).
 
 The list lives in ``catalog`` (it also feeds the create wizard). In a cluster,
-bridge, physical and macvlan networks are created in two steps: a pending
-definition on every member (carrying the member-specific keys such as
-``parent``), then the cluster-wide definition. OVN networks need only the
-second step. Both steps are audited as one change (D52).
+bridge, physical and macvlan networks are created in two steps
+(``mcui.lxd.clustered``); OVN networks need only the second. The steps are
+audited as one change (D52).
 """
 
 from __future__ import annotations
 
 import asyncio
-import contextlib
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Query
@@ -20,7 +18,7 @@ from mcui.api.audited import audited
 from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName
-from mcui.lxd import operations
+from mcui.lxd import clustered, operations
 from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import members, server_info
 
@@ -118,55 +116,16 @@ def _check_member_keys(members_cfg: dict[str, dict[str, str]]) -> None:
 
 
 async def _create(lxd: LXDClient, body: NewNetwork) -> operations.Started:
-    info = await server_info(lxd)
-    params = {"project": body.project}
-    pending = info.clustered and body.type != "ovn"
-    if pending:
-        try:
-            for m in await members(lxd, info):
-                await operations.start(
-                    lxd,
-                    "POST",
-                    "/1.0/networks",
-                    json={
-                        "name": body.name,
-                        "type": body.type,
-                        "config": body.members.get(m.name, {}),
-                    },
-                    params={**params, "target": m.name},
-                )
-        except LXDError:
-            await _forget_pending(lxd, body.name, params)
-            raise
-    config = dict(body.config)
-    if not info.clustered:
-        # a standalone server has no per-member step: its own keys go in the config
-        for cfg in body.members.values():
-            config.update(cfg)
-    try:
-        return await operations.start(
-            lxd,
-            "POST",
-            "/1.0/networks",
-            json={
-                "name": body.name,
-                "type": body.type,
-                "description": body.description,
-                "config": config,
-            },
-            params=params,
-        )
-    except LXDError:
-        if pending:
-            await _forget_pending(lxd, body.name, params)
-        raise
-
-
-async def _forget_pending(lxd: LXDClient, name: str, params: dict[str, Any]) -> None:
-    """Remove a half-made network so the name can be used again."""
-    # nothing was pending, or it's gone already
-    with contextlib.suppress(LXDError):
-        await operations.start(lxd, "DELETE", _net(name), params=params)
+    return await clustered.create(
+        lxd,
+        "/1.0/networks",
+        {"name": body.name, "type": body.type},
+        body.description,
+        body.config,
+        body.members,
+        per_member=body.type != "ovn",
+        params={"project": body.project},
+    )
 
 
 @router.post("/networks")

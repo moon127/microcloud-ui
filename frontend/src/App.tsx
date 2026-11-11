@@ -21,6 +21,8 @@ import NetworksPage from "./pages/NetworksPage";
 import OperationsPage from "./pages/OperationsPage";
 import Overview from "./pages/Overview";
 import StoragePage from "./pages/StoragePage";
+import CreatePoolPage from "./pages/storage/CreatePoolPage";
+import PoolPage from "./pages/storage/PoolPage";
 import WarningsPage from "./pages/WarningsPage";
 import { ProjectProvider } from "./ProjectProvider";
 import { SessionContext } from "./session";
@@ -47,6 +49,8 @@ export function AppRoutes() {
         <Route path="projects" element={<ProjectsPage />} />
         <Route path="projects/:name" element={<ProjectPage />} />
         <Route path="storage" element={<StoragePage />} />
+        <Route path="storage/pools/new" element={<CreatePoolPage />} />
+        <Route path="storage/pools/:name" element={<PoolPage />} />
         <Route path="networks" element={<NetworksPage />} />
         <Route path="networks/new" element={<CreateNetworkPage />} />
         <Route path="networks/:project/:name" element={<NetworkPage />} />

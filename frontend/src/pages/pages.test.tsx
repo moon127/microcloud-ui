@@ -188,6 +188,10 @@ describe("MemberPage", () => {
 });
 
 describe("StoragePage", () => {
+  beforeEach(() => {
+    vi.spyOn(api, "fetchStoragePools").mockResolvedValue([]);
+  });
+
   it("draws LXD pools and Ceph pools", async () => {
     data = {
       mcui_pool_space_total: [{ labels: { pool: "remote", member: "m1" }, points: [[10, 100]] }],

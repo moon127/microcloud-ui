@@ -9,7 +9,6 @@ import {
   fetchNetworkMembers,
   fetchNetworkState,
   updateNetwork,
-  type NetworkMember,
   type NetworkState,
 } from "../../api";
 import { useActions } from "../../actions";
@@ -18,6 +17,7 @@ import { formatBytes, formatNumber } from "../../format";
 import { MemberLink, UsedBy } from "../../links";
 import { useSession } from "../../session";
 import { useApi } from "../../useApi";
+import MemberConfig from "../../MemberConfig";
 import YamlEditor from "../../YamlEditor";
 import { asConfig } from "../instance/state";
 import Forwards from "./Forwards";
@@ -171,44 +171,10 @@ function MemberSettings({ project, name, admin }: { project: string; name: strin
       <h2>Per-member settings</h2>
       <div className="grid">
         {data.map((m) => (
-          <MemberRow key={m.member} m={m} admin={admin} onSave={(config) => void run(`Save ${name} on ${m.member}`, () => updateNetwork(project, name, { config }, m.member))} />
+          <MemberConfig key={m.member} {...m} admin={admin} onSave={(config) => void run(`Save ${name} on ${m.member}`, () => updateNetwork(project, name, { config }, m.member))} />
         ))}
       </div>
     </>
-  );
-}
-
-function MemberRow({ m, admin, onSave }: { m: NetworkMember; admin: boolean; onSave: (c: Record<string, string>) => void }) {
-  const [config, setConfig] = useState(m.config);
-  const [problem, setProblem] = useState<string | null>(null);
-  return (
-    <div>
-      {m.error ? (
-        <p role="alert">
-          {m.member}: {m.error}
-        </p>
-      ) : (
-        <>
-          <YamlEditor
-            label={m.member}
-            rows={3}
-            value={config}
-            readOnly={!admin}
-            onChange={(v) => {
-              const c = asConfig(v);
-              setProblem(typeof c === "string" ? c : null);
-              if (typeof c !== "string") setConfig(c);
-            }}
-          />
-          {problem && <p role="alert">{problem}</p>}
-          {admin && (
-            <button type="button" disabled={problem !== null} onClick={() => onSave(config)}>
-              Save {m.member}
-            </button>
-          )}
-        </>
-      )}
-    </div>
   );
 }
 

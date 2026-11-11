@@ -1,10 +1,14 @@
-import { queryMetric } from "../api";
+import { Link } from "react-router";
+import { fetchStoragePools, queryMetric } from "../api";
+import { useActions } from "../actions";
 import MetricPanel from "../chart/MetricPanel";
 import { poolSeries, refreshFor } from "../chart/panel";
 import { formatBytes, formatNumber, formatRate } from "../format";
 import { useRange } from "../range";
 import RangePicker from "../RangePicker";
+import { useSession } from "../session";
 import { useApi } from "../useApi";
+import { poolPath } from "./storage/paths";
 
 const perSecond = (v: number) => `${formatNumber(v)}/s`;
 
@@ -18,9 +22,11 @@ export default function StoragePage() {
   return (
     <>
       <h1>Storage</h1>
+      <PoolList />
+      <h2>Capacity history</h2>
       {pools.error && <p role="alert">{pools.error}</p>}
       <RangePicker />
-      <h2>LXD storage pools (per member)</h2>
+      <h3>LXD storage pools (per member)</h3>
       {pools.data && poolNames.length === 0 && <p className="muted">No pool data collected yet.</p>}
       <div className="grid">
         {poolNames.map((pool) => (
@@ -39,7 +45,7 @@ export default function StoragePage() {
       </div>
       {cephPools.length > 0 && (
         <>
-          <h2>Ceph pools</h2>
+          <h3>Ceph pools</h3>
           <div className="grid">
             <MetricPanel
               title="Ceph pool usage"
@@ -88,3 +94,53 @@ function poolLabel(pools: { id: string; name: string }[], id: string): string {
   return pools.find((p) => p.id === id)?.name ?? `pool ${id}`;
 }
 
+
+function PoolList() {
+  const { user } = useSession();
+  const { version } = useActions();
+  const { data, error } = useApi(`pools:${version}`, fetchStoragePools, 60_000);
+  return (
+    <>
+      <h2>LXD storage pools</h2>
+      {user.role === "admin" && (
+        <p>
+          <Link className="button primary" to="/storage/pools/new">
+            Create pool
+          </Link>
+        </p>
+      )}
+      {error && <p role="alert">{error}</p>}
+      {data && data.length === 0 && <p>No storage pools.</p>}
+      {data && data.length > 0 && (
+        <div className="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Driver</th>
+                <th>Status</th>
+                <th>Source</th>
+                <th>Used by</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((p) => (
+                <tr key={p.name}>
+                  <td>
+                    <Link to={poolPath(p.name)}>{p.name}</Link>
+                  </td>
+                  <td>{p.driver}</td>
+                  <td>{p.status}</td>
+                  <td>{p.config?.source || p.config?.["ceph.osd.pool_name"] || "–"}</td>
+                  <td className="num">{p.used_by ?? 0}</td>
+                  <td>{p.description}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
+}

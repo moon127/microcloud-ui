@@ -46,6 +46,9 @@ async def storage_pools(_: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
             "driver": p.get("driver", ""),
             "status": p.get("status", ""),
             "description": p.get("description", ""),
+            "config": p.get("config") or {},
+            "used_by": len(p.get("used_by") or []),
+            "locations": p.get("locations") or [],
         }
         for p in data or []
     ]

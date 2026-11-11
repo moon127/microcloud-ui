@@ -229,12 +229,31 @@ async def test_instances_not_configured(tmp_path):
 async def test_storage_pools(app):
     respx.get(f"{EP1}/1.0/storage-pools").mock(
         return_value=lxd_ok(
-            [{"name": "remote", "driver": "ceph", "status": "Created"}, {"name": "x"}]
+            [
+                {
+                    "name": "remote",
+                    "driver": "ceph",
+                    "status": "Created",
+                    "used_by": ["/1.0/instances/a"],
+                    "locations": ["m1"],
+                    "config": {"ceph.osd.pool_name": "lxd"},
+                },
+                {"name": "x"},
+            ]
         )
     )
+    empty = {"config": {}, "used_by": 0, "locations": []}
     async with client(app) as c:
         await login(c, "viewer", "viewerpw")
         assert (await c.get("/api/storage-pools")).json() == [
-            {"name": "remote", "driver": "ceph", "status": "Created", "description": ""},
-            {"name": "x", "driver": "", "status": "", "description": ""},
+            {
+                "name": "remote",
+                "driver": "ceph",
+                "status": "Created",
+                "description": "",
+                "config": {"ceph.osd.pool_name": "lxd"},
+                "used_by": 1,
+                "locations": ["m1"],
+            },
+            {"name": "x", "driver": "", "status": "", "description": "", **empty},
         ]

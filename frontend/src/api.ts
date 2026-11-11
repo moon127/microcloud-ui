@@ -297,6 +297,10 @@ export interface StoragePool {
   driver: string;
   status: string;
   description: string;
+  config?: Record<string, string>;
+  /** how many objects use it */
+  used_by?: number;
+  locations?: string[];
 }
 
 export const fetchStoragePools = () => api<StoragePool[]>("/api/storage-pools");
@@ -812,3 +816,47 @@ export const updateForward = (project: string, network: string, listen: string, 
   send<Started>("PUT", `${fwd(project, network, listen)}${tq(target)}`, body);
 export const deleteForward = (project: string, network: string, listen: string, target?: string) =>
   send<Started>("DELETE", `${fwd(project, network, listen)}${tq(target)}`);
+
+// --- Phase 4c: storage pools ------------------------------------------------------
+
+export type PoolDriver = "dir" | "zfs" | "btrfs" | "lvm" | "ceph" | "cephfs";
+
+export interface PoolDetail {
+  name: string;
+  driver: string;
+  description: string;
+  status: string;
+  config: Record<string, string>;
+  used_by: string[] | null;
+  locations: string[] | null;
+}
+
+export interface PoolResources {
+  /** CephFS pools report no ``used`` */
+  space: { used?: number; total: number };
+  inodes?: { used: number; total: number };
+}
+
+export interface PoolMember {
+  member: string;
+  config: Record<string, string>;
+  status?: string;
+  resources?: PoolResources;
+  error?: string;
+}
+
+export interface NewPool {
+  name: string;
+  driver: PoolDriver;
+  description: string;
+  config: Record<string, string>;
+  members: Record<string, Record<string, string>>;
+}
+
+const pool = (name: string) => `/api/storage-pools/${encodeURIComponent(name)}`;
+export const fetchPool = (name: string) => api<PoolDetail>(pool(name));
+export const fetchPoolMembers = (name: string) => api<PoolMember[]>(`${pool(name)}/members`);
+export const createPool = (body: NewPool) => send<Started>("POST", "/api/storage-pools", body);
+export const updatePool = (name: string, body: { description?: string; config: Record<string, string> }, target?: string) =>
+  send<Started>("PUT", `${pool(name)}${tq(target)}`, body);
+export const deletePool = (name: string) => send<Started>("DELETE", pool(name));
