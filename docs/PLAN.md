@@ -155,7 +155,7 @@ Sub-phases, one commit each (approved 2026-11-05):
 - **3f Profiles (PR-1), images (IM-1/2), projects (PJ-1).**
 Live tests that change things run only inside the `mcui-test` sandbox project (D41).
 
-**Phase 4: Networking & storage management + Ceph/OVN views.** Includes local pool support verified against recorded zfs/dir/lvm/btrfs fixtures (the test cloud is Ceph-only). NW-1/2/4/5,
+**Phase 4: Networking & storage management + Ceph/OVN views. ✅ Built 2026-11-11** (owner live checks: `docs/LIVE-TESTS.md`). Includes local pool support verified against recorded zfs/dir/lvm/btrfs fixtures (the test cloud is Ceph-only). NW-1/2/4/5,
 ST-1/2/3, Ceph dashboard (MO-7) incl. OSD latency + per-RBD-image I/O built against fixtures (MO-7a), OVN view from LXD API (MO-9).
 Sub-phases, one commit each (approved 2026-11-11):
 - **4a Networks (NW-1/2):** list/detail per member, used-by, leases, allocations; create/edit/delete bridge, OVN, physical, macvlan.

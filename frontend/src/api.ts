@@ -1007,3 +1007,45 @@ export interface RbdRow {
 export const fetchCeph = () => api<CephState>("/api/ceph");
 export const fetchRbdTop = (metric: RbdMetric, range: number, limit = 10) =>
   api<{ metric: RbdMetric; range: number; rows: RbdRow[] }>(`/api/ceph/rbd?metric=${metric}&range=${range}&limit=${limit}`);
+
+// --- Phase 4f: OVN overview -------------------------------------------------------------
+
+export interface OvnNetwork {
+  name: string;
+  project: string;
+  description: string;
+  status: string;
+  uplink: string;
+  ipv4: string;
+  ipv6: string;
+  ipv4_nat: boolean;
+  ipv6_nat: boolean;
+  router_ipv4: string;
+  router_ipv6: string;
+  acls: string[];
+  used_by: number;
+  chassis: string | null;
+  state_error: string | null;
+  /** null: LXD couldn't list them */
+  forwards: unknown[] | null;
+  load_balancers: unknown[] | null;
+  peers: unknown[] | null;
+  allocations: Record<string, number>;
+}
+
+export interface OvnUplink {
+  name: string;
+  status: string;
+  ipv4_gateway: string;
+  ipv6_gateway: string;
+  ipv4_ranges: string;
+  ipv6_ranges: string;
+  ipv4_routes: string;
+  dns: string;
+  bgp_peers: string[];
+  networks: string[];
+  ipv4_used: number;
+  ipv4_size: number;
+}
+
+export const fetchOvn = () => api<{ networks: OvnNetwork[]; uplinks: OvnUplink[] }>("/api/ovn");

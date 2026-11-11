@@ -64,6 +64,12 @@ change with its LXD operation id.
 | E1 | Ceph page in a real browser | Health line and checks, OSD/pool tables with meters, eight history charts, busiest disks with links |
 | E2 | Stop the active mgr (`sudo microceph.ceph mgr fail`) and reload after ~30 s | Page keeps working from the new active mgr |
 
+## OVN (Phase 4)
+
+| # | Steps | Expect |
+|---|---|---|
+| O1 | Networks → OVN overview in a real browser | Uplink card with the router-address meter; OVN network table; links to networks, members and ACLs |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/

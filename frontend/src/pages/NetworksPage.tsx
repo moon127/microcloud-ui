@@ -95,6 +95,7 @@ function NetworkList() {
           </Link>
         )}
         <Link to="/network-acls">Network ACLs</Link>
+        <Link to="/ovn">OVN overview</Link>
       </p>
       {nets.error && <p role="alert">{nets.error}</p>}
       {!nets.data && !nets.error && <p role="status">Loading…</p>}

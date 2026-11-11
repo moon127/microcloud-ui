@@ -68,6 +68,16 @@ describe("CephPage", () => {
         { labels: { ceph_daemon: "osd.9" }, points: [[10, 1]] },
       ],
       ceph_osd_op_w_latency_count: [{ labels: { ceph_daemon: "osd.1" }, points: [[10, 100], [20, 0]] }],
+      ceph_cluster_total_bytes: [{ labels: {}, points: [[10, 9]] }],
+      ceph_cluster_total_used_raw_bytes: [{ labels: {}, points: [[10, 3]] }],
+      ceph_pool_rd_bytes: [{ labels: { pool_id: "1" }, points: [[10, 1]] }],
+      ceph_pool_wr_bytes: [{ labels: { pool_id: "1" }, points: [[10, 1]] }],
+      ceph_pool_rd: [{ labels: { pool_id: "1" }, points: [[10, 1]] }],
+      ceph_pool_wr: [{ labels: { pool_id: "1" }, points: [[10, 1]] }],
+      ceph_osd_apply_latency_ms: [{ labels: { ceph_daemon: "osd.1" }, points: [[10, 3]] }],
+      ceph_osd_commit_latency_ms: [{ labels: { ceph_daemon: "osd.1" }, points: [[10, 4]] }],
+      ceph_osd_op_r_latency_sum: [{ labels: { ceph_daemon: "osd.1" }, points: [[10, 0.1]] }],
+      ceph_osd_op_r_latency_count: [{ labels: { ceph_daemon: "osd.1" }, points: [[10, 50]] }],
     };
     renderAt(<CephPage />);
     expect(await screen.findByRole("status")).toHaveTextContent("HEALTH_WARN · Ceph 19.2.3 squid · from http://192.0.2.1:9283");
@@ -92,13 +102,15 @@ describe("CephPage", () => {
     expect(pool).toHaveTextContent("68.4%");
     expect(pool).toHaveTextContent("12.3k");
     expect(screen.getByText("pool 2").closest("tr")).toHaveTextContent("pool 2 –––––");
-    // eight panels; only the two with data draw a plot
     expect(screen.getAllByRole("figure")).toHaveLength(8);
-    await vi.waitFor(() => expect(plots.length).toBe(2));
+    await vi.waitFor(() => expect(plots.length).toBe(8));
     expect(titles()).toContainEqual(["lxd_remote", "pool 9"]);
-    expect(titles()).toContainEqual(["osd.1"]); // osd.9 has no count series
-    const lat = plots.find((p) => p.opts.series[1]?.label === "osd.1")!;
-    expect(lat.data[1]).toEqual([5]); // 0.5 / 100 s = 5 ms; the zero-count point is dropped
+    expect(titles()).toContainEqual(["used (raw)", "total (raw)"]);
+    expect(titles()).toContainEqual(["lxd_remote read", "lxd_remote write"]);
+    // per-op latency: osd.9 has no count series, so only osd.1; 0.5 / 100 s = 5 ms, zero-count point dropped
+    const lat = plots.filter((p) => p.opts.series[1]?.label === "osd.1");
+    expect(lat.map((p) => p.data[1])).toContainEqual([5]);
+    expect(lat.map((p) => p.data[1])).toContainEqual([2]); // read: 0.1 / 50 s
   });
 
   it("lists the busiest RBD images with their owners", async () => {

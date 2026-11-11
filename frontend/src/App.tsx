@@ -18,6 +18,7 @@ import AclPage from "./pages/network/AclPage";
 import AclsPage from "./pages/network/AclsPage";
 import CreateNetworkPage from "./pages/network/CreateNetworkPage";
 import NetworkPage from "./pages/network/NetworkPage";
+import OvnPage from "./pages/network/OvnPage";
 import NetworksPage from "./pages/NetworksPage";
 import OperationsPage from "./pages/OperationsPage";
 import Overview from "./pages/Overview";
@@ -61,6 +62,7 @@ export function AppRoutes() {
         <Route path="networks/new" element={<CreateNetworkPage />} />
         <Route path="networks/:project/:name" element={<NetworkPage />} />
         <Route path="network-acls" element={<AclsPage />} />
+        <Route path="ovn" element={<OvnPage />} />
         <Route path="network-acls/:project/:name" element={<AclPage />} />
         <Route path="operations" element={<OperationsPage />} />
         <Route path="warnings" element={<WarningsPage />} />

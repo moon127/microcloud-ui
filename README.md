@@ -4,7 +4,7 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** Phases 1–3 built: connectivity, local auth, metrics history and graphs, and management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images and projects. Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
+**Status:** Phases 1–4 built: connectivity, local auth, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards. Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
 ## Development setup
@@ -79,8 +79,10 @@ Sign in at http://localhost:5173 (Vite) or http://127.0.0.1:8000 (`make serve`).
 Pages: Overview (members, top instances, live table), Instances (filters, bulk
 actions, create wizard) and an instance page (graphs, configuration, console and
 terminal, files, snapshots, logs), Profiles, Images, Projects, member pages
-(hardware, graphs, evacuate/restore), Storage (LXD pools and Ceph), Networks,
-Operations and Warnings. Admins can change things; viewers read only. Pick the time range (15 min to 1 year) above
+(hardware, graphs, evacuate/restore), Storage (pools with per-member capacity,
+custom volumes with snapshots and attach/detach), Ceph (health, OSDs, pools,
+latency, busiest disks), Networks (create/edit per member, ACLs, forwards, leases,
+OVN overview), Operations and Warnings. Admins can change things; viewers read only. Pick the time range (15 min to 1 year) above
 the graphs. History is collected in the background into `<data_dir>/metrics.db`.
 
 Other user commands: `mcui user list`, `mcui user passwd <name>`, `mcui user delete <name>`
