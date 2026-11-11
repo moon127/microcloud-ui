@@ -1,5 +1,7 @@
 // Screenshots of the built UI against the invented demo cluster (D59).
-// Usage (from frontend/, after `npm run build`): node screenshots/shoot.ts [out-dir] [--dark]
+// Usage (from frontend/, after `npm run build`):
+//   node screenshots/shoot.ts [out-dir] [--light] [--only=overview,member]
+// Dark by default (the README's theme); --light writes *-light.png.
 // Uses the installed Google Chrome (or $CHROME_PATH); nothing reaches a real LXD.
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -8,7 +10,8 @@ import { preview } from "vite";
 import { NOW, answer } from "./demo.ts";
 
 const args = process.argv.slice(2);
-const DARK = args.includes("--dark"); // the dark theme, files named *-dark.png
+const LIGHT = args.includes("--light");
+const ONLY = args.find((a) => a.startsWith("--only="))?.slice(7).split(",");
 const OUT = resolve(args.find((a) => !a.startsWith("--")) ?? "../docs/screenshots");
 
 export const PAGES: { file: string; path: string; wait?: string; full?: boolean; prepare?: (p: Page) => Promise<void> }[] = [
@@ -39,7 +42,7 @@ async function main() {
   const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : { channel: "chrome" });
   const missing = new Set<string>();
   try {
-    const ctx = await browser.newContext({ viewport: { width: 1680, height: 1000 }, colorScheme: DARK ? "dark" : "light", timezoneId: "UTC", locale: "en-GB" });
+    const ctx = await browser.newContext({ viewport: { width: 1680, height: 1000 }, colorScheme: LIGHT ? "light" : "dark", timezoneId: "UTC", locale: "en-GB" });
     await ctx.addInitScript(`{ const t = ${NOW * 1000}; Date.now = () => t; }`);
     await ctx.route("**/api/**", (route: Route) => {
       const req = route.request();
@@ -51,13 +54,13 @@ async function main() {
       return route.fulfill({ json: body });
     });
     await mkdir(OUT, { recursive: true });
-    for (const page of PAGES) {
+    for (const page of PAGES.filter((p) => !ONLY || ONLY.includes(p.file.replace(/\.png$/, "")))) {
       const tab = await ctx.newPage();
       await tab.goto(base.replace(/\/$/, "") + page.path, { waitUntil: "networkidle" });
       if (page.wait) await tab.getByText(page.wait).first().waitFor();
       if (page.prepare) await page.prepare(tab);
       await tab.waitForTimeout(800); // charts draw after a resize tick
-      const file = DARK ? page.file.replace(/\.png$/, "-dark.png") : page.file;
+      const file = LIGHT ? page.file.replace(/\.png$/, "-light.png") : page.file;
       await tab.screenshot({ path: resolve(OUT, file), fullPage: page.full ?? false });
       console.log(`wrote ${file}`);
       await tab.close();

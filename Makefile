@@ -45,7 +45,7 @@ build:           ## build the frontend into frontend/dist
 	cd $(FE) && npm run build
 
 screenshots: build ## README screenshots from the invented demo cluster (needs Google Chrome or CHROME_PATH)
-	cd $(FE) && node screenshots/shoot.ts ../docs/screenshots
+	cd $(FE) && node screenshots/shoot.ts ../docs/screenshots && node screenshots/shoot.ts ../docs/screenshots --light --only=overview
 
 dev-backend:     ## backend with auto-reload on :8000
 	$(BIN)/mcui serve --reload

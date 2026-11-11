@@ -9,7 +9,8 @@ usage, and OVN network visibility.
 
 ## Screenshots
 
-From an invented demo cluster (`make screenshots`), not a real one. Dark theme: pick it under Theme in the top bar (default: follow the OS).
+From an invented demo cluster (`make screenshots`), not a real one. Shown in the dark
+theme; the Theme menu in the top bar switches between Light, Dark and System (follows the OS).
 
 **Overview:** hosts (CPU, memory, disk, allocation), members, top instances, live table
 ![Overview](docs/screenshots/overview.png)
@@ -28,6 +29,9 @@ More: [instances](docs/screenshots/instances.png) ·
 [storage](docs/screenshots/storage.png) ·
 [networks](docs/screenshots/networks.png) ·
 [OVN](docs/screenshots/ovn.png)
+
+**Light theme**
+![Overview, light theme](docs/screenshots/overview-light.png)
 
 ## Development setup
 
