@@ -203,17 +203,15 @@ describe("StoragePage", () => {
       ],
     };
     renderAt(<StoragePage />);
-    await vi.waitFor(() => expect(plots.length).toBe(2));
+    await vi.waitFor(() => expect(plots.length).toBe(1));
     expect(screen.getByRole("figure", { name: "remote: space used" })).toBeInTheDocument();
     expect(titles()).toContainEqual(["m1 used", "size"]);
-    expect(titles()).toContainEqual(["lxd_remote", "pool 9"]);
-    expect(screen.getByRole("heading", { name: "Ceph pools" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Ceph" })).toHaveAttribute("href", "/ceph");
   });
 
   it("explains when nothing is collected yet", async () => {
     renderAt(<StoragePage />);
     expect(await screen.findByText("No pool data collected yet.")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "Ceph pools" })).toBeNull();
   });
 
   it("shows errors", async () => {
@@ -275,11 +273,10 @@ describe("every panel with data", () => {
     expect(titles()).toContainEqual(["goroutines", "ongoing requests", "warnings"]);
   });
 
-  it("storage and networks pages", async () => {
+  it("storage page", async () => {
     fallback = everything;
-    vi.spyOn(api, "fetchNetworkTraffic").mockResolvedValue({ start: 0, end: 1, resolution: 0, rx: [], tx: [] });
+    vi.spyOn(api, "fetchStoragePools").mockResolvedValue([]);
     renderAt(<StoragePage />);
-    await vi.waitFor(() => expect(plots.length).toBe(5));
-    expect(titles()).toContainEqual(["pool 1 read", "pool 1 write"]); // metadata without a name
+    await vi.waitFor(() => expect(plots.length).toBe(1));
   });
 });

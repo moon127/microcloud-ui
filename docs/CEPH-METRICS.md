@@ -1,5 +1,8 @@
 # MicroCeph metrics setup for microcloud-ui
 
+microcloud-ui shows these on its **Ceph** page (`/ceph`): health, OSDs, pools, latency
+history and the busiest instance disks/volumes (from the per-RBD-image stats below).
+
 microcloud-ui reads Ceph metrics from the ceph-mgr `prometheus` module:
 plain HTTP on port 9283 on each mgr host, served by the **active** mgr only,
 with **no authentication or TLS**. Reference: https://docs.ceph.com/en/squid/mgr/prometheus/

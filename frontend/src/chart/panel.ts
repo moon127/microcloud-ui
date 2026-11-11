@@ -35,3 +35,18 @@ export function poolSeries([used, total]: QueryResult[]): ChartSeries[] {
   }
   return out;
 }
+
+/** ``sum``/``count`` counter rates per series (mean latency), times ``scale``; label from ``key``. */
+export function ratioSeries(key: string, scale: number, suffix = "") {
+  return ([sum, count]: QueryResult[]): ChartSeries[] =>
+    sum.series.flatMap((s) => {
+      const c = count.series.find((x) => x.labels[key] === s.labels[key]);
+      if (!c) return [];
+      const byT = new Map(c.points.map(([t, v]) => [t, v]));
+      const points = s.points.flatMap(([t, v]): [number, number][] => {
+        const n = byT.get(t);
+        return n ? [[t, (v / n) * scale]] : [];
+      });
+      return [{ label: `${s.labels[key]}${suffix}`, points }];
+    });
+}

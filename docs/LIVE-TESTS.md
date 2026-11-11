@@ -57,6 +57,13 @@ change with its LXD operation id.
 | S2 | Create a volume in a project, attach it to a running container, check it's mounted, detach, delete | Each step works; delete refused while attached |
 | S3 | On a VM: attach a **block** volume | Appears as a disk in the VM |
 
+## Ceph (Phase 4)
+
+| # | Steps | Expect |
+|---|---|---|
+| E1 | Ceph page in a real browser | Health line and checks, OSD/pool tables with meters, eight history charts, busiest disks with links |
+| E2 | Stop the active mgr (`sudo microceph.ceph mgr fail`) and reload after ~30 s | Page keeps working from the new active mgr |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/

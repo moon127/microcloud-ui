@@ -2,22 +2,18 @@ import { Link } from "react-router";
 import { fetchStoragePools, queryMetric } from "../api";
 import { useActions } from "../actions";
 import MetricPanel from "../chart/MetricPanel";
-import { poolSeries, refreshFor } from "../chart/panel";
-import { formatBytes, formatNumber, formatRate } from "../format";
+import { poolSeries } from "../chart/panel";
+import { formatBytes } from "../format";
 import { useRange } from "../range";
 import RangePicker from "../RangePicker";
 import { useSession } from "../session";
 import { useApi } from "../useApi";
 import { poolPath } from "./storage/paths";
 
-const perSecond = (v: number) => `${formatNumber(v)}/s`;
-
 export default function StoragePage() {
   const range = useRange();
   const pools = useApi("pool-series", () => queryMetric({ name: "mcui_pool_space_total", by: ["pool"], range: 900 }));
-  const ceph = useApi("ceph-pools", () => queryMetric({ name: "ceph_pool_metadata", range: 900 }), refreshFor(range));
   const poolNames = (pools.data?.series ?? []).map((s) => s.labels.pool);
-  const cephPools = (ceph.data?.series ?? []).map((s) => ({ id: s.labels.pool_id, name: s.labels.name }));
 
   return (
     <>
@@ -43,56 +39,13 @@ export default function StoragePage() {
           />
         ))}
       </div>
-      {cephPools.length > 0 && (
-        <>
-          <h3>Ceph pools</h3>
-          <div className="grid">
-            <MetricPanel
-              title="Ceph pool usage"
-              range={range}
-              format={formatBytes}
-              queries={[{ name: "ceph_pool_stored", label: (l) => poolLabel(cephPools, l.pool_id) }]}
-            />
-            <MetricPanel
-              title="Ceph pool throughput"
-              range={range}
-              format={formatRate}
-              queries={[
-                { name: "ceph_pool_rd_bytes", fn: "rate", label: (l) => `${poolLabel(cephPools, l.pool_id)} read` },
-                { name: "ceph_pool_wr_bytes", fn: "rate", label: (l) => `${poolLabel(cephPools, l.pool_id)} write` },
-              ]}
-            />
-            <MetricPanel
-              title="Ceph pool IOPS"
-              range={range}
-              format={perSecond}
-              queries={[
-                { name: "ceph_pool_rd", fn: "rate", label: (l) => `${poolLabel(cephPools, l.pool_id)} read` },
-                { name: "ceph_pool_wr", fn: "rate", label: (l) => `${poolLabel(cephPools, l.pool_id)} write` },
-              ]}
-            />
-            <MetricPanel
-              title="Ceph raw capacity"
-              range={range}
-              format={formatBytes}
-              queries={[
-                { name: "ceph_cluster_total_used_raw_bytes", label: () => "used (raw)" },
-                { name: "ceph_cluster_total_bytes", label: () => "total (raw)" },
-              ]}
-            />
-          </div>
-        </>
-      )}
       <p className="muted">
-        Ceph OSD latency, PG states and per-disk (RBD) I/O come with the Ceph dashboard in Phase 4.
+        Ceph health, OSDs, pools, latency and per-disk I/O: <Link to="/ceph">Ceph</Link>.
       </p>
     </>
   );
 }
 
-function poolLabel(pools: { id: string; name: string }[], id: string): string {
-  return pools.find((p) => p.id === id)?.name ?? `pool ${id}`;
-}
 
 
 function PoolList() {

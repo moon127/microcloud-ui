@@ -939,3 +939,71 @@ export const attachVolume = (project: string, pool: string, name: string, body: 
   send<Started>("POST", `${vol(project, pool, name)}/attach`, body);
 export const detachVolume = (project: string, pool: string, name: string, body: { instance: string; device: string }) =>
   send<Started>("POST", `${vol(project, pool, name)}/detach`, body);
+
+// --- Phase 4e: Ceph dashboard ----------------------------------------------------------
+
+export interface CephOsd {
+  id: number;
+  host?: string;
+  device_class?: string;
+  up?: boolean;
+  in?: boolean;
+  weight?: number;
+  pgs?: number;
+  size?: number;
+  used?: number;
+  apply_latency_ms?: number;
+  commit_latency_ms?: number;
+}
+
+export interface CephPool {
+  id: number;
+  name?: string;
+  type?: string;
+  description?: string;
+  stored?: number;
+  stored_raw?: number;
+  max_avail?: number;
+  /** 0..1 */
+  percent_used?: number;
+  objects?: number;
+  pgs?: number;
+}
+
+export interface CephState {
+  enabled: boolean;
+  ok?: boolean;
+  error?: string;
+  mgr?: string;
+  scraped_at?: number;
+  health?: { status: string; checks: { name: string; severity: string }[] };
+  version?: string | null;
+  mons?: { name: string; in_quorum: boolean }[];
+  mgrs?: { name: string; active: boolean }[];
+  osds?: CephOsd[];
+  pgs?: { total: number; states: Record<string, number> };
+  capacity?: { total: number | null; used_raw: number | null };
+  pools?: CephPool[];
+}
+
+export type RbdMetric = "read_bytes" | "write_bytes" | "read_ops" | "write_ops" | "read_latency" | "write_latency";
+
+export interface RbdOwner {
+  kind: "instance" | "volume" | "image" | "other";
+  type?: string;
+  project?: string;
+  name?: string;
+  block?: boolean;
+  deleted?: boolean;
+}
+
+export interface RbdRow {
+  pool: string;
+  image: string;
+  value: number;
+  owner: RbdOwner;
+}
+
+export const fetchCeph = () => api<CephState>("/api/ceph");
+export const fetchRbdTop = (metric: RbdMetric, range: number, limit = 10) =>
+  api<{ metric: RbdMetric; range: number; rows: RbdRow[] }>(`/api/ceph/rbd?metric=${metric}&range=${range}&limit=${limit}`);

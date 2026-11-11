@@ -11,6 +11,7 @@ const NAV = [
   { to: "/images", label: "Images" },
   { to: "/projects", label: "Projects" },
   { to: "/storage", label: "Storage" },
+  { to: "/ceph", label: "Ceph" },
   { to: "/networks", label: "Networks" },
   { to: "/operations", label: "Operations" },
   { to: "/warnings", label: "Warnings" },

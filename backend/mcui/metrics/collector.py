@@ -12,7 +12,7 @@ from typing import Any
 from mcui.config import Settings
 from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import members
-from mcui.metrics.ceph import CephScraper
+from mcui.metrics.ceph import CephScrape, CephScraper
 from mcui.metrics.live import LiveMetrics
 from mcui.metrics.select import (
     ceph_samples,
@@ -58,6 +58,9 @@ class Collector:
             k: TaskStatus() for k in ("lxd", "ceph", "state", "compact")
         }
         self._tasks: list[asyncio.Task[None]] = []
+        # the last ceph-mgr scrape, for the Ceph dashboard's "now" view
+        self.ceph_last: CephScrape | None = None
+        self.ceph_at: float | None = None
 
     # one round of each job
 
@@ -79,6 +82,7 @@ class Collector:
         if self.ceph is None:
             return 0
         res = await self.ceph.scrape(self.live.members)
+        self.ceph_last, self.ceph_at = res, self.clock()
         if not res.ok:
             raise RuntimeError(res.error)
         return await self.store.write(int(self.clock()), ceph_samples(res.exposition))

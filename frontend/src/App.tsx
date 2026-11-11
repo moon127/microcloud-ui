@@ -4,6 +4,7 @@ import { ApiError, fetchMe, logout, setCsrf, type User } from "./api";
 import ActionsProvider from "./ActionsProvider";
 import Layout from "./Layout";
 import Login from "./Login";
+import CephPage from "./pages/CephPage";
 import CreateInstancePage from "./pages/create/CreateInstancePage";
 import InstancePage from "./pages/instance/InstancePage";
 import ImagesPage from "./pages/manage/ImagesPage";
@@ -55,6 +56,7 @@ export function AppRoutes() {
         <Route path="storage/pools/:name" element={<PoolPage />} />
         <Route path="storage/volumes" element={<VolumesPage />} />
         <Route path="storage/volumes/:project/:pool/:name" element={<VolumePage />} />
+        <Route path="ceph" element={<CephPage />} />
         <Route path="networks" element={<NetworksPage />} />
         <Route path="networks/new" element={<CreateNetworkPage />} />
         <Route path="networks/:project/:name" element={<NetworkPage />} />

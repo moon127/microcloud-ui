@@ -14,6 +14,7 @@ from mcui.api import (
     acls,
     auth,
     catalog,
+    ceph,
     cluster,
     files,
     instances,
@@ -76,6 +77,7 @@ def create_app(
     app.include_router(acls.router)
     app.include_router(storage.router)
     app.include_router(volumes.router)
+    app.include_router(ceph.router)
 
     if static_dir is not None and (static_dir / "index.html").is_file():
         root = static_dir.resolve()
