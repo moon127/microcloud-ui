@@ -93,7 +93,7 @@ describe("HostsSection", () => {
 
     const gw2 = screen.getByRole("link", { name: "gw-2" }).closest("tr")!;
     expect(within(gw2).getByRole("meter", { name: "gw-2 load per CPU" })).toHaveAttribute("value", "25");
-    expect(gw2).toHaveTextContent("load 2.00 / 8");
+    expect(gw2).toHaveTextContent("load 2 / 8");
     expect(gw2).toHaveTextContent("≈22.0 GiB / 32.0 GiB"); // 32 - 8 free - 2 buffers
     expect(gw2).toHaveTextContent("none"); // no swap
     expect(gw2).toHaveTextContent("4 vCPU / 8,");

@@ -5,7 +5,7 @@ BIN    := $(abspath $(VENV))/bin
 FE     := frontend
 
 .PHONY: help venv install install-backend install-frontend test test-backend test-frontend \
-        lint lint-backend lint-frontend format build dev-backend dev-frontend serve hooks clean
+        lint lint-backend lint-frontend format build screenshots dev-backend dev-frontend serve hooks clean
 
 help:            ## list targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -43,6 +43,9 @@ format:          ## auto-format backend
 
 build:           ## build the frontend into frontend/dist
 	cd $(FE) && npm run build
+
+screenshots: build ## README screenshots from the invented demo cluster (needs Google Chrome or CHROME_PATH)
+	cd $(FE) && node screenshots/shoot.ts ../docs/screenshots
 
 dev-backend:     ## backend with auto-reload on :8000
 	$(BIN)/mcui serve --reload

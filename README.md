@@ -7,6 +7,28 @@ usage, and OVN network visibility.
 **Status:** Phases 1–4 built: connectivity, local auth, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards and a Hosts view (optional node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)). Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
+## Screenshots
+
+From an invented demo cluster (`make screenshots`), not a real one.
+
+**Overview:** hosts (CPU, memory, disk, allocation), members, top instances, live table
+![Overview](docs/screenshots/overview.png)
+
+**Member:** hardware, host graphs from node_exporter, LXD graphs
+![Member page](docs/screenshots/member.png)
+
+**Instance:** actions, tabs, history graphs
+![Instance page](docs/screenshots/instance.png)
+
+**Ceph:** health, OSDs, pools, history, busiest disks mapped to instances
+![Ceph](docs/screenshots/ceph.png)
+
+More: [instances](docs/screenshots/instances.png) ·
+[create instance](docs/screenshots/create-instance.png) ·
+[storage](docs/screenshots/storage.png) ·
+[networks](docs/screenshots/networks.png) ·
+[OVN](docs/screenshots/ovn.png)
+
 ## Development setup
 
 Requires **Python 3.10+**, **Node 20+** (22 recommended) and `make`.
@@ -38,6 +60,7 @@ make hooks                             # optional: lint + tests run before every
 | `make dev-backend` | API with auto-reload on http://127.0.0.1:8000 |
 | `make dev-frontend` | Vite dev server on http://localhost:5173, proxying `/api` to :8000 |
 | `make serve` | build the SPA and serve everything from the backend on :8000 |
+| `make screenshots` | rebuild `docs/screenshots/` from the demo cluster (headless Google Chrome) |
 
 Use a different venv location with `make test VENV=~/venvs/mcui`.
 

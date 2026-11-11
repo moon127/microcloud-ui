@@ -37,7 +37,7 @@ export function formatNumber(n: number | null | undefined): string {
   if (a >= 1e9) return `${(n / 1e9).toFixed(1)}G`;
   if (a >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
   if (a >= 1e3) return `${(n / 1e3).toFixed(1)}k`;
-  return a >= 10 || n === 0 ? n.toFixed(0) : n.toFixed(2);
+  return a >= 10 || Number.isInteger(n) ? n.toFixed(0) : n.toFixed(2);
 }
 
 export const RANGES: { label: string; seconds: number }[] = [

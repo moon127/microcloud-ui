@@ -33,6 +33,7 @@ describe("format", () => {
     expect(formatNumber(0)).toBe("0");
     expect(formatNumber(0.123)).toBe("0.12");
     expect(formatNumber(42)).toBe("42");
+    expect(formatNumber(2)).toBe("2"); // whole numbers (counts) without decimals
     expect(formatNumber(1500)).toBe("1.5k");
     expect(formatNumber(2.5e6)).toBe("2.5M");
     expect(formatNumber(-3e9)).toBe("-3.0G");
