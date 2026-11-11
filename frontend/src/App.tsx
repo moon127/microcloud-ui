@@ -13,6 +13,8 @@ import ProjectPage from "./pages/manage/ProjectPage";
 import ProjectsPage from "./pages/manage/ProjectsPage";
 import InstancesPage from "./pages/InstancesPage";
 import MemberPage from "./pages/MemberPage";
+import CreateNetworkPage from "./pages/network/CreateNetworkPage";
+import NetworkPage from "./pages/network/NetworkPage";
 import NetworksPage from "./pages/NetworksPage";
 import OperationsPage from "./pages/OperationsPage";
 import Overview from "./pages/Overview";
@@ -44,6 +46,8 @@ export function AppRoutes() {
         <Route path="projects/:name" element={<ProjectPage />} />
         <Route path="storage" element={<StoragePage />} />
         <Route path="networks" element={<NetworksPage />} />
+        <Route path="networks/new" element={<CreateNetworkPage />} />
+        <Route path="networks/:project/:name" element={<NetworkPage />} />
         <Route path="operations" element={<OperationsPage />} />
         <Route path="warnings" element={<WarningsPage />} />
         <Route path="*" element={<p>Page not found.</p>} />

@@ -40,6 +40,14 @@ change with its LXD operation id.
 | C4 | Projects → **Create** a throwaway project, edit its description/limits, **Rename** it, **Delete** it | Each step works; renaming/deleting a non-empty project shows LXD's refusal |
 | C5 | Operations page while an image downloads | Running operation listed with Cancel; cancelling stops it |
 
+## Networks (Phase 4; changes the real cluster, so yours to run)
+
+| # | Steps | Expect |
+|---|---|---|
+| N1 | Networks → **Create network** → OVN, uplink `UPLINK`, name e.g. `test-ovn` | Created; its page shows the OVN gateway chassis and the router address in Allocated addresses; delete it afterwards |
+| N2 | Create → Physical with a spare VLAN interface per member (if you have one) | Created on all members; per-member settings show each `parent` |
+| N3 | Networks page and a network page in a real browser (light and dark) | Tables, per-member YAML boxes and the member selector are readable and work |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/
@@ -48,4 +56,5 @@ copy, rename, move to another member, publish, delete and force delete; exec
 terminal across members with resize; file list/upload/download/mkdir/delete
 (3 MB byte-identical round trip); profile create/update/rename/delete; image
 alias add/remove, edit, import from `images:`, delete; project description
-update; `/api/events` relay; metrics history, graphs' data and Top-N.
+update; `/api/events` relay; network create/edit/per-member edit/delete of a
+`mcui-test-br` bridge on the real cluster (D41 extension); metrics history, graphs' data and Top-N.

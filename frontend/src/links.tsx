@@ -8,3 +8,25 @@ export function InstanceLink({ project, name }: { project: string; name: string 
 export function MemberLink({ name }: { name: string }) {
   return <Link to={`/members/${encodeURIComponent(name)}`}>{name}</Link>;
 }
+
+const KINDS: Record<string, (project: string, name: string) => string> = {
+  instances: instancePath,
+  profiles: (p, n) => `/profiles/${encodeURIComponent(p)}/${encodeURIComponent(n)}`,
+  networks: (p, n) => `/networks/${encodeURIComponent(p)}/${encodeURIComponent(n)}`,
+};
+
+/** "/1.0/instances/web?project=lab" -> link to that object (instances, profiles, networks); else the URL. */
+export function UsedBy({ url }: { url: string }) {
+  const u = new URL(url, "http://x");
+  const m = u.pathname.match(/^\/1\.0\/([a-z-]+)\/([^/]+)$/);
+  const to = m && KINDS[m[1]];
+  if (!m || !to) return <code>{url}</code>;
+  const project = u.searchParams.get("project") ?? "default";
+  const name = decodeURIComponent(m[2]);
+  return (
+    <Link to={to(project, name)}>
+      {m[1] === "instances" ? "" : `${m[1].slice(0, -1)} `}
+      {project === "default" ? name : `${project}/${name}`}
+    </Link>
+  );
+}

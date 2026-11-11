@@ -480,13 +480,17 @@ export interface Network {
   description: string;
   status: string;
   config: Record<string, string>;
+  /** how many objects use it */
+  used_by?: number;
+  locations?: string[];
 }
 
 const q = (project: string) => `?project=${encodeURIComponent(project)}`;
 export const fetchLocalImages = (project: string) => api<LocalImage[]>(`/api/images${q(project)}`);
 export const fetchRemoteImages = (remote: "images" | "ubuntu") => api<RemoteImage[]>(`/api/images/remote/${remote}`);
 export const fetchProfiles = (project: string) => api<Profile[]>(`/api/profiles${q(project)}`);
-export const fetchNetworks = (project: string) => api<Network[]>(`/api/networks${q(project)}`);
+export const fetchNetworks = (project: string, target?: string) =>
+  api<Network[]>(`/api/networks${q(project)}${target ? `&target=${encodeURIComponent(target)}` : ""}`);
 
 export interface NewInstance {
   name: string;
@@ -653,3 +657,85 @@ export const updateProject = (name: string, body: { description: string; config:
 export const renameProject = (name: string, to: string) =>
   send<Started>("POST", `/api/projects/${encodeURIComponent(name)}/rename`, { name: to });
 export const deleteProject = (name: string) => send<Started>("DELETE", `/api/projects/${encodeURIComponent(name)}`);
+
+// --- Phase 4a: networks ----------------------------------------------------------
+
+export type NetworkType = "bridge" | "ovn" | "physical" | "macvlan";
+
+export interface NetworkDetail {
+  name: string;
+  type: string;
+  managed: boolean;
+  description: string;
+  status: string;
+  config: Record<string, string>;
+  used_by: string[] | null;
+  locations: string[] | null;
+  project?: string;
+}
+
+export interface NetworkState {
+  addresses: { address: string; family: string; netmask: string; scope: string }[] | null;
+  counters?: { bytes_received: number; bytes_sent: number; packets_received: number; packets_sent: number } | null;
+  hwaddr: string;
+  mtu: number;
+  state: string;
+  type: string;
+  ovn?: { chassis?: string } | null;
+  vlan?: { lower_device: string; vid: number } | null;
+  bond?: { mode?: string; lower_devices?: string[] } | null;
+  bridge?: { upper_devices?: string[] } | null;
+}
+
+export interface NetworkMember {
+  member: string;
+  config: Record<string, string>;
+  error?: string;
+}
+
+export interface NetworkLease {
+  hostname: string;
+  hwaddr: string;
+  address: string;
+  type: string;
+  location: string;
+  project: string;
+}
+
+export interface NetworkAllocation {
+  addresses: string;
+  used_by: string;
+  type: string;
+  nat: boolean;
+  hwaddr: string;
+  network: string;
+}
+
+export interface NewNetwork {
+  name: string;
+  type: NetworkType;
+  project: string;
+  description: string;
+  config: Record<string, string>;
+  /** member name -> that member's own keys (parent, bridge.external_interfaces) */
+  members: Record<string, Record<string, string>>;
+}
+
+const net = (project: string, name: string) => `/api/networks/${encodeURIComponent(project)}/${encodeURIComponent(name)}`;
+const tq = (target?: string) => (target ? `?target=${encodeURIComponent(target)}` : "");
+
+export const fetchNetwork = (project: string, name: string, target?: string) =>
+  api<NetworkDetail>(`${net(project, name)}${tq(target)}`);
+export const fetchNetworkState = (project: string, name: string, target?: string) =>
+  api<NetworkState>(`${net(project, name)}/state${tq(target)}`);
+export const fetchNetworkMembers = (project: string, name: string) => api<NetworkMember[]>(`${net(project, name)}/members`);
+export const fetchNetworkLeases = (project: string, name: string) => api<NetworkLease[]>(`${net(project, name)}/leases`);
+export const fetchNetworkAllocations = (project: string) => api<NetworkAllocation[]>(`/api/network-allocations${q(project)}`);
+export const createNetwork = (body: NewNetwork) => send<Started>("POST", "/api/networks", body);
+export const updateNetwork = (
+  project: string,
+  name: string,
+  body: { description?: string; config: Record<string, string> },
+  target?: string,
+) => send<Started>("PUT", `${net(project, name)}${tq(target)}`, body);
+export const deleteNetwork = (project: string, name: string) => send<Started>("DELETE", net(project, name));

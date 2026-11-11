@@ -87,8 +87,14 @@ async def profiles(_: SessionDep, lxd: LXDDep, project: str = "default") -> list
 
 
 @router.get("/networks")
-async def networks(_: SessionDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
-    data = await lxd.get("/1.0/networks", recursion=1, project=project)
+async def networks(
+    _: SessionDep, lxd: LXDDep, project: str = "default", target: str | None = None
+) -> list[dict[str, Any]]:
+    """Networks of a project; ``target`` lists that member's own interfaces too."""
+    params: dict[str, Any] = {"project": project}
+    if target:
+        params["target"] = target
+    data = await lxd.get("/1.0/networks", recursion=1, **params)
     return [
         {
             "name": n["name"],
@@ -97,6 +103,8 @@ async def networks(_: SessionDep, lxd: LXDDep, project: str = "default") -> list
             "description": n.get("description", ""),
             "status": n.get("status", ""),
             "config": n.get("config") or {},
+            "used_by": len(n.get("used_by") or []),
+            "locations": n.get("locations") or [],
         }
         for n in data or []
     ]

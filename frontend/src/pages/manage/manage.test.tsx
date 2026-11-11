@@ -36,7 +36,7 @@ const prof = (over: Partial<api.ProfileFull> = {}): api.ProfileFull => ({
   description: "web servers",
   config: { "limits.cpu": "2" },
   devices: { root: { type: "disk", path: "/", pool: "remote" } },
-  used_by: ["/1.0/instances/a", "/1.0/instances/b?project=lab", "/1.0/profiles/x"],
+  used_by: ["/1.0/instances/a", "/1.0/instances/b?project=lab", "/1.0/profiles/x", "/1.0/storage-pools/p"],
   project: "default",
   ...over,
 });
@@ -51,7 +51,7 @@ describe("profiles", () => {
     expect(await screen.findByRole("heading", { name: "Profiles in lab" })).toBeInTheDocument();
     const row = screen.getByRole("link", { name: "web" }).closest("tr")!;
     expect(row).toHaveTextContent("root");
-    expect(row).toHaveTextContent("3");
+    expect(row).toHaveTextContent("4");
     expect(screen.getByRole("link", { name: "web" })).toHaveAttribute("href", "/profiles/lab/web");
     fireEvent.click(screen.getByRole("button", { name: "Create profile" }));
     fireEvent.change(dialog().getByLabelText("Profile name"), { target: { value: "new" } });
@@ -85,8 +85,9 @@ describe("profiles", () => {
     const del = vi.spyOn(api, "deleteProfile").mockResolvedValue(ok);
     routes("/profiles/default/web");
     expect(await screen.findByRole("link", { name: "a" })).toHaveAttribute("href", "/instances/default/a");
-    expect(screen.getByRole("link", { name: "b" })).toHaveAttribute("href", "/instances/lab/b");
-    expect(screen.getByText("/1.0/profiles/x")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "lab/b" })).toHaveAttribute("href", "/instances/lab/b");
+    expect(screen.getByRole("link", { name: "profile x" })).toHaveAttribute("href", "/profiles/default/x");
+    expect(screen.getByText("/1.0/storage-pools/p")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("Description"), { target: { value: "edited" } });
     fireEvent.change(screen.getByLabelText("Config (YAML)"), { target: { value: "limits.memory: 1GiB" } });
     fireEvent.change(screen.getByLabelText("Devices (YAML)"), { target: { value: "eth0: {name: x}" } });

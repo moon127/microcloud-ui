@@ -220,6 +220,11 @@ describe("StoragePage", () => {
 });
 
 describe("NetworksPage", () => {
+  beforeEach(() => {
+    vi.spyOn(api, "fetchNetworks").mockResolvedValue([]);
+    vi.spyOn(api, "fetchMembers").mockResolvedValue([]);
+  });
+
   it("draws per-network and host traffic", async () => {
     vi.spyOn(api, "fetchNetworkTraffic").mockResolvedValue({
       start: 0,

@@ -52,8 +52,10 @@ async def test_local_images_profiles_networks(app):
     respx.get(f"{EP1}/1.0/profiles").mock(
         return_value=lxd_ok([{"name": "default", "devices": {"root": {}}}])
     )
-    respx.get(f"{EP1}/1.0/networks").mock(
-        return_value=lxd_ok([{"name": "ovn1", "type": "ovn", "managed": True}])
+    nets = respx.get(f"{EP1}/1.0/networks").mock(
+        return_value=lxd_ok(
+            [{"name": "ovn1", "type": "ovn", "managed": True, "used_by": ["/1.0/instances/a"]}]
+        )
     )
     async with client(app) as c:
         await login(c, "admin", "adminpw")
@@ -86,7 +88,10 @@ async def test_local_images_profiles_networks(app):
                 "project": "default",
             }
         ]
-        assert (await c.get("/api/networks")).json()[0]["managed"] is True
+        listed = (await c.get("/api/networks")).json()[0]
+        assert listed["managed"] is True and listed["used_by"] == 1 and listed["locations"] == []
+        await c.get("/api/networks", params={"target": "m2"})
+        assert nets.calls.last.request.url.params["target"] == "m2"
 
 
 @respx.mock

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { createProfile, deleteProfile, fetchProfile, renameProfile, updateProfile } from "../../api";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
-import { instancePath } from "../../paths";
+import { UsedBy } from "../../links";
 import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import YamlEditor from "../../YamlEditor";
@@ -14,15 +14,6 @@ interface Draft {
   description: string;
   config: Record<string, string>;
   devices: Record<string, Record<string, string>>;
-}
-
-/** "/1.0/instances/web?project=lab" -> link to that instance */
-function UsedBy({ url }: { url: string }) {
-  const u = new URL(url, "http://x");
-  const m = u.pathname.match(/^\/1\.0\/instances\/([^/]+)$/);
-  if (!m) return <code>{url}</code>;
-  const project = u.searchParams.get("project") ?? "default";
-  return <Link to={instancePath(project, decodeURIComponent(m[1]))}>{decodeURIComponent(m[1])}</Link>;
 }
 
 export default function ProfilePage() {

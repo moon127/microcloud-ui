@@ -157,6 +157,14 @@ Live tests that change things run only inside the `mcui-test` sandbox project (D
 
 **Phase 4: Networking & storage management + Ceph/OVN views.** Includes local pool support verified against recorded zfs/dir/lvm/btrfs fixtures (the test cloud is Ceph-only). NW-1/2/4/5,
 ST-1/2/3, Ceph dashboard (MO-7) incl. OSD latency + per-RBD-image I/O built against fixtures (MO-7a), OVN view from LXD API (MO-9).
+Sub-phases, one commit each (approved 2026-11-11):
+- **4a Networks (NW-1/2):** list/detail per member, used-by, leases, allocations; create/edit/delete bridge, OVN, physical, macvlan.
+- **4b ACLs and forwards (NW-4 CRUD, NW-5).**
+- **4c Storage pools (ST-1/2):** detail with per-member state and capacity history; create/edit/delete zfs, dir, lvm, btrfs, ceph, cephfs.
+- **4d Volumes (ST-3):** custom volumes, resize, attach/detach, snapshots and schedules.
+- **4e Ceph dashboard (MO-7, MO-7a).**
+- **4f OVN view (MO-9).**
+Live tests (D41): everything inside a throwaway LXD in a `mcui-test` VM, which also supplies the local-pool fixtures; on the real cluster only `mcui-test-*` ACLs, forwards and a bridge network.
 
 ### Post-MVP
 **Phase 5: Metric store evaluation** (MO-14): benchmark SQLite against
