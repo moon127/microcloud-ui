@@ -47,6 +47,7 @@ change with its LXD operation id.
 | N1 | Networks → **Create network** → OVN, uplink `UPLINK`, name e.g. `test-ovn` | Created; its page shows the OVN gateway chassis and the router address in Allocated addresses; delete it afterwards |
 | N2 | Create → Physical with a spare VLAN interface per member (if you have one) | Created on all members; per-member settings show each `parent` |
 | N3 | Networks page and a network page in a real browser (light and dark) | Tables, per-member YAML boxes and the member selector are readable and work |
+| N4 | On an OVN network: attach an ACL using `@internal`/`@external`, and add a forward from a spare `ipv4.ovn.ranges`/routes address to an instance | ACL applies; forward reaches the instance; remove both afterwards |
 
 ## Already verified live by the session (for reference)
 
@@ -57,4 +58,5 @@ terminal across members with resize; file list/upload/download/mkdir/delete
 (3 MB byte-identical round trip); profile create/update/rename/delete; image
 alias add/remove, edit, import from `images:`, delete; project description
 update; `/api/events` relay; network create/edit/per-member edit/delete of a
-`mcui-test-br` bridge on the real cluster (D41 extension); metrics history, graphs' data and Top-N.
+`mcui-test-br` bridge on the real cluster (D41 extension); ACL create/edit/attach/
+rename/delete and bridge forwards on it; metrics history, graphs' data and Top-N.

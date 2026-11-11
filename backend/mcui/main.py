@@ -11,6 +11,7 @@ from fastapi.responses import FileResponse, JSONResponse
 
 from mcui import __version__
 from mcui.api import (
+    acls,
     auth,
     catalog,
     cluster,
@@ -70,6 +71,7 @@ def create_app(
     app.include_router(files.router)
     app.include_router(manage.router)
     app.include_router(networks.router)
+    app.include_router(acls.router)
 
     if static_dir is not None and (static_dir / "index.html").is_file():
         root = static_dir.resolve()

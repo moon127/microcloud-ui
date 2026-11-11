@@ -13,9 +13,10 @@ const KINDS: Record<string, (project: string, name: string) => string> = {
   instances: instancePath,
   profiles: (p, n) => `/profiles/${encodeURIComponent(p)}/${encodeURIComponent(n)}`,
   networks: (p, n) => `/networks/${encodeURIComponent(p)}/${encodeURIComponent(n)}`,
+  "network-acls": (p, n) => `/network-acls/${encodeURIComponent(p)}/${encodeURIComponent(n)}`,
 };
 
-/** "/1.0/instances/web?project=lab" -> link to that object (instances, profiles, networks); else the URL. */
+/** "/1.0/instances/web?project=lab" -> link to that object (instances, profiles, networks, ACLs); else the URL. */
 export function UsedBy({ url }: { url: string }) {
   const u = new URL(url, "http://x");
   const m = u.pathname.match(/^\/1\.0\/([a-z-]+)\/([^/]+)$/);

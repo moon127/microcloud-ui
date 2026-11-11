@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   deleteNetwork,
+  fetchAcls,
   fetchNetwork,
   fetchNetworkAllocations,
   fetchNetworkLeases,
@@ -19,6 +20,8 @@ import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import YamlEditor from "../../YamlEditor";
 import { asConfig } from "../instance/state";
+import Forwards from "./Forwards";
+import { aclPath } from "./paths";
 
 interface Draft {
   description: string;
@@ -110,7 +113,18 @@ export default function NetworkPage() {
                 }}
               />
               {problem && <p role="alert">{problem}</p>}
+              {(n.type === "bridge" || n.type === "ovn") && (
+                <AclAssignment
+                  project={project}
+                  config={draft.config}
+                  readOnly={!admin}
+                  onChange={(config) => setDraft((d) => d && { ...d, config })}
+                />
+              )}
               <MemberSettings project={project} name={name} admin={admin} />
+              {(n.type === "bridge" || n.type === "ovn") && (
+                <Forwards project={project} network={name} admin={admin} members={n.type === "bridge" ? (n.locations ?? []) : []} />
+              )}
             </>
           )}
           <StateView project={project} name={name} members={member ? [member] : (n.locations ?? [])} />
@@ -348,5 +362,70 @@ function Addresses({ project, name }: { project: string; name: string }) {
         </div>
       )}
     </>
+  );
+}
+
+const ACL_KEYS = ["security.acls.default.ingress.action", "security.acls.default.egress.action"] as const;
+
+/** The network's ``security.acls`` keys as a form; changes go into the draft, saved with Save. */
+function AclAssignment({
+  project,
+  config,
+  readOnly,
+  onChange,
+}: {
+  project: string;
+  config: Record<string, string>;
+  readOnly: boolean;
+  onChange: (c: Record<string, string>) => void;
+}) {
+  const acls = useApi(`acls:${project}`, () => fetchAcls(project));
+  const chosen = (config["security.acls"] ?? "")
+    .split(",")
+    .map((x) => x.trim())
+    .filter(Boolean);
+  const names = [...new Set([...(acls.data ?? []).map((a) => a.name), ...chosen])];
+  const setKey = (k: string, v: string) => {
+    const c = { ...config };
+    if (v) c[k] = v;
+    else delete c[k];
+    onChange(c);
+  };
+  return (
+    <section aria-label="ACLs">
+      <h2>ACLs</h2>
+      {acls.error && <p role="alert">{acls.error}</p>}
+      {names.length === 0 && (
+        <p className="muted">
+          No ACLs in {project}. <Link to="/network-acls">Network ACLs</Link>
+        </p>
+      )}
+      <fieldset disabled={readOnly} className="inline">
+        {names.map((a) => (
+          <label key={a}>
+            <input
+              type="checkbox"
+              checked={chosen.includes(a)}
+              onChange={(e) => setKey("security.acls", (e.target.checked ? [...chosen, a] : chosen.filter((x) => x !== a)).join(","))}
+            />{" "}
+            <Link to={aclPath(project, a)}>{a}</Link>
+          </label>
+        ))}
+      </fieldset>
+      <fieldset disabled={readOnly} className="inline">
+        {ACL_KEYS.map((k) => (
+          <label key={k} className="field">
+            Default {k.includes("ingress") ? "ingress" : "egress"} action
+            <select value={config[k] ?? ""} onChange={(e) => setKey(k, e.target.value)}>
+              <option value="">LXD default (reject)</option>
+              <option>allow</option>
+              <option>reject</option>
+              <option>drop</option>
+            </select>
+          </label>
+        ))}
+      </fieldset>
+      {!readOnly && <p className="muted">Save the network to apply.</p>}
+    </section>
   );
 }

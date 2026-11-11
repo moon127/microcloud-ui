@@ -88,13 +88,14 @@ function NetworkList() {
   return (
     <>
       <h2>LXD networks in {project}</h2>
-      {user.role === "admin" && (
-        <p>
+      <p className="actions">
+        {user.role === "admin" && (
           <Link className="button primary" to="/networks/new">
             Create network
           </Link>
-        </p>
-      )}
+        )}
+        <Link to="/network-acls">Network ACLs</Link>
+      </p>
       {nets.error && <p role="alert">{nets.error}</p>}
       {!nets.data && !nets.error && <p role="status">Loading…</p>}
       {nets.data && managed.length === 0 && <p>No managed networks.</p>}

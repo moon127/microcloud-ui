@@ -739,3 +739,76 @@ export const updateNetwork = (
   target?: string,
 ) => send<Started>("PUT", `${net(project, name)}${tq(target)}`, body);
 export const deleteNetwork = (project: string, name: string) => send<Started>("DELETE", net(project, name));
+
+// --- Phase 4b: network ACLs and forwards -------------------------------------------
+
+export interface AclRule {
+  action: "allow" | "allow-stateless" | "drop" | "reject";
+  state: "enabled" | "disabled" | "logged";
+  description: string;
+  source: string;
+  destination: string;
+  protocol: "" | "tcp" | "udp" | "icmp4" | "icmp6";
+  source_port: string;
+  destination_port: string;
+  icmp_type: string;
+  icmp_code: string;
+}
+
+export interface NetworkAcl {
+  name: string;
+  description: string;
+  ingress: AclRule[] | null;
+  egress: AclRule[] | null;
+  config: Record<string, string>;
+  used_by: string[] | null;
+  project?: string;
+}
+
+export interface AclBody {
+  description: string;
+  ingress: AclRule[];
+  egress: AclRule[];
+  config: Record<string, string>;
+}
+
+const acl = (project: string, name: string) => `/api/network-acls/${encodeURIComponent(project)}/${encodeURIComponent(name)}`;
+export const fetchAcls = (project: string) => api<NetworkAcl[]>(`/api/network-acls${q(project)}`);
+export const fetchAcl = (project: string, name: string) => api<NetworkAcl>(acl(project, name));
+export const createAcl = (project: string, name: string, body: AclBody) =>
+  send<Started>("POST", "/api/network-acls", { name, project, ...body });
+export const updateAcl = (project: string, name: string, body: AclBody) => send<Started>("PUT", acl(project, name), body);
+export const renameAcl = (project: string, name: string, to: string) => send<Started>("POST", `${acl(project, name)}/rename`, { name: to });
+export const deleteAcl = (project: string, name: string) => send<Started>("DELETE", acl(project, name));
+
+export interface ForwardPort {
+  protocol: "tcp" | "udp";
+  listen_port: string;
+  target_address: string;
+  target_port: string;
+  description: string;
+}
+
+export interface NetworkForward {
+  listen_address: string;
+  description: string;
+  config: Record<string, string>;
+  ports: ForwardPort[] | null;
+  location?: string;
+}
+
+export interface ForwardBody {
+  description: string;
+  config: Record<string, string>;
+  ports: ForwardPort[];
+}
+
+const fwd = (project: string, network: string, listen?: string) =>
+  `${net(project, network)}/forwards${listen ? `/${encodeURIComponent(listen)}` : ""}`;
+export const fetchForwards = (project: string, network: string) => api<NetworkForward[]>(fwd(project, network));
+export const createForward = (project: string, network: string, body: ForwardBody & { listen_address: string }, target?: string) =>
+  send<Started>("POST", `${fwd(project, network)}${tq(target)}`, body);
+export const updateForward = (project: string, network: string, listen: string, body: ForwardBody, target?: string) =>
+  send<Started>("PUT", `${fwd(project, network, listen)}${tq(target)}`, body);
+export const deleteForward = (project: string, network: string, listen: string, target?: string) =>
+  send<Started>("DELETE", `${fwd(project, network, listen)}${tq(target)}`);

@@ -1,4 +1,4 @@
-import type { NetworkType, NewNetwork } from "../../api";
+import type { AclRule, NetworkType, NewNetwork } from "../../api";
 
 /** The create-network form; empty fields are left to LXD's defaults. */
 export interface NetworkForm {
@@ -97,3 +97,16 @@ export function networkProblems(f: NetworkForm, members: string[]): string[] {
   if (f.type === "ovn" && !(f.fields.network ?? "").trim()) out.push("Choose an uplink network");
   return out;
 }
+
+export const emptyRule = (): AclRule => ({
+  action: "allow",
+  state: "enabled",
+  description: "",
+  source: "",
+  destination: "",
+  protocol: "",
+  source_port: "",
+  destination_port: "",
+  icmp_type: "",
+  icmp_code: "",
+});

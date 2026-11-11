@@ -8,6 +8,10 @@ import CreateNetworkPage from "./CreateNetworkPage";
 import NetworkPage from "./NetworkPage";
 import { buildNetwork, emptyNetwork, networkProblems } from "./request";
 
+beforeEach(() => {
+  vi.spyOn(api, "fetchAcls").mockResolvedValue([]);
+  vi.spyOn(api, "fetchForwards").mockResolvedValue([]);
+});
 afterEach(() => {
   vi.restoreAllMocks();
   localStorage.removeItem("mcui.project");
@@ -257,7 +261,7 @@ describe("NetworkPage", () => {
     vi.spyOn(api, "queryMetric").mockResolvedValue({ name: "", fn: "value", start: 0, end: 1, resolution: 0, series: [] } as never);
     routes("/networks/default/br0");
     expect(await screen.findByRole("heading", { name: "Network br0 bridge · in default" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "m2" })).toHaveAttribute("href", "/members/m2");
+    expect(await screen.findByRole("link", { name: "m2" })).toHaveAttribute("href", "/members/m2");
     expect(screen.getByRole("link", { name: "network o1" })).toHaveAttribute("href", "/networks/default/o1");
     expect(screen.getByRole("link", { name: "profile lab/default" })).toHaveAttribute("href", "/profiles/lab/default");
 
@@ -304,7 +308,7 @@ describe("NetworkPage", () => {
     routes("/networks/default/eno1?member=m2");
     expect(await screen.findByRole("heading", { name: "Network eno1 physical · on m2" })).toBeInTheDocument();
     expect(get).toHaveBeenCalledWith("default", "eno1", "m2");
-    expect(screen.getByText("Not managed by LXD")).toBeInTheDocument();
+    expect(await screen.findByText("Not managed by LXD")).toBeInTheDocument();
     expect(screen.getByText("Nothing.")).toBeInTheDocument();
     expect(screen.queryByRole("toolbar")).toBeNull();
     expect(screen.queryByLabelText("Description")).toBeNull();
@@ -341,7 +345,7 @@ describe("NetworkPage", () => {
     vi.spyOn(api, "fetchNetworkAllocations").mockResolvedValue([]);
     vi.spyOn(api, "fetchNetworkLeases").mockResolvedValue([]);
     routes("/networks/default/br0");
-    await waitFor(() => expect(screen.getAllByText("None.")).toHaveLength(2));
+    await waitFor(() => expect(screen.getAllByText("None.")).toHaveLength(3)); // allocations, leases, forwards
     expect(screen.queryByRole("heading", { name: "Per-member settings" })).toBeNull();
   });
 });
