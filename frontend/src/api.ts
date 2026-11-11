@@ -381,6 +381,21 @@ export function send<T>(method: string, path: string, body?: unknown): Promise<T
 export const fetchOperations = () => api<Operation[]>("/api/operations");
 export const waitOperation = (id: string, wait = 30) =>
   api<Operation>(`/api/operations/${encodeURIComponent(id)}?wait=${wait}`);
+/** LXD's progress note for a running operation ("rootfs: 45% (12.3MB/s)", "Unpack: 80%"), if any. */
+export function operationProgress(op: Operation): string | null {
+  const notes = Object.entries(op.metadata ?? {})
+    .filter(([k]) => k.endsWith("progress"))
+    .map(([, v]) => {
+      if (typeof v === "string") return v;
+      if (v && typeof v === "object") {
+        const { stage, percent, speed } = v as Record<string, unknown>;
+        return [stage, percent != null && `${percent}%`, speed && `(${speed})`].filter(Boolean).join(" ");
+      }
+      return "";
+    })
+    .filter(Boolean);
+  return notes.length ? notes.join(" · ") : null;
+}
 export const cancelOperation = (id: string) => send<void>("DELETE", `/api/operations/${encodeURIComponent(id)}`);
 
 export interface LxdWarning {

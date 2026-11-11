@@ -24,7 +24,14 @@ const ops: api.Operation[] = [
     project: "default",
     location: "m1",
   },
-  { id: "op2", description: "Deleting instance", created_at: "2026-01-01T00:00:00Z", status: "Failure", err: "busy" },
+  {
+    id: "op2",
+    description: "Deleting instance",
+    created_at: "2026-01-01T00:00:00Z",
+    status: "Failure",
+    err: "busy",
+    metadata: { fs_progress: "root: 10 MB" },
+  },
 ];
 
 describe("OperationsPage", () => {
@@ -36,6 +43,7 @@ describe("OperationsPage", () => {
     expect(row).toHaveTextContent("c1");
     expect(row).toHaveTextContent("m1");
     expect(screen.getByText("Failure: busy")).toBeInTheDocument();
+    expect(screen.getByText("root: 10 MB")).toBeInTheDocument();
     fireEvent.click(within(row).getByRole("button", { name: "Cancel" }));
     expect(cancel).toHaveBeenCalledWith("op1");
     expect(await screen.findByText(/✓ Cancel Starting instance/)).toBeInTheDocument();

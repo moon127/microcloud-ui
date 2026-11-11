@@ -236,6 +236,46 @@ describe("CreateInstancePage", () => {
     );
   });
 
+  it("shows progress while LXD creates and starts the instance", async () => {
+    const running = (metadata: api.Operation["metadata"]): api.Operation => ({
+      id: "op9",
+      description: "Creating instance",
+      created_at: "",
+      status: "Running",
+      metadata,
+    });
+    let finish!: (o: api.Operation) => void;
+    vi.spyOn(api, "createInstance").mockResolvedValue({ operation: running(null), metadata: null });
+    vi.spyOn(api, "waitOperation")
+      .mockResolvedValueOnce(running({ download_progress: "rootfs: 45% (12.3MB/s)" }))
+      .mockReturnValueOnce(new Promise((r) => (finish = r)));
+    open();
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "web2" } });
+    fireEvent.click(await screen.findByRole("button", { name: "Use images:alpine/edge" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("Creating web2 and starting it… Sending the request to LXD");
+    expect(screen.getByRole("button", { name: "Creating…" })).toBeDisabled();
+    expect(await screen.findByText(/rootfs: 45% \(12.3MB\/s\)/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Operations" })).toHaveAttribute("href", "/operations");
+    finish({ ...running(null), status: "Success" });
+    expect(await screen.findByText("instance page")).toBeInTheDocument();
+  });
+
+  it("shows the operation's description when there's no progress note", async () => {
+    vi.spyOn(api, "createInstance").mockResolvedValue({
+      operation: { id: "o", description: "Creating instance", created_at: "", status: "Running" },
+      metadata: null,
+    });
+    vi.spyOn(api, "waitOperation").mockReturnValue(new Promise(() => {}));
+    open();
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "web3" } });
+    fireEvent.click(await screen.findByRole("button", { name: "Use images:alpine/edge" }));
+    fireEvent.click(screen.getByLabelText("Start after creating"));
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("Creating web3… Creating instance"));
+  });
+
   it("stays on the page when creation fails; cancel goes back", async () => {
     vi.spyOn(api, "createInstance").mockRejectedValue(new Error("Instance limit reached"));
     open();
@@ -245,6 +285,8 @@ describe("CreateInstancePage", () => {
     fireEvent.change(screen.getByLabelText("Or cluster group"), { target: { value: "" } });
     fireEvent.click(screen.getByRole("button", { name: "Create" }));
     expect(await screen.findByText("✗ Create x1: Instance limit reached")).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent("Creating x1 failed: Instance limit reached");
+    expect(screen.getByRole("button", { name: "Create" })).toBeEnabled();
     expect(screen.queryByText("instance page")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(screen.getByText("instance list")).toBeInTheDocument();

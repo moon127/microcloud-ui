@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { useActions } from "./actions";
+import { useActions, type RunOptions } from "./actions";
 import ActionsProvider from "./ActionsProvider";
 import * as api from "./api";
 import Confirm from "./Confirm";
@@ -26,11 +26,19 @@ const op = (status: string, extra: Partial<api.Operation> = {}): api.Operation =
   ...extra,
 });
 
-function Runner({ start, label = "Start c1" }: { start: () => Promise<api.Started | void>; label?: string }) {
+function Runner({
+  start,
+  label = "Start c1",
+  opts,
+}: {
+  start: () => Promise<api.Started | void>;
+  label?: string;
+  opts?: RunOptions;
+}) {
   const { run, version } = useActions();
   return (
     <>
-      <button type="button" onClick={() => void run(label, start)}>
+      <button type="button" onClick={() => void run(label, start, opts)}>
         go
       </button>
       <p>version={version}</p>
@@ -91,6 +99,22 @@ describe("ActionsProvider", () => {
     );
     fireEvent.click(screen.getByText("go"));
     expect(await screen.findByText("✗ D: nope")).toBeInTheDocument();
+  });
+
+  it("reports progress with short waits, and errors", async () => {
+    const wait = vi.spyOn(api, "waitOperation").mockResolvedValueOnce(op("Running")).mockResolvedValueOnce(op("Failure", { err: "no space" }));
+    const onProgress = vi.fn();
+    const onError = vi.fn();
+    render(
+      <ActionsProvider>
+        <Runner start={() => Promise.resolve({ operation: op("Pending"), metadata: null })} opts={{ onProgress, onError }} />
+      </ActionsProvider>,
+    );
+    fireEvent.click(screen.getByText("go"));
+    expect(await screen.findByText("✗ Start c1: no space")).toBeInTheDocument();
+    expect(wait).toHaveBeenCalledWith("op1", 2);
+    expect(onProgress.mock.calls.map(([o]) => o.status)).toEqual(["Pending", "Running", "Failure"]);
+    expect(onError).toHaveBeenCalledWith("no space");
   });
 
   it("treats a call without an operation as done", async () => {

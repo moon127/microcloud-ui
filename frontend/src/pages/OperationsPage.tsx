@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { cancelOperation, fetchOperations, type Operation } from "../api";
+import { cancelOperation, fetchOperations, operationProgress, type Operation } from "../api";
 import { useActions } from "../actions";
 import { useEvents } from "../events";
 import { useSession } from "../session";
@@ -43,7 +43,10 @@ export default function OperationsPage() {
               {data.map((op) => (
                 <tr key={op.id}>
                   <td>{new Date(op.created_at).toLocaleString()}</td>
-                  <td>{op.description}</td>
+                  <td>
+                    {op.description}
+                    {operationProgress(op) && <div className="muted">{operationProgress(op)}</div>}
+                  </td>
                   <td>
                     {op.status}
                     {op.err ? `: ${op.err}` : ""}

@@ -262,3 +262,16 @@ describe("console helpers", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("operationProgress", () => {
+  const op = (metadata: api.Operation["metadata"]): api.Operation => ({ id: "o", description: "d", created_at: "", status: "Running", metadata });
+  it("reads LXD's progress notes", () => {
+    expect(api.operationProgress(op(null))).toBeNull();
+    expect(api.operationProgress(op({ fds: {}, download_progress: 7 }))).toBeNull();
+    expect(api.operationProgress(op({ download_progress: "rootfs: 45% (12.3MB/s)" }))).toBe("rootfs: 45% (12.3MB/s)");
+    expect(api.operationProgress(op({ progress: { stage: "unpack", percent: "80", speed: "5MB/s" }, create_instance_from_image_unpack_progress: "Unpack: 80%" }))).toBe(
+      "unpack 80% (5MB/s) · Unpack: 80%",
+    );
+    expect(api.operationProgress(op({ progress: { stage: "copy" } }))).toBe("copy");
+  });
+});

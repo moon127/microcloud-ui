@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
-import { ActionsContext } from "./actions";
+import { ActionsContext, type RunOptions } from "./actions";
 import { waitOperation, type Operation, type Started } from "./api";
 
 export interface Toast {
@@ -11,9 +11,16 @@ export interface Toast {
 
 const ACTIVE = new Set(["Pending", "Running", "Ready", "Started", "Freezing", "Cancelling"]);
 
-async function finish(op: Operation): Promise<Operation> {
+/** Short waits when someone is showing progress, so it updates as it goes. */
+const PROGRESS_WAIT = 2;
+
+async function finish(op: Operation, onProgress?: (op: Operation) => void): Promise<Operation> {
   let cur = op;
-  while (ACTIVE.has(cur.status)) cur = await waitOperation(cur.id);
+  onProgress?.(cur);
+  while (ACTIVE.has(cur.status)) {
+    cur = await waitOperation(cur.id, onProgress ? PROGRESS_WAIT : undefined);
+    onProgress?.(cur);
+  }
   return cur;
 }
 
@@ -25,17 +32,19 @@ export default function ActionsProvider({ children }: { children: ReactNode }) {
   const update = (id: number, patch: Partial<Toast>) =>
     setToasts((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
 
-  const run = useCallback(async (label: string, start: () => Promise<Started | void>) => {
+  const run = useCallback(async (label: string, start: () => Promise<Started | void>, opts: RunOptions = {}) => {
     const id = next.current++;
     setToasts((ts) => [...ts, { id, label, state: "running" }]);
     try {
       const st = await start();
-      const op = st?.operation ? await finish(st.operation) : null;
+      const op = st?.operation ? await finish(st.operation, opts.onProgress) : null;
       if (op && op.status !== "Success") throw new Error(op.err || op.status);
       update(id, { state: "done" });
       return true;
     } catch (e) {
-      update(id, { state: "failed", message: e instanceof Error ? e.message : String(e) });
+      const message = e instanceof Error ? e.message : String(e);
+      update(id, { state: "failed", message });
+      opts.onError?.(message);
       return false;
     } finally {
       setVersion((v) => v + 1);

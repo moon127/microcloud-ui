@@ -1,7 +1,16 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { stringify } from "yaml";
-import { createInstance, fetchMembers, fetchNetworks, fetchProfiles, fetchProjects, fetchStoragePools } from "../../api";
+import {
+  createInstance,
+  fetchMembers,
+  fetchNetworks,
+  fetchProfiles,
+  fetchProjects,
+  fetchStoragePools,
+  operationProgress,
+  type Operation,
+} from "../../api";
 import { useActions } from "../../actions";
 import { instancePath } from "../../paths";
 import { useProject } from "../../project";
@@ -17,6 +26,8 @@ export default function CreateInstancePage() {
   const navigate = useNavigate();
   const [f, setF] = useState<CreateForm>(() => emptyForm(current || "default"));
   const [tried, setTried] = useState(false);
+  // the running create: its latest operation, or why it failed
+  const [creating, setCreating] = useState<Progress | null>(null);
   const projects = useApi("projects", fetchProjects);
   const members = useApi("members", fetchMembers);
   const pools = useApi("pools", fetchStoragePools);
@@ -26,6 +37,7 @@ export default function CreateInstancePage() {
   if (user.role !== "admin") return <p role="alert">Creating instances needs the admin role.</p>;
 
   const set = <K extends keyof CreateForm>(k: K, v: CreateForm[K]) => setF((x) => ({ ...x, [k]: v }));
+  const busy = !!creating && !creating.error;
   const issues = problems(f);
   const req = buildRequest(f);
   const managed = (networks.data ?? []).filter((n) => n.managed);
@@ -42,7 +54,12 @@ export default function CreateInstancePage() {
         e.preventDefault();
         setTried(true);
         if (issues.length) return;
-        void run(`Create ${f.name}`, () => createInstance(req)).then((ok) => ok && navigate(instancePath(f.project, f.name)));
+        const { name, project, start } = f;
+        setCreating({ name, start });
+        void run(`Create ${name}`, () => createInstance(req), {
+          onProgress: (op) => setCreating({ name, start, op }),
+          onError: (error) => setCreating({ name, start, error }),
+        }).then((ok) => ok && navigate(instancePath(project, name)));
       }}
     >
       <h1>Create instance</h1>
@@ -278,14 +295,48 @@ export default function CreateInstancePage() {
           ))}
         </ul>
       )}
+      {creating && <CreateProgress {...creating} />}
       <div className="actions">
-        <button type="submit" className="primary">
-          Create
+        <button type="submit" className="primary" disabled={busy}>
+          {busy ? "Creating…" : "Create"}
         </button>
         <button type="button" onClick={() => navigate("/instances")}>
           Cancel
         </button>
       </div>
     </form>
+  );
+}
+
+interface Progress {
+  name: string;
+  start: boolean;
+  op?: Operation;
+  error?: string;
+}
+
+function CreateProgress({ name, start, op, error }: Progress) {
+  if (error)
+    return (
+      <p role="alert" className="progress failed">
+        Creating {name} failed: {error}
+      </p>
+    );
+  const note = op && operationProgress(op);
+  return (
+    <div role="status" className="progress">
+      <strong>
+        Creating {name}
+        {start ? " and starting it" : ""}…
+      </strong>{" "}
+      {note ?? (op ? op.description : "Sending the request to LXD")}
+      {op && (
+        <>
+          {" · "}
+          <Link to="/operations">Operations</Link>
+        </>
+      )}
+      <div className="muted">Downloading a new image can take a few minutes; you'll be taken to the instance when it's ready.</div>
+    </div>
   );
 }
