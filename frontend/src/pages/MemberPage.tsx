@@ -180,7 +180,8 @@ function NodePanels({ name, range }: { name: string; range: number }) {
                 label: "swap used",
                 points: subtract(p(swapTotal), p(swapFree)),
               });
-            if (p(arc).length) out.push({ label: "ZFS ARC", points: p(arc) });
+            // the zfs module reports a few bytes of ARC when no pool is imported
+            if (p(arc).some(([, v]) => v >= 1024 ** 2)) out.push({ label: "ZFS ARC", points: p(arc) });
             return out;
           }}
         />

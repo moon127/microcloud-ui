@@ -245,3 +245,22 @@ async def test_collector_writes_node_samples(lxd, store, settings, scraper):
 
 def _ok(member):
     return MemberScrape(member, f"https://{member}:8443", True, NOW)
+
+
+REC = Path(__file__).parent / "fixtures" / "recorded-node"
+
+
+def test_recorded_host():
+    t0 = parse((REC / "host_t0.txt").read_text())
+    t15 = parse((REC / "host_t15.txt").read_text())
+    samples = node_samples("gw", t15)
+    assert len(samples) == 42
+    assert {s.labels["device"] for s in samples if "device" in s.labels} == {"sda", "sdb"}
+    mounts = {s.labels["mountpoint"] for s in samples if "mountpoint" in s.labels}
+    assert mounts == {"/", "/boot", "/boot/efi"}
+    now = host_now(t15, t0, 15)
+    assert 0 < now["cpu_percent"] < 100 and now["disk_busiest"] in {"sda", "sdb"}
+    assert now["zfs_arc"] is None  # module loaded, no pool: 1920 bytes
+    assert 0 < now["memory_used"] < now["memory_total"]
+    assert now["swap_total"] > 0 and now["rootfs_size"] > now["rootfs_used"] > 0
+    assert now["pressure_cpu"] >= 0 and now["timex_sync"] == 1

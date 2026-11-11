@@ -165,7 +165,7 @@ describe("MemberPage with node_exporter", () => {
       node_memory_Buffers_bytes: [{ labels: m, points: [[10, 5]] }],
       node_memory_SwapTotal_bytes: [{ labels: m, points: [[10, 10]] }],
       node_memory_SwapFree_bytes: [{ labels: m, points: [[10, 7]] }],
-      node_zfs_arc_size: [{ labels: m, points: [[10, 9]] }],
+      node_zfs_arc_size: [{ labels: m, points: [[10, 2 ** 20]] }],
       node_filesystem_size_bytes: [{ labels: { mountpoint: "/" }, points: [[10, 200]] }],
       node_filesystem_avail_bytes: [{ labels: { mountpoint: "/" }, points: [[10, 50]] }],
       node_disk_read_bytes_total: [{ labels: { device: "sda" }, points: [[10, 3]] }],
@@ -185,7 +185,7 @@ describe("MemberPage with node_exporter", () => {
     await vi.waitFor(() => expect(plots.find((p) => p.opts.series[1]?.label === "used")).toBeDefined());
     const mem = plots.find((p) => p.opts.series[1]?.label === "used")!;
     expect(mem.opts.series.slice(1).map((s) => s.label)).toEqual(["used", "cache + buffers", "total", "swap used", "ZFS ARC"]);
-    expect(mem.data).toEqual([[10], [60], [25], [100], [3], [9]]);
+    expect(mem.data).toEqual([[10], [60], [25], [100], [3], [2 ** 20]]);
     await vi.waitFor(() => expect(plots.find((p) => p.opts.series[1]?.label === "/")).toBeDefined());
     expect(plots.find((p) => p.opts.series[1]?.label === "/")!.data).toEqual([[10], [75]]);
     await vi.waitFor(() => expect(plots.find((p) => p.opts.series[1]?.label === "sda")).toBeDefined());

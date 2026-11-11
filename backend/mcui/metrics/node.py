@@ -28,6 +28,7 @@ from mcui.metrics.scrape import with_port
 _NOT_HOST_DISK = re.compile(r"^(?:rbd|nbd|zd|sr|md)\d+")
 
 IDLE_MODES = frozenset({"idle", "iowait", "steal"})
+MIN_ARC = 1024**2
 
 
 def host_disk(device: str) -> bool:
@@ -174,7 +175,9 @@ def host_now(cur: Exposition, prev: Exposition | None, dt: float) -> dict[str, A
     out["memory_used"] = total - avail if total is not None and avail is not None else None
     cache = [g("node_memory_Cached_bytes"), g("node_memory_Buffers_bytes")]
     out["memory_cache"] = sum(v for v in cache if v is not None) if any(cache) else None
-    out["zfs_arc"] = g("node_zfs_arc_size")
+    arc = g("node_zfs_arc_size")
+    # the zfs module reports a few bytes of ARC with no pool imported
+    out["zfs_arc"] = arc if arc is not None and arc >= MIN_ARC else None
     st, sf = g("node_memory_SwapTotal_bytes"), g("node_memory_SwapFree_bytes")
     out["swap_total"] = st
     out["swap_used"] = st - sf if st is not None and sf is not None else None
