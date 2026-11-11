@@ -102,13 +102,14 @@ function PoolList() {
   return (
     <>
       <h2>LXD storage pools</h2>
-      {user.role === "admin" && (
-        <p>
+      <p className="actions">
+        {user.role === "admin" && (
           <Link className="button primary" to="/storage/pools/new">
             Create pool
           </Link>
-        </p>
-      )}
+        )}
+        <Link to="/storage/volumes">Custom volumes</Link>
+      </p>
       {error && <p role="alert">{error}</p>}
       {data && data.length === 0 && <p>No storage pools.</p>}
       {data && data.length > 0 && (

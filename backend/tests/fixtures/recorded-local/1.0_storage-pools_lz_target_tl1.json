@@ -1,0 +1,29 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "config": {
+      "size": "4GiB",
+      "source": "/var/lib/lxd/disks/lz.img",
+      "zfs.pool_name": "lz"
+    },
+    "description": "edited again",
+    "driver": "zfs",
+    "locations": [
+      "tl1"
+    ],
+    "name": "lz",
+    "status": "Created",
+    "used_by": [
+      "/1.0/storage-pools/lz/volumes/custom/v1/snapshots/s0?target=tl1",
+      "/1.0/storage-pools/lz/volumes/custom/v1/snapshots/s2?target=tl1",
+      "/1.0/storage-pools/lz/volumes/custom/v1?target=tl1",
+      "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003?target=tl1",
+      "/1.0/instances/c-lz"
+    ]
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

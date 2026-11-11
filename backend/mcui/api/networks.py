@@ -21,6 +21,7 @@ from mcui.api.manage import ObjName
 from mcui.lxd import clustered, operations
 from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import members, server_info
+from mcui.lxd.volatile import keep_volatile
 
 router = APIRouter(prefix="/api")
 
@@ -159,13 +160,15 @@ async def update_network(
     """Replace the cluster-wide settings, or with ``target`` one member's own keys."""
     params: dict[str, Any] = {"project": project}
     payload = body.model_dump()
+    current = await lxd.get(_net(name), project=project)
     if target:
         _check_member_keys({target: body.config})
         params["target"] = target
         # LXD applies a member-level PUT's description cluster-wide (seen live:
         # it blanked it), so keep the current one
-        current = await lxd.get(_net(name), project=project)
         payload["description"] = current.get("description", "")
+    else:
+        payload["config"] = keep_volatile(current.get("config"), body.config)
     st = await audited(
         session,
         store,

@@ -182,7 +182,9 @@ async def test_create_standalone_merges_member_keys(app):
 @respx.mock
 async def test_update_and_delete(app, services):
     put = respx.put(f"{POOLS}/p").mock(return_value=lxd_ok(None))
-    respx.get(f"{POOLS}/p").mock(return_value=lxd_ok({"description": "keep", "config": {}}))
+    respx.get(f"{POOLS}/p").mock(
+        return_value=lxd_ok({"description": "keep", "config": {"volatile.pool.pristine": "true"}})
+    )
     respx.delete(f"{POOLS}/p").mock(
         return_value=lxd_err("The storage pool is currently in use", 400)
     )
@@ -191,7 +193,11 @@ async def test_update_and_delete(app, services):
         await c.put(
             "/api/storage-pools/p", json={"description": "d", "config": {"a": "1"}}, headers=h
         )
-        assert body(put) == {"description": "d", "config": {"a": "1"}} and params(put) == {}
+        assert params(put) == {}
+        assert body(put) == {
+            "description": "d",
+            "config": {"a": "1", "volatile.pool.pristine": "true"},
+        }
         await c.put(
             "/api/storage-pools/p",
             params={"target": "m1"},

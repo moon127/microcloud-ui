@@ -23,6 +23,8 @@ import Overview from "./pages/Overview";
 import StoragePage from "./pages/StoragePage";
 import CreatePoolPage from "./pages/storage/CreatePoolPage";
 import PoolPage from "./pages/storage/PoolPage";
+import VolumePage from "./pages/storage/VolumePage";
+import VolumesPage from "./pages/storage/VolumesPage";
 import WarningsPage from "./pages/WarningsPage";
 import { ProjectProvider } from "./ProjectProvider";
 import { SessionContext } from "./session";
@@ -51,6 +53,8 @@ export function AppRoutes() {
         <Route path="storage" element={<StoragePage />} />
         <Route path="storage/pools/new" element={<CreatePoolPage />} />
         <Route path="storage/pools/:name" element={<PoolPage />} />
+        <Route path="storage/volumes" element={<VolumesPage />} />
+        <Route path="storage/volumes/:project/:pool/:name" element={<VolumePage />} />
         <Route path="networks" element={<NetworksPage />} />
         <Route path="networks/new" element={<CreateNetworkPage />} />
         <Route path="networks/:project/:name" element={<NetworkPage />} />

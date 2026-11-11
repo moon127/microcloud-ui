@@ -1,0 +1,70 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {},
+      "description": "btrfs loop",
+      "driver": "btrfs",
+      "locations": [
+        "tl1"
+      ],
+      "name": "lb",
+      "status": "Created",
+      "used_by": [
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003?target=tl1",
+        "/1.0/instances/c-lb"
+      ]
+    },
+    {
+      "config": {},
+      "description": "lvm loop",
+      "driver": "lvm",
+      "locations": [
+        "tl1"
+      ],
+      "name": "ll",
+      "status": "Created",
+      "used_by": [
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003?target=tl1",
+        "/1.0/instances/c-ll",
+        "/1.0/storage-pools/ll/volumes/custom/vb?target=tl1"
+      ]
+    },
+    {
+      "config": {},
+      "description": "",
+      "driver": "dir",
+      "locations": [
+        "tl1"
+      ],
+      "name": "local-dir",
+      "status": "Created",
+      "used_by": [
+        "/1.0/instances/c-local-dir",
+        "/1.0/profiles/default"
+      ]
+    },
+    {
+      "config": {},
+      "description": "edited again",
+      "driver": "zfs",
+      "locations": [
+        "tl1"
+      ],
+      "name": "lz",
+      "status": "Created",
+      "used_by": [
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003?target=tl1",
+        "/1.0/instances/c-lz",
+        "/1.0/storage-pools/lz/volumes/custom/v1/snapshots/s0?target=tl1",
+        "/1.0/storage-pools/lz/volumes/custom/v1/snapshots/s2?target=tl1",
+        "/1.0/storage-pools/lz/volumes/custom/v1?target=tl1"
+      ]
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

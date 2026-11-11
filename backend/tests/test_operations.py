@@ -103,5 +103,19 @@ async def test_wait_expiry_returns_running_operation(lxd):
     w.mock(return_value=lxd_err("context deadline exceeded", 500))  # older LXD: 500 + message
     assert (await operations.wait(lxd, "op1"))["status"] == "Running"
     w.mock(return_value=lxd_err("Operation not found", 404))
+    respx.get(f"{EP1}/1.0/operations/op1").mock(return_value=lxd_err("Operation not found", 404))
     with pytest.raises(LXDError, match="not found"):
+        await operations.wait(lxd, "op1")
+
+
+@respx.mock
+async def test_wait_on_a_failed_operation_returns_it(lxd):
+    w = respx.get(f"{EP1}/1.0/operations/op1/wait")
+    w.mock(return_value=lxd_err('Volume "v1" is missing the required "volatile.uuid" setting', 400))
+    get = respx.get(f"{EP1}/1.0/operations/op1")
+    get.mock(return_value=lxd_ok({**OP, "status": "Failure", "err": "missing volatile.uuid"}))
+    op = await operations.wait(lxd, "op1")
+    assert op["status"] == "Failure" and op["err"] == "missing volatile.uuid"
+    get.mock(return_value=lxd_ok(OP))  # still running: the wait's error stands
+    with pytest.raises(LXDError, match="volatile.uuid"):
         await operations.wait(lxd, "op1")

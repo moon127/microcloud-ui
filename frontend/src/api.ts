@@ -860,3 +860,82 @@ export const createPool = (body: NewPool) => send<Started>("POST", "/api/storage
 export const updatePool = (name: string, body: { description?: string; config: Record<string, string> }, target?: string) =>
   send<Started>("PUT", `${pool(name)}${tq(target)}`, body);
 export const deletePool = (name: string) => send<Started>("DELETE", pool(name));
+
+// --- Phase 4d: custom volumes -------------------------------------------------------
+
+export interface Volume {
+  name: string;
+  type: string;
+  content_type: "filesystem" | "block" | "iso" | string;
+  description: string;
+  config: Record<string, string>;
+  location: string;
+  used_by: string[] | null;
+  project?: string;
+  pool: string;
+  created_at?: string;
+}
+
+export interface VolumeDetail extends Volume {
+  state: { usage?: { used: number; total?: number } | null } | null;
+}
+
+export interface VolumeSnapshot {
+  name: string;
+  description: string;
+  created_at: string;
+  expires_at?: string | null;
+  config: Record<string, string>;
+}
+
+export interface NewVolume {
+  name: string;
+  pool: string;
+  project: string;
+  content_type: "filesystem" | "block";
+  description: string;
+  config: Record<string, string>;
+  target?: string;
+}
+
+/** Volumes on local pools in a cluster live on one member; LXD wants it back as ``target``. */
+export const volumeTarget = (v: { location?: string }) => (v.location && v.location !== "none" ? v.location : undefined);
+
+const vol = (project: string, pool: string, name: string) =>
+  `/api/volumes/${encodeURIComponent(project)}/${encodeURIComponent(pool)}/${encodeURIComponent(name)}`;
+export const fetchVolumes = (project: string) => api<Volume[]>(`/api/volumes${q(project)}`);
+export const fetchVolume = (project: string, pool: string, name: string, target?: string) =>
+  api<VolumeDetail>(`${vol(project, pool, name)}${tq(target)}`);
+export const fetchVolumeSnapshots = (project: string, pool: string, name: string, target?: string) =>
+  api<VolumeSnapshot[]>(`${vol(project, pool, name)}/snapshots${tq(target)}`);
+export const createVolume = (body: NewVolume) => send<Started>("POST", "/api/volumes", body);
+export const updateVolume = (
+  project: string,
+  pool: string,
+  name: string,
+  body: { description: string; config: Record<string, string> },
+  target?: string,
+) => send<Started>("PUT", `${vol(project, pool, name)}${tq(target)}`, body);
+export const renameVolume = (project: string, pool: string, name: string, to: string, target?: string) =>
+  send<Started>("POST", `${vol(project, pool, name)}/rename${tq(target)}`, { name: to });
+export const deleteVolume = (project: string, pool: string, name: string, target?: string) =>
+  send<Started>("DELETE", `${vol(project, pool, name)}${tq(target)}`);
+export const createVolumeSnapshot = (
+  project: string,
+  pool: string,
+  name: string,
+  body: { name: string; expires_at?: string },
+  target?: string,
+) => send<Started>("POST", `${vol(project, pool, name)}/snapshots${tq(target)}`, body);
+const vsnap = (project: string, pool: string, name: string, snap: string) =>
+  `${vol(project, pool, name)}/snapshots/${encodeURIComponent(snap)}`;
+export const renameVolumeSnapshot = (project: string, pool: string, name: string, snap: string, to: string, target?: string) =>
+  send<Started>("POST", `${vsnap(project, pool, name, snap)}/rename${tq(target)}`, { name: to });
+export const restoreVolumeSnapshot = (project: string, pool: string, name: string, snap: string, target?: string) =>
+  send<Started>("POST", `${vsnap(project, pool, name, snap)}/restore${tq(target)}`);
+export const deleteVolumeSnapshot = (project: string, pool: string, name: string, snap: string, target?: string) =>
+  send<Started>("DELETE", `${vsnap(project, pool, name, snap)}${tq(target)}`);
+export const attachVolume = (project: string, pool: string, name: string, body: { instance: string; device: string; path?: string }) =>
+  send<Started>("POST", `${vol(project, pool, name)}/attach`, body);
+export const detachVolume = (project: string, pool: string, name: string, body: { instance: string; device: string }) =>
+  send<Started>("POST", `${vol(project, pool, name)}/detach`, body);

@@ -21,6 +21,7 @@ from mcui.api.networks import MemberName
 from mcui.lxd import clustered, operations
 from mcui.lxd.client import LXDError
 from mcui.lxd.server import members, server_info
+from mcui.lxd.volatile import keep_volatile
 
 router = APIRouter(prefix="/api")
 
@@ -128,11 +129,13 @@ async def update_pool(
 ) -> dict[str, Any]:
     """Replace the cluster-wide settings, or with ``target`` one member's own keys."""
     payload = body.model_dump()
+    current = await lxd.get(_pool(name))
     if target:
         _check_member_keys({target: body.config})
         # like networks (D52), keep the cluster-wide description
-        current = await lxd.get(_pool(name))
         payload["description"] = current.get("description", "")
+    else:
+        payload["config"] = keep_volatile(current.get("config"), body.config)
     st = await audited(
         session,
         store,

@@ -1,0 +1,28 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "architecture": "x86_64",
+      "config": {},
+      "database": true,
+      "description": "",
+      "failure_domain": "default",
+      "groups": [
+        "default"
+      ],
+      "message": "Fully operational",
+      "roles": [
+        "database-leader",
+        "database"
+      ],
+      "server_name": "tl1",
+      "status": "Online",
+      "url": "https://127.0.0.1:8443"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

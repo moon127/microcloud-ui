@@ -1,0 +1,91 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "volatile.uuid": "73ef23cc-426f-474c-b086-ac24a8b563dd"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-11T14:20:03.581983095Z",
+      "description": "",
+      "location": "tl1",
+      "name": "c-lz",
+      "pool": "lz",
+      "project": "default",
+      "type": "container",
+      "used_by": [
+        "/1.0/instances/c-lz"
+      ]
+    },
+    {
+      "config": {
+        "size": "200MiB",
+        "volatile.idmap.last": "[{\"Isuid\":true,\"Isgid\":false,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000},{\"Isuid\":false,\"Isgid\":true,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000}]",
+        "volatile.idmap.next": "[{\"Isuid\":true,\"Isgid\":false,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000},{\"Isuid\":false,\"Isgid\":true,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000}]",
+        "volatile.uuid": "1e333012-e3fd-44c6-9a26-0d6b7f5463c6"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-11T14:23:00.151177204Z",
+      "description": "",
+      "location": "tl1",
+      "name": "v1",
+      "pool": "lz",
+      "project": "default",
+      "type": "custom",
+      "used_by": [
+        "/1.0/instances/c-lz"
+      ]
+    },
+    {
+      "config": {
+        "size": "200MiB",
+        "volatile.uuid": "a3cfb499-e972-4561-9a82-f4a1ba6c5197"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-11T14:23:01.328238018Z",
+      "description": "",
+      "location": "tl1",
+      "name": "v1/s0",
+      "pool": "lz",
+      "project": "default",
+      "type": "custom",
+      "used_by": []
+    },
+    {
+      "config": {
+        "size": "200MiB",
+        "volatile.uuid": "821edb7e-9451-4905-aa43-731c79ea1921"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-11T14:23:01.471952947Z",
+      "description": "",
+      "location": "tl1",
+      "name": "v1/s2",
+      "pool": "lz",
+      "project": "default",
+      "type": "custom",
+      "used_by": []
+    },
+    {
+      "config": {
+        "volatile.uuid": "896008b4-7551-40a7-bc70-8790302805dd"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-11T14:20:03.718193116Z",
+      "description": "",
+      "location": "tl1",
+      "name": "0000000000000000000000000000000000000000000000000000000000000003",
+      "pool": "lz",
+      "project": "default",
+      "type": "image",
+      "used_by": [
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003?target=tl1"
+      ]
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

@@ -191,12 +191,9 @@ placement groups, image registries, buckets, LXD auth management.
 - WebSocket proxy tests with an in-process fake LXD websocket.
 - Frontend: Vitest + Testing Library (≥90%); Playwright e2e against a mocked backend.
 - Opt-in integration suite against a real MicroCloud (env-var gated).
-- **Coverage gap: local storage.** The test cloud has only Ceph pools (RBD and
-  CephFS), so local pools (zfs, dir, lvm, btrfs) are untested: capacity
-  history, instance disk totals (D40 skips `dm-*`, which an lvm pool or a dir
-  pool on an encrypted/LVM root would use) and Phase 4 pool management. Before
-  Phase 4 is called done, record fixtures from an LXD with each local driver
-  (a throwaway LXD VM is enough) and add tests; see agents.md "Known gaps".
+- **Local storage:** covered by fixtures recorded from a throwaway LXD with zfs,
+  btrfs, lvm and dir pools (`backend/tests/fixtures/recorded-local`, 2026-11-11);
+  remaining caveats in agents.md "Known gaps".
 
 ## 5. What I need from you
 See open questions in `docs/REQUIREMENTS.md` §7, then the test-cloud IPs and certs:

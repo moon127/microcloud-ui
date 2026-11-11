@@ -48,6 +48,9 @@ async def start(
     return Started(operation=None, metadata=body.get("metadata"))
 
 
+FINAL = frozenset({"Success", "Failure", "Cancelled"})
+
+
 async def wait(client: LXDClient, op_id: str, timeout: int = MAX_WAIT) -> dict[str, Any]:
     """Wait up to ``timeout`` seconds; returns the operation (maybe still running)."""
     timeout = max(0, min(timeout, MAX_WAIT))
@@ -64,6 +67,14 @@ async def wait(client: LXDClient, op_id: str, timeout: int = MAX_WAIT) -> dict[s
         # exceeded"); the operation is simply still running
         if e.status == 504 or "deadline exceeded" in str(e):
             return await get(client, op_id)
+        # a failed operation's wait also answers with its error (seen live on a
+        # volume snapshot); hand back the operation itself, with status and err
+        try:
+            failed = await get(client, op_id)
+        except LXDError:
+            raise e from None
+        if failed.get("status") in FINAL:
+            return failed
         raise
     return op
 

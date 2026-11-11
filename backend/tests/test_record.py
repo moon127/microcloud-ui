@@ -83,3 +83,24 @@ async def test_record_writes_scrubbed_files(settings, lxd, tmp_path):
     assert res == {"serial": "SCRUBBED", "uuid": "SCRUBBED", "vendor": "X"}
     assert any("FAIL metrics m2" in line for line in log)
     assert log[-1].startswith("Scrubbed ")
+
+
+@respx.mock
+async def test_record_pools_standalone(settings, lxd, tmp_path):
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(fixture_json("server_standalone.json")))
+    respx.get(f"{EP1}/1.0/cluster/members").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/instances").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/networks").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/warnings").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/storage-pools", params={"recursion": "1"}).mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/storage-pools").mock(return_value=lxd_ok(["/1.0/storage-pools/lz"]))
+    respx.get(f"{EP1}/1.0/storage-pools/lz").mock(return_value=lxd_ok({"driver": "zfs"}))
+    respx.get(f"{EP1}/1.0/storage-pools/lz/resources").mock(return_value=lxd_ok({"space": {}}))
+    respx.get(f"{EP1}/1.0/storage-pools/lz/volumes").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/metrics").mock(return_value=httpx.Response(200, text="x 1\n"))
+    out = tmp_path / "rec"
+    assert await record(settings, lxd, lxd, out, lambda _: None) == 0
+    names = sorted(p.name for p in out.iterdir())
+    assert "1.0_storage-pools_lz.json" in names
+    assert "1.0_storage-pools_lz_resources.json" in names
+    assert "1.0_storage-pools_lz_volumes_recursion_1_all-projects_true.json" in names

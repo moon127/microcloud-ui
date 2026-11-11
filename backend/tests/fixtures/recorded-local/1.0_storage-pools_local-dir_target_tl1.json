@@ -1,0 +1,24 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "config": {
+      "source": "/var/lib/lxd/storage-pools/local-dir"
+    },
+    "description": "",
+    "driver": "dir",
+    "locations": [
+      "tl1"
+    ],
+    "name": "local-dir",
+    "status": "Created",
+    "used_by": [
+      "/1.0/instances/c-local-dir",
+      "/1.0/profiles/default"
+    ]
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

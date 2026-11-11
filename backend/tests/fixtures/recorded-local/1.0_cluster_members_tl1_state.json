@@ -1,0 +1,68 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "storage_pools": {
+      "lb": {
+        "inodes": {
+          "total": 0,
+          "used": 0
+        },
+        "space": {
+          "total": 4294967296,
+          "used": 18804736
+        }
+      },
+      "ll": {
+        "inodes": {
+          "total": 0,
+          "used": 0
+        },
+        "space": {
+          "total": 3208642560,
+          "used": 705259634
+        }
+      },
+      "local-dir": {
+        "inodes": {
+          "total": 3145728,
+          "used": 131411
+        },
+        "space": {
+          "total": 24883167232,
+          "used": 8974794752
+        }
+      },
+      "lz": {
+        "inodes": {
+          "total": 0,
+          "used": 0
+        },
+        "space": {
+          "total": 3892314112,
+          "used": 7293440
+        }
+      }
+    },
+    "sysinfo": {
+      "buffered_ram": 29007872,
+      "free_ram": 187117568,
+      "free_swap": 4289945600,
+      "load_averages": [
+        0.36,
+        0.63,
+        0.73
+      ],
+      "logical_cpus": 2,
+      "processes": 322,
+      "shared_ram": 19578880,
+      "total_ram": 2040782848,
+      "total_swap": 4294963200,
+      "uptime": 1790
+    }
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

@@ -1,0 +1,42 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "volatile.uuid": "138b64ae-8174-41c6-a6e1-1e8c8231d6fc"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-11T14:20:09.511067404Z",
+      "description": "",
+      "location": "tl1",
+      "name": "c-lb",
+      "pool": "lb",
+      "project": "default",
+      "type": "container",
+      "used_by": [
+        "/1.0/instances/c-lb"
+      ]
+    },
+    {
+      "config": {
+        "volatile.uuid": "f31e357a-86f1-41b4-bb54-1ecb16072968"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-11T14:20:09.639821357Z",
+      "description": "",
+      "location": "tl1",
+      "name": "0000000000000000000000000000000000000000000000000000000000000003",
+      "pool": "lb",
+      "project": "default",
+      "type": "image",
+      "used_by": [
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003?target=tl1"
+      ]
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

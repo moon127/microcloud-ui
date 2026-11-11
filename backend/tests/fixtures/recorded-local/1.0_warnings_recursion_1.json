@@ -1,0 +1,49 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "count": 1,
+      "entity_url": "",
+      "first_seen_at": "2026-11-11T14:13:12.603152468Z",
+      "last_message": "QEMU command not available for CPU architecture",
+      "last_seen_at": "2026-11-11T14:13:12.603152468Z",
+      "location": "tl1",
+      "project": "",
+      "severity": "low",
+      "status": "new",
+      "type": "Instance type not operational",
+      "uuid": "SCRUBBED"
+    },
+    {
+      "count": 1,
+      "entity_url": "",
+      "first_seen_at": "2026-11-11T14:13:12.601493718Z",
+      "last_message": "per-instance network priority will be ignored. Please use per-device limits.priority instead",
+      "last_seen_at": "2026-11-11T14:13:12.601493718Z",
+      "location": "tl1",
+      "project": "",
+      "severity": "low",
+      "status": "new",
+      "type": "Couldn't find the CGroup network priority controller",
+      "uuid": "SCRUBBED"
+    },
+    {
+      "count": 1,
+      "entity_url": "",
+      "first_seen_at": "2026-11-11T14:13:12.599933033Z",
+      "last_message": "hugepage limits will be ignored",
+      "last_seen_at": "2026-11-11T14:13:12.599933033Z",
+      "location": "tl1",
+      "project": "",
+      "severity": "low",
+      "status": "new",
+      "type": "Couldn't find the CGroup hugetlb controller",
+      "uuid": "SCRUBBED"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

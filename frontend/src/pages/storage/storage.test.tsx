@@ -170,7 +170,12 @@ const detail = (over: Partial<api.PoolDetail> = {}): api.PoolDetail => ({
   description: "nvme",
   status: "Created",
   config: { "volume.zfs.remove_snapshots": "true" },
-  used_by: ["/1.0/instances/c1", "/1.0/profiles/default", "/1.0/storage-pools/local/volumes/custom/v1"],
+  used_by: [
+    "/1.0/instances/c1",
+    "/1.0/profiles/default",
+    "/1.0/storage-pools/local/volumes/custom/v1",
+    "/1.0/storage-pools/local/volumes/custom/v2?project=p&target=m2",
+  ],
   locations: ["m1", "m2"],
   ...over,
 });
@@ -203,7 +208,8 @@ describe("PoolPage", () => {
     expect(screen.getByRole("link", { name: "m2" }).closest("tr")).toHaveTextContent("Member offline");
     expect(screen.getByRole("link", { name: "m3" }).closest("tr")).toHaveTextContent("Created0 B0 B––");
     expect(screen.getByRole("figure", { name: "local: space used" })).toBeInTheDocument();
-    expect(screen.getByText("/1.0/storage-pools/local/volumes/custom/v1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "volume local/v1" })).toHaveAttribute("href", "/storage/volumes/default/local/v1");
+    expect(screen.getByRole("link", { name: "volume local/v2" })).toHaveAttribute("href", "/storage/volumes/p/local/v2?member=m2");
 
     fireEvent.change(screen.getByLabelText("m1"), { target: { value: "size: 30GiB" } });
     fireEvent.click(screen.getByRole("button", { name: "Save m1" }));

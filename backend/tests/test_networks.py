@@ -224,7 +224,11 @@ async def test_create_validation(app, payload):
 @respx.mock
 async def test_update_and_delete(app, services):
     put = respx.put(f"{NETS}/br0").mock(return_value=lxd_ok(None))
-    respx.get(f"{NETS}/br0").mock(return_value=lxd_ok({"description": "keep me", "config": {}}))
+    respx.get(f"{NETS}/br0").mock(
+        return_value=lxd_ok(
+            {"description": "keep me", "config": {"volatile.network.ipv4.address": "x"}}
+        )
+    )
     respx.delete(f"{NETS}/br0").mock(return_value=lxd_err("Network is in use", 400))
     async with client(app) as c:
         h = await admin(c)
@@ -233,7 +237,10 @@ async def test_update_and_delete(app, services):
             json={"description": "d", "config": {"ipv4.nat": "true"}},
             headers=h,
         )
-        assert body(put) == {"description": "d", "config": {"ipv4.nat": "true"}}
+        assert body(put) == {
+            "description": "d",
+            "config": {"ipv4.nat": "true", "volatile.network.ipv4.address": "x"},
+        }
         assert params(put) == {"project": "default"}
         await c.put(
             "/api/networks/default/br0",

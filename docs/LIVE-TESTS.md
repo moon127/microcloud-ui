@@ -49,6 +49,14 @@ change with its LXD operation id.
 | N3 | Networks page and a network page in a real browser (light and dark) | Tables, per-member YAML boxes and the member selector are readable and work |
 | N4 | On an OVN network: attach an ACL using `@internal`/`@external`, and add a forward from a spare `ipv4.ovn.ranges`/routes address to an instance | ACL applies; forward reaches the instance; remove both afterwards |
 
+## Storage (Phase 4)
+
+| # | Steps | Expect |
+|---|---|---|
+| S1 | Storage → a pool page and Custom volumes in a real browser | Capacity table/meter, history chart, per-member boxes (local pools only) readable |
+| S2 | Create a volume in a project, attach it to a running container, check it's mounted, detach, delete | Each step works; delete refused while attached |
+| S3 | On a VM: attach a **block** volume | Appears as a disk in the VM |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/
@@ -59,4 +67,5 @@ terminal across members with resize; file list/upload/download/mkdir/delete
 alias add/remove, edit, import from `images:`, delete; project description
 update; `/api/events` relay; network create/edit/per-member edit/delete of a
 `mcui-test-br` bridge on the real cluster (D41 extension); ACL create/edit/attach/
-rename/delete and bridge forwards on it; metrics history, graphs' data and Top-N.
+rename/delete and bridge forwards on it; volumes on Ceph RBD in `mcui-test`; pools and volumes
+on zfs/btrfs/lvm/dir in the throwaway LXD; metrics history, graphs' data and Top-N.

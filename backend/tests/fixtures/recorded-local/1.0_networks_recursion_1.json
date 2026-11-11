@@ -1,0 +1,62 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "ipv4.address": "192.0.2.6/24",
+        "ipv4.nat": "true",
+        "ipv6.address": "none"
+      },
+      "description": "",
+      "locations": [
+        "tl1"
+      ],
+      "managed": true,
+      "name": "lxdbr0",
+      "status": "Created",
+      "type": "bridge",
+      "used_by": [
+        "/1.0/profiles/default",
+        "/1.0/instances/c-lz",
+        "/1.0/instances/c-lb",
+        "/1.0/instances/c-ll",
+        "/1.0/instances/c-local-dir"
+      ]
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "lo",
+      "status": "",
+      "type": "loopback",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "enp5s0",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "lxcbr0",
+      "status": "",
+      "type": "bridge",
+      "used_by": []
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

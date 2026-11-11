@@ -23,6 +23,7 @@ from mcui.api import (
     ops,
     storage,
     streams,
+    volumes,
 )
 from mcui.config import Settings, load_settings
 from mcui.lxd.client import LXDError, LXDUnavailable
@@ -74,6 +75,7 @@ def create_app(
     app.include_router(networks.router)
     app.include_router(acls.router)
     app.include_router(storage.router)
+    app.include_router(volumes.router)
 
     if static_dir is not None and (static_dir / "index.html").is_file():
         root = static_dir.resolve()

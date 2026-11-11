@@ -88,6 +88,21 @@ def _fname(path: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "_", path.strip("/")) or "root"
 
 
+async def _pool_paths(api: LXDClient, members: list[str | None]) -> list[str]:
+    """Each pool's per-member view, its capacity and its volumes (local pools, D54/D55)."""
+    try:
+        names = [str(u).rsplit("/", 1)[-1] for u in await api.get("/1.0/storage-pools") or []]
+    except (LXDError, ValueError):
+        return []
+    out = []
+    for name in names:
+        for m in members:
+            t = f"?target={m}" if m else ""
+            out += [f"/1.0/storage-pools/{name}{t}", f"/1.0/storage-pools/{name}/resources{t}"]
+        out.append(f"/1.0/storage-pools/{name}/volumes?recursion=1&all-projects=true")
+    return out
+
+
 async def record(
     settings: Settings,
     api: LXDClient,
@@ -116,6 +131,7 @@ async def record(
     ]
     paths += [f"/1.0/cluster/members/{m.name}/state" for m in ms if info.clustered]
     paths += [f"/1.0/resources?target={m.name}" for m in ms if info.clustered]
+    paths += await _pool_paths(api, [m.name for m in ms] if info.clustered else [None])
     for p in paths:
         path, _, query = p.partition("?")
         params = dict(kv.split("=", 1) for kv in query.split("&")) if query else None
