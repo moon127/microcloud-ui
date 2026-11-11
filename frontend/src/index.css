@@ -5,11 +5,26 @@
   --line: #e2e2e6;
   --accent: #e95420;
   --error: #c7162b;
-  color-scheme: light dark;
+  --ok: #0e8420;
+  --series-0: #e95420; --series-1: #0e8420; --series-2: #335280; --series-3: #c7162b;
+  --series-4: #a06b00; --series-5: #7d4ea0; --series-6: #0f95a1; --series-7: #666666;
+  color-scheme: light;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+/* dark: the OS asks for it (theme "system"), or the user picked it (D60) */
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #16181c; --fg: #e8e8ea; --muted: #9a9aa2; --line: #2c2f36; --error: #ff6b7a; }
+  :root:not([data-theme="light"]) {
+    --bg: #16181c; --fg: #e8e8ea; --muted: #9a9aa2; --line: #2c2f36; --accent: #f26b3a; --error: #ff6b7a; --ok: #4cc764;
+    --series-0: #ff7a45; --series-1: #4cc764; --series-2: #7aa7e8; --series-3: #ff6b7a;
+    --series-4: #e0b040; --series-5: #b48ce0; --series-6: #3cc8d4; --series-7: #a0a0a8;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16181c; --fg: #e8e8ea; --muted: #9a9aa2; --line: #2c2f36; --accent: #f26b3a; --error: #ff6b7a; --ok: #4cc764;
+  --series-0: #ff7a45; --series-1: #4cc764; --series-2: #7aa7e8; --series-3: #ff6b7a;
+  --series-4: #e0b040; --series-5: #b48ce0; --series-6: #3cc8d4; --series-7: #a0a0a8;
+  color-scheme: dark;
 }
 body { margin: 0; background: var(--bg); color: var(--fg); }
 main { padding: 1.5rem 2rem; }
@@ -57,7 +72,7 @@ td.wrap { white-space: normal; min-width: 16rem; }
 .toasts { position: fixed; right: 1rem; bottom: 1rem; list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; z-index: 30; max-width: min(28rem, 92vw); }
 .toast { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); box-shadow: 0 2px 10px rgb(0 0 0 / 0.15); }
 .toast.failed { border-color: var(--error); }
-.toast.done { border-color: #0e8420; }
+.toast.done { border-color: var(--ok); }
 .toast button { border: none; padding: 0 0.25rem; }
 .yaml { display: grid; gap: 0.25rem; }
 .yaml textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; padding: 0.5rem; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: inherit; }

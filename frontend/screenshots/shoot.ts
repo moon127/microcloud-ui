@@ -1,5 +1,5 @@
 // Screenshots of the built UI against the invented demo cluster (D59).
-// Usage (from frontend/, after `npm run build`): node screenshots/shoot.ts [out-dir]
+// Usage (from frontend/, after `npm run build`): node screenshots/shoot.ts [out-dir] [--dark]
 // Uses the installed Google Chrome (or $CHROME_PATH); nothing reaches a real LXD.
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -7,7 +7,9 @@ import { chromium, type Page, type Route } from "playwright-core";
 import { preview } from "vite";
 import { NOW, answer } from "./demo.ts";
 
-const OUT = resolve(process.argv[2] ?? "../docs/screenshots");
+const args = process.argv.slice(2);
+const DARK = args.includes("--dark"); // the dark theme, files named *-dark.png
+const OUT = resolve(args.find((a) => !a.startsWith("--")) ?? "../docs/screenshots");
 
 export const PAGES: { file: string; path: string; wait?: string; full?: boolean; prepare?: (p: Page) => Promise<void> }[] = [
   { file: "overview.png", path: "/?range=86400", wait: "Hosts", full: true },
@@ -37,7 +39,7 @@ async function main() {
   const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : { channel: "chrome" });
   const missing = new Set<string>();
   try {
-    const ctx = await browser.newContext({ viewport: { width: 1680, height: 1000 }, colorScheme: "light", timezoneId: "UTC", locale: "en-GB" });
+    const ctx = await browser.newContext({ viewport: { width: 1680, height: 1000 }, colorScheme: DARK ? "dark" : "light", timezoneId: "UTC", locale: "en-GB" });
     await ctx.addInitScript(`{ const t = ${NOW * 1000}; Date.now = () => t; }`);
     await ctx.route("**/api/**", (route: Route) => {
       const req = route.request();
@@ -55,8 +57,9 @@ async function main() {
       if (page.wait) await tab.getByText(page.wait).first().waitFor();
       if (page.prepare) await page.prepare(tab);
       await tab.waitForTimeout(800); // charts draw after a resize tick
-      await tab.screenshot({ path: resolve(OUT, page.file), fullPage: page.full ?? false });
-      console.log(`wrote ${page.file}`);
+      const file = DARK ? page.file.replace(/\.png$/, "-dark.png") : page.file;
+      await tab.screenshot({ path: resolve(OUT, file), fullPage: page.full ?? false });
+      console.log(`wrote ${file}`);
       await tab.close();
     }
   } finally {

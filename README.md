@@ -9,7 +9,7 @@ usage, and OVN network visibility.
 
 ## Screenshots
 
-From an invented demo cluster (`make screenshots`), not a real one.
+From an invented demo cluster (`make screenshots`), not a real one. Dark theme: pick it under Theme in the top bar (default: follow the OS).
 
 **Overview:** hosts (CPU, memory, disk, allocation), members, top instances, live table
 ![Overview](docs/screenshots/overview.png)

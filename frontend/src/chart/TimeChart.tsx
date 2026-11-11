@@ -1,8 +1,10 @@
 import { useEffect, useRef } from "react";
 import uPlot from "uplot";
 import "uplot/dist/uPlot.min.css";
+import { useResolvedTheme } from "../theme";
 import { alignSeries, type ChartSeries } from "./series";
 
+// light palette; the CSS --series-N variables override it per theme (D60)
 const COLORS = ["#e95420", "#0e8420", "#335280", "#c7162b", "#a06b00", "#7d4ea0", "#0f95a1", "#666666"];
 
 interface Props {
@@ -19,6 +21,7 @@ function cssVar(name: string, fallback: string): string {
 export default function TimeChart({ title, series, format = String, height = 180 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const empty = series.every((s) => s.points.length === 0);
+  const theme = useResolvedTheme(); // redraw with the new colours when it changes
 
   useEffect(() => {
     const el = ref.current;
@@ -32,7 +35,7 @@ export default function TimeChart({ title, series, format = String, height = 180
         {},
         ...series.map((s, i) => ({
           label: s.label,
-          stroke: COLORS[i % COLORS.length],
+          stroke: cssVar(`--series-${i % COLORS.length}`, COLORS[i % COLORS.length]),
           width: 1.5,
           spanGaps: true,
           points: { show: false },
@@ -55,7 +58,7 @@ export default function TimeChart({ title, series, format = String, height = 180
       ro?.disconnect();
       plot.destroy();
     };
-  }, [series, format, height, empty]);
+  }, [series, format, height, empty, theme]);
 
   return (
     <figure className="chart" aria-label={title}>

@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router";
 import { fetchProjects } from "./api";
 import { useProject } from "./project";
+import { applyTheme, THEMES, useThemeChoice, type Theme } from "./theme";
 import { useSession } from "./session";
 import { useApi } from "./useApi";
 
@@ -46,6 +47,7 @@ export default function Layout() {
             )}
           </select>
         </label>
+        <ThemeSelect />
         <span>
           {user.username} ({user.role}){" "}
           <button type="button" onClick={onLogout}>
@@ -57,5 +59,23 @@ export default function Layout() {
         <Outlet />
       </main>
     </>
+  );
+}
+
+const THEME_LABELS: Record<Theme, string> = { system: "System", light: "Light", dark: "Dark" };
+
+function ThemeSelect() {
+  const theme = useThemeChoice();
+  return (
+    <label className="project">
+      Theme{" "}
+      <select value={theme} onChange={(e) => applyTheme(e.target.value as Theme)}>
+        {THEMES.map((t) => (
+          <option key={t} value={t}>
+            {THEME_LABELS[t]}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
