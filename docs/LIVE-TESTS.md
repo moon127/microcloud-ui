@@ -15,7 +15,7 @@ change with its LXD operation id.
 |---|---|---|
 | B1 | Instance → **Console** tab → Terminal | A shell prompt; typing works; resizing the window re-wraps (`stty size` changes); `exit` shows "[session ended]"; Reconnect opens a new shell |
 | B2 | Same, on an instance on a *different* member from the one in `endpoints[0]` | Works the same (websockets go to the member running the instance) |
-| B3 | **Console** tab → Text console on an **Ubuntu** container | A login prompt after pressing Enter. *Known:* Alpine and Debian containers sent no output even attached directly to LXD; compare with `lxc console <name>` — if `lxc console` shows a prompt and we don't, that's a bug to report |
+| B3 | **Console** tab → Text console on an **Ubuntu** container | A login prompt after pressing Enter. **Passed 2026-11-11** on the owner's Ubuntu containers and VMs. The Alpine and Debian sandbox containers send nothing to their console, even attached directly to LXD; that comes from the images, not from mcui |
 | B4 | **Files** tab: browse `/etc`, follow a symlink, download a file, upload two files, create a folder, delete them | All work; uploads appear with mode 0644; deleting a non-empty folder shows LXD's refusal |
 | B5 | **Images** → Upload image file… with a unified image tarball (`lxc image export <alias>` gives one) and an alias | Image appears with the alias once the import finishes |
 | B6 | Overview / instance graphs in light and dark mode | Axes, legends and chart colours readable |
@@ -26,7 +26,7 @@ change with its LXD operation id.
 |---|---|---|
 | V1 | Create a small VM (e.g. `images:alpine/3.22`, VM) in a project of your choice | Created and started |
 | V2 | Console tab → **Graphical console** | The VM's screen; keyboard and mouse work; **Send Ctrl+Alt+Del** reboots/acts; **Full screen** works; Reconnect after closing works |
-| V3 | Console tab → Text console on the VM | Serial console output/login |
+| V3 | Console tab → Text console on the VM | Serial console output/login. **Passed 2026-11-11** (Ubuntu VMs) |
 | V4 | Files tab on the running VM | Works (via lxd-agent); on a stopped VM the tab explains it needs a running VM |
 | V5 | Move the VM with **Live migration** ticked | Moves without stopping (needs `migration.stateful=true`) |
 

@@ -146,8 +146,9 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   client standing in for the browser): exec on a container on another member,
   window resize, clean exit; force delete after exec + console now works (it
   failed before D48); long creates no longer misreported (D49).
-  **Open:** container text console sent no output even attached directly to LXD
-  (Debian with agetty on /dev/console) — compare with `lxc console`; **VGA not
+  Text console confirmed by the owner 2026-11-11 on Ubuntu containers and VMs;
+  the Alpine/Debian sandbox containers send nothing to their console even
+  attached directly to LXD (an image trait, not an mcui bug). **Open:** **VGA not
   live-tested** (sandbox allows no VMs); xterm/SPICE in a real browser untested.
 - **Phase 3e (file browser): built 2026-11-05.** Files tab: path box, breadcrumbs,
   typed listing with size/mode/owner/mtime, folders and symlinks navigable
