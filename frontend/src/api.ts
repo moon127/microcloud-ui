@@ -1049,3 +1049,59 @@ export interface OvnUplink {
 }
 
 export const fetchOvn = () => api<{ networks: OvnNetwork[]; uplinks: OvnUplink[] }>("/api/ovn");
+
+// --- Phase 4g: hosts (LXD + node_exporter) ----------------------------------------------
+
+export interface NodeNow {
+  url: string;
+  ok: boolean;
+  error: string | null;
+  absent: boolean;
+  memory_total?: number | null;
+  memory_used?: number | null;
+  memory_cache?: number | null;
+  zfs_arc?: number | null;
+  swap_total?: number | null;
+  swap_used?: number | null;
+  rootfs_size?: number;
+  rootfs_used?: number;
+  timex_sync?: number | null;
+  timex_offset?: number | null;
+  cpu_percent?: number;
+  cpu_iowait_percent?: number;
+  cpu_steal_percent?: number;
+  disk_busy_percent?: number;
+  disk_busiest?: string;
+  disk_read_bps?: number;
+  disk_write_bps?: number;
+  pressure_cpu?: number;
+  pressure_memory?: number;
+  pressure_io?: number;
+}
+
+export interface Host {
+  name: string;
+  status: string;
+  roles: string[];
+  cpus: number | null;
+  load1: number | null;
+  load5: number | null;
+  uptime: number | null;
+  memory_total: number | null;
+  memory_free: number | null;
+  memory_buffered: number | null;
+  swap_total: number | null;
+  swap_free: number | null;
+  instances: number;
+  instances_running: number;
+  instances_cpu: number;
+  instances_memory: number;
+  allocated_cpus: number;
+  allocated_memory: number;
+  unlimited: number;
+  net_rx_bps: number | null;
+  net_tx_bps: number | null;
+  node: NodeNow | null;
+}
+
+export const fetchHosts = () => api<{ node_exporter: boolean; hosts: Host[] }>("/api/hosts");

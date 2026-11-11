@@ -33,3 +33,4 @@ export function combine(a: Point[], b: Point[], op: (x: number, y: number) => nu
 
 export const ratioPercent = (a: Point[], b: Point[]) => combine(a, b, (x, y) => (y ? (x / y) * 100 : null));
 export const subtract = (a: Point[], b: Point[]) => combine(a, b, (x, y) => x - y);
+export const add = (a: Point[], b: Point[]) => combine(a, b, (x, y) => x + y);

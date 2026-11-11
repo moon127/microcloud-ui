@@ -1,4 +1,4 @@
-"""Background collection into the metric store (MO-1, MO-2, MO-4, MO-6, MO-8, D35)."""
+"""Background collection into the metric store (MO-1, MO-2, MO-4, MO-6, MO-8, MO-12, D35)."""
 
 from __future__ import annotations
 
@@ -14,12 +14,14 @@ from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import members
 from mcui.metrics.ceph import CephScrape, CephScraper
 from mcui.metrics.live import LiveMetrics
+from mcui.metrics.node import NodeScraper
 from mcui.metrics.select import (
     ceph_samples,
     host_networks,
     lxd_samples,
     member_state_samples,
     network_state_samples,
+    node_samples,
 )
 from mcui.metrics.store import MetricStore
 
@@ -37,7 +39,7 @@ class TaskStatus:
 
 
 class Collector:
-    """Three loops: metrics scrape (LXD + Ceph), member/network state, compaction."""
+    """Three loops: metrics scrape (LXD, Ceph, node_exporter), member/network state, compaction."""
 
     def __init__(
         self,
@@ -46,6 +48,7 @@ class Collector:
         store: MetricStore,
         settings: Settings,
         ceph: CephScraper | None = None,
+        node: NodeScraper | None = None,
         clock: Callable[[], float] = time.time,
     ) -> None:
         self.api = api
@@ -53,9 +56,10 @@ class Collector:
         self.store = store
         self.settings = settings
         self.ceph = ceph
+        self.node = node
         self.clock = clock
         self.status: dict[str, TaskStatus] = {
-            k: TaskStatus() for k in ("lxd", "ceph", "state", "compact")
+            k: TaskStatus() for k in ("lxd", "ceph", "node", "state", "compact")
         }
         self._tasks: list[asyncio.Task[None]] = []
         # the last ceph-mgr scrape, for the Ceph dashboard's "now" view
@@ -86,6 +90,20 @@ class Collector:
         if not res.ok:
             raise RuntimeError(res.error)
         return await self.store.write(int(self.clock()), ceph_samples(res.exposition))
+
+    async def collect_node(self) -> int:
+        if self.node is None:
+            return 0
+        n = 0
+        errors = []
+        for res in await self.node.scrape_all(self.live.members):
+            if res.ok:
+                n += await self.store.write(int(res.at), node_samples(res.member, res.exposition))
+            elif not res.absent:  # not installed is normal; a bad password or cert isn't
+                errors.append(f"{res.member}: {res.error}")
+        if errors:
+            raise RuntimeError("; ".join(errors))
+        return n
 
     async def collect_state(self) -> int:
         n = 0
@@ -137,6 +155,8 @@ class Collector:
         await self._guard("lxd", self.collect_lxd)
         if self.ceph is not None:
             await self._guard("ceph", self.collect_ceph)
+        if self.node is not None:
+            await self._guard("node", self.collect_node)
 
     async def _loop(self, interval: float, round_: Callable[[], Awaitable[None]]) -> None:
         while True:

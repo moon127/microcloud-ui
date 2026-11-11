@@ -164,13 +164,14 @@ Sub-phases, one commit each (approved 2026-11-11):
 - **4d Volumes (ST-3):** custom volumes, resize, attach/detach, snapshots and schedules.
 - **4e Ceph dashboard (MO-7, MO-7a).**
 - **4f OVN view (MO-9).**
+- **4g Hosts (MO-4, MO-12):** added 2026-11-11 at the owner's request. Overview Hosts table (CPU, memory, swap, disk, allocation/overcommit, network) and node_exporter scraping with member-page host graphs; brought forward from Phase 5 (D58, `docs/HOST-METRICS.md`).
 Live tests (D41): everything inside a throwaway LXD in a `mcui-test` VM, which also supplies the local-pool fixtures; on the real cluster only `mcui-test-*` ACLs, forwards and a bridge network.
 
 ### Post-MVP
 **Phase 5: Metric store evaluation** (MO-14): benchmark SQLite against
 Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
 on ingest, query latency, disk use and ops burden; implement the chosen
-adapter. Alerts (MO-13), export (MO-15), node_exporter (MO-12), project quota
+adapter. Alerts (MO-13), export (MO-15), project quota
 history (MO-10).
 
 **Phase 6: Remaining parity.** Backups (IN-13, ST-4), project moves and restrictions (IN-6, PJ-2), ISO

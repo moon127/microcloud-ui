@@ -18,6 +18,7 @@ import RangePicker from "../RangePicker";
 import { useSession } from "../session";
 import { useApi } from "../useApi";
 import { InstanceLink } from "../links";
+import HostsSection from "./Hosts";
 
 const DEFAULT_INTERVAL_S = 15;
 
@@ -101,6 +102,8 @@ export default function Overview() {
           <p role="status">Connecting to LXD…</p>
         )}
       </section>
+
+      <HostsSection />
 
       <section aria-label="Members">
         <h2>Members</h2>

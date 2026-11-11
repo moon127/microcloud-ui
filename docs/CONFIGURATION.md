@@ -41,6 +41,17 @@ enabled = true                              # record ceph-mgr prometheus metrics
 mgr_endpoints = []                          # empty: http://<each member>:<mgr_port>
 mgr_port = 9283
 timeout_seconds = 10
+
+[node_exporter]                             # optional host metrics, see docs/HOST-METRICS.md
+enabled = true                              # false: never try port 9100
+scheme = "https"                            # "http" only on a private lab network
+port = 9100
+ca = "~/.config/mcui/certs/node-exporter.crt"   # empty: system trust store
+# server_name = "node-exporter"             # name to check in the cert instead of the IP
+username = "mcui"                           # basic auth; set both or neither
+password_file = "~/.config/mcui/node-exporter.pass"   # chmod 600
+member_overrides = {}                       # e.g. { "gw-1" = "https://10.0.0.1:9100" }
+timeout_seconds = 5
 ```
 
 History lives in `<data_dir>/metrics.db`. Expect roughly 0.5–0.7 GB a year

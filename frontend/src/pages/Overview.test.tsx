@@ -91,6 +91,7 @@ const live: api.LiveMetrics = {
 };
 
 beforeEach(() => {
+  vi.spyOn(api, "fetchHosts").mockResolvedValue({ node_exporter: true, hosts: [] });
   vi.spyOn(api, "fetchTop").mockImplementation((metric) =>
     Promise.resolve({
       metric,

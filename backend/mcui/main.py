@@ -17,6 +17,7 @@ from mcui.api import (
     ceph,
     cluster,
     files,
+    hosts,
     instances,
     manage,
     metrics,
@@ -80,6 +81,7 @@ def create_app(
     app.include_router(volumes.router)
     app.include_router(ceph.router)
     app.include_router(ovn.router)
+    app.include_router(hosts.router)
 
     if static_dir is not None and (static_dir / "index.html").is_file():
         root = static_dir.resolve()

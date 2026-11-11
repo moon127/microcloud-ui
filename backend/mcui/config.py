@@ -118,6 +118,37 @@ class CephSettings(_Section):
     timeout_seconds: float = Field(default=10.0, gt=0)
 
 
+class NodeExporterSettings(_Section):
+    """Optional host metrics (MO-12, D58): ``<scheme>://<member host>:<port>/metrics``."""
+
+    enabled: bool = True
+    scheme: Literal["http", "https"] = "https"
+    port: int = Field(default=9100, ge=1, le=65535)
+    # CA (or the self-signed cert itself) to verify https; empty: system trust store
+    ca: ExpandedPath | None = None
+    # name checked against the certificate instead of the member's address
+    server_name: str | None = None
+    username: str | None = None
+    password_file: ExpandedPath | None = None
+    member_overrides: dict[str, str] = Field(default_factory=dict)
+    timeout_seconds: float = Field(default=5.0, gt=0)
+
+    @model_validator(mode="after")
+    def _files(self) -> NodeExporterSettings:
+        if (self.username is None) != (self.password_file is None):
+            raise ValueError("node_exporter username and password_file must be set together")
+        if self.ca is not None:
+            _check_readable(self.ca)
+        if self.password_file is not None:
+            check_key_file(self.password_file)
+        return self
+
+    def password(self) -> str | None:
+        if self.password_file is None:
+            return None
+        return self.password_file.read_text().strip()
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="MCUI_", env_nested_delimiter="__", extra="forbid")
 
@@ -125,6 +156,7 @@ class Settings(BaseSettings):
     lxd: LXDSettings | None = None
     metrics: MetricsSettings = Field(default_factory=lambda: MetricsSettings())
     ceph: CephSettings = Field(default_factory=lambda: CephSettings())
+    node_exporter: NodeExporterSettings = Field(default_factory=lambda: NodeExporterSettings())
 
     @classmethod
     def settings_customise_sources(

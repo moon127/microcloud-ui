@@ -1,0 +1,98 @@
+# Synthetic node_exporter 1.7.0 output (hand-written; see README.md). Two CPUs.
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 8
+# HELP node_cpu_seconds_total Seconds the CPUs spent in each mode.
+# TYPE node_cpu_seconds_total counter
+node_cpu_seconds_total{cpu="0",mode="idle"} 1000
+node_cpu_seconds_total{cpu="0",mode="iowait"} 10
+node_cpu_seconds_total{cpu="0",mode="irq"} 0
+node_cpu_seconds_total{cpu="0",mode="nice"} 0
+node_cpu_seconds_total{cpu="0",mode="softirq"} 5
+node_cpu_seconds_total{cpu="0",mode="steal"} 0
+node_cpu_seconds_total{cpu="0",mode="system"} 50
+node_cpu_seconds_total{cpu="0",mode="user"} 100
+node_cpu_seconds_total{cpu="1",mode="idle"} 1000
+node_cpu_seconds_total{cpu="1",mode="iowait"} 10
+node_cpu_seconds_total{cpu="1",mode="irq"} 0
+node_cpu_seconds_total{cpu="1",mode="nice"} 0
+node_cpu_seconds_total{cpu="1",mode="softirq"} 5
+node_cpu_seconds_total{cpu="1",mode="steal"} 0
+node_cpu_seconds_total{cpu="1",mode="system"} 50
+node_cpu_seconds_total{cpu="1",mode="user"} 100
+# TYPE node_memory_MemTotal_bytes gauge
+node_memory_MemTotal_bytes 3.4359738368e+10
+# TYPE node_memory_MemAvailable_bytes gauge
+node_memory_MemAvailable_bytes 1.7179869184e+10
+# TYPE node_memory_MemFree_bytes gauge
+node_memory_MemFree_bytes 4.294967296e+09
+# TYPE node_memory_Cached_bytes gauge
+node_memory_Cached_bytes 1.073741824e+10
+# TYPE node_memory_Buffers_bytes gauge
+node_memory_Buffers_bytes 1.073741824e+09
+# TYPE node_memory_SwapTotal_bytes gauge
+node_memory_SwapTotal_bytes 4.294967296e+09
+# TYPE node_memory_SwapFree_bytes gauge
+node_memory_SwapFree_bytes 3.221225472e+09
+# TYPE node_memory_Shmem_bytes gauge
+node_memory_Shmem_bytes 1e+08
+# TYPE node_zfs_arc_size gauge
+node_zfs_arc_size 2.147483648e+09
+# TYPE node_filesystem_size_bytes gauge
+node_filesystem_size_bytes{device="/dev/mapper/ubuntu--vg-ubuntu--lv",fstype="ext4",mountpoint="/"} 1e+11
+node_filesystem_size_bytes{device="/dev/nvme0n1p1",fstype="vfat",mountpoint="/boot/efi"} 1e+09
+node_filesystem_size_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run"} 3e+09
+node_filesystem_size_bytes{device="/dev/loop3",fstype="squashfs",mountpoint="/snap/lxd/12345"} 1e+08
+node_filesystem_size_bytes{device="/dev/sdb",fstype="ext4",mountpoint="/var/snap/lxd/common/lxd/disks"} 5e+10
+# TYPE node_filesystem_avail_bytes gauge
+node_filesystem_avail_bytes{device="/dev/mapper/ubuntu--vg-ubuntu--lv",fstype="ext4",mountpoint="/"} 4e+10
+node_filesystem_avail_bytes{device="/dev/nvme0n1p1",fstype="vfat",mountpoint="/boot/efi"} 9e+08
+node_filesystem_avail_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run"} 3e+09
+node_filesystem_avail_bytes{device="/dev/loop3",fstype="squashfs",mountpoint="/snap/lxd/12345"} 0
+node_filesystem_avail_bytes{device="/dev/sdb",fstype="ext4",mountpoint="/var/snap/lxd/common/lxd/disks"} 4e+10
+# TYPE node_disk_read_bytes_total counter
+node_disk_read_bytes_total{device="nvme0n1"} 1e+09
+node_disk_read_bytes_total{device="nvme0n1p1"} 1e+07
+node_disk_read_bytes_total{device="sda"} 2e+09
+node_disk_read_bytes_total{device="dm-0"} 9e+08
+node_disk_read_bytes_total{device="rbd0"} 5e+08
+node_disk_read_bytes_total{device="loop0"} 1e+06
+# TYPE node_disk_written_bytes_total counter
+node_disk_written_bytes_total{device="nvme0n1"} 3e+09
+node_disk_written_bytes_total{device="sda"} 4e+09
+node_disk_written_bytes_total{device="dm-0"} 2e+09
+node_disk_written_bytes_total{device="rbd0"} 1e+09
+# TYPE node_disk_reads_completed_total counter
+node_disk_reads_completed_total{device="nvme0n1"} 10000
+node_disk_reads_completed_total{device="sda"} 20000
+# TYPE node_disk_writes_completed_total counter
+node_disk_writes_completed_total{device="nvme0n1"} 30000
+node_disk_writes_completed_total{device="sda"} 40000
+# TYPE node_disk_io_time_seconds_total counter
+node_disk_io_time_seconds_total{device="nvme0n1"} 100
+node_disk_io_time_seconds_total{device="sda"} 200
+node_disk_io_time_seconds_total{device="dm-0"} 500
+# TYPE node_pressure_cpu_waiting_seconds_total counter
+node_pressure_cpu_waiting_seconds_total 10
+# TYPE node_pressure_memory_waiting_seconds_total counter
+node_pressure_memory_waiting_seconds_total 1
+# TYPE node_pressure_memory_stalled_seconds_total counter
+node_pressure_memory_stalled_seconds_total 0.5
+# TYPE node_pressure_io_waiting_seconds_total counter
+node_pressure_io_waiting_seconds_total 20
+# TYPE node_pressure_io_stalled_seconds_total counter
+node_pressure_io_stalled_seconds_total 15
+# TYPE node_vmstat_oom_kill untyped
+node_vmstat_oom_kill 0
+# TYPE node_vmstat_pswpin untyped
+node_vmstat_pswpin 100
+# TYPE node_vmstat_pswpout untyped
+node_vmstat_pswpout 200
+# TYPE node_timex_sync_status gauge
+node_timex_sync_status 1
+# TYPE node_timex_offset_seconds gauge
+node_timex_offset_seconds 0.0001
+# TYPE node_network_receive_bytes_total counter
+node_network_receive_bytes_total{device="eno1"} 1e+12
+# TYPE node_load1 gauge
+node_load1 0.5

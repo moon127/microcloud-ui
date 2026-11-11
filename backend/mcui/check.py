@@ -7,6 +7,7 @@ from collections.abc import Callable
 from mcui.config import Settings
 from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import FEATURES, ServerInfo, members
+from mcui.metrics.node import NodeScraper
 from mcui.metrics.scrape import Scraper
 
 Out = Callable[[str], None]
@@ -59,6 +60,19 @@ async def run_check(settings: Settings, api: LXDClient, metrics: LXDClient, out:
         else:
             out(f"  FAIL {s.member}: {s.url}: {s.error}")
             ok = False
+
+    ne = settings.node_exporter
+    if ne.enabled:  # optional: reported, never a failure (D58)
+        out(f"Host metrics (node_exporter, {ne.scheme} port {ne.port}, optional):")
+        node = NodeScraper(ne)
+        try:
+            for r in await node.scrape_all(ms):
+                if r.ok:
+                    out(f"  ok   {r.member}: {len(r.exposition.samples)} samples")
+                else:
+                    out(f"  {'--  ' if r.absent else 'WARN'} {r.member}: {r.url}: {r.error}")
+        finally:
+            await node.aclose()
 
     feats = info.features()
     on = sorted(k for k, v in feats.items() if v)

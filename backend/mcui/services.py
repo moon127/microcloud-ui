@@ -12,6 +12,7 @@ from mcui.lxd.remotes import RemoteCatalog
 from mcui.metrics.ceph import CephScraper
 from mcui.metrics.collector import Collector
 from mcui.metrics.live import LiveMetrics
+from mcui.metrics.node import NodeScraper
 from mcui.metrics.scrape import Scraper
 from mcui.metrics.store import H1, M1, RAW, MetricStore
 from mcui.streams import StreamRegistry
@@ -29,6 +30,7 @@ class Services:
     ceph: CephScraper | None = None
     instances: InstanceIndex | None = None
     remotes: RemoteCatalog | None = None
+    node: NodeScraper | None = None
     streams: StreamRegistry = field(default_factory=StreamRegistry)
 
     async def start(self) -> None:
@@ -40,8 +42,9 @@ class Services:
             await self.collector.stop()
         for c in {id(c): c for c in (self.lxd, self.metrics_lxd) if c is not None}.values():
             await c.aclose()
-        if self.ceph is not None:
-            await self.ceph.aclose()
+        for scraper in (self.ceph, self.node):
+            if scraper is not None:
+                await scraper.aclose()
         if self.remotes is not None:
             await self.remotes.aclose()
         if self.metrics is not None:
@@ -101,7 +104,8 @@ def build_services(
     live = LiveMetrics(api, Scraper(metrics, settings.metrics))
     history = metrics_store or open_metric_store(settings)
     ceph = CephScraper(settings.ceph) if settings.ceph.enabled else None
-    collector = Collector(api, live, history, settings, ceph)
+    node = NodeScraper(settings.node_exporter) if settings.node_exporter.enabled else None
+    collector = Collector(api, live, history, settings, ceph, node)
     return Services(
         settings,
         store,
@@ -113,4 +117,5 @@ def build_services(
         ceph,
         InstanceIndex(api),
         RemoteCatalog(),
+        node,
     )

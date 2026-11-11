@@ -3,6 +3,7 @@ import respx
 
 from mcui.check import run_check
 from tests.conftest import EP1, EP2, fixture_json, fixture_text, lxd_ok, make_settings
+from tests.test_node import FIXTURE
 
 
 def mock_good(clustered=True):
@@ -16,6 +17,10 @@ def mock_good(clustered=True):
         respx.get(f"https://{ip}:8443/1.0/metrics").mock(
             return_value=httpx.Response(200, text=fixture_text("metrics_m2_t0.txt"))
         )
+    respx.get("https://192.0.2.1:9100/metrics").mock(
+        return_value=httpx.Response(200, text=FIXTURE.read_text())
+    )
+    respx.get("https://192.0.2.2:9100/metrics").mock(side_effect=httpx.ConnectError("refused"))
 
 
 async def run(settings, lxd):
@@ -33,7 +38,26 @@ async def test_all_good(settings, lxd):
     assert "Cluster members (2):" in out and "ok   m2: Online" in out
     assert "Metrics (port 8443, management cert):" in out
     assert "ok   m1: 3 samples (8443)" in out
+    assert "Host metrics (node_exporter, https port 9100, optional):" in out
+    assert "ok   m1: 65 samples" in out
+    assert "--   m2: https://192.0.2.2:9100: not reachable (not installed?)" in out
     assert "Unavailable" not in out and out.endswith("Result: OK")
+
+
+@respx.mock
+async def test_node_exporter_problems_only_warn(settings, lxd):
+    mock_good()
+    respx.get("https://192.0.2.2:9100/metrics").mock(return_value=httpx.Response(401))
+    ok, out = await run(settings, lxd)
+    assert ok, out
+    assert "WARN m2: https://192.0.2.2:9100: HTTP 401: check username/password" in out
+    ok, out = await run(
+        settings.model_copy(
+            update={"node_exporter": settings.node_exporter.model_copy(update={"enabled": False})}
+        ),
+        lxd,
+    )
+    assert "node_exporter" not in out
 
 
 @respx.mock

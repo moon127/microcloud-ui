@@ -96,6 +96,7 @@ def test_check_ok_and_failed(config, capsys):
     respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(fixture_json("server_standalone.json")))
     route = respx.get(f"{EP1}/1.0/metrics")
     route.return_value = httpx.Response(200, text=fixture_text("metrics_m2_t0.txt"))
+    respx.get("https://192.0.2.1:9100/metrics").mock(side_effect=httpx.ConnectError("refused"))
     assert cli.main(["-c", str(config), "check"]) == 0
     assert "Result: OK" in capsys.readouterr().out
     route.return_value = httpx.Response(403)

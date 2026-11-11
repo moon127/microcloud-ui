@@ -12,6 +12,7 @@ from collections.abc import Iterable, Mapping
 from typing import Any
 
 from mcui.metrics.live import effective_cpus, instance_totals, memory_used, stored_disk
+from mcui.metrics.node import host_disk
 from mcui.metrics.prom import Exposition
 from mcui.metrics.store import Kind, Sample
 
@@ -261,3 +262,70 @@ def host_networks(networks: Iterable[Mapping[str, Any]]) -> list[str]:
         for n in networks
         if n.get("type") in HOST_NETWORK_TYPES and not str(n["name"]).startswith(SKIP_NIC_PREFIXES)
     )
+
+
+NODE_GAUGES = frozenset(
+    {
+        "node_memory_MemTotal_bytes",
+        "node_memory_MemAvailable_bytes",
+        "node_memory_MemFree_bytes",
+        "node_memory_Cached_bytes",
+        "node_memory_Buffers_bytes",
+        "node_memory_SwapTotal_bytes",
+        "node_memory_SwapFree_bytes",
+        "node_zfs_arc_size",
+        "node_timex_offset_seconds",
+        "node_timex_sync_status",
+    }
+)
+NODE_COUNTERS = frozenset(
+    {
+        "node_pressure_cpu_waiting_seconds_total",
+        "node_pressure_memory_waiting_seconds_total",
+        "node_pressure_memory_stalled_seconds_total",
+        "node_pressure_io_waiting_seconds_total",
+        "node_pressure_io_stalled_seconds_total",
+        "node_vmstat_oom_kill",
+        "node_vmstat_pswpin",
+        "node_vmstat_pswpout",
+    }
+)
+NODE_DISK = frozenset(
+    {
+        "node_disk_read_bytes_total",
+        "node_disk_written_bytes_total",
+        "node_disk_reads_completed_total",
+        "node_disk_writes_completed_total",
+        "node_disk_io_time_seconds_total",
+    }
+)
+NODE_FS = frozenset({"node_filesystem_size_bytes", "node_filesystem_avail_bytes"})
+NODE_SKIP_MOUNT_PREFIXES = (*SKIP_MOUNT_PREFIXES, "/var/snap", "/var/lib/snapd")
+
+
+def node_samples(member: str, exp: Exposition) -> list[Sample]:
+    """Host series from node_exporter (MO-12, D58): CPU seconds summed over CPUs per
+    mode, memory, real filesystems, whole host disks, pressure and swap activity."""
+    m = {"member": member}
+    out: list[Sample] = []
+    cpu: dict[str, float] = {}
+    for s in exp.samples:
+        if s.name == "node_cpu_seconds_total":
+            mode = s.labels.get("mode", "")
+            cpu[mode] = cpu.get(mode, 0.0) + s.value
+        elif s.name in NODE_GAUGES:
+            out.append(Sample(s.name, m, s.value))
+        elif s.name in NODE_COUNTERS:
+            out.append(Sample(s.name, m, s.value, "counter"))
+        elif s.name in NODE_DISK:
+            if host_disk(dev := s.labels.get("device", "")):
+                out.append(Sample(s.name, {**m, "device": dev}, s.value, "counter"))
+        elif s.name in NODE_FS:
+            mount, fstype = s.labels.get("mountpoint", ""), s.labels.get("fstype", "")
+            if fstype not in SKIP_FSTYPES and not mount.startswith(NODE_SKIP_MOUNT_PREFIXES):
+                out.append(Sample(s.name, {**m, "mountpoint": mount, "fstype": fstype}, s.value))
+    out += [
+        Sample("node_cpu_seconds_total", {**m, "mode": mode}, v, "counter")
+        for mode, v in cpu.items()
+    ]
+    return out

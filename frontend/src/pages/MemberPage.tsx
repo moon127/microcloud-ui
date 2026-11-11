@@ -2,6 +2,7 @@ import { useParams } from "react-router";
 import { useState } from "react";
 import {
   evacuateMember,
+  fetchHosts,
   fetchMemberResources,
   fetchMembers,
   restoreMember,
@@ -14,9 +15,10 @@ import { useActions } from "../actions";
 import Confirm from "../Confirm";
 import { useSession } from "../session";
 import MetricPanel from "../chart/MetricPanel";
-import { nonZero, type PanelQuery } from "../chart/panel";
-import { subtract } from "../chart/series";
-import { formatBytes, formatNumber, formatRate } from "../format";
+import { cpuModeSeries, nonZero, usedPercentSeries, type PanelQuery } from "../chart/panel";
+import { add, subtract } from "../chart/series";
+import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
+import { HOST_METRICS_DOC } from "./hostValues";
 import { useRange } from "../range";
 import RangePicker from "../RangePicker";
 import { useApi } from "../useApi";
@@ -29,6 +31,8 @@ export default function MemberPage() {
   const { name = "" } = useParams();
   const range = useRange();
   const res = useApi(`resources:${name}`, () => fetchMemberResources(name));
+  const hosts = useApi("hosts", fetchHosts);
+  const node = hosts.data?.hosts.find((h) => h.name === name)?.node ?? null;
   const m: Labels = { member: name };
   const q = (metric: string, extra: Omit<PanelQuery, "name"> = {}): PanelQuery => ({ name: metric, match: m, ...extra });
   const net = [
@@ -43,6 +47,15 @@ export default function MemberPage() {
       {res.error && <p role="alert">{res.error}</p>}
       {res.data && <Hardware r={res.data} />}
       <RangePicker />
+      {node?.ok && <NodePanels name={name} range={range} />}
+      {node && !node.ok && (
+        <p className={node.absent ? "muted" : undefined} role={node.absent ? undefined : "alert"}>
+          {node.absent
+            ? `No node_exporter on this host: host CPU %, disk and pressure graphs need it (${HOST_METRICS_DOC}).`
+            : `node_exporter: ${node.error}`}
+        </p>
+      )}
+      {node?.ok && <h2>LXD</h2>}
       <div className="grid">
         <MetricPanel
           title="Load average"
@@ -54,24 +67,26 @@ export default function MemberPage() {
             q("mcui_member_load15", { label: fixed("15 min") }),
           ]}
         />
-        <MetricPanel
-          title="Host memory"
-          range={range}
-          format={formatBytes}
-          queries={[
-            q("mcui_member_memory_total_bytes"),
-            q("mcui_member_memory_free_bytes"),
-            q("mcui_member_memory_buffered_bytes"),
-          ]}
-          compute={([total, free, buffered]: QueryResult[]) => {
-            const t = total.series[0]?.points ?? [];
-            const used = subtract(subtract(t, free.series[0]?.points ?? []), buffered.series[0]?.points ?? []);
-            return [
-              { label: "used (excl. buffers)", points: used },
-              { label: "total", points: t },
-            ];
-          }}
-        />
+        {!node?.ok && (
+          <MetricPanel
+            title="Host memory"
+            range={range}
+            format={formatBytes}
+            queries={[
+              q("mcui_member_memory_total_bytes"),
+              q("mcui_member_memory_free_bytes"),
+              q("mcui_member_memory_buffered_bytes"),
+            ]}
+            compute={([total, free, buffered]: QueryResult[]) => {
+              const t = total.series[0]?.points ?? [];
+              const used = subtract(subtract(t, free.series[0]?.points ?? []), buffered.series[0]?.points ?? []);
+              return [
+                { label: "used (excl. buffers)", points: used },
+                { label: "total", points: t },
+              ];
+            }}
+          />
+        )}
         <MetricPanel
           title="Instances' CPU use"
           range={range}
@@ -103,6 +118,112 @@ export default function MemberPage() {
             q("lxd_api_requests_ongoing", { by: ["member"], label: fixed("ongoing requests") }),
             q("lxd_warnings_total", { label: fixed("warnings") }),
           ]}
+        />
+      </div>
+    </>
+  );
+}
+
+const pctFmt = (v: number) => formatPercent(v);
+
+/** Host graphs from node_exporter (MO-12, D58). */
+function NodePanels({ name, range }: { name: string; range: number }) {
+  const m: Labels = { member: name };
+  const q = (metric: string, extra: Omit<PanelQuery, "name"> = {}): PanelQuery => ({
+    name: metric,
+    match: m,
+    ...extra,
+  });
+  const disk = [
+    q("node_disk_read_bytes_total", {
+      fn: "rate",
+      label: (l) => `${l.device} read`,
+    }),
+    q("node_disk_written_bytes_total", {
+      fn: "rate",
+      label: (l) => `${l.device} write`,
+    }),
+  ];
+  return (
+    <>
+      <h2>Host (node_exporter)</h2>
+      <div className="grid">
+        <MetricPanel
+          title="Host CPU"
+          range={range}
+          format={pctFmt}
+          queries={[q("node_cpu_seconds_total", { fn: "rate", by: ["mode"] })]}
+          compute={cpuModeSeries}
+        />
+        <MetricPanel
+          title="Host memory"
+          range={range}
+          format={formatBytes}
+          queries={[
+            q("node_memory_MemTotal_bytes"),
+            q("node_memory_MemAvailable_bytes"),
+            q("node_memory_Cached_bytes"),
+            q("node_memory_Buffers_bytes"),
+            q("node_memory_SwapTotal_bytes"),
+            q("node_memory_SwapFree_bytes"),
+            q("node_zfs_arc_size"),
+          ]}
+          compute={([total, avail, cached, buffers, swapTotal, swapFree, arc]: QueryResult[]) => {
+            const p = (r: QueryResult) => r.series[0]?.points ?? [];
+            const out = [
+              { label: "used", points: subtract(p(total), p(avail)) },
+              { label: "cache + buffers", points: add(p(cached), p(buffers)) },
+              { label: "total", points: p(total) },
+            ];
+            if (p(swapTotal).some(([, v]) => v > 0))
+              out.push({
+                label: "swap used",
+                points: subtract(p(swapTotal), p(swapFree)),
+              });
+            if (p(arc).length) out.push({ label: "ZFS ARC", points: p(arc) });
+            return out;
+          }}
+        />
+        <MetricPanel
+          title="Filesystems used"
+          range={range}
+          format={pctFmt}
+          queries={[q("node_filesystem_size_bytes"), q("node_filesystem_avail_bytes")]}
+          compute={usedPercentSeries("mountpoint")}
+        />
+        <MetricPanel title="Host disk I/O" range={range} format={formatRate} queries={disk} compute={nonZero(disk)} />
+        <MetricPanel
+          title="Disk busy"
+          range={range}
+          format={pctFmt}
+          queries={[
+            q("node_disk_io_time_seconds_total", {
+              fn: "rate",
+              label: (l) => l.device,
+            }),
+          ]}
+          compute={([busy]: QueryResult[]) =>
+            busy.series.map((s) => ({
+              label: s.labels.device,
+              points: s.points.map(([t, v]) => [t, v * 100] as [number, number]),
+            }))
+          }
+        />
+        <MetricPanel
+          title="Pressure (time waiting)"
+          range={range}
+          format={pctFmt}
+          queries={[
+            q("node_pressure_cpu_waiting_seconds_total", { fn: "rate" }),
+            q("node_pressure_memory_waiting_seconds_total", { fn: "rate" }),
+            q("node_pressure_io_waiting_seconds_total", { fn: "rate" }),
+          ]}
+          compute={(rs: QueryResult[]) =>
+            ["cpu", "memory", "io"].map((label, i) => ({
+              label,
+              points: (rs[i].series[0]?.points ?? []).map(([t, v]) => [t, v * 100] as [number, number]),
+            }))
+          }
         />
       </div>
     </>

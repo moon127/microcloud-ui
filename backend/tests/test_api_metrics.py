@@ -156,7 +156,7 @@ async def test_status(app, services):
         await login(c, "viewer", "viewerpw")
         body = (await c.get("/api/metrics/status")).json()
     assert body["collecting"] is False
-    assert set(body["jobs"]) == {"lxd", "ceph", "state", "compact"}
+    assert set(body["jobs"]) == {"lxd", "ceph", "node", "state", "compact"}
     assert body["store"]["series"] > 0
 
 

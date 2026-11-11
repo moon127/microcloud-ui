@@ -1,5 +1,5 @@
 import type { Labels, MetricQuery, QueryResult } from "../api";
-import type { ChartSeries } from "./series";
+import { combine, type ChartSeries } from "./series";
 
 export interface PanelQuery extends Omit<MetricQuery, "range"> {
   /** Legend label for each returned series. */
@@ -48,5 +48,53 @@ export function ratioSeries(key: string, scale: number, suffix = "") {
         return n ? [[t, (v / n) * scale]] : [];
       });
       return [{ label: `${s.labels[key]}${suffix}`, points }];
+    });
+}
+
+const CPU_GROUPS: Record<string, string> = {
+  user: "user",
+  system: "system",
+  iowait: "iowait",
+  steal: "steal",
+  idle: "",
+};
+
+/** node_cpu_seconds_total rates by mode as % of all CPU time: user, system, iowait,
+ * steal and everything else (nice, irq, softirq) as "other"; idle is left out. */
+export function cpuModeSeries([modes]: QueryResult[]): ChartSeries[] {
+  const total = new Map<number, number>();
+  for (const s of modes.series) for (const [t, v] of s.points) total.set(t, (total.get(t) ?? 0) + v);
+  const groups = new Map<string, Map<number, number>>();
+  for (const s of modes.series) {
+    const g = CPU_GROUPS[s.labels.mode] ?? "other";
+    if (!g) continue;
+    const m = groups.get(g) ?? new Map<number, number>();
+    for (const [t, v] of s.points) m.set(t, (m.get(t) ?? 0) + v);
+    groups.set(g, m);
+  }
+  return ["user", "system", "iowait", "steal", "other"].flatMap((g) => {
+    const m = groups.get(g);
+    if (!m) return [];
+    const points = [...m].flatMap(([t, v]): [number, number][] => {
+      const all = total.get(t);
+      return all ? [[t, (v / all) * 100]] : [];
+    });
+    return [{ label: g, points: points.sort((a, b) => a[0] - b[0]) }];
+  });
+}
+
+/** (size - avail) / size per ``key`` label value, in %. */
+export function usedPercentSeries(key: string) {
+  return ([size, avail]: QueryResult[]): ChartSeries[] =>
+    size.series.flatMap((s) => {
+      const a = avail.series.find((x) => x.labels[key] === s.labels[key]);
+      return a
+        ? [
+            {
+              label: s.labels[key],
+              points: combine(s.points, a.points, (sz, av) => (sz ? ((sz - av) / sz) * 100 : null)),
+            },
+          ]
+        : [];
     });
 }

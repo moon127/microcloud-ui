@@ -4,7 +4,7 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** Phases 1–4 built: connectivity, local auth, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards. Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
+**Status:** Phases 1–4 built: connectivity, local auth, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards and a Hosts view (optional node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)). Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
 ## Development setup
@@ -76,7 +76,7 @@ mcui -c ~/.config/mcui/config.toml serve --reload           # or: MCUI_CONFIG=..
 ```
 
 Sign in at http://localhost:5173 (Vite) or http://127.0.0.1:8000 (`make serve`).
-Pages: Overview (members, top instances, live table), Instances (filters, bulk
+Pages: Overview (hosts, members, top instances, live table), Instances (filters, bulk
 actions, create wizard) and an instance page (graphs, configuration, console and
 terminal, files, snapshots, logs), Profiles, Images, Projects, member pages
 (hardware, graphs, evacuate/restore), Storage (pools with per-member capacity,

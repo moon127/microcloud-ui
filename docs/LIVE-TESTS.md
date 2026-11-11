@@ -70,6 +70,15 @@ change with its LXD operation id.
 |---|---|---|
 | O1 | Networks → OVN overview in a real browser | Uplink card with the router-address meter; OVN network table; links to networks, members and ACLs |
 
+## Hosts (Phase 4g)
+
+| # | Steps | Expect |
+|---|---|---|
+| H1 | Install node_exporter on some hosts as in `docs/HOST-METRICS.md`; run `mcui check` | `ok` for those hosts, `--` for the others; a wrong password shows `WARN ... HTTP 401` |
+| H2 | Overview → Hosts in a real browser | Per host: CPU % (or load per CPU without node_exporter), memory (≈ without), swap, root disk and busiest disk, instances, allocated vCPU/memory with overcommit, network; meters turn amber at 60% and red at 85% |
+| H3 | A member page | “Host (node_exporter)” graphs (CPU by mode, memory with cache/swap/ARC, filesystems, disk I/O and busy, pressure); without it, a note and LXD's memory graph |
+| H4 | Load a host (`stress-ng --cpu 4 --timeout 60` in a sandbox container) | Host CPU rises within ~30 s and the CPU graph shows it as user time |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/
