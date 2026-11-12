@@ -63,24 +63,37 @@ def test_release_workflow():
     jobs = release["jobs"]
     assert jobs["ci"]["uses"] == "./.github/workflows/ci.yml"
     assert set(jobs["image"]["needs"]) == set(jobs["bundle"]["needs"]) == {"ci", "version"}
+    # each platform on its own native runner, no emulation
+    matrix = {m["platform"]: m["runner"] for m in jobs["image"]["strategy"]["matrix"]["include"]}
+    assert matrix == {"linux/amd64": "ubuntu-24.04", "linux/arm64": "ubuntu-24.04-arm"}
     steps = {s.get("uses", "").split("@")[0]: s for s in jobs["image"]["steps"]}
+    assert "docker/setup-qemu-action" not in steps
     build = steps["docker/build-push-action"]["with"]
     assert build["file"] == "deploy/container/Containerfile"
-    assert build["platforms"] == "linux/amd64,linux/arm64"
-    # a hand-run (workflow_dispatch) builds everything and publishes nothing
-    assert build["push"] == "${{ env.PUBLISH == 'true' }}"
+    assert build["platforms"] == "${{ matrix.platform }}"
+    # a hand-run (workflow_dispatch) builds both and publishes nothing
+    image = "ghcr.io/${{ github.repository }}"
+    assert build["outputs"] == (
+        f"type=image,name={image},push-by-digest=true,name-canonical=true,"
+        "push=${{ env.PUBLISH }}"
+    )
     assert release["env"]["PUBLISH"] == "${{ startsWith(github.ref, 'refs/tags/v') }}"
-    assert jobs["release"]["if"] == "startsWith(github.ref, 'refs/tags/v')"
-    assert steps["docker/metadata-action"]["with"]["images"] == "ghcr.io/${{ github.repository }}"
+    for job in ("merge", "release"):
+        assert jobs[job]["if"] == "startsWith(github.ref, 'refs/tags/v')"
+    assert jobs["merge"]["needs"] == "image" and jobs["release"]["needs"] == ["merge", "bundle"]
+    merge = {s.get("uses", "").split("@")[0]: s for s in jobs["merge"]["steps"]}
+    assert merge["docker/metadata-action"]["with"]["images"] == image
+    assert "imagetools create" in jobs["merge"]["steps"][-1]["run"]
     check = [s for s in jobs["version"]["steps"] if "release_check.py" in s.get("run", "")]
     assert check and check[0]["if"] == "env.PUBLISH == 'true'"
     # the only write permissions: packages for the image, contents for the release
     assert release["permissions"] == {"contents": "read"}
     assert jobs["image"]["permissions"]["packages"] == "write"
+    assert jobs["merge"]["permissions"]["packages"] == "write"
     assert jobs["release"]["permissions"] == {"contents": "write"}
 
 
 def test_spa_stage_builds_natively():
-    """Cross-building arm64 under emulation is slow; the web UI is plain JS."""
+    """A local cross-build (e.g. arm64 under emulation) is slow; the web UI is plain JS."""
     image = (ROOT / "deploy/container/Containerfile").read_text()
     assert "FROM --platform=$BUILDPLATFORM docker.io/library/node:22-bookworm-slim AS spa" in image

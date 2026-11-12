@@ -4,9 +4,10 @@ A release is a git tag `vX.Y.Z`. Pushing it runs `.github/workflows/release.yml`
 
 1. **CI** runs in full (`ci.yml`), and `scripts/release_check.py` checks that the tag is
    exactly `v` + `mcui.__version__`. A version still ending `.devN` is refused.
-2. **The image** is built from `deploy/container/Containerfile` for `linux/amd64` and
-   `linux/arm64` and pushed to **`ghcr.io/moon127/microcloud-ui`** as `X.Y.Z`, `X.Y`
-   and `latest`.
+2. **The image** is built from `deploy/container/Containerfile` on two native runners,
+   `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64; free for public repositories),
+   each pushed by digest. A merge job then tags both as one image,
+   **`ghcr.io/moon127/microcloud-ui`**, with `X.Y.Z`, `X.Y` and `latest`.
 3. **The offline bundles** are built for Ubuntu 24.04 (py3.12) and 22.04 (py3.10), x86_64
    and aarch64.
 4. **The GitHub Release** is created with the bundles attached and notes generated from
@@ -39,7 +40,7 @@ re-run the failed jobs rather than re-tagging.
 ## Dry run
 
 **Actions → Release → Run workflow** on `main` runs CI and builds the image (both
-architectures) and the bundles, but logs in to nothing, pushes nothing and creates no
+architectures, natively) and the bundles, but logs in to nothing, pushes nothing and creates no
 release. The bundles are kept as a downloadable artifact of the run.
 
 ## Once only: make the package public
