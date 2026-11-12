@@ -294,6 +294,7 @@ export const LIVE: LiveMetrics = {
       procs: on ? (d.type === "container" ? 40 : 180) + (hash(d.name) % 60) : null,
       rootfs_size: on ? 20 * GIB : null,
       rootfs_used: on ? (4 + (hash(d.name) % 10)) * GIB : null,
+      rootfs_mountpoint: on ? "/" : null,
     };
   }),
 };

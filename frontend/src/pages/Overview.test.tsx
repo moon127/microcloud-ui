@@ -37,6 +37,7 @@ function instance(over: Partial<api.InstanceLive>): api.InstanceLive {
     procs: null,
     rootfs_size: null,
     rootfs_used: null,
+    rootfs_mountpoint: null,
     ...over,
   };
 }
@@ -82,6 +83,7 @@ const live: api.LiveMetrics = {
       memory_total: 2 * 1024 ** 3,
       rootfs_used: 7e9,
       rootfs_size: 1e10,
+      rootfs_mountpoint: "/var/lib/containers/storage/overlay",
       disk_read_bps: 1000,
       net_rx_bps: 100,
       procs: 42,
@@ -129,7 +131,8 @@ describe("Overview", () => {
     expect(rows[1]).toHaveTextContent("VM");
     expect(rows[1]).toHaveTextContent("23.3%");
     expect(rows[1]).toHaveTextContent("512 MiB / 2.0 GiB");
-    expect(rows[1]).toHaveTextContent("6.5 GiB / 9.3 GiB");
+    expect(rows[1]).toHaveTextContent("6.5 GiB / 9.3 GiB*");
+    expect(within(rows[1]).getByTitle(/this is \/var\/lib\/containers\/storage\/overlay/)).toHaveTextContent("*");
     expect(rows[1]).toHaveTextContent("1000 B/s");
     expect(rows[2]).toHaveTextContent("1.0 KiB");
     expect(rows[3]).toHaveTextContent("container");

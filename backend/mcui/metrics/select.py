@@ -11,7 +11,13 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any
 
-from mcui.metrics.live import effective_cpus, instance_totals, memory_used, stored_disk
+from mcui.metrics.live import (
+    SKIP_FSTYPES,
+    effective_cpus,
+    instance_totals,
+    memory_used,
+    stored_disk,
+)
 from mcui.metrics.node import host_disk
 from mcui.metrics.prom import Exposition
 from mcui.metrics.store import Kind, Sample
@@ -49,9 +55,6 @@ DAEMON: dict[str, Kind] = {
     "lxd_uptime_seconds": "gauge",
     "lxd_go_goroutines": "gauge",
 }
-SKIP_FSTYPES = frozenset(
-    {"tmpfs", "devtmpfs", "overlay", "squashfs", "proc", "sysfs", "nsfs", "ramfs", "fuse.lxcfs"}
-)
 SKIP_MOUNT_PREFIXES = (
     "/run",
     "/dev",
@@ -61,6 +64,8 @@ SKIP_MOUNT_PREFIXES = (
     "/var/lib/containers",
     "/var/lib/docker",
 )
+# ...unless it's a block device: a bind mount of the root disk there (Podman) (D62)
+KEEP_BLOCK_UNDER = ("/var/lib/containers", "/var/lib/docker")
 SKIP_NIC_PREFIXES = ("lo", "veth", "docker", "br-", "cni", "flannel", "podman", "virbr")
 
 PG_STATES = [
@@ -135,9 +140,12 @@ DISK_TOTALS = {
 
 def _keep_instance_sample(name: str, labels: Mapping[str, str]) -> bool:
     if name.startswith("lxd_filesystem_"):
-        return labels.get("fstype") not in SKIP_FSTYPES and not labels.get(
-            "mountpoint", ""
-        ).startswith(SKIP_MOUNT_PREFIXES)
+        mount = labels.get("mountpoint", "")
+        if labels.get("fstype") in SKIP_FSTYPES:
+            return False
+        if mount.startswith(KEEP_BLOCK_UNDER) and labels.get("device", "").startswith("/dev/"):
+            return True
+        return not mount.startswith(SKIP_MOUNT_PREFIXES)
     if name.startswith("lxd_network_"):
         return not labels.get("device", "").startswith(SKIP_NIC_PREFIXES)
     if name.startswith("lxd_disk_"):

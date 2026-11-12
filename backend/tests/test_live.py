@@ -40,6 +40,36 @@ def test_instance_totals():
     v1 = t[("web", "v1")]
     assert v1.values["cpu_busy"] == 50  # idle and iowait excluded
     assert v1.values["rootfs_avail"] == 6e9  # "/" only, not /data
+    assert v1.rootfs_mountpoint == "/"
+
+
+def test_rootfs_without_slash():
+    """A VM running Podman: the agent reports /dev/sda1 at Podman's bind mount, not "/"."""
+    fs = (
+        'lxd_filesystem_%s_bytes{name="%s",project="p",'
+        'device="%s",fstype="%s",mountpoint="%s"} %s\n'
+    )
+    rows = [
+        ("pod", "/dev/sda13", "ext4", "/boot", 1e9, 5e8),
+        ("pod", "/dev/sda15", "vfat", "/boot/efi", 1e8, 9e7),
+        ("pod", "tmpfs", "tmpfs", "/run/lxd_agent", 5e7, 5e7),
+        ("pod", "/dev/sda1", "ext4", "/var/lib/containers/storage/overlay", 8e10, 6e10),
+        ("pod", "/dev/sdb", "ext4", "/data", 1e10, 1e10),
+        ("odd", "/dev/sda1", "ext4", "/srv", 8e10, 6e10),  # size only: not usable
+        ("none", "tmpfs", "tmpfs", "/run/x", 1e9, 1e9),
+    ]
+    text = ""
+    for name, dev, fstype, mount, size, avail in rows:
+        text += fs % ("size", name, dev, fstype, mount, size)
+        if name != "odd":
+            text += fs % ("avail", name, dev, fstype, mount, avail)
+    t = instance_totals(parse(text))
+    pod = t[("p", "pod")]
+    assert pod.rootfs_mountpoint == "/var/lib/containers/storage/overlay"  # the largest
+    assert pod.values["rootfs_size"] == 8e10 and pod.values["rootfs_avail"] == 6e10
+    for name in ("odd", "none"):
+        assert t[("p", name)].rootfs_mountpoint is None
+        assert "rootfs_size" not in t[("p", name)].values
 
 
 def test_daemon_values():

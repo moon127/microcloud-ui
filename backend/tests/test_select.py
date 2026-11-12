@@ -47,7 +47,9 @@ def test_lxd_samples_from_real_cluster():
             assert "state" not in s.labels
             if s.name.startswith("lxd_filesystem_"):
                 assert s.labels["fstype"] != "tmpfs"
-                assert not s.labels["mountpoint"].startswith(("/run", "/var/lib/containers"))
+                assert not s.labels["mountpoint"].startswith("/run")
+                if s.labels["mountpoint"].startswith("/var/lib/containers"):
+                    assert s.labels["device"].startswith("/dev/")  # root disk bind mount
             if s.name.startswith("lxd_network_"):
                 assert not s.labels["device"].startswith(("lo", "veth"))
     assert 0 < total_out < total_in * 0.6  # D34: well under the full exposition
@@ -55,12 +57,15 @@ def test_lxd_samples_from_real_cluster():
 
 def test_filesystem_filter():
     fs = (
-        'lxd_filesystem_size_bytes{name="a",project="p",device="x",fstype="%s",mountpoint="%s"} 1\n'
+        'lxd_filesystem_size_bytes{name="a",project="p",'
+        'device="%s",fstype="%s",mountpoint="%s"} 1\n'
     )
     exp = parse(
-        fs % ("tmpfs", "/x")
-        + fs % ("ext4", "/run/y")
-        + fs % ("ext4", "/data")
+        fs % ("x", "tmpfs", "/x")
+        + fs % ("x", "ext4", "/run/y")
+        + fs % ("x", "ext4", "/data")
+        + fs % ("x", "ext4", "/var/lib/docker/z")
+        + fs % ("/dev/sda1", "ext4", "/var/lib/containers/storage/overlay")
         + 'lxd_disk_read_bytes_total{name="a",project="p",device="loop0"} 1\n'
         + 'lxd_disk_read_bytes_total{name="a",project="p",device="sda1"} 1\n'
         + 'lxd_disk_read_bytes_total{name="a",project="p",device="nvme0n1p2"} 1\n'
@@ -73,7 +78,11 @@ def test_filesystem_filter():
         for s in lxd_samples("m", exp)
         if s.name.startswith("lxd_")
     }
-    assert kept == {("lxd_filesystem_size_bytes", "/data"), ("lxd_disk_read_bytes_total", None)}
+    assert kept == {
+        ("lxd_filesystem_size_bytes", "/data"),
+        ("lxd_filesystem_size_bytes", "/var/lib/containers/storage/overlay"),  # Podman, D62
+        ("lxd_disk_read_bytes_total", None),
+    }
     devices = {s.labels["device"] for s in lxd_samples("m", exp) if s.name.startswith("lxd_disk")}
     assert devices == {"sda", "rbd0", "dm-1"}  # partitions and loop devices skipped
     total = [s for s in lxd_samples("m", exp) if s.name == "mcui_instance_disk_read_bytes_total"]

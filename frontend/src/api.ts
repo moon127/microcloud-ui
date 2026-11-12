@@ -71,6 +71,8 @@ export interface InstanceLive {
   procs: number | null;
   rootfs_size: number | null;
   rootfs_used: number | null;
+  /** "/" normally; another mountpoint when the VM agent didn't report "/" (D62). */
+  rootfs_mountpoint: string | null;
 }
 
 export interface LiveMetrics {

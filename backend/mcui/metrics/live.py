@@ -73,12 +73,21 @@ class Totals:
     type: str = ""
     values: dict[str, float] = field(default_factory=dict)
     cpu_ids: set[str] = field(default_factory=set)
+    rootfs_mountpoint: str | None = None
+    # real filesystems by mountpoint, for when "/" isn't reported
+    fs: dict[str, dict[str, float]] = field(default_factory=dict)
 
     def add(self, key: str, v: float) -> None:
         self.values[key] = self.values.get(key, 0.0) + v
 
 
 InstanceKey = tuple[str, str]  # (project, name)
+
+SKIP_FSTYPES = frozenset(
+    {"tmpfs", "devtmpfs", "overlay", "squashfs", "proc", "sysfs", "nsfs", "ramfs", "fuse.lxcfs"}
+)
+# never the root filesystem
+_NOT_ROOT = ("/run", "/dev", "/sys", "/proc", "/snap", "/boot")
 
 
 def instance_totals(exp: Exposition) -> dict[InstanceKey, Totals]:
@@ -102,11 +111,33 @@ def instance_totals(exp: Exposition) -> dict[InstanceKey, Totals]:
         elif s.name in _NET:
             if s.labels.get("device") != "lo":
                 t.add(_NET[s.name], s.value)
-        elif s.name in _FS and (
-            s.labels.get("mountpoint") == "/" or s.labels.get("device") == "root"
-        ):
-            t.values[_FS[s.name]] = s.value
+        elif s.name in _FS:
+            mount = s.labels.get("mountpoint", "")
+            if mount == "/" or s.labels.get("device") == "root":
+                t.values[_FS[s.name]] = s.value
+                t.rootfs_mountpoint = "/"
+            elif _fallback_fs(mount, s.labels.get("fstype", "")):
+                t.fs.setdefault(mount, {})[_FS[s.name]] = s.value
+    for t in out.values():
+        _guess_rootfs(t)
     return out
+
+
+def _fallback_fs(mount: str, fstype: str) -> bool:
+    return fstype not in SKIP_FSTYPES and not mount.startswith(_NOT_ROOT)
+
+
+def _guess_rootfs(t: Totals) -> None:
+    """No "/" reported: the VM agent lists one mountpoint per device, so a bind mount of
+    the root device (Podman's /var/lib/containers/storage/overlay) can replace "/".
+    Use the largest real filesystem instead, and say which one it was (D62)."""
+    if t.rootfs_mountpoint is not None:
+        return
+    whole = {m: v for m, v in t.fs.items() if "rootfs_size" in v and "rootfs_avail" in v}
+    if whole:
+        mount = max(whole, key=lambda m: whole[m]["rootfs_size"])
+        t.values.update(whole[mount])
+        t.rootfs_mountpoint = mount
 
 
 def daemon_values(exp: Exposition) -> dict[str, float]:
@@ -162,6 +193,7 @@ class InstanceLive:
     procs: float | None
     rootfs_size: float | None
     rootfs_used: float | None
+    rootfs_mountpoint: str | None
 
 
 def instance_live(
@@ -202,6 +234,7 @@ def instance_live(
         procs=c.get("procs"),
         rootfs_size=c.get("rootfs_size"),
         rootfs_used=rootfs_used,
+        rootfs_mountpoint=cur.rootfs_mountpoint,
     )
 
 

@@ -260,6 +260,13 @@ function InstancesTable({ rows }: { rows: InstanceLive[] }) {
               <td className="num">{memory(i)}</td>
               <td className="num">
                 {i.rootfs_used == null ? "–" : `${formatBytes(i.rootfs_used)} / ${formatBytes(i.rootfs_size)}`}
+                {i.rootfs_mountpoint && i.rootfs_mountpoint !== "/" && (
+                  <abbr
+                    title={`LXD didn't report "/"; this is ${i.rootfs_mountpoint}, the largest filesystem (usually the root disk, mounted there too)`}
+                  >
+                    *
+                  </abbr>
+                )}
               </td>
               <td className="num">{formatRate(i.disk_read_bps)}</td>
               <td className="num">{formatRate(i.disk_write_bps)}</td>
