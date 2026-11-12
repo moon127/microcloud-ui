@@ -78,6 +78,8 @@ async def delete_warning(uuid: str, session: AdminDep, store: StoreDep, lxd: LXD
 
 class Evacuation(BaseModel):
     mode: Literal["auto", "migrate", "live-migrate", "stop"] | None = None
+    # LXD 6.9+ (clustering_evacuation_force): evacuate even if the database loses quorum
+    force: bool = False
 
 
 async def _member_state(
@@ -88,13 +90,16 @@ async def _member_state(
     payload: dict[str, Any] = {"action": action}
     if body.mode:
         payload["mode"] = body.mode
+    if body.force:
+        payload["force"] = True
+    detail = {k: v for k, v in (("mode", body.mode), ("force", body.force)) if v}
     st = await audited(
         session,
         store,
         f"member.{action}",
         name,
         operations.start(lxd, "POST", f"/1.0/cluster/members/{name}/state", json=payload),
-        detail={"mode": body.mode} if body.mode else None,
+        detail=detail or None,
     )
     return st.as_dict()
 

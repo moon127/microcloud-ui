@@ -58,6 +58,8 @@ def release(version: str) -> tuple[str, str | None]:
 ADAPTS: dict[str, tuple[str, ...]] = {
     # LXD 6.8+: CephFS pools take cephfs.path; source is refused
     "cephfs_path": ("storage_remote_drop_source",),
+    # LXD 6.9+: evacuation refuses to break quorum unless forced
+    "evacuation_force": ("clustering_evacuation_force",),
 }
 
 

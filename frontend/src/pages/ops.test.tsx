@@ -171,7 +171,10 @@ const member = (status: string): api.Member => ({
 });
 
 describe("member evacuate and restore", () => {
-  function setup(status: string, s = session()) {
+  function setup(status: string, s = session(), features: Record<string, boolean> = {}) {
+    vi.spyOn(api, "fetchServer").mockResolvedValue({
+      version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "", features,
+    });
     vi.spyOn(api, "fetchMemberResources").mockReturnValue(new Promise(() => {}));
     vi.spyOn(api, "queryMetric").mockReturnValue(new Promise(() => {}));
     vi.spyOn(api, "fetchMembers").mockResolvedValue([member(status), { ...member("Online"), name: "m2", roles: [] }]);
@@ -200,6 +203,30 @@ describe("member evacuate and restore", () => {
     fireEvent.click(screen.getByRole("button", { name: "Evacuate" }));
     fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Evacuate" }));
     expect(ev).toHaveBeenCalledWith("m1", undefined);
+  });
+
+  it("offers to force an evacuation LXD refuses for quorum (LXD 6.9+)", async () => {
+    const ev = vi
+      .spyOn(api, "evacuateMember")
+      .mockRejectedValueOnce(new Error("LXD: Insufficient online voters to maintain quorum"))
+      .mockResolvedValue({ operation: null, metadata: null });
+    setup("Online", session(), { evacuation_force: true });
+    fireEvent.click(await screen.findByRole("button", { name: "Evacuate" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Evacuate" }));
+    const dlg = await screen.findByRole("dialog", { name: "Force the evacuation of m1?" });
+    expect(dlg).toHaveTextContent("Insufficient online voters to maintain quorum");
+    fireEvent.click(within(dlg).getByRole("button", { name: "Force evacuation" }));
+    expect(ev).toHaveBeenLastCalledWith("m1", undefined, true);
+    expect(await screen.findByText(/✓ Evacuate m1 \(forced\)/)).toBeInTheDocument();
+  });
+
+  it("doesn't offer force where LXD can't (5.21) or for other errors", async () => {
+    vi.spyOn(api, "evacuateMember").mockRejectedValue(new Error("LXD: Insufficient online voters to maintain quorum"));
+    setup("Online");
+    fireEvent.click(await screen.findByRole("button", { name: "Evacuate" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Evacuate" }));
+    expect(await screen.findByText(/Insufficient online voters/)).toBeInTheDocument(); // the toast
+    expect(screen.queryByRole("dialog", { name: /Force/ })).toBeNull();
   });
 
   it("restores an evacuated member", async () => {

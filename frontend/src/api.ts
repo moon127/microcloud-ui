@@ -427,8 +427,11 @@ export const setWarningStatus = (uuid: string, status: "new" | "acknowledged") =
 export const deleteWarning = (uuid: string) => send<void>("DELETE", `/api/warnings/${encodeURIComponent(uuid)}`);
 
 export type EvacuationMode = "auto" | "migrate" | "live-migrate" | "stop";
-export const evacuateMember = (name: string, mode?: EvacuationMode) =>
-  send<Started>("POST", `/api/cluster/members/${encodeURIComponent(name)}/evacuate`, mode ? { mode } : {});
+export const evacuateMember = (name: string, mode?: EvacuationMode, force = false) =>
+  send<Started>("POST", `/api/cluster/members/${encodeURIComponent(name)}/evacuate`, {
+    ...(mode ? { mode } : {}),
+    ...(force ? { force } : {}),
+  });
 export const restoreMember = (name: string) =>
   send<Started>("POST", `/api/cluster/members/${encodeURIComponent(name)}/restore`, {});
 

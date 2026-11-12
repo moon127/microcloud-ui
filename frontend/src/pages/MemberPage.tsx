@@ -5,6 +5,7 @@ import {
   fetchHosts,
   fetchMemberResources,
   fetchMembers,
+  fetchServer,
   restoreMember,
   type EvacuationMode,
   type Labels,
@@ -297,9 +298,13 @@ function MemberActions({ name }: { name: string }) {
   const { user } = useSession();
   const { run, version } = useActions();
   const members = useApi(`members:${version}`, fetchMembers);
-  const [confirm, setConfirm] = useState<"evacuate" | "restore" | null>(null);
+  const server = useApi("server", fetchServer);
+  const [confirm, setConfirm] = useState<"evacuate" | "restore" | "force" | null>(null);
+  const [refusal, setRefusal] = useState("");
   const [mode, setMode] = useState<EvacuationMode | "">("");
   const member = members.data?.find((m) => m.name === name);
+  // LXD 6.9+ refuses an evacuation that would cost the database its quorum, unless forced
+  const canForce = !!server.data?.features.evacuation_force;
   if (!member) return null;
   const admin = user.role === "admin";
   return (
@@ -328,7 +333,14 @@ function MemberActions({ name }: { name: string }) {
           onCancel={() => setConfirm(null)}
           onConfirm={() => {
             setConfirm(null);
-            void run(`Evacuate ${name}`, () => evacuateMember(name, mode || undefined));
+            void run(`Evacuate ${name}`, () => evacuateMember(name, mode || undefined), {
+              onError: (message) => {
+                if (canForce && /quorum/i.test(message)) {
+                  setRefusal(message);
+                  setConfirm("force");
+                }
+              },
+            });
           }}
         >
           <p>All instances on this member are moved or stopped, and no new ones are placed here until it is restored.</p>
@@ -342,6 +354,24 @@ function MemberActions({ name }: { name: string }) {
               ))}
             </select>
           </label>
+        </Confirm>
+      )}
+      {confirm === "force" && (
+        <Confirm
+          title={`Force the evacuation of ${name}?`}
+          confirmLabel="Force evacuation"
+          danger
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => {
+            setConfirm(null);
+            void run(`Evacuate ${name} (forced)`, () => evacuateMember(name, mode || undefined, true));
+          }}
+        >
+          <p>LXD refused: {refusal}.</p>
+          <p>
+            Forcing it takes this member out although too few database members would stay online. Until enough of them are
+            back, the cluster can't make changes and may not answer. Only do this if the other members will return.
+          </p>
         </Confirm>
       )}
       {confirm === "restore" && (

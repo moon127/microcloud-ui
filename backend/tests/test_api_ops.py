@@ -108,12 +108,15 @@ async def test_evacuate_restore(app, services):
         r = await c.post("/api/cluster/members/m2/evacuate", json={"mode": "stop"}, headers=h)
         assert r.json()["operation"]["id"] == "op1"
         assert route.calls.last.request.content == b'{"action":"evacuate","mode":"stop"}'
+        await c.post("/api/cluster/members/m2/evacuate", json={"force": True}, headers=h)
+        assert route.calls.last.request.content == b'{"action":"evacuate","force":true}'
         await c.post("/api/cluster/members/m2/restore", json={}, headers=h)
         assert route.calls.last.request.content == b'{"action":"restore"}'
         r = await c.post("/api/cluster/members/nope/restore", json={}, headers=h)
         assert r.status_code == 404
-    assert actions(services)[:2] == [
+    assert actions(services)[:3] == [
         ("member.restore", "m2", True, "op1"),
+        ("member.evacuate", "m2", True, "op1"),
         ("member.evacuate", "m2", True, "op1"),
     ]
 

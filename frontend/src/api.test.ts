@@ -135,6 +135,7 @@ describe("phase 3 helpers", () => {
     await api.deleteWarning("w1");
     await api.evacuateMember("m 1", "stop");
     await api.evacuateMember("m1");
+    await api.evacuateMember("m1", undefined, true);
     await api.restoreMember("m1");
     await api.fetchProjects();
     const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
@@ -148,6 +149,7 @@ describe("phase 3 helpers", () => {
       ["/api/warnings/w1", "DELETE", null],
       ["/api/cluster/members/m%201/evacuate", "POST", '{"mode":"stop"}'],
       ["/api/cluster/members/m1/evacuate", "POST", "{}"],
+      ["/api/cluster/members/m1/evacuate", "POST", '{"force":true}'],
       ["/api/cluster/members/m1/restore", "POST", "{}"],
       ["/api/projects", "GET", null],
     ]);
