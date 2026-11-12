@@ -16,6 +16,14 @@ export function formatRate(n: number | null | undefined): string {
   return n == null || !Number.isFinite(n) ? "–" : `${formatBytes(n)}/s`;
 }
 
+/** Two formatted values as "used / total": the unit once when both share it
+ * ("18.0 / 64.0 GiB", "3.0 / 1.8 MiB/s"), otherwise both ("102 MiB / 8.0 GiB"). */
+export function formatPair(a: string, b: string): string {
+  const i = a.lastIndexOf(" ");
+  const j = b.lastIndexOf(" ");
+  return i > 0 && j > 0 && a.slice(i) === b.slice(j) ? `${a.slice(0, i)} / ${b}` : `${a} / ${b}`;
+}
+
 export function formatPercent(n: number | null | undefined): string {
   return n == null || !Number.isFinite(n) ? "–" : `${n.toFixed(1)}%`;
 }

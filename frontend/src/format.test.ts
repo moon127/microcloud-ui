@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatBytes, formatDuration, formatNumber, formatPercent, formatRate } from "./format";
+import { formatBytes, formatDuration, formatNumber, formatPair, formatPercent, formatRate } from "./format";
 
 describe("format", () => {
   it("formats bytes", () => {
@@ -17,6 +17,10 @@ describe("format", () => {
   it("formats rates and percentages", () => {
     expect(formatRate(1024)).toBe("1.0 KiB/s");
     expect(formatRate(null)).toBe("–");
+    expect(formatPair("18.0 GiB", "64.0 GiB")).toBe("18.0 / 64.0 GiB");
+    expect(formatPair("3.0 MiB/s", "1.8 MiB/s")).toBe("3.0 / 1.8 MiB/s");
+    expect(formatPair("102 MiB", "8.0 GiB")).toBe("102 MiB / 8.0 GiB");
+    expect(formatPair("–", "8.0 GiB")).toBe("– / 8.0 GiB");
     expect(formatPercent(23.333)).toBe("23.3%");
     expect(formatPercent(null)).toBe("–");
     expect(formatPercent(Infinity)).toBe("–");

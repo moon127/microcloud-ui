@@ -81,28 +81,30 @@ describe("HostsSection", () => {
     renderAt(<HostsSection />);
     const row = (await screen.findByRole("link", { name: "gw-1" })).closest("tr")!;
     expect(within(row).getByRole("meter", { name: "gw-1 CPU" })).toHaveAttribute("value", "42");
-    expect(row).toHaveTextContent("42.0% (iowait 7.0%)");
-    expect(row).toHaveTextContent("8.0 GiB / 32.0 GiB");
+    expect(row).toHaveTextContent("42.0%");
+    expect(within(row).getByText("iowait 7.0%")).toHaveClass("sub"); // its own line
+    expect(row).toHaveTextContent("8.0 / 32.0 GiB");
     expect(row).not.toHaveTextContent("≈");
-    expect(row).toHaveTextContent("1.0 GiB / 4.0 GiB");
+    expect(row).toHaveTextContent("1.0 / 4.0 GiB");
     expect(within(row).getByRole("meter", { name: "gw-1 root filesystem" })).toHaveAttribute("value", "90");
-    expect(row).toHaveTextContent("sda 55.0% busy");
+    expect(within(row).getByText("sda 55.0% busy")).toHaveClass("sub");
     expect(row).toHaveTextContent("4 / 5");
     expect(row).toHaveTextContent("1.50 CPUs, 6.0 GiB");
-    expect(row).toHaveTextContent("12 vCPU / 8 (1.5×), 20.0 GiB / 32.0 GiB + 2 unlimited");
-    expect(row).toHaveTextContent("1.0 KiB/s / 2.0 KiB/s");
+    expect(row).toHaveTextContent("12 vCPU / 8 (1.5×), 20.0 / 32.0 GiB");
+    expect(within(row).getByRole("button", { name: "2 unlimited" }).closest(".sub")).toHaveTextContent("+ 2 unlimited");
+    expect(row).toHaveTextContent("1.0 / 2.0 KiB/s");
 
     const gw2 = screen.getByRole("link", { name: "gw-2" }).closest("tr")!;
     expect(within(gw2).getByRole("meter", { name: "gw-2 load per CPU" })).toHaveAttribute("value", "25");
     expect(gw2).toHaveTextContent("load 2 / 8");
-    expect(gw2).toHaveTextContent("≈22.0 GiB / 32.0 GiB"); // 32 - 8 free - 2 buffers
+    expect(gw2).toHaveTextContent("≈22.0 / 32.0 GiB"); // 32 - 8 free - 2 buffers
     expect(gw2).toHaveTextContent("none"); // no swap
     expect(gw2).toHaveTextContent("4 vCPU / 8,");
     expect(gw2).not.toHaveTextContent("×");
 
     const gw3 = screen.getByRole("link", { name: "gw-3" }).closest("tr")!;
     expect(within(gw3).getByRole("alert")).toHaveTextContent("Offline");
-    expect(gw3).toHaveTextContent("12 vCPU, 20.0 GiB / 32.0 GiB");
+    expect(gw3).toHaveTextContent("12 vCPU, 20.0 / 32.0 GiB");
     expect(screen.getByText("node_exporter on gw-3: HTTP 401: check username/password")).toHaveAttribute("role", "alert");
     expect(screen.getByText(/No node_exporter on gw-2:/)).toHaveTextContent("docs/HOST-METRICS.md");
   });
@@ -117,13 +119,13 @@ describe("HostsSection", () => {
     });
     const a = renderAt(<HostsSection />);
     const row = (await screen.findByRole("link", { name: "gw-1" })).closest("tr")!;
-    expect(row).toHaveTextContent("10.0% (steal 12.0%)");
+    expect(within(row).getByText("steal 12.0%")).toHaveClass("sub");
     expect(row.querySelectorAll("td")[4]).toHaveTextContent(/^$/);
     expect(row.querySelectorAll("td")[3]).toHaveTextContent("none");
     const gw2 = screen.getByRole("link", { name: "gw-2" }).closest("tr")!;
     expect(gw2.querySelectorAll("td")[1]).toHaveTextContent("–"); // no CPU % yet, no load
-    expect(gw2.querySelectorAll("td")[3]).toHaveTextContent("1.0 GiB / 4.0 GiB"); // node swap wins
-    expect(gw2.querySelectorAll("td")[7]).toHaveTextContent("12 vCPU / 8 (1.5×), 0 B + 2 unlimited");
+    expect(gw2.querySelectorAll("td")[3]).toHaveTextContent("1.0 / 4.0 GiB"); // node swap wins
+    expect(gw2.querySelectorAll("td")[7]).toHaveTextContent("12 vCPU / 8 (1.5×), 0 B+ 2 unlimited");
     expect(screen.getByText(/node_exporter are turned off/)).toBeInTheDocument();
     a.unmount();
     vi.spyOn(api, "fetchHosts").mockReturnValue(new Promise(() => {}));

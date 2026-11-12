@@ -32,6 +32,8 @@ h1 { font-size: 1.4rem; margin: 0 0 1rem; }
 h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
 .topbar { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
 .muted { color: var(--muted); font-size: 0.85rem; }
+/* a cell's secondary detail, on its own line under the value */
+.sub { display: block; color: var(--muted); font-size: 0.8rem; }
 [role="alert"] { color: var(--error); }
 button, input { font: inherit; }
 button { padding: 0.3rem 0.8rem; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: inherit; cursor: pointer; }
@@ -43,9 +45,10 @@ input[type="search"] { width: min(24rem, 100%); margin-bottom: 0.5rem; }
 .login label { display: grid; gap: 0.25rem; }
 .scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
-th, td { text-align: left; padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th, td { text-align: left; padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
 th { color: var(--muted); font-weight: 600; }
 td.num { text-align: right; font-variant-numeric: tabular-nums; }
+td meter { width: 3rem; }
 th.num { text-align: right; }
 .topbar { padding: 0.75rem 2rem; border-bottom: 1px solid var(--line); align-items: center; }
 .topbar nav { display: flex; gap: 1rem; flex: 1; margin-left: 1.5rem; flex-wrap: wrap; }

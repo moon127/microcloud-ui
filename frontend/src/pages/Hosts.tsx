@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router";
 import { fetchHosts, type Host } from "../api";
-import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
+import { formatBytes, formatNumber, formatPair, formatPercent, formatRate } from "../format";
 import { useApi } from "../useApi";
 import { HOST_METRICS_DOC, hostMemory } from "./hostValues";
 
@@ -24,7 +24,7 @@ function Cpu({ h }: { h: Host }) {
     return (
       <>
         <Gauge value={n.cpu_percent} label={`${h.name} CPU`} /> {formatPercent(n.cpu_percent)}
-        {extra.length > 0 && <span className="muted"> ({extra.join(", ")})</span>}
+        {extra.length > 0 && <span className="sub">{extra.join(", ")}</span>}
       </>
     );
   }
@@ -42,7 +42,7 @@ function Memory({ h }: { h: Host }) {
   return (
     <>
       <Gauge value={pct(m.used, m.total)} label={`${h.name} memory`} /> {m.estimated ? "≈" : ""}
-      {formatBytes(m.used)} / {formatBytes(m.total)}
+      {formatPair(formatBytes(m.used), formatBytes(m.total))}
     </>
   );
 }
@@ -57,7 +57,7 @@ function Swap({ h }: { h: Host }) {
         ? h.swap_total - h.swap_free
         : null;
   if (!total) return <span className="muted">none</span>;
-  return <>{`${formatBytes(used)} / ${formatBytes(total)}`}</>;
+  return <>{formatPair(formatBytes(used), formatBytes(total))}</>;
 }
 
 function Disk({ h }: { h: Host }) {
@@ -72,9 +72,8 @@ function Disk({ h }: { h: Host }) {
         </>
       ) : null}
       {n.disk_busy_percent != null && (
-        <span className="muted">
-          {" "}
-          · {n.disk_busiest} {formatPercent(n.disk_busy_percent)} busy
+        <span className="sub">
+          {n.disk_busiest} {formatPercent(n.disk_busy_percent)} busy
         </span>
       )}
     </>
@@ -86,15 +85,17 @@ function Allocated({ h, onUnlimited }: { h: Host; onUnlimited: (host: string) =>
   return (
     <>
       {h.allocated_cpus} vCPU{h.cpus ? ` / ${h.cpus}` : ""}
-      {ratio != null && ratio > 1 && <strong> ({ratio.toFixed(1)}×)</strong>}, {formatBytes(h.allocated_memory)}
-      {h.memory_total ? ` / ${formatBytes(h.memory_total)}` : ""}
+      {ratio != null && ratio > 1 && <strong> ({ratio.toFixed(1)}×)</strong>},{" "}
+      {h.memory_total
+        ? formatPair(formatBytes(h.allocated_memory), formatBytes(h.memory_total))
+        : formatBytes(h.allocated_memory)}
       {h.unlimited > 0 && (
-        <>
-          {" + "}
+        <span className="sub">
+          +{" "}
           <button type="button" className="link" onClick={() => onUnlimited(h.name)}>
             {h.unlimited} unlimited
           </button>
-        </>
+        </span>
       )}
     </>
   );
@@ -114,7 +115,7 @@ export function HostsTable({ hosts, onUnlimited }: { hosts: Host[]; onUnlimited:
             <th className="num">Instances</th>
             <th>Instances use</th>
             <th>Allocated (running)</th>
-            <th>Network rx / tx</th>
+            <th>Net rx / tx</th>
           </tr>
         </thead>
         <tbody>
@@ -146,7 +147,7 @@ export function HostsTable({ hosts, onUnlimited }: { hosts: Host[]; onUnlimited:
                 <Allocated h={h} onUnlimited={onUnlimited} />
               </td>
               <td>
-                {formatRate(h.net_rx_bps)} / {formatRate(h.net_tx_bps)}
+                {formatPair(formatRate(h.net_rx_bps), formatRate(h.net_tx_bps))}
               </td>
             </tr>
           ))}
