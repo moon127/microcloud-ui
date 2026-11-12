@@ -262,7 +262,8 @@ jobs:
 
           ## Changes${SINCE:+ since $SINCE}
 
-          $CHANGES"
+          $CHANGES
+          "
       - name: Rolling pre-release "edge"
         if: env.MODE == 'edge'
         run: |

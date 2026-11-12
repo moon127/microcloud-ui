@@ -206,6 +206,9 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   43240796585): CI, both images natively (arm64 on an aarch64 runner, 97 s, `push=false`),
   four bundles. amd64 image also run-tested in a throwaway VM (health, uid 8843,
   healthcheck).
+- **0.1.2 released 2026-11-12** (run 43262784553): the move to Ubuntu 26.04 (D72), called
+  out in a headline from the annotated tag's message. `:latest` is on 26.04 (both
+  architectures). `main` is now 0.1.3.dev0.
 - **Ubuntu 26.04 2026-11-12 (D72):** py3.14 bundles, image on `ubuntu:26.04`; both
   verified in a 26.04 VM. The arm64 26.04 image is first built by the next edge run.
 - **Release and edge notes list the commits since the previous/latest release**
