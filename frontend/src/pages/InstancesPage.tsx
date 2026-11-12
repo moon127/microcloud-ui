@@ -72,13 +72,16 @@ export default function InstancesPage() {
   return (
     <>
       <h1>Instances{project ? ` in ${project}` : ""}</h1>
-      {admin && (
-        <p>
-          <Link className="button primary" to="/instances/new">
-            Create instance
-          </Link>
-        </p>
-      )}
+      <p>
+        {admin && (
+          <>
+            <Link className="button primary" to="/instances/new">
+              Create instance
+            </Link>{" "}
+          </>
+        )}
+        <Link to="/placement-groups">Placement groups</Link>
+      </p>
       {error && <p role="alert">{error}</p>}
       <div className="filters">
         <label className="field">

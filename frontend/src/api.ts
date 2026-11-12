@@ -501,6 +501,28 @@ const q = (project: string) => `?project=${encodeURIComponent(project)}`;
 export const fetchLocalImages = (project: string) => api<LocalImage[]>(`/api/images${q(project)}`);
 export const fetchRemoteImages = (remote: "images" | "ubuntu") => api<RemoteImage[]>(`/api/images/remote/${remote}`);
 export const fetchProfiles = (project: string) => api<Profile[]>(`/api/profiles${q(project)}`);
+
+/** LXD 6.6+ (instance_placement_groups): spread or pack instances across members. */
+export interface PlacementGroup {
+  name: string;
+  description: string;
+  project: string;
+  config: { policy?: "spread" | "compact"; rigor?: "strict" | "permissive" } & Record<string, string>;
+  used_by: string[];
+}
+export interface PlacementGroupBody {
+  description: string;
+  policy: "spread" | "compact";
+  rigor: "strict" | "permissive";
+}
+export const fetchPlacementGroups = (project: string) => api<PlacementGroup[]>(`/api/placement-groups${q(project)}`);
+const pgPath = (project: string, name: string) =>
+  `/api/placement-groups/${encodeURIComponent(project)}/${encodeURIComponent(name)}`;
+export const createPlacementGroup = (project: string, name: string, body: PlacementGroupBody) =>
+  send<Started>("POST", "/api/placement-groups", { name, project, ...body });
+export const updatePlacementGroup = (project: string, name: string, body: PlacementGroupBody) =>
+  send<Started>("PUT", pgPath(project, name), body);
+export const deletePlacementGroup = (project: string, name: string) => send<Started>("DELETE", pgPath(project, name));
 export const fetchNetworks = (project: string, target?: string) =>
   api<Network[]>(`/api/networks${q(project)}${target ? `&target=${encodeURIComponent(target)}` : ""}`);
 

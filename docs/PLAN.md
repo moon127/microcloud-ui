@@ -250,17 +250,19 @@ LTS releases and checked live on 3.4.
   in 6.7. The backend (`operations.start`) and the frontend (`actions.ts`) already follow
   operations, so this is mainly checking every form waits for the result and shows its
   errors.
-- **Operation targets:** an operation's `resources` is now empty; the target is in
+- ✅ **Operation targets:** an operation's `resources` is now empty; the target is in
   `entity_url` (and `original_entity_url` after a rename). The operations page, toasts
   and audit log should use it. Show child operations (`recursion=2`, `child_count`).
 - **Renamed and removed settings:**
   - ✅ CephFS pools take `cephfs.path`, not `source` (5.1). Ceph RBD pools use
     `ceph.osd.pool_name`, which the form already does.
-  - `boot.mode` replaces `security.secure_boot`/`security.csm`, and VM disks use
-    virtiofs instead of 9p: hints in the create wizard and the config editor.
+  - ✅ `boot.mode` replaces `security.secureboot`, which LXD 6.7+ refuses for VMs: the
+    wizard's "Secure boot" off sends `boot.mode=uefi-nosecureboot` there
+    (`instance_boot_mode`), `security.secureboot=false` on 5.21. VM disks use virtiofs
+    instead of 9p (nothing in the UI sets 9p).
   - Gone: `cluster.healing_threshold`, `nvidia.*`, `maas.*` and `fan.type=ipip`.
   - The `event-hub` member role becomes `control-plane`.
-- **Evacuate and restore:** LXD 6.9 refuses to evacuate a member when that would break
+- ✅ **Evacuate and restore:** LXD 6.9 refuses to evacuate a member when that would break
   the database quorum, unless forced (`clustering_evacuation_force`). Restore conflicts
   with a running evacuation. Show the refusal and offer "force" with a warning
   (fixture-tested; the owner runs it, D41).
@@ -284,16 +286,17 @@ LTS releases and checked live on 3.4.
 **5b What LXD 6 adds** (each behind its `api_extensions` flag). The owner chose
 (2026-11-12) placement groups, image registries, OVN load balancers, child operations
 and multi-volume snapshots for Phase 5:
-- **Placement groups** (`instance_placement_groups`): list, create, edit, and use them in
-  the create-instance target.
+- ✅ **Placement groups** (`instance_placement_groups`): a page (from Instances) to list,
+  create, edit and delete them, and a "Placement group" choice in the create wizard
+  (`placement.group`); LXD before 6.6 gets an explanation.
 - **Image registries** (`image_registries`): manage them, and use them in the image
   picker, replacing or alongside our own remote catalogues (D47).
   `restricted.registries` per project.
 - **OVN:** load-balancer pools and health checks (`network_load_balancer_pool*`, from
   NW-4/7), internal load balancers and forwards, DHCP ranges, automatic IP allocation
   for forwards and load balancers.
-- **Child operations:** parent and child operations on the operations page and in
-  toasts (`recursion=2`, `child_count`); bulk and durable operations shown as they come.
+- ✅ **Child operations:** a bulk operation's children nested under it on the operations
+  page (`recursion=2`, `child_count`).
 - **Multi-volume snapshots** (`instance_snapshots_multi_volume`): snapshot an instance
   with its attached volumes, and show which volumes a snapshot holds.
 

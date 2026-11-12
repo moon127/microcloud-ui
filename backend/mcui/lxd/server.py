@@ -21,6 +21,7 @@ FEATURES: dict[str, tuple[str, ...]] = {
     "storage_buckets": ("storage_buckets",),
     "fine_grained_auth": ("access_management",),
     "cluster_evacuation": ("clustering_evacuation",),
+    "placement_groups": ("instance_placement_groups",),  # LXD 6.6+
 }
 
 
@@ -60,6 +61,8 @@ ADAPTS: dict[str, tuple[str, ...]] = {
     "cephfs_path": ("storage_remote_drop_source",),
     # LXD 6.9+: evacuation refuses to break quorum unless forced
     "evacuation_force": ("clustering_evacuation_force",),
+    # LXD 6.7+: boot.mode replaces security.secureboot (refused for VMs)
+    "boot_mode": ("instance_boot_mode",),
 }
 
 

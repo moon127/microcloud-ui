@@ -232,6 +232,10 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   on an ARM host. 22.04 (py3.10) bundles now include `tomli`.
 - **Git history scrubbed 2026-11-12 (D66):** no `Claude-Session:` trailers; commit-msg hook
   guards against them.
+- **Phase 5a/5b on the VM 2026-11-12:** operations page uses `entity_url` and nests bulk children;
+  forced evacuation offered after LXD 6.9's quorum refusal; VM secure boot off is `boot.mode` on
+  6.7+ (`boot_mode` adapt; 6.10 refuses `security.secureboot`); placement groups page + wizard
+  choice. All verified through the app against the 6.10 VM.
 - **0.1.3 released 2026-11-12** (run 43283773241): CephFS pools on LXD 6.8+, the Ceph page without
   Tentacle perf counters, `mcui check` release/security warnings. `main` is now 0.1.4.dev0. The
   MicroCloud 3.4 VM `mcui-test-mc34` is kept for Phase 5 work (owner, 2026-11-12); `mcui-test` limits

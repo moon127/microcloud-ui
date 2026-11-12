@@ -45,7 +45,8 @@ async def test_all_good(settings, lxd):
     assert "Host metrics (node_exporter, https port 9100, optional):" in out
     assert "ok   m1: 65 samples" in out
     assert "--   m2: https://192.0.2.2:9100: not reachable (not installed?)" in out
-    assert "Unavailable" not in out and out.endswith("Result: OK")
+    # LXD 6 features are hidden on this 5.21 fixture, and said so
+    assert "Unavailable (hidden in the UI): placement_groups" in out and out.endswith("Result: OK")
 
 
 @respx.mock

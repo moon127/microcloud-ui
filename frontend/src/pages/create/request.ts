@@ -18,6 +18,8 @@ export interface CreateForm {
   type: "container" | "virtual-machine";
   project: string;
   target: string;
+  /** LXD 6.6+: placement.group */
+  placementGroup: string;
   image: NewInstance["image"] | null;
   description: string;
   profiles: string[];
@@ -42,6 +44,7 @@ export const emptyForm = (project: string): CreateForm => ({
   type: "container",
   project,
   target: "",
+  placementGroup: "",
   image: null,
   description: "",
   profiles: ["default"],
@@ -75,7 +78,7 @@ export function problems(f: CreateForm): string[] {
 }
 
 /** The request body for POST /api/instances. */
-export function buildRequest(f: CreateForm): NewInstance {
+export function buildRequest(f: CreateForm, features: Record<string, boolean> = {}): NewInstance {
   const config: Record<string, string> = {};
   const set = (k: string, v: string | boolean, on = true) => {
     if (typeof v === "boolean" ? v === on : v.trim()) config[k] = typeof v === "boolean" ? String(v) : v.trim();
@@ -86,9 +89,13 @@ export function buildRequest(f: CreateForm): NewInstance {
   set("cloud-init.vendor-data", f.vendorData);
   set("cloud-init.network-config", f.networkConfig);
   set("boot.autostart", f.autostart);
+  set("placement.group", f.placementGroup);
   if (f.type === "container") {
     set("security.nesting", f.nesting);
     set("security.privileged", f.privileged);
+  } else if (features.boot_mode) {
+    // LXD 6.7+ refuses security.secureboot for VMs; secure boot is the default mode
+    if (!f.secureboot) config["boot.mode"] = "uefi-nosecureboot";
   } else {
     set("security.secureboot", f.secureboot, false);
   }

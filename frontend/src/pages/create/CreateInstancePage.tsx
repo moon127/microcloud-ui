@@ -5,8 +5,10 @@ import {
   createInstance,
   fetchMembers,
   fetchNetworks,
+  fetchPlacementGroups,
   fetchProfiles,
   fetchProjects,
+  fetchServer,
   fetchStoragePools,
   operationProgress,
   type Operation,
@@ -32,6 +34,11 @@ export default function CreateInstancePage() {
   const members = useApi("members", fetchMembers);
   const pools = useApi("pools", fetchStoragePools);
   const profiles = useApi(`profiles:${f.project}`, () => fetchProfiles(f.project));
+  const server = useApi("server", fetchServer);
+  const features = server.data?.features ?? {};
+  const groups = useApi(`placement-groups:${f.project}:${features.placement_groups ?? false}`, () =>
+    features.placement_groups ? fetchPlacementGroups(f.project) : Promise.resolve([]),
+  );
   const networks = useApi(`networks:${f.project}`, () => fetchNetworks(f.project));
 
   if (user.role !== "admin") return <p role="alert">Creating instances needs the admin role.</p>;
@@ -39,7 +46,7 @@ export default function CreateInstancePage() {
   const set = <K extends keyof CreateForm>(k: K, v: CreateForm[K]) => setF((x) => ({ ...x, [k]: v }));
   const busy = !!creating && !creating.error;
   const issues = problems(f);
-  const req = buildRequest(f);
+  const req = buildRequest(f, features);
   const managed = (networks.data ?? []).filter((n) => n.managed);
 
   const setNic = (i: number, patch: Partial<Nic>) => set("nics", f.nics.map((n, j) => (j === i ? { ...n, ...patch } : n)));
@@ -120,6 +127,20 @@ export default function CreateInstancePage() {
               onChange={(e) => set("target", e.target.value ? `@${e.target.value.replace(/^@/, "")}` : "")}
             />
           </label>
+          {features.placement_groups && (
+            <label className="field">
+              Placement group
+              <select value={f.placementGroup} onChange={(e) => set("placementGroup", e.target.value)}>
+                <option value="">None</option>
+                {(groups.data ?? []).map((g) => (
+                  <option key={g.name} value={g.name}>
+                    {g.name} ({g.config.policy}
+                    {g.config.rigor === "permissive" ? ", permissive" : ""})
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
         <fieldset aria-label="Profiles">
           {(profiles.data ?? []).map((p) => (

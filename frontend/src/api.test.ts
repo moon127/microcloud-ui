@@ -229,6 +229,11 @@ describe("create-instance helpers", () => {
     await api.fetchProfiles("p");
     await api.fetchNetworks("p");
     await api.createInstance(body);
+    await api.fetchPlacementGroups("p");
+    const pg = { description: "", policy: "spread" as const, rigor: "strict" as const };
+    await api.createPlacementGroup("p", "web", pg);
+    await api.updatePlacementGroup("p", "w b", pg);
+    await api.deletePlacementGroup("p", "web");
     const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
     expect(calls).toEqual([
       ["/api/images?project=my%20p", "GET", null],
@@ -236,6 +241,10 @@ describe("create-instance helpers", () => {
       ["/api/profiles?project=p", "GET", null],
       ["/api/networks?project=p", "GET", null],
       ["/api/instances", "POST", JSON.stringify(body)],
+      ["/api/placement-groups?project=p", "GET", null],
+      ["/api/placement-groups", "POST", JSON.stringify({ name: "web", project: "p", ...{ description: "", policy: "spread", rigor: "strict" } })],
+      ["/api/placement-groups/p/w%20b", "PUT", JSON.stringify({ description: "", policy: "spread", rigor: "strict" })],
+      ["/api/placement-groups/p/web", "DELETE", null],
     ]);
   });
 });

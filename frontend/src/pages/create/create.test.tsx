@@ -66,6 +66,15 @@ describe("request builder", () => {
     expect(buildRequest({ ...vm, rootSize: "", rootPool: "p" }).devices.root).toEqual({ type: "disk", path: "/", pool: "p" });
   });
 
+  it("LXD 6: secure boot off is boot.mode (6.7+), and a placement group (6.6+)", () => {
+    const vm = { ...emptyForm("default"), name: "v", type: "virtual-machine" as const, secureboot: false };
+    expect(buildRequest(vm, { boot_mode: true }).config).toEqual({ "boot.mode": "uefi-nosecureboot" });
+    expect(buildRequest({ ...vm, secureboot: true }, { boot_mode: true }).config).toEqual({}); // the default
+    expect(buildRequest(vm, { boot_mode: false }).config).toEqual({ "security.secureboot": "false" }); // LXD 5.21
+    const c = { ...emptyForm("default"), name: "c", placementGroup: "web" };
+    expect(buildRequest(c).config).toEqual({ "placement.group": "web" });
+  });
+
   it("explains what's missing", () => {
     expect(problems(emptyForm("x"))).toEqual(["Name: letters, digits and dashes, starting with a letter", "Choose an image"]);
     const f = {

@@ -10,6 +10,7 @@ import InstancePage from "./pages/instance/InstancePage";
 import ImagesPage from "./pages/manage/ImagesPage";
 import ProfilePage from "./pages/manage/ProfilePage";
 import ProfilesPage from "./pages/manage/ProfilesPage";
+import PlacementGroupsPage from "./pages/manage/PlacementGroupsPage";
 import ProjectPage from "./pages/manage/ProjectPage";
 import ProjectsPage from "./pages/manage/ProjectsPage";
 import InstancesPage from "./pages/InstancesPage";
@@ -48,6 +49,7 @@ export function AppRoutes() {
         <Route path="instances/:project/:name" element={<InstancePage />} />
         <Route path="members/:name" element={<MemberPage />} />
         <Route path="profiles" element={<ProfilesPage />} />
+        <Route path="placement-groups" element={<PlacementGroupsPage />} />
         <Route path="profiles/:project/:name" element={<ProfilePage />} />
         <Route path="images" element={<ImagesPage />} />
         <Route path="projects" element={<ProjectsPage />} />
