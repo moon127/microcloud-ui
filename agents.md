@@ -232,6 +232,11 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   on an ARM host. 22.04 (py3.10) bundles now include `tomli`.
 - **Git history scrubbed 2026-11-12 (D66):** no `Claude-Session:` trailers; commit-msg hook
   guards against them.
+- **0.1.4 released 2026-11-12** (run 43292179897): the Phase 5 LXD 6.10 features (placement groups,
+  image registries, OVN load balancers, multi-volume snapshots, child operations, forced evacuation)
+  and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
+  the script tagged anyway; the version check stopped the run, nothing was published). `main` is
+  now 0.1.5.dev0.
 - **Phase 5b, image registries 2026-11-12 (D47 amended):** picker uses LXD 6.10's registries
   (built-in and custom), instances from `source.image_registry`, registry list/add/delete on the Images
   page; LXD 5.21 unchanged. Verified on the 6.10 VM. With this, the agreed 5b scope is built.
