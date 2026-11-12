@@ -33,7 +33,7 @@ test-frontend:
 lint: lint-backend lint-frontend lint-shell ## ruff, mypy, eslint, tsc, shellcheck
 
 lint-backend:
-	cd backend && $(BIN)/ruff check . && $(BIN)/ruff format --check . && $(BIN)/mypy
+	cd backend && $(BIN)/ruff check . ../scripts && $(BIN)/ruff format --check . ../scripts && $(BIN)/mypy
 
 lint-frontend:
 	cd $(FE) && npm run lint && npm run typecheck

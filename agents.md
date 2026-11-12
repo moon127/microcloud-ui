@@ -197,9 +197,12 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 
 - `make lint test` must pass before every commit (`make hooks` installs it as
   the pre-commit hook, which also checks the commit email).
-- The Claude session's Linux dev VM keeps its venv outside the repo
-  (`make … VENV=$HOME/mcui-venv`) and deletes `frontend/node_modules` after
-  use, so no Linux binaries are left in the owner's macOS checkout.
+- Sessions now run on the owner's Mac (`.venv`, Node 22; no lxc/docker/podman). Live
+  LXD work goes through `scripts/lxd_api.py` with the dev certs; Linux-only checks use
+  throwaway VMs in `mcui-test` (see CLAUDE.md for the rules). If a session ever runs on
+  a Linux VM against this checkout, keep its venv outside the repo
+  (`make … VENV=$HOME/mcui-venv`) and delete `frontend/node_modules` afterwards, so no
+  Linux binaries are left in the macOS checkout.
 - New Python deps go in `backend/pyproject.toml`; new JS deps via `npm install`
   (commit `package-lock.json`). Check licences (D24). Pin exact versions at
   least two weeks old.
@@ -220,7 +223,7 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - Dev certs live outside the repo in `~/.config/mcui/certs/` on the owner's Mac; dev config is `~/.config/mcui/config.toml` (data in `~/.local/share/mcui`).
 - **Throwaway LXD (Phase 4, D41 extension):** VM `mcui-lxd` in `mcui-test` (2 vCPU, 2 GiB, 25 GiB root on `remote`, NIC on OVN `default`); the project's limits were raised for it (1 VM, 4 instances, 4 CPU, 3 GiB, 40 GiB). **Deleted 2026-11-11** with its Ubuntu VM image; the limits are back to the values below. To redo: same VM, then `build.sh`-style source build (see the Phase 4c/4d notes). IPv6 egress from OVN `default` doesn't work and `api.snapcraft.io` is unreachable (also unresolvable from the owner's Mac), so LXD is built from the 5.21.3 release tarball inside the VM.
 - **Sandbox project `mcui-test`** (D41), created 2026-11-05: own images, profiles and volumes (`features.images/profiles/storage.volumes=true`), shared networks; default profile has a 2 GiB root on `remote` and **no NIC**, `limits.cpu=1`, `limits.memory=256MiB`; project limits 3 containers, 0 VMs, 2 CPU, 1 GiB RAM, 6 GiB disk. Remove with: delete its instances and images, then `lxc project delete mcui-test`.
-- LXD's filesystem metrics may omit a VM's `/` mount (seen on podman-1), so root FS can be unknown.
+- LXD's filesystem metrics may omit a VM's `/` mount (seen on podman-1, which bind-mounts its root disk for Podman). Root FS then falls back to the largest real filesystem, marked `*` (D62).
 
 ## Known gaps (not testable on the test cloud)
 
@@ -233,7 +236,7 @@ gap with recorded fixtures from a cluster (or a throwaway LXD VM) that has it.
 | **Standalone (non-clustered) LXD** | Member state is skipped on 404 (no host load/pool usage); everything else uses the single endpoint | Fixture-tested only |
 | **Other network types** (bridge-managed, macvlan, sriov) | Instance-NIC mapping by MAC (D39) should work; host-NIC collection filters by type | Untested live |
 
-## Repo layout (target)
+## Repo layout
 
 ```
 backend/            Python package `mcui`
@@ -245,11 +248,20 @@ backend/            Python package `mcui`
   mcui/check.py     `mcui check`; mcui/record.py `mcui record-fixtures`
   tests/            pytest; fixtures/lxd hand-written, fixtures/recorded from the
                     test cloud; integration/ opt-in live tests (MCUI_IT_CONFIG)
+  mcui/files.py     private (0600) SQLite files
 frontend/           React + TS + Vite SPA
+  screenshots/      invented demo cluster + Playwright shooter (make screenshots, D59)
+deploy/             production: install.sh, mcui.service, mcui-cli, config.example.toml (D63)
+  container/        Containerfile, entrypoint.sh, Podman Quadlet, compose.yaml (D64)
 docs/PLAN.md        phased delivery plan
+docs/DEPLOY.md      production guide (bundle + systemd, containers)
+docs/LIVE-TESTS.md  checks only the owner can run
+docs/HOST-METRICS.md node_exporter install and lock-down
 Makefile            dev tasks (make help)
 scripts/pre-commit  lint+test+email gate
-CLAUDE.md           points Claude Code at this file
+scripts/bundle.sh   offline Ubuntu bundle (make bundle)
+scripts/lxd_api.py  dev aid: LXD API calls/exec/push with the dev certs
+CLAUDE.md           session brief: read-first list, hard rules, environment, gotchas
 docs/REQUIREMENTS.md  requirement IDs and tiers
 docs/lxd-api-surface.md  LXD REST path reference
 docs/CONFIGURATION.md    config reference (tool side)
