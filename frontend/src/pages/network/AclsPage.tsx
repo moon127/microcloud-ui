@@ -39,9 +39,9 @@ export default function AclsPage() {
               <tr>
                 <th>Name</th>
                 <th>Description</th>
-                <th>Ingress rules</th>
-                <th>Egress rules</th>
-                <th>Used by</th>
+                <th className="num">Ingress rules</th>
+                <th className="num">Egress rules</th>
+                <th className="num">Used by</th>
               </tr>
             </thead>
             <tbody>

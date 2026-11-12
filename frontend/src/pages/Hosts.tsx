@@ -111,7 +111,7 @@ export function HostsTable({ hosts, onUnlimited }: { hosts: Host[]; onUnlimited:
             <th>Memory</th>
             <th>Swap</th>
             <th>Disk</th>
-            <th>Instances</th>
+            <th className="num">Instances</th>
             <th>Instances use</th>
             <th>Allocated (running)</th>
             <th>Network rx / tx</th>

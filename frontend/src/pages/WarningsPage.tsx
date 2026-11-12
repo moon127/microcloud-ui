@@ -28,7 +28,7 @@ export default function WarningsPage() {
                 <th>Message</th>
                 <th>Member</th>
                 <th>Project</th>
-                <th>Count</th>
+                <th className="num">Count</th>
                 <th>Last seen</th>
                 <th>Status</th>
                 {admin && <th />}

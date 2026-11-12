@@ -154,10 +154,10 @@ function Capacity({ rows }: { rows: PoolMember[] }) {
           <tr>
             <th>Member</th>
             <th>Status</th>
-            <th>Used</th>
-            <th>Size</th>
+            <th className="num">Used</th>
+            <th className="num">Size</th>
             <th>Used %</th>
-            <th>Inodes used</th>
+            <th className="num">Inodes used</th>
             <th>Source</th>
           </tr>
         </thead>

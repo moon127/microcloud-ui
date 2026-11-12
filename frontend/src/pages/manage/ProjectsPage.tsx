@@ -42,7 +42,7 @@ export default function ProjectsPage() {
                 <th>Description</th>
                 <th>Own</th>
                 <th>Limits</th>
-                <th>Used by</th>
+                <th className="num">Used by</th>
               </tr>
             </thead>
             <tbody>

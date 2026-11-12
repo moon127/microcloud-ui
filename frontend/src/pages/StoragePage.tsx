@@ -74,7 +74,7 @@ function PoolList() {
                 <th>Driver</th>
                 <th>Status</th>
                 <th>Source</th>
-                <th>Used by</th>
+                <th className="num">Used by</th>
                 <th>Description</th>
               </tr>
             </thead>

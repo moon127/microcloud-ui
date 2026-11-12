@@ -109,7 +109,7 @@ function NetworkList() {
                 <th>Type</th>
                 <th>Status</th>
                 <th>Details</th>
-                <th>Used by</th>
+                <th className="num">Used by</th>
                 <th>Description</th>
               </tr>
             </thead>

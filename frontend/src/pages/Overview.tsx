@@ -237,14 +237,14 @@ function InstancesTable({ rows }: { rows: InstanceLive[] }) {
             <th>Project</th>
             <th>Member</th>
             <th>Type</th>
-            <th>CPU</th>
-            <th>Memory</th>
-            <th>Root FS</th>
-            <th>Disk read</th>
-            <th>Disk write</th>
-            <th>Net rx</th>
-            <th>Net tx</th>
-            <th>Procs</th>
+            <th className="num">CPU</th>
+            <th className="num">Memory</th>
+            <th className="num">Root FS</th>
+            <th className="num">Disk read</th>
+            <th className="num">Disk write</th>
+            <th className="num">Net rx</th>
+            <th className="num">Net tx</th>
+            <th className="num">Procs</th>
           </tr>
         </thead>
         <tbody>

@@ -93,9 +93,9 @@ export default function OvnPage() {
                     <th>Subnets</th>
                     <th>Router address</th>
                     <th>Gateway chassis</th>
-                    <th>Forwards</th>
-                    <th>LBs</th>
-                    <th>Peers</th>
+                    <th className="num">Forwards</th>
+                    <th className="num">LBs</th>
+                    <th className="num">Peers</th>
                     <th>ACLs</th>
                     <th>Allocated</th>
                   </tr>

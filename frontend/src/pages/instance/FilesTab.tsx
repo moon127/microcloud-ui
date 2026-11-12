@@ -118,7 +118,7 @@ export default function FilesTab({ inst }: { inst: InstanceFull }) {
                 <tr>
                   <th>Name</th>
                   <th>Type</th>
-                  <th>Size</th>
+                  <th className="num">Size</th>
                   <th>Mode</th>
                   <th>Owner</th>
                   <th>Modified</th>

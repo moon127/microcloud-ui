@@ -53,7 +53,7 @@ export default function VolumesPage() {
                 <th>Content</th>
                 <th>Size</th>
                 <th>Member</th>
-                <th>Used by</th>
+                <th className="num">Used by</th>
                 <th>Description</th>
               </tr>
             </thead>

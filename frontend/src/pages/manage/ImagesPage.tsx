@@ -72,7 +72,7 @@ export default function ImagesPage() {
                 <th>Description</th>
                 <th>Type</th>
                 <th>Arch</th>
-                <th>Size</th>
+                <th className="num">Size</th>
                 <th>Created</th>
                 <th>Auto-update</th>
                 <th>Fingerprint</th>

@@ -35,7 +35,7 @@ export default function ProfilesPage() {
                 <th>Name</th>
                 <th>Description</th>
                 <th>Devices</th>
-                <th>Used by</th>
+                <th className="num">Used by</th>
               </tr>
             </thead>
             <tbody>

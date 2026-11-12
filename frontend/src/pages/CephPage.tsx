@@ -116,12 +116,12 @@ function Now({ s }: { s: CephState }) {
               <th>Host</th>
               <th>Class</th>
               <th>State</th>
-              <th>PGs</th>
-              <th>Used</th>
-              <th>Size</th>
+              <th className="num">PGs</th>
+              <th className="num">Used</th>
+              <th className="num">Size</th>
               <th />
-              <th>Apply</th>
-              <th>Commit</th>
+              <th className="num">Apply</th>
+              <th className="num">Commit</th>
             </tr>
           </thead>
           <tbody>
@@ -151,11 +151,11 @@ function Now({ s }: { s: CephState }) {
             <tr>
               <th>Pool</th>
               <th>Type</th>
-              <th>Stored</th>
-              <th>Available</th>
+              <th className="num">Stored</th>
+              <th className="num">Available</th>
               <th>Used</th>
-              <th>Objects</th>
-              <th>PGs</th>
+              <th className="num">Objects</th>
+              <th className="num">PGs</th>
             </tr>
           </thead>
           <tbody>
@@ -305,7 +305,7 @@ function Rbd({ range }: { range: number }) {
               <tr>
                 <th>Disk</th>
                 <th>Ceph pool</th>
-                <th>{m.label}</th>
+                <th className="num">{m.label}</th>
               </tr>
             </thead>
             <tbody>
