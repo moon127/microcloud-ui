@@ -119,3 +119,21 @@ async def test_wait_on_a_failed_operation_returns_it(lxd):
     get.mock(return_value=lxd_ok(OP))  # still running: the wait's error stands
     with pytest.raises(LXDError, match="volatile.uuid"):
         await operations.wait(lxd, "op1")
+
+
+@respx.mock
+async def test_list_nests_bulk_children(lxd):
+    """LXD 6.10's bulk stop (recorded on the Phase 5 VM): children stay under their parent."""
+    import json
+    from pathlib import Path
+
+    rec = Path(__file__).parent / "fixtures/recorded-6.10/1.0_operations_recursion_2_bulk_stop.json"
+    route = respx.get(f"{EP1}/1.0/operations").mock(
+        return_value=lxd_ok(json.loads(rec.read_text()))  # `lxc query` output: no envelope
+    )
+    ops = await operations.list_all(lxd)
+    assert route.calls.last.request.url.params["recursion"] == "2"
+    bulk = [o for o in ops if o.get("child_count")]
+    assert len(bulk) == 1 and bulk[0]["child_count"] == 3
+    kids = {c["id"] for c in bulk[0]["children"]}
+    assert len(kids) == 3 and not kids & {o["id"] for o in ops}  # not listed twice

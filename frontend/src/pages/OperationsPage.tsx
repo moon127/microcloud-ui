@@ -5,11 +5,13 @@ import { useEvents } from "../events";
 import { useSession } from "../session";
 import { useApi } from "../useApi";
 
-function resources(op: Operation): string {
-  return Object.values(op.resources ?? {})
-    .flat()
-    .map((r) => r.split("/").pop())
-    .join(", ");
+/** The objects an operation works on: ``resources`` (LXD 5.x), else its ``entity_url`` (LXD 6.7+). */
+function objects(op: Operation): string {
+  const name = (url: string) => decodeURIComponent(url.split("?")[0].split("/").pop() ?? "");
+  const listed = Object.values(op.resources ?? {}).flat();
+  if (listed.length) return listed.map(name).join(", ");
+  const entity = op.metadata?.entity_url;
+  return typeof entity === "string" ? name(entity) : "";
 }
 
 export default function OperationsPage() {
@@ -40,18 +42,20 @@ export default function OperationsPage() {
               </tr>
             </thead>
             <tbody>
-              {data.map((op) => (
-                <tr key={op.id}>
-                  <td>{new Date(op.created_at).toLocaleString()}</td>
+              {data.flatMap((op) => [op, ...(op.children ?? []).map((c) => ({ ...c, parent: op.id }))]).map((op) => (
+                <tr key={op.id} className={"parent" in op ? "child" : undefined}>
+                  <td>{"parent" in op ? "" : new Date(op.created_at).toLocaleString()}</td>
                   <td>
+                    {"parent" in op && <span aria-hidden="true">↳ </span>}
                     {op.description}
+                    {!!op.child_count && <span className="muted"> ({op.child_count} operations)</span>}
                     {operationProgress(op) && <div className="muted">{operationProgress(op)}</div>}
                   </td>
                   <td>
                     {op.status}
                     {op.err ? `: ${op.err}` : ""}
                   </td>
-                  <td>{resources(op)}</td>
+                  <td>{objects(op)}</td>
                   <td>{op.project ?? ""}</td>
                   <td>{op.location ?? ""}</td>
                   <td>

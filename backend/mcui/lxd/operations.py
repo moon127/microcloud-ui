@@ -108,7 +108,13 @@ async def run(
 
 
 async def list_all(client: LXDClient) -> list[dict[str, Any]]:
-    """Every operation in every project, newest first, flattened with its status."""
-    data = await client.get("/1.0/operations", recursion=1, **{"all-projects": "true"}) or {}
+    """Every operation in every project, newest first, flattened with its status.
+
+    ``recursion=2`` nests a bulk operation's children under it (LXD 6.8+, ``children``
+    and ``child_count``); LXD also lists them at the top level, so those are dropped
+    there. Older LXD treats it like ``recursion=1``."""
+    data = await client.get("/1.0/operations", recursion=2, **{"all-projects": "true"}) or {}
     ops = [op for group in data.values() for op in (group or [])]
+    nested = {str(c.get("id")) for op in ops for c in op.get("children") or []}
+    ops = [op for op in ops if str(op.get("id")) not in nested]
     return sorted(ops, key=lambda op: str(op.get("created_at", "")), reverse=True)

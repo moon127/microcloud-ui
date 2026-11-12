@@ -372,6 +372,9 @@ export interface Operation {
   err?: string;
   location?: string;
   project?: string;
+  /** LXD 6.8+: a bulk operation's own operations (recursion=2) */
+  children?: Operation[];
+  child_count?: number;
 }
 
 /** Response of every mutating call: an LXD operation (async) or plain metadata. */

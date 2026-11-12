@@ -53,6 +53,33 @@ describe("OperationsPage", () => {
     await vi.waitFor(() => expect(list.mock.calls.length).toBe(before + 1));
   });
 
+  it("names objects from entity_url and nests a bulk operation's children (LXD 6)", async () => {
+    vi.spyOn(api, "fetchOperations").mockResolvedValue([
+      {
+        id: "p",
+        description: "Updating the state of multiple instances",
+        created_at: "2026-11-12T18:34:48Z",
+        status: "Running",
+        resources: {},
+        metadata: { entity_url: "/1.0/projects/default" },
+        child_count: 2,
+        children: [
+          { id: "c1", description: "Stopping instance", created_at: "2026-11-12T18:34:48Z", status: "Success", metadata: { entity_url: "/1.0/instances/c1" } },
+          { id: "c2", description: "Stopping instance", created_at: "2026-11-12T18:34:48Z", status: "Running", metadata: { entity_url: "/1.0/instances/web%2D2?project=lab" } },
+        ],
+      },
+    ]);
+    renderAt(<OperationsPage />);
+    const rows = await screen.findAllByRole("row");
+    expect(rows).toHaveLength(4); // header, parent, two children
+    expect(rows[1]).toHaveTextContent("Updating the state of multiple instances (2 operations)");
+    expect(rows[1]).toHaveTextContent("default");
+    expect(rows[2]).toHaveClass("child");
+    expect(rows[2]).toHaveTextContent("↳ Stopping instance");
+    expect(rows[2]).toHaveTextContent("c1");
+    expect(rows[3]).toHaveTextContent("web-2"); // decoded, query dropped
+  });
+
   it("hides cancel from viewers and handles empty and error states", async () => {
     vi.spyOn(api, "fetchOperations").mockResolvedValue(ops);
     const { unmount } = renderAt(<OperationsPage />, { s: viewer() });
