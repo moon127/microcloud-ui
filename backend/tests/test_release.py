@@ -1,6 +1,7 @@
-"""The release workflow and its tag check (D67)."""
+"""The release workflow and the versions its builds carry (D67, D68)."""
 
 import importlib.util
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -9,10 +10,10 @@ import yaml
 import mcui
 
 ROOT = Path(__file__).resolve().parents[2]
-_spec = importlib.util.spec_from_file_location("release_check", ROOT / "scripts/release_check.py")
+_spec = importlib.util.spec_from_file_location("build_version", ROOT / "scripts/build_version.py")
 assert _spec and _spec.loader
-release_check = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(release_check)
+build_version = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(build_version)
 
 
 def workflow(name: str) -> dict:
@@ -22,14 +23,14 @@ def workflow(name: str) -> dict:
 
 
 def test_package_version_reads_the_package():
-    assert release_check.package_version() == mcui.__version__
+    assert build_version.package_version() == mcui.__version__
 
 
 def test_package_version_needs_a_version(tmp_path):
     init = tmp_path / "__init__.py"
     init.write_text('"""no version"""\n')
     with pytest.raises(ValueError, match="no __version__"):
-        release_check.package_version(init)
+        build_version.package_version(init)
 
 
 @pytest.mark.parametrize(
@@ -44,48 +45,124 @@ def test_package_version_needs_a_version(tmp_path):
     ],
 )
 def test_check(tag, version, error):
-    result = release_check.check(tag, version)
+    result = build_version.check(tag, version)
     assert result is None if error is None else error in result
 
 
+@pytest.mark.parametrize(
+    ("version", "commits", "expected"),
+    [
+        ("0.1.1.dev0", 7, "0.1.1.dev7"),
+        ("0.2.0.dev3", 0, "0.2.0.dev0"),
+        ("0.1.0", 0, "0.1.0"),  # the release commit itself
+        ("0.1.0", 2, "0.1.0"),
+    ],
+)
+def test_dev_version(version, commits, expected):
+    assert build_version.dev_version(version, commits) == expected
+
+
+def _git(cwd: Path, *args: str) -> None:
+    subprocess.run(  # noqa: S603
+        ["git", "-c", "user.name=t", "-c", "user.email=t@example.org", *args],  # noqa: S607
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+    )
+
+
+def test_commits_since_release(tmp_path):
+    _git(tmp_path, "init", "-q")
+    for n in range(3):
+        _git(tmp_path, "commit", "-q", "--allow-empty", "-m", f"c{n}")
+    assert build_version.commits_since_release(tmp_path) == 3  # no release yet
+    _git(tmp_path, "tag", "-a", "v0.1.0", "-m", "r")
+    _git(tmp_path, "tag", "edge")  # other tags don't count
+    assert build_version.commits_since_release(tmp_path) == 0
+    for n in range(2):
+        _git(tmp_path, "commit", "-q", "--allow-empty", "-m", f"d{n}")
+    assert build_version.commits_since_release(tmp_path) == 2
+
+
 def test_main(monkeypatch, capsys):
-    monkeypatch.setattr(release_check, "package_version", lambda: "0.2.0")
-    assert release_check.main(["release_check.py", "v0.2.0"]) == 0
-    assert "v0.2.0 ok" in capsys.readouterr().out
-    assert release_check.main(["release_check.py", "v0.2.1"]) == 1
+    monkeypatch.setattr(build_version, "package_version", lambda: "0.2.0")
+    assert build_version.main(["build_version.py", "release", "v0.2.0"]) == 0
+    assert capsys.readouterr().out == "0.2.0\n"
+    assert build_version.main(["build_version.py", "release", "v0.2.1"]) == 1
     assert "does not match" in capsys.readouterr().err
-    assert release_check.main(["release_check.py"]) == 2
+    monkeypatch.setattr(build_version, "package_version", lambda: "0.2.1.dev0")
+    monkeypatch.setattr(build_version, "commits_since_release", lambda: 4)
+    assert build_version.main(["build_version.py", "dev"]) == 0
+    assert capsys.readouterr().out == "0.2.1.dev4\n"
+    assert build_version.main(["build_version.py"]) == 2
+    assert build_version.main(["build_version.py", "release"]) == 2
 
 
-def test_release_workflow():
+def test_triggers_and_modes():
     release, ci = workflow("release.yml"), workflow("ci.yml")
     assert "workflow_call" in ci["on"] and release["on"]["push"]["tags"] == ["v*"]
+    assert release["on"]["workflow_run"] == {
+        "workflows": ["CI"],
+        "types": ["completed"],
+        "branches": ["main"],
+    }
+    assert "workflow_dispatch" in release["on"]
     jobs = release["jobs"]
+    # edge: only CI runs that passed on a push to this repository (never a fork's PR)
+    gate = jobs["setup"]["if"]
+    for cond in (
+        "github.event.workflow_run.conclusion == 'success'",
+        "github.event.workflow_run.event == 'push'",
+        "github.event.workflow_run.head_repository.full_name == github.repository",
+    ):
+        assert cond in gate
+    mode = jobs["setup"]["steps"][-1]["run"]
+    assert 'build_version.py release "$GITHUB_REF_NAME"' in mode
+    assert "build_version.py dev" in mode
+    assert 'tags="$IMAGE:$version $IMAGE:${version%.*} $IMAGE:latest"' in mode
+    assert 'tags="$IMAGE:edge $IMAGE:edge-${REF::7}"' in mode
+    # CI runs inline except for edge, which follows a CI run that passed
     assert jobs["ci"]["uses"] == "./.github/workflows/ci.yml"
-    assert set(jobs["image"]["needs"]) == set(jobs["bundle"]["needs"]) == {"ci", "version"}
+    assert jobs["ci"]["if"] == "needs.setup.outputs.mode != 'edge'"
+    assert release["concurrency"]["cancel-in-progress"] == (
+        "${{ github.event_name == 'workflow_run' }}"
+    )
+
+
+def test_builds():
+    jobs = workflow("release.yml")["jobs"]
     # each platform on its own native runner, no emulation
     matrix = {m["platform"]: m["runner"] for m in jobs["image"]["strategy"]["matrix"]["include"]}
     assert matrix == {"linux/amd64": "ubuntu-24.04", "linux/arm64": "ubuntu-24.04-arm"}
+    for job in ("image", "bundle"):
+        steps = jobs[job]["steps"]
+        assert steps[0]["with"]["ref"] == "${{ needs.setup.outputs.ref }}"
+        assert steps[1]["name"] == "Stamp the version" and "__version__" in steps[1]["run"]
     steps = {s.get("uses", "").split("@")[0]: s for s in jobs["image"]["steps"]}
     assert "docker/setup-qemu-action" not in steps
     build = steps["docker/build-push-action"]["with"]
     assert build["file"] == "deploy/container/Containerfile"
     assert build["platforms"] == "${{ matrix.platform }}"
-    # a hand-run (workflow_dispatch) builds both and publishes nothing
-    image = "ghcr.io/${{ github.repository }}"
-    assert build["outputs"] == (
-        f"type=image,name={image},push-by-digest=true,name-canonical=true,"
-        "push=${{ env.PUBLISH }}"
+    # a dry run builds both and publishes nothing
+    assert jobs["image"]["env"]["PUBLISH"] == "${{ needs.setup.outputs.mode != 'dry-run' }}"
+    assert build["outputs"].endswith(
+        "push-by-digest=true,name-canonical=true,push=${{ env.PUBLISH }}"
     )
-    assert release["env"]["PUBLISH"] == "${{ startsWith(github.ref, 'refs/tags/v') }}"
-    for job in ("merge", "release"):
-        assert jobs[job]["if"] == "startsWith(github.ref, 'refs/tags/v')"
-    assert jobs["merge"]["needs"] == "image" and jobs["release"]["needs"] == ["merge", "bundle"]
-    merge = {s.get("uses", "").split("@")[0]: s for s in jobs["merge"]["steps"]}
-    assert merge["docker/metadata-action"]["with"]["images"] == image
+    assert "needs.setup.outputs.mode != 'dry-run'" in jobs["merge"]["if"]
     assert "imagetools create" in jobs["merge"]["steps"][-1]["run"]
-    check = [s for s in jobs["version"]["steps"] if "release_check.py" in s.get("run", "")]
-    assert check and check[0]["if"] == "env.PUBLISH == 'true'"
+    assert "org.opencontainers.image.version=" in build["labels"]
+
+
+def test_publishing():
+    release = workflow("release.yml")
+    jobs = release["jobs"]
+    steps = {s.get("name"): s for s in jobs["release"]["steps"]}
+    tagged = steps["GitHub Release for the tag"]
+    assert tagged["if"] == "env.MODE == 'release'" and "--notes-start-tag" in tagged["run"]
+    edge = steps['Rolling pre-release "edge"']
+    assert edge["if"] == "env.MODE == 'edge'"
+    for part in ("refs/tags/edge", "--prerelease --latest=false", "delete-asset edge"):
+        assert part in edge["run"]
     # the only write permissions: packages for the image, contents for the release
     assert release["permissions"] == {"contents": "read"}
     assert jobs["image"]["permissions"]["packages"] == "write"

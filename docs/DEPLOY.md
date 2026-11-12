@@ -45,7 +45,8 @@ Browsers reach it on **8843** (HTTPS) by default. The history grows to roughly
 ## 2. Build the bundle (on your dev machine)
 
 Each GitHub Release has the four bundles attached (24.04 and 22.04, x86_64 and
-aarch64; docs/RELEASING.md). Download one, or build your own:
+aarch64; docs/RELEASING.md). The pre-release **edge** has the same four, built from the
+tip of `main` (version `X.Y.Z.devN`). Download one, or build your own:
 
 ```bash
 make install          # once: venv + npm packages
@@ -244,6 +245,18 @@ sudo podman tag ghcr.io/moon127/microcloud-ui:latest mcui:latest
 Tagging it `mcui:latest` lets the Quadlet and Compose files below work unchanged. To
 use the registry name directly, set `Image=ghcr.io/moon127/microcloud-ui:latest` in
 the Quadlet; adding `AutoUpdate=registry` lets `podman auto-update` upgrade it.
+
+**Following development instead:** `:edge` is the tip of `main`, rebuilt after every
+push that passes CI (`:edge-<sha>` pins one build). It's for trying what's next, not for
+production. In the Quadlet:
+```ini
+Image=ghcr.io/moon127/microcloud-ui:edge
+AutoUpdate=registry
+```
+then `sudo systemctl enable --now podman-auto-update.timer` checks daily; run
+`sudo podman auto-update` to update straight away. To go back to releases, set
+`:latest` again. Going back from edge to an older release isn't tested, so back up
+the volume first (§9.2 Backup).
 
 To build it yourself, on a machine with Podman or Docker and internet access:
 ```bash

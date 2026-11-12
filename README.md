@@ -10,7 +10,8 @@ usage, and OVN network visibility.
 **Running it for real:** an offline bundle (`make bundle`) installs on Ubuntu as a
 hardened systemd service serving HTTPS. There's also a container image
 (`ghcr.io/moon127/microcloud-ui`, or `make image`) for a Podman Quadlet or Docker Compose.
-Releases attach the bundles and publish the image ([`docs/RELEASING.md`](docs/RELEASING.md)). Either can sit behind NGINX Proxy Manager, Cosmos, Caddy
+Releases attach the bundles and publish the image; `:edge` and the **edge** pre-release
+follow `main` ([`docs/RELEASING.md`](docs/RELEASING.md)). Either can sit behind NGINX Proxy Manager, Cosmos, Caddy
 or nginx, which then handle Let's Encrypt certificates. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Screenshots
