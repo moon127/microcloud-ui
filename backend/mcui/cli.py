@@ -24,8 +24,8 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     serve = sub.add_parser("serve", help="run the web server")
-    serve.add_argument("--host", default="127.0.0.1")
-    serve.add_argument("--port", type=int, default=8000)
+    serve.add_argument("--host", help="listen address (default: [server] host, 127.0.0.1)")
+    serve.add_argument("--port", type=int, help="listen port (default: [server] port, 8000)")
     serve.add_argument("--reload", action="store_true", help="auto-reload (development)")
 
     sub.add_parser("check", help="check LXD connectivity, certificates, metrics and features")
@@ -66,9 +66,20 @@ def _serve(args: argparse.Namespace) -> int:
 
     if args.config is not None:
         os.environ[CONFIG_ENV] = str(args.config)
-    _settings(args)  # fail fast with a readable error
+    server = _settings(args).server  # fail fast with a readable error
+    tls: dict[str, str] = {}
+    if server.tls_cert is not None and server.tls_key is not None:
+        tls = {"ssl_certfile": str(server.tls_cert), "ssl_keyfile": str(server.tls_key)}
     uvicorn.run(
-        "mcui.main:create_app", factory=True, host=args.host, port=args.port, reload=args.reload
+        "mcui.main:create_app",
+        factory=True,
+        host=args.host or server.host,
+        port=args.port or server.port,
+        reload=args.reload,
+        # one process: the collector and live metrics live in it
+        workers=1,
+        server_header=False,
+        **tls,  # type: ignore[arg-type]
     )
     return 0
 

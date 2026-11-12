@@ -1,0 +1,11 @@
+#!/bin/sh
+# `mcui` for administrators: runs the installed CLI as the service user with the
+# system config, so files it creates (users DB) stay owned by mcui. Installed by
+# install.sh to /usr/local/bin/mcui. Example: sudo mcui user add admin --role admin
+set -eu
+if [ "$(id -u)" -ne 0 ]; then
+    echo "mcui: run with sudo (it switches to the mcui user)" >&2
+    exit 1
+fi
+cd /var/lib/mcui
+exec runuser -u mcui -- /opt/mcui/current/bin/mcui -c /etc/mcui/config.toml "$@"

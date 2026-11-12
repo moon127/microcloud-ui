@@ -7,6 +7,9 @@ usage, and OVN network visibility.
 **Status:** Phases 1–4 built: connectivity, local auth, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards and a Hosts view (optional node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)). Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
+**Running it for real:** an offline bundle (`make bundle`) installs on Ubuntu as a
+hardened systemd service serving HTTPS: [`docs/DEPLOY.md`](docs/DEPLOY.md).
+
 ## Screenshots
 
 From an invented demo cluster (`make screenshots`), not a real one. Shown in the dark
@@ -60,10 +63,11 @@ make hooks                             # optional: lint + tests run before every
 | Command | What it does |
 |---|---|
 | `make test` | backend `pytest --cov` + frontend `vitest --coverage`; fails below 90% |
-| `make lint` | ruff, ruff format check, mypy (strict), eslint, tsc |
+| `make lint` | ruff, ruff format check, mypy (strict), eslint, tsc, shellcheck |
 | `make dev-backend` | API with auto-reload on http://127.0.0.1:8000 |
 | `make dev-frontend` | Vite dev server on http://localhost:5173, proxying `/api` to :8000 |
 | `make serve` | build the SPA and serve everything from the backend on :8000 |
+| `make bundle` | offline Ubuntu install bundle in `dist/` ([`docs/DEPLOY.md`](docs/DEPLOY.md)) |
 | `make screenshots` | rebuild `docs/screenshots/` from the demo cluster (headless Google Chrome) |
 
 Use a different venv location with `make test VENV=~/venvs/mcui`.

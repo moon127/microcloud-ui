@@ -60,6 +60,21 @@ class ServerSettings(_Section):
     data_dir: ExpandedPath = Path("./data")
     secure_cookies: bool = True
     session_hours: int = Field(default=12, ge=1)
+    # where `mcui serve` listens (its --host/--port override these)
+    host: str = "127.0.0.1"
+    port: int = Field(default=8000, ge=1, le=65535)
+    # serve HTTPS directly (production without a reverse proxy, docs/DEPLOY.md)
+    tls_cert: ExpandedPath | None = None
+    tls_key: ExpandedPath | None = None
+
+    @model_validator(mode="after")
+    def _tls(self) -> ServerSettings:
+        if (self.tls_cert is None) != (self.tls_key is None):
+            raise ValueError("server tls_cert and tls_key must be set together")
+        if self.tls_cert is not None and self.tls_key is not None:
+            _check_readable(self.tls_cert)
+            check_key_file(self.tls_key)
+        return self
 
 
 class LXDSettings(_Section):

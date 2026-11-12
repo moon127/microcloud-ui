@@ -5,7 +5,7 @@ BIN    := $(abspath $(VENV))/bin
 FE     := frontend
 
 .PHONY: help venv install install-backend install-frontend test test-backend test-frontend \
-        lint lint-backend lint-frontend format build screenshots dev-backend dev-frontend serve hooks clean
+        lint lint-backend lint-frontend lint-shell format build bundle screenshots dev-backend dev-frontend serve hooks clean
 
 help:            ## list targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -30,7 +30,7 @@ test-backend:
 test-frontend:
 	cd $(FE) && npm run coverage
 
-lint: lint-backend lint-frontend ## ruff, mypy, eslint, tsc
+lint: lint-backend lint-frontend lint-shell ## ruff, mypy, eslint, tsc, shellcheck
 
 lint-backend:
 	cd backend && $(BIN)/ruff check . && $(BIN)/ruff format --check . && $(BIN)/mypy
@@ -38,11 +38,17 @@ lint-backend:
 lint-frontend:
 	cd $(FE) && npm run lint && npm run typecheck
 
+lint-shell:
+	$(BIN)/shellcheck deploy/install.sh deploy/mcui-cli scripts/bundle.sh scripts/pre-commit
+
 format:          ## auto-format backend
 	cd backend && $(BIN)/ruff format . && $(BIN)/ruff check --fix .
 
 build:           ## build the frontend into frontend/dist
 	cd $(FE) && npm run build
+
+bundle:          ## offline install bundle for Ubuntu in dist/ (PYVER=3.12 ARCH=x86_64; docs/DEPLOY.md)
+	BIN=$(BIN) PYVER=$(or $(PYVER),3.12) ARCH=$(or $(ARCH),x86_64) scripts/bundle.sh
 
 screenshots: build ## README screenshots from the invented demo cluster (needs Google Chrome or CHROME_PATH)
 	cd $(FE) && node screenshots/shoot.ts ../docs/screenshots && node screenshots/shoot.ts ../docs/screenshots --light --only=overview

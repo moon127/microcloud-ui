@@ -15,6 +15,10 @@ can be overridden with an env var `MCUI_<SECTION>__<KEY>`, e.g.
 data_dir = "~/.local/share/mcui"   # SQLite DB (users, sessions, audit); default ./data
 secure_cookies = true              # session cookie only over HTTPS; set false for http://localhost dev
 session_hours = 12
+host = "127.0.0.1"                 # where `mcui serve` listens (--host/--port override)
+port = 8000                        # production: 8843, see docs/DEPLOY.md
+# tls_cert = "/etc/mcui/certs/ui.crt"   # serve HTTPS directly; set both or neither
+# tls_key  = "/etc/mcui/certs/ui.key"   # key: chmod 600
 
 [lxd]
 endpoints   = ["https://<member1-ip>:8443", "https://<member2-ip>:8443"]  # any members; used for failover
@@ -67,7 +71,8 @@ The config is checked at startup (`mcui serve`) and by `mcui check`:
 - `server_cert` and `client_cert` must exist.
 - Private keys (`client_key`, `[metrics] key`) must exist and must **not** be
   accessible by group or other (like OpenSSH). Fix with `chmod 600 <key>`.
-- `[metrics] cert` and `key` are set together or not at all.
+- `[metrics] cert` and `key` are set together or not at all; likewise
+  `[server] tls_cert` and `tls_key` (the key must be 0600 too).
 
 Without an `[lxd]` section the server still starts (login, users, audit work)
 and LXD pages report "LXD is not configured".

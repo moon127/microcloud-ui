@@ -68,6 +68,18 @@ def test_metrics_cert_without_key(tmp_path, certs):
         load_settings(write_config(tmp_path, certs, extra))
 
 
+def test_server_tls(tmp_path, certs):
+    s = Settings(server={"tls_cert": str(certs.other_cert), "tls_key": str(certs.other_key)})
+    assert s.server.tls_cert == certs.other_cert and s.server.port == 8000
+    with pytest.raises(ValueError, match="together"):
+        Settings(server={"tls_cert": str(certs.other_cert)})
+    with pytest.raises(ValueError, match="file not found"):
+        Settings(server={"tls_cert": str(tmp_path / "nope"), "tls_key": str(certs.other_key)})
+    certs.other_key.chmod(0o640)
+    with pytest.raises(ValueError, match="chmod 600"):
+        Settings(server={"tls_cert": str(certs.other_cert), "tls_key": str(certs.other_key)})
+
+
 def test_interval_minimum(tmp_path, certs):
     with pytest.raises(ConfigError, match="interval_seconds"):
         load_settings(write_config(tmp_path, certs, "[metrics]\ninterval_seconds = 5\n"))

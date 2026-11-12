@@ -28,6 +28,7 @@ dev = [
   "respx>=0.21",
   "ruff>=0.5",
   "mypy>=1.10",
+  "shellcheck-py>=0.10",  # lints deploy/ and scripts/ (make lint)
 ]
 
 [project.scripts]
@@ -38,6 +39,10 @@ version = { attr = "mcui.__version__" }
 
 [tool.setuptools.packages.find]
 include = ["mcui*"]
+
+[tool.setuptools.package-data]
+# the built SPA, copied in by `make dist` (absent in a checkout)
+mcui = ["static/**/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

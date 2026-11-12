@@ -72,12 +72,34 @@ def test_serve_invokes_uvicorn_factory(fake_uvicorn, monkeypatch):
         "host": "127.0.0.1",
         "port": 9001,
         "reload": True,
+        "workers": 1,
+        "server_header": False,
     }
 
 
 def test_serve_passes_config_via_env(fake_uvicorn, config, monkeypatch):
     assert cli.main(["--config", str(config), "serve"]) == 0
     assert os.environ["MCUI_CONFIG"] == str(config)
+
+
+def test_serve_listen_and_tls_from_config(fake_uvicorn, tmp_path, certs, monkeypatch):
+    monkeypatch.delenv("MCUI_CONFIG", raising=False)
+    p = tmp_path / "prod.toml"
+    p.write_text(
+        f"""[server]
+data_dir = "{tmp_path}/data"
+host = "0.0.0.0"
+port = 8843
+tls_cert = "{certs.other_cert}"
+tls_key = "{certs.other_key}"
+"""
+    )
+    assert cli.main(["-c", str(p), "serve"]) == 0
+    assert fake_uvicorn["host"] == "0.0.0.0" and fake_uvicorn["port"] == 8843  # noqa: S104
+    assert fake_uvicorn["ssl_certfile"] == str(certs.other_cert)
+    assert fake_uvicorn["ssl_keyfile"] == str(certs.other_key)
+    assert cli.main(["-c", str(p), "serve", "--host", "192.0.2.5", "--port", "9443"]) == 0
+    assert fake_uvicorn["host"] == "192.0.2.5" and fake_uvicorn["port"] == 9443
 
 
 def test_config_error_exit_code(tmp_path, capsys, fake_uvicorn):

@@ -180,6 +180,10 @@ and config (CL-4/5), identities view (AC-1). Login options evaluation (AU-4).
 
 **Phase 7: Packaging.** Wheel + systemd unit, OCI image, docs for running
 on the MicroCloud itself as an LXD instance (NF-6).
+- 7a ✅ 2026-11-12 (brought forward): Ubuntu + systemd. `make bundle` (wheel with the SPA
+  plus dependency wheels, offline), `deploy/install.sh` (install/upgrade/rollback/uninstall),
+  hardened unit, `mcui` admin wrapper, built-in HTTPS (`[server] tls_cert/tls_key`),
+  `docs/DEPLOY.md` (D63). Still to do: OCI image; a live install run on Ubuntu.
 
 **Later:** OVN/OVS node agent (MO-11), cluster links/replicators,
 placement groups, image registries, buckets, LXD auth management.

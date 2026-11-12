@@ -32,7 +32,17 @@ from mcui.config import Settings, load_settings
 from mcui.lxd.client import LXDError, LXDUnavailable
 from mcui.services import Services, build_services
 
-DEFAULT_STATIC_DIR = Path(__file__).resolve().parent.parent.parent / "frontend" / "dist"
+_HERE = Path(__file__).resolve().parent
+REPO_STATIC_DIR = _HERE.parent.parent / "frontend" / "dist"  # a checkout after `make build`
+PACKAGED_STATIC_DIR = _HERE / "static"  # inside the wheel (`make dist`, D63)
+
+
+def default_static_dir(repo: Path = REPO_STATIC_DIR, packaged: Path = PACKAGED_STATIC_DIR) -> Path:
+    """The built SPA: a checkout's frontend/dist, else the copy shipped in the wheel."""
+    return repo if (repo / "index.html").is_file() else packaged
+
+
+DEFAULT_STATIC_DIR = default_static_dir()
 
 
 def create_app(

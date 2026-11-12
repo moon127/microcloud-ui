@@ -1,0 +1,30 @@
+# microcloud-ui production config (docs/DEPLOY.md). install.sh copies this to
+# /etc/mcui/config.toml once and never overwrites it. All keys: docs/CONFIGURATION.md.
+
+[server]
+data_dir = "/var/lib/mcui"                  # users, sessions, audit (mcui.db) and history (metrics.db)
+host = "0.0.0.0"                            # or this host's management IP; "127.0.0.1" behind a reverse proxy
+port = 8843
+tls_cert = "/etc/mcui/certs/ui.crt"         # install.sh makes a self-signed pair if missing;
+tls_key = "/etc/mcui/certs/ui.key"          # replace with your CA's (key: owner mcui, chmod 600)
+secure_cookies = true                       # keep true: the browser only reaches us over HTTPS
+session_hours = 12
+
+# Uncomment once the certificates are in /etc/mcui/certs (docs/LXD-CREDENTIALS.md).
+# Until then the UI starts and says "LXD is not configured".
+#
+# [lxd]
+# endpoints   = ["https://192.0.2.11:8443", "https://192.0.2.12:8443", "https://192.0.2.13:8443"]
+# server_cert = "/etc/mcui/certs/lxd-cluster.crt"   # the cluster's shared certificate (pinned)
+# server_name = "member-1"                          # a name in that certificate
+# client_cert = "/etc/mcui/certs/client.crt"
+# client_key  = "/etc/mcui/certs/client.key"
+#
+# [metrics]
+# cert = "/etc/mcui/certs/metrics.crt"              # optional --type=metrics cert
+# key  = "/etc/mcui/certs/metrics.key"
+#
+# [node_exporter]                                   # docs/HOST-METRICS.md
+# username = "mcui"
+# password_file = "/etc/mcui/node-exporter.pass"    # owner mcui, chmod 600
+# ca = "/etc/mcui/certs/node-exporter.crt"

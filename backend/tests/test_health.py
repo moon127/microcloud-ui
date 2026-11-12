@@ -5,7 +5,7 @@ import pytest
 
 from mcui import __version__
 from mcui.config import Settings
-from mcui.main import create_app
+from mcui.main import create_app, default_static_dir
 from mcui.services import build_services
 from tests.conftest import fast_store
 
@@ -81,3 +81,11 @@ client_key = "{certs.client_key}"
         pass
     assert svc.lxd._http.is_closed and svc.metrics_lxd._http.is_closed
     assert (tmp_path / "data" / "mcui.db").is_file()
+
+
+def test_default_static_dir(tmp_path: Path):
+    repo, packaged = tmp_path / "frontend" / "dist", tmp_path / "static"
+    assert default_static_dir(repo, packaged) == packaged  # installed from the wheel
+    repo.mkdir(parents=True)
+    (repo / "index.html").write_text("x")
+    assert default_static_dir(repo, packaged) == repo  # a checkout after make build
