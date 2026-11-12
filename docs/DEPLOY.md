@@ -42,6 +42,26 @@ It needs to reach:
 Browsers reach it on **8843** (HTTPS) by default. The history grows to roughly
 0.5–0.7 GB a year for three members (D36).
 
+### Supported releases
+
+| | MicroCloud 2.x | MicroCloud 3.4 LTS |
+|---|---|---|
+| LXD | 5.21 LTS (supported to June 2029) | 6.10 LTS (supported to June 2031) |
+| Ceph | MicroCeph Squid (19.2) | MicroCeph Tentacle (20.2) |
+| OVN | MicroOVN 24.03 | MicroOVN 26.03 |
+| Tested | live, on the test cloud | in a 3.4 VM; the test cloud moves next (Phase 5) |
+
+The app reads each server's API extensions and shows only what it supports. On LXD 6.x
+you also get placement groups, image registries in the image picker (6.10), OVN
+load-balancer pools with health checks (6.9/6.10), multi-volume snapshots, nested child
+operations and a forced evacuation when LXD refuses one for quorum. `mcui check` lists
+anything hidden ("Unavailable") and warns about LXD releases missing the October 2026
+TLS security fix (update to 5.21.9 or 6.10.1).
+
+On **Ceph Tentacle** the mgr leaves out OSD performance counters by default, so the Ceph
+page hides OSD used/size and per-operation latency until they're turned on
+([CEPH-METRICS.md](CEPH-METRICS.md#ceph-tentacle-microcloud-34-lts)).
+
 ## 2. Build the bundle (on your dev machine)
 
 Each GitHub Release has six bundles attached: Ubuntu 26.04 (py3.14), 24.04 (py3.12) and

@@ -326,8 +326,8 @@ status) or leave them to those tools.
 
 *Exit:* every page and action works against the upgraded 3.4 test cloud (`LIVE-TESTS.md`
 updated and run), the recorded-fixture suites pass for both LTS releases, the 5b items
-agreed with the owner are built, and README, DEPLOY.md and CEPH-METRICS.md say which
-MicroCloud releases are supported.
+agreed with the owner are built (✅ 0.1.4), and README, DEPLOY.md and CEPH-METRICS.md say
+which MicroCloud releases are supported (✅ 2026-11-12, DEPLOY.md "Supported releases").
 
 *Decided 2026-11-12:* keep supporting MicroCloud 2.x; the 5b scope above; 5.21 fixtures
 recorded. The owner moves the members to Ubuntu 26.04 (`do-release-upgrade`, one member at a

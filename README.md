@@ -14,6 +14,11 @@ Releases attach the bundles and publish the image; `:edge` and the **edge** pre-
 follow `main` ([`docs/RELEASING.md`](docs/RELEASING.md)). Either can sit behind NGINX Proxy Manager, Cosmos, Caddy
 or nginx, which then handle Let's Encrypt certificates. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
+**Supported releases:** MicroCloud 3.4 LTS (LXD 6.10) and MicroCloud 2.x (LXD 5.21). The
+UI checks which LXD features the cluster has and hides what it lacks, so the LXD 6
+features (placement groups, image registries, load-balancer pools, multi-volume
+snapshots) only appear on 3.4. Details: [`docs/DEPLOY.md`](docs/DEPLOY.md#supported-releases).
+
 ## Screenshots
 
 From an invented demo cluster (`make screenshots`), not a real one. Shown in the dark
