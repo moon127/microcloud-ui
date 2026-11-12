@@ -37,5 +37,11 @@ for p in manylinux_2_28 manylinux_2_17 manylinux2014; do platforms+=(--platform 
 cp deploy/install.sh deploy/mcui.service deploy/mcui-cli deploy/config.example.toml "$out/"
 cp docs/DEPLOY.md "$out/README.md"
 echo "$PYVER" >"$out/PYTHON"
-tar -C dist -czf "$out.tar.gz" "$name"
+# no macOS metadata (GNU tar warns about every file) and root-owned entries
+if tar --version | grep -q bsdtar; then
+    COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata --uid 0 --gid 0 --uname root --gname root \
+        -C dist -czf "$out.tar.gz" "$name"
+else
+    tar --no-xattrs --owner=0 --group=0 --numeric-owner -C dist -czf "$out.tar.gz" "$name"
+fi
 echo "built $out.tar.gz ($(du -h "$out.tar.gz" | cut -f1), $(find "$out/wheels" -name '*.whl' | wc -l | tr -d ' ') wheels)"

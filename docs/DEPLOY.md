@@ -4,6 +4,7 @@ This guide installs microcloud-ui as a systemd service on Ubuntu 24.04 (or 22.04
 **offline bundle**: one tarball with the program, the web UI and every Python
 dependency. The target machine needs only `python3`, `python3-venv` and `openssl`
 from Ubuntu, and never contacts PyPI. Design notes: D63 in `agents.md`.
+Install, upgrade, rollback and uninstall were tested on Ubuntu 24.04.
 
 For development on a Mac, see the README instead.
 
