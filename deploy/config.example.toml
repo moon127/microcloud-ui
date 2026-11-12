@@ -1,12 +1,13 @@
-# microcloud-ui production config (docs/DEPLOY.md). install.sh copies this to
-# /etc/mcui/config.toml once and never overwrites it. All keys: docs/CONFIGURATION.md.
+# microcloud-ui production config (docs/DEPLOY.md), for both the Ubuntu bundle and the
+# container image: install.sh copies it to /etc/mcui/config.toml once and never overwrites
+# it; the image ships it as /etc/mcui/config.toml. All keys: docs/CONFIGURATION.md.
 
 [server]
 data_dir = "/var/lib/mcui"                  # users, sessions, audit (mcui.db) and history (metrics.db)
 host = "0.0.0.0"                            # or this host's management IP; "127.0.0.1" behind a reverse proxy
 port = 8843
-tls_cert = "/etc/mcui/certs/ui.crt"         # install.sh makes a self-signed pair if missing;
-tls_key = "/etc/mcui/certs/ui.key"          # replace with your CA's (key: owner mcui, chmod 600)
+tls_cert = "/var/lib/mcui/tls/ui.crt"      # a self-signed pair is made here if missing; for your
+tls_key = "/var/lib/mcui/tls/ui.key"       # CA's, point these at /etc/mcui/certs (key: chmod 600)
 secure_cookies = true                       # keep true: the browser only reaches us over HTTPS
 session_hours = 12
 

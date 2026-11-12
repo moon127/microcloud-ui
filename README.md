@@ -8,7 +8,8 @@ usage, and OVN network visibility.
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
 **Running it for real:** an offline bundle (`make bundle`) installs on Ubuntu as a
-hardened systemd service serving HTTPS: [`docs/DEPLOY.md`](docs/DEPLOY.md).
+hardened systemd service serving HTTPS. There's also a container image (`make image`) for a
+Podman Quadlet or Docker Compose. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Screenshots
 
@@ -68,6 +69,7 @@ make hooks                             # optional: lint + tests run before every
 | `make dev-frontend` | Vite dev server on http://localhost:5173, proxying `/api` to :8000 |
 | `make serve` | build the SPA and serve everything from the backend on :8000 |
 | `make bundle` | offline Ubuntu install bundle in `dist/` ([`docs/DEPLOY.md`](docs/DEPLOY.md)) |
+| `make image` / `make image-save` | container image with podman or docker; saved as a tarball in `dist/` |
 | `make screenshots` | rebuild `docs/screenshots/` from the demo cluster (headless Google Chrome) |
 
 Use a different venv location with `make test VENV=~/venvs/mcui`.

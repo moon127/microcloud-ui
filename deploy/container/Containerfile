@@ -1,0 +1,55 @@
+# microcloud-ui container image (docs/DEPLOY.md "Containers", D64).
+# Build from the repository root:  make image   (podman or docker)
+#   podman build -f deploy/container/Containerfile -t mcui .
+
+# --- 1. the web UI ------------------------------------------------------------
+FROM docker.io/library/node:22-bookworm-slim AS spa
+WORKDIR /src/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci --no-audit --no-fund
+COPY frontend/ ./
+RUN npm run build
+
+# --- 2. the program, in a venv with its dependencies --------------------------
+FROM docker.io/library/ubuntu:24.04 AS build
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 python3-venv \
+    && rm -rf /var/lib/apt/lists/*
+COPY backend/ /src/backend/
+COPY --from=spa /src/frontend/dist/ /src/backend/mcui/static/
+RUN python3 -m venv /opt/mcui \
+    && /opt/mcui/bin/pip install --no-cache-dir --quiet /src/backend \
+    && /opt/mcui/bin/python -c "import importlib.resources as r; assert (r.files('mcui') / 'static/index.html').is_file()"
+
+# --- 3. runtime ----------------------------------------------------------------
+FROM docker.io/library/ubuntu:24.04
+# python3 for the venv, openssl for the self-signed certificate, ca-certificates for
+# node_exporter over https with public CAs
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 openssl ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 8843 mcui \
+    && useradd --system --uid 8843 --gid mcui --home-dir /var/lib/mcui --no-create-home --shell /usr/sbin/nologin mcui \
+    && install -d -o mcui -g mcui -m 0700 /var/lib/mcui \
+    && install -d -o root -g mcui -m 0750 /etc/mcui /etc/mcui/certs
+COPY --from=build /opt/mcui /opt/mcui
+COPY --chmod=0640 deploy/config.example.toml /etc/mcui/config.toml
+COPY --chmod=0755 deploy/container/entrypoint.sh /usr/local/bin/mcui-entrypoint
+COPY LICENSE frontend/THIRD_PARTY_NOTICES.md /usr/share/doc/mcui/
+RUN chgrp mcui /etc/mcui/config.toml
+
+ENV PATH=/opt/mcui/bin:$PATH \
+    MCUI_CONFIG=/etc/mcui/config.toml \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+USER mcui
+WORKDIR /var/lib/mcui
+VOLUME /var/lib/mcui
+EXPOSE 8843
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD ["mcui-entrypoint", "health"]
+ENTRYPOINT ["mcui-entrypoint"]
+CMD ["serve"]
+
+LABEL org.opencontainers.image.title="microcloud-ui" \
+      org.opencontainers.image.description="Web UI and metrics for Canonical MicroCloud (LXD, MicroCeph, MicroOVN)" \
+      org.opencontainers.image.licenses="MIT"

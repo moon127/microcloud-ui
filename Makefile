@@ -5,7 +5,7 @@ BIN    := $(abspath $(VENV))/bin
 FE     := frontend
 
 .PHONY: help venv install install-backend install-frontend test test-backend test-frontend \
-        lint lint-backend lint-frontend lint-shell format build bundle screenshots dev-backend dev-frontend serve hooks clean
+        lint lint-backend lint-frontend lint-shell format build bundle image image-save screenshots dev-backend dev-frontend serve hooks clean
 
 help:            ## list targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -39,7 +39,7 @@ lint-frontend:
 	cd $(FE) && npm run lint && npm run typecheck
 
 lint-shell:
-	$(BIN)/shellcheck deploy/install.sh deploy/mcui-cli scripts/bundle.sh scripts/pre-commit
+	$(BIN)/shellcheck deploy/install.sh deploy/mcui-cli deploy/container/entrypoint.sh scripts/bundle.sh scripts/pre-commit
 
 format:          ## auto-format backend
 	cd backend && $(BIN)/ruff format . && $(BIN)/ruff check --fix .
@@ -49,6 +49,20 @@ build:           ## build the frontend into frontend/dist
 
 bundle:          ## offline install bundle for Ubuntu in dist/ (PYVER=3.12 ARCH=x86_64; docs/DEPLOY.md)
 	BIN=$(BIN) PYVER=$(or $(PYVER),3.12) ARCH=$(or $(ARCH),x86_64) scripts/bundle.sh
+
+ENGINE  ?= $(shell command -v podman || command -v docker)
+VERSION := $(shell sed -n 's/^__version__ = "\(.*\)"/\1/p' backend/mcui/__init__.py)
+
+# --network=host: build steps use the host's network, so a bridge MTU larger than the
+# host's (1500 inside an OVN instance at 1442) can't stall downloads (D64);
+# podman's default OCI format would drop the HEALTHCHECK
+image:           ## container image mcui:<version> + :latest with podman or docker (ENGINE=...)
+	@test -n "$(ENGINE)" || { echo "make image: needs podman or docker"; exit 1; }
+	$(ENGINE) build --network=host $(if $(findstring podman,$(ENGINE)),--format docker) \
+		-f deploy/container/Containerfile -t mcui:$(VERSION) -t mcui:latest .
+
+image-save: image ## the image as dist/mcui-image-<version>.tar.gz for hosts without a registry
+	mkdir -p dist && $(ENGINE) save mcui:$(VERSION) | gzip > dist/mcui-image-$(VERSION).tar.gz
 
 screenshots: build ## README screenshots from the invented demo cluster (needs Google Chrome or CHROME_PATH)
 	cd $(FE) && node screenshots/shoot.ts ../docs/screenshots && node screenshots/shoot.ts ../docs/screenshots --light --only=overview

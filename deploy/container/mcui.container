@@ -1,0 +1,37 @@
+# microcloud-ui as a Podman Quadlet (docs/DEPLOY.md "Containers", D64).
+# Copy to /etc/containers/systemd/mcui.container, then:
+#   sudo systemctl daemon-reload && sudo systemctl start mcui
+# Logs: journalctl -u mcui. Local changes: edit this file, then daemon-reload + restart.
+[Unit]
+Description=microcloud-ui (web UI and metrics for MicroCloud), container
+After=network-online.target
+Wants=network-online.target
+
+[Container]
+ContainerName=mcui
+# make image && podman image load, or a registry name with AutoUpdate=registry
+Image=localhost/mcui:latest
+# the host's network: no NAT and no firewall rules added on the host, which suits a
+# MicroCloud member (the server listens on [server] host/port, default 0.0.0.0:8843)
+Network=host
+# config and your certificates (owner 8843, keys chmod 600); data in a named volume
+Volume=/etc/mcui:/etc/mcui:ro
+Volume=mcui-data:/var/lib/mcui
+# extra names for the self-signed certificate
+#Environment=MCUI_TLS_SAN=DNS:mcui.example.org,IP:192.0.2.10
+ReadOnly=true
+NoNewPrivileges=true
+DropCapability=ALL
+HealthCmd=mcui-entrypoint health
+HealthInterval=30s
+HealthStartPeriod=20s
+
+[Service]
+Restart=on-failure
+# exit 2 is a config error: show it in the journal instead of restarting in a loop
+RestartPreventExitStatus=2
+# first start may pull or load the image
+TimeoutStartSec=300
+
+[Install]
+WantedBy=multi-user.target

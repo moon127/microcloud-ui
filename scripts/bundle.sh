@@ -36,10 +36,13 @@ for p in manylinux_2_28 manylinux_2_17 manylinux2014; do platforms+=(--platform 
 
 cp deploy/install.sh deploy/mcui.service deploy/mcui-cli deploy/config.example.toml "$out/"
 cp docs/DEPLOY.md "$out/README.md"
+cp LICENSE frontend/THIRD_PARTY_NOTICES.md "$out/"
+mkdir -p "$out/container"
+cp deploy/container/mcui.container deploy/container/compose.yaml "$out/container/"
 echo "$PYVER" >"$out/PYTHON"
 # no macOS metadata (GNU tar warns about every file) and root-owned entries
 if tar --version | grep -q bsdtar; then
-    COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata --uid 0 --gid 0 --uname root --gname root \
+    COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata --no-fflags --uid 0 --gid 0 --uname root --gname root \
         -C dist -czf "$out.tar.gz" "$name"
 else
     tar --no-xattrs --owner=0 --group=0 --numeric-owner -C dist -czf "$out.tar.gz" "$name"

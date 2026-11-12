@@ -184,7 +184,11 @@ on the MicroCloud itself as an LXD instance (NF-6).
   plus dependency wheels, offline), `deploy/install.sh` (install/upgrade/rollback/uninstall),
   hardened unit, `mcui` admin wrapper, built-in HTTPS (`[server] tls_cert/tls_key`),
   `docs/DEPLOY.md` (D63). Install, upgrade, rollback and uninstall verified in an Ubuntu 24.04 VM
-  on the test cloud. Still to do: OCI image.
+  on the test cloud.
+- 7b ✅ 2026-11-12: OCI image (`deploy/container/Containerfile`, `make image`/`image-save`),
+  Podman Quadlet (recommended, host network) and Compose (not on members), databases 0600
+  regardless of umask; DEPLOY.md §9 (D64). Verified in an Ubuntu 24.04 VM with Podman 4.9 and
+  Docker 29. Later: publish to a registry (ghcr.io, multi-arch) once the repo is on GitHub.
 
 **Later:** OVN/OVS node agent (MO-11), cluster links/replicators,
 placement groups, image registries, buckets, LXD auth management.

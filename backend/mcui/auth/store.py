@@ -16,6 +16,8 @@ from typing import Any, Literal, cast, get_args
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerificationError
 
+from mcui.files import private_db
+
 Role = Literal["admin", "viewer"]
 ROLES: tuple[str, ...] = get_args(Role)
 
@@ -84,7 +86,7 @@ class Store:
         clock: Callable[[], float] = time.time,
     ) -> None:
         if path != ":memory:":
-            Path(path).parent.mkdir(parents=True, exist_ok=True)
+            private_db(Path(path))
         self.db = sqlite3.connect(str(path), check_same_thread=False, isolation_level=None)
         self.db.row_factory = sqlite3.Row
         self.db.execute("PRAGMA foreign_keys = ON")

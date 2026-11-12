@@ -1,0 +1,20 @@
+# build context for deploy/container/Containerfile (podman reads this too)
+**
+!frontend/package.json
+!frontend/package-lock.json
+!frontend/index.html
+!frontend/public
+!frontend/src
+!frontend/screenshots
+!frontend/tsconfig*.json
+!frontend/vite.config.ts
+!frontend/eslint.config.js
+!backend/pyproject.toml
+!backend/README.md
+!backend/mcui
+!deploy/config.example.toml
+!deploy/container/entrypoint.sh
+!LICENSE
+!frontend/THIRD_PARTY_NOTICES.md
+**/__pycache__
+backend/mcui/static

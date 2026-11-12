@@ -72,11 +72,23 @@ command -v openssl >/dev/null || die "openssl is missing: apt install openssl"
 
 # --- user and directories ---------------------------------------------------
 if ! getent passwd mcui >/dev/null; then
+    # uid/gid 8843 like the container image (D64), so /etc/mcui and /var/lib/mcui keep
+    # working when switching between the two; any free id if 8843 is taken
+    ids=()
+    if ! getent passwd 8843 >/dev/null && ! getent group 8843 >/dev/null; then
+        groupadd --system --gid 8843 mcui
+        ids=(--uid 8843 --gid mcui)
+    else
+        ids=(--user-group)
+    fi
     say "creating system user mcui"
-    useradd --system --user-group --home-dir "$DATA" --no-create-home --shell /usr/sbin/nologin mcui
+    useradd --system "${ids[@]}" --home-dir "$DATA" --no-create-home --shell /usr/sbin/nologin mcui
 fi
 install -d -o root -g mcui -m 0750 "$ETC"
 install -d -o mcui -g mcui -m 0700 "$ETC/certs" "$DATA"
+# the service must be able to read these whoever made them (keys must be its own, CF-1)
+[ -e "$ETC/config.toml" ] && chgrp mcui "$ETC/config.toml" && chmod 0640 "$ETC/config.toml"
+chown -R mcui:mcui "$ETC/certs"
 
 # --- program: a fresh venv per version, "current" points at the live one ----
 # (a venv can't be moved, so each install gets its own directory)
@@ -103,17 +115,19 @@ if [ ! -e "$ETC/config.toml" ]; then
     say "writing $ETC/config.toml (edit it: see docs/DEPLOY.md)"
     install -o root -g mcui -m 0640 "$HERE/config.example.toml" "$ETC/config.toml"
 fi
-if [ ! -e "$ETC/certs/ui.key" ]; then
+tls="$DATA/tls"
+if [ ! -e "$tls/ui.key" ]; then
     fqdn=$(hostname -f 2>/dev/null || hostname)
     san="DNS:$(hostname),DNS:$fqdn"
     for ip in $(hostname -I); do san="$san,IP:$ip"; done
     say "making a self-signed HTTPS certificate for $san"
+    install -d -o mcui -g mcui -m 0700 "$tls"
     openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 825 \
         -subj "/CN=$fqdn" -addext "subjectAltName=$san" \
-        -keyout "$ETC/certs/ui.key" -out "$ETC/certs/ui.crt" 2>/dev/null
-    chown mcui:mcui "$ETC/certs/ui.key" "$ETC/certs/ui.crt"
-    chmod 600 "$ETC/certs/ui.key"
-    chmod 644 "$ETC/certs/ui.crt"
+        -keyout "$tls/ui.key" -out "$tls/ui.crt" 2>/dev/null
+    chown mcui:mcui "$tls/ui.key" "$tls/ui.crt"
+    chmod 600 "$tls/ui.key"
+    chmod 644 "$tls/ui.crt"
 fi
 
 # --- service ----------------------------------------------------------------

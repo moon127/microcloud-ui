@@ -26,6 +26,8 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Literal, ParamSpec, TypeVar
 
+from mcui.files import private_db
+
 Kind = Literal["counter", "gauge"]
 Fn = Literal["value", "rate", "max"]
 
@@ -214,7 +216,7 @@ class SQLiteMetricStore:
         clock: Callable[[], float] = time.time,
     ) -> None:
         if path != ":memory:":
-            Path(path).parent.mkdir(parents=True, exist_ok=True)
+            private_db(Path(path))
         self.db = sqlite3.connect(str(path), check_same_thread=False, isolation_level=None)
         if path != ":memory:":
             self.db.execute("PRAGMA journal_mode = WAL")

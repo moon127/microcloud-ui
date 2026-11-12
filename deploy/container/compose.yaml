@@ -1,0 +1,39 @@
+# microcloud-ui with Docker Compose or podman-compose (docs/DEPLOY.md "Containers", D64).
+# Not on a MicroCloud member with Docker: Docker sets the host's FORWARD policy to DROP,
+# which breaks LXD bridges and OVN. Use the bundle or the Podman Quadlet there.
+#   mkdir -p etc-mcui/certs && cp ../config.example.toml etc-mcui/config.toml
+#   sudo chown -R 8843:8843 etc-mcui
+#   docker compose up -d && docker compose exec mcui mcui user add admin --role admin
+services:
+  mcui:
+    image: mcui:latest
+    build:
+      context: ../..
+      dockerfile: deploy/container/Containerfile
+      network: host   # see the MTU note at the end
+    container_name: mcui
+    ports:
+      - "8843:8843"
+    volumes:
+      - ./etc-mcui:/etc/mcui:ro
+      - mcui-data:/var/lib/mcui
+    environment:
+      # names the browser uses, for the self-signed certificate
+      MCUI_TLS_SAN: "${MCUI_TLS_SAN:-}"   # e.g. DNS:mcui.example.org,IP:192.0.2.10
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+volumes:
+  mcui-data:
+
+# Inside an LXD instance on an OVN network (MTU 1442) the bridge's 1500 stalls TLS to LXD:
+# networks:
+#   default:
+#     driver_opts:
+#       com.docker.network.driver.mtu: "1442"

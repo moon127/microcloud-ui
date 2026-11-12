@@ -55,6 +55,32 @@ def test_paths_agree():
     assert f"runuser -u mcui -- {run}" in cli
     assert "PREFIX=/opt/mcui" in install and "ETC=/etc/mcui" in install
     assert "DATA=/var/lib/mcui" in install
+    assert "groupadd --system --gid 8843 mcui" in install  # same ids as the image
     assert "ReadWritePaths=/var/lib/mcui" in unit and "User=mcui" in unit
-    assert 'tls_cert = "/etc/mcui/certs/ui.crt"' in read("config.example.toml")
-    assert '"$ETC/certs/ui.crt"' in install and '"$ETC/certs/ui.key"' in install
+    assert 'tls_cert = "/var/lib/mcui/tls/ui.crt"' in read("config.example.toml")
+    assert (
+        'tls="$DATA/tls"' in install and '"$tls/ui.crt"' in install and '"$tls/ui.key"' in install
+    )
+
+
+def test_container_files_agree():
+    image = read("container/Containerfile")
+    quadlet, compose = read("container/mcui.container"), read("container/compose.yaml")
+    entry = read("container/entrypoint.sh")
+    # one config for both: the image ships the example as /etc/mcui/config.toml
+    assert "COPY --chmod=0640 deploy/config.example.toml /etc/mcui/config.toml" in image
+    assert "MCUI_CONFIG=/etc/mcui/config.toml" in image
+    assert "--uid 8843" in image and "USER mcui" in image and "VOLUME /var/lib/mcui" in image
+    assert "EXPOSE 8843" in image and 'CMD ["serve"]' in image
+    # the entrypoint makes the self-signed pair where the example config looks for it
+    assert "tls=/var/lib/mcui/tls" in entry
+    for f in (quadlet, compose):
+        assert "/etc/mcui:ro" in f and "mcui-data:/var/lib/mcui" in f
+    for setting in ("Network=host", "ReadOnly=true", "DropCapability=ALL", "NoNewPrivileges=true"):
+        assert setting in quadlet
+    assert "RestartPreventExitStatus=2" in quadlet
+    assert "read_only: true" in compose and "- ALL" in compose and "network: host" in compose
+    # everything the image build copies is in the build context
+    ignore = (DEPLOY.parent / ".dockerignore").read_text()
+    for path in ("deploy/config.example.toml", "deploy/container/entrypoint.sh", "LICENSE"):
+        assert f"!{path}" in ignore
