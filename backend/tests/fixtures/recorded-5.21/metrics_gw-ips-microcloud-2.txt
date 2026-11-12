@@ -1,0 +1,625 @@
+# HELP lxd_api_requests_completed_total The total number of completed API requests.
+# TYPE lxd_api_requests_completed_total counter
+lxd_api_requests_completed_total{entity_type="image",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="image",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="image",result="succeeded"} 25
+lxd_api_requests_completed_total{entity_type="profile",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="profile",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="profile",result="succeeded"} 2
+lxd_api_requests_completed_total{entity_type="project",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="project",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="project",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="certificate",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="certificate",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="certificate",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="instance",result="error_server"} 3
+lxd_api_requests_completed_total{entity_type="instance",result="error_client"} 5
+lxd_api_requests_completed_total{entity_type="instance",result="succeeded"} 4037
+lxd_api_requests_completed_total{entity_type="network",result="error_server"} 1
+lxd_api_requests_completed_total{entity_type="network",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="network",result="succeeded"} 25124
+lxd_api_requests_completed_total{entity_type="cluster_member",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="cluster_member",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="cluster_member",result="succeeded"} 5305
+lxd_api_requests_completed_total{entity_type="operation",result="error_server"} 9
+lxd_api_requests_completed_total{entity_type="operation",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="operation",result="succeeded"} 3636
+lxd_api_requests_completed_total{entity_type="storage_pool",result="succeeded"} 12
+lxd_api_requests_completed_total{entity_type="storage_pool",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="storage_pool",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="warning",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="warning",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="warning",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="server",result="error_server"} 0
+lxd_api_requests_completed_total{entity_type="server",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="server",result="succeeded"} 7199
+lxd_api_requests_completed_total{entity_type="identity",result="error_client"} 0
+lxd_api_requests_completed_total{entity_type="identity",result="succeeded"} 0
+lxd_api_requests_completed_total{entity_type="identity",result="error_server"} 0
+# HELP lxd_api_requests_ongoing The number of API requests currently being handled.
+# TYPE lxd_api_requests_ongoing gauge
+lxd_api_requests_ongoing{entity_type="image"} 0
+lxd_api_requests_ongoing{entity_type="profile"} 0
+lxd_api_requests_ongoing{entity_type="project"} 0
+lxd_api_requests_ongoing{entity_type="certificate"} 0
+lxd_api_requests_ongoing{entity_type="instance"} 16
+lxd_api_requests_ongoing{entity_type="network"} 0
+lxd_api_requests_ongoing{entity_type="cluster_member"} 0
+lxd_api_requests_ongoing{entity_type="operation"} 16
+lxd_api_requests_ongoing{entity_type="storage_pool"} 0
+lxd_api_requests_ongoing{entity_type="warning"} 0
+lxd_api_requests_ongoing{entity_type="server"} 15
+lxd_api_requests_ongoing{entity_type="identity"} 0
+# HELP lxd_cpu_effective_total The total number of effective CPUs.
+# TYPE lxd_cpu_effective_total gauge
+lxd_cpu_effective_total{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_effective_total{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_effective_total{name="ubuntu-mirror-urc",project="default",type="container"} 1
+lxd_cpu_effective_total{name="route-reflector-1-as211437",project="default",type="container"} 8
+# HELP lxd_cpu_seconds_total The total number of CPU time used in seconds.
+# TYPE lxd_cpu_seconds_total counter
+lxd_cpu_seconds_total{cpu="0",mode="iowait",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 31297.91
+lxd_cpu_seconds_total{cpu="0",mode="irq",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_seconds_total{cpu="0",mode="idle",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5.46719934e+06
+lxd_cpu_seconds_total{cpu="0",mode="nice",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 309.24
+lxd_cpu_seconds_total{cpu="0",mode="softirq",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 8298.64
+lxd_cpu_seconds_total{cpu="0",mode="steal",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 34025.16
+lxd_cpu_seconds_total{cpu="0",mode="system",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 110522.82
+lxd_cpu_seconds_total{cpu="0",mode="user",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 183710.93
+lxd_cpu_seconds_total{cpu="1",mode="iowait",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 28281.98
+lxd_cpu_seconds_total{cpu="1",mode="irq",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_seconds_total{cpu="1",mode="idle",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5.47897827e+06
+lxd_cpu_seconds_total{cpu="1",mode="nice",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 303.08
+lxd_cpu_seconds_total{cpu="1",mode="softirq",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 10011.91
+lxd_cpu_seconds_total{cpu="1",mode="steal",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 31896.04
+lxd_cpu_seconds_total{cpu="1",mode="system",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 113851.12
+lxd_cpu_seconds_total{cpu="1",mode="user",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 180464.28
+lxd_cpu_seconds_total{cpu="0",mode="iowait",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 898.34
+lxd_cpu_seconds_total{cpu="0",mode="irq",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_cpu_seconds_total{cpu="0",mode="idle",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 405424.43
+lxd_cpu_seconds_total{cpu="0",mode="nice",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 36.42
+lxd_cpu_seconds_total{cpu="0",mode="softirq",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 88.46
+lxd_cpu_seconds_total{cpu="0",mode="steal",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 4711.35
+lxd_cpu_seconds_total{cpu="0",mode="system",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 3208.19
+lxd_cpu_seconds_total{cpu="0",mode="user",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 21851.66
+lxd_cpu_seconds_total{cpu="0",mode="system",name="ubuntu-mirror-urc",project="default",type="container"} 244445.790328
+lxd_cpu_seconds_total{cpu="0",mode="user",name="ubuntu-mirror-urc",project="default",type="container"} 377430.766016
+lxd_cpu_seconds_total{cpu="0",mode="system",name="route-reflector-1-as211437",project="default",type="container"} 51230.48762
+lxd_cpu_seconds_total{cpu="0",mode="user",name="route-reflector-1-as211437",project="default",type="container"} 52602.692453
+# HELP lxd_disk_read_bytes_total The total number of bytes read.
+# TYPE lxd_disk_read_bytes_total counter
+lxd_disk_read_bytes_total{device="sda1",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 6.017975296e+09
+lxd_disk_read_bytes_total{device="sda13",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 3.9538176e+07
+lxd_disk_read_bytes_total{device="sda14",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 8.6888214528e+10
+lxd_disk_read_bytes_total{device="loop3",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop4",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop5",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop6",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="sda15",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 6.827008e+06
+lxd_disk_read_bytes_total{device="loop0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 30720
+lxd_disk_read_bytes_total{device="loop1",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop2",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop7",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="sda",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 6.99204918784e+11
+lxd_disk_read_bytes_total{device="loop6",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop7",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="sda1",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 5.95321856e+08
+lxd_disk_read_bytes_total{device="sda13",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 4.480512e+06
+lxd_disk_read_bytes_total{device="sda14",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.507328e+06
+lxd_disk_read_bytes_total{device="loop0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 34816
+lxd_disk_read_bytes_total{device="loop2",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop4",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="sda",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 7.5674368e+08
+lxd_disk_read_bytes_total{device="sda15",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 6.986752e+06
+lxd_disk_read_bytes_total{device="loop1",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop3",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="loop5",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_read_bytes_total{device="rbd2",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd0",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="sdb",name="ubuntu-mirror-urc",project="default",type="container"} 2.7728928768e+10
+lxd_disk_read_bytes_total{device="dm-0",name="ubuntu-mirror-urc",project="default",type="container"} 2.7728928768e+10
+lxd_disk_read_bytes_total{device="dm-1",name="ubuntu-mirror-urc",project="default",type="container"} 2.7728928768e+10
+lxd_disk_read_bytes_total{device="rbd3",name="ubuntu-mirror-urc",project="default",type="container"} 2.2471938695168e+13
+lxd_disk_read_bytes_total{device="rbd3",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="sdb",name="route-reflector-1-as211437",project="default",type="container"} 32768
+lxd_disk_read_bytes_total{device="dm-0",name="route-reflector-1-as211437",project="default",type="container"} 32768
+lxd_disk_read_bytes_total{device="dm-1",name="route-reflector-1-as211437",project="default",type="container"} 32768
+lxd_disk_read_bytes_total{device="loop9",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_read_bytes_total{device="rbd0",name="route-reflector-1-as211437",project="default",type="container"} 6.191906816e+09
+lxd_disk_read_bytes_total{device="rbd2",name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_disk_reads_completed_total The total number of completed reads.
+# TYPE lxd_disk_reads_completed_total counter
+lxd_disk_reads_completed_total{device="sda1",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 226084
+lxd_disk_reads_completed_total{device="sda13",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 272
+lxd_disk_reads_completed_total{device="sda14",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.1212912e+07
+lxd_disk_reads_completed_total{device="loop3",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop4",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop5",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop6",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="sda15",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 172
+lxd_disk_reads_completed_total{device="loop0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 30
+lxd_disk_reads_completed_total{device="loop1",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop2",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop7",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="sda",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5.1237867e+07
+lxd_disk_reads_completed_total{device="loop6",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop7",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="sda1",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 21295
+lxd_disk_reads_completed_total{device="sda13",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 233
+lxd_disk_reads_completed_total{device="sda14",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 306
+lxd_disk_reads_completed_total{device="loop0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 31
+lxd_disk_reads_completed_total{device="loop2",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop4",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="sda",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 23984
+lxd_disk_reads_completed_total{device="sda15",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 175
+lxd_disk_reads_completed_total{device="loop1",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop3",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="loop5",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_reads_completed_total{device="rbd2",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd0",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="sdb",name="ubuntu-mirror-urc",project="default",type="container"} 6.769758e+06
+lxd_disk_reads_completed_total{device="dm-0",name="ubuntu-mirror-urc",project="default",type="container"} 6.769758e+06
+lxd_disk_reads_completed_total{device="dm-1",name="ubuntu-mirror-urc",project="default",type="container"} 6.769758e+06
+lxd_disk_reads_completed_total{device="rbd3",name="ubuntu-mirror-urc",project="default",type="container"} 1.02537584e+08
+lxd_disk_reads_completed_total{device="rbd3",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="sdb",name="route-reflector-1-as211437",project="default",type="container"} 8
+lxd_disk_reads_completed_total{device="dm-0",name="route-reflector-1-as211437",project="default",type="container"} 8
+lxd_disk_reads_completed_total{device="dm-1",name="route-reflector-1-as211437",project="default",type="container"} 8
+lxd_disk_reads_completed_total{device="loop9",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_reads_completed_total{device="rbd0",name="route-reflector-1-as211437",project="default",type="container"} 99570
+lxd_disk_reads_completed_total{device="rbd2",name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_disk_written_bytes_total The total number of bytes written.
+# TYPE lxd_disk_written_bytes_total counter
+lxd_disk_written_bytes_total{device="sda1",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.33279009792e+11
+lxd_disk_written_bytes_total{device="sda13",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 4.83943424e+08
+lxd_disk_written_bytes_total{device="sda14",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop3",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop4",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop5",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop6",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="sda15",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1024
+lxd_disk_written_bytes_total{device="loop0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop1",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop2",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop7",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="sda",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.33763417088e+11
+lxd_disk_written_bytes_total{device="loop6",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop7",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="sda1",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 8.904905728e+09
+lxd_disk_written_bytes_total{device="sda13",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.35693312e+08
+lxd_disk_written_bytes_total{device="sda14",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop2",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop4",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="sda",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 9.041112064e+09
+lxd_disk_written_bytes_total{device="sda15",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1024
+lxd_disk_written_bytes_total{device="loop1",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop3",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="loop5",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_written_bytes_total{device="rbd2",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd0",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="sdb",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="dm-0",name="ubuntu-mirror-urc",project="default",type="container"} 2.6070831104e+10
+lxd_disk_written_bytes_total{device="dm-1",name="ubuntu-mirror-urc",project="default",type="container"} 2.6070433792e+10
+lxd_disk_written_bytes_total{device="rbd3",name="ubuntu-mirror-urc",project="default",type="container"} 7.016502644736e+12
+lxd_disk_written_bytes_total{device="rbd3",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="sdb",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="dm-0",name="route-reflector-1-as211437",project="default",type="container"} 675840
+lxd_disk_written_bytes_total{device="dm-1",name="route-reflector-1-as211437",project="default",type="container"} 176128
+lxd_disk_written_bytes_total{device="loop9",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_written_bytes_total{device="rbd0",name="route-reflector-1-as211437",project="default",type="container"} 5.7137651712e+10
+lxd_disk_written_bytes_total{device="rbd2",name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_disk_writes_completed_total The total number of completed writes.
+# TYPE lxd_disk_writes_completed_total counter
+lxd_disk_writes_completed_total{device="sda1",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.4666597e+07
+lxd_disk_writes_completed_total{device="sda13",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1581
+lxd_disk_writes_completed_total{device="sda14",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop3",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop4",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop5",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop6",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="sda15",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2
+lxd_disk_writes_completed_total{device="loop0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop1",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop2",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop7",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="sda",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.5226617e+07
+lxd_disk_writes_completed_total{device="loop6",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop7",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="sda1",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 287964
+lxd_disk_writes_completed_total{device="sda13",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1112
+lxd_disk_writes_completed_total{device="sda14",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop2",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop4",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="sda",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 289320
+lxd_disk_writes_completed_total{device="sda15",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 2
+lxd_disk_writes_completed_total{device="loop1",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop3",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="loop5",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_disk_writes_completed_total{device="rbd2",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd0",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="sdb",name="ubuntu-mirror-urc",project="default",type="container"} 45
+lxd_disk_writes_completed_total{device="dm-0",name="ubuntu-mirror-urc",project="default",type="container"} 6.364967e+06
+lxd_disk_writes_completed_total{device="dm-1",name="ubuntu-mirror-urc",project="default",type="container"} 6.36487e+06
+lxd_disk_writes_completed_total{device="rbd3",name="ubuntu-mirror-urc",project="default",type="container"} 7.785851e+07
+lxd_disk_writes_completed_total{device="rbd3",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="sdb",name="route-reflector-1-as211437",project="default",type="container"} 34
+lxd_disk_writes_completed_total{device="dm-0",name="route-reflector-1-as211437",project="default",type="container"} 179
+lxd_disk_writes_completed_total{device="dm-1",name="route-reflector-1-as211437",project="default",type="container"} 57
+lxd_disk_writes_completed_total{device="loop9",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_disk_writes_completed_total{device="rbd0",name="route-reflector-1-as211437",project="default",type="container"} 482156
+lxd_disk_writes_completed_total{device="rbd2",name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_filesystem_avail_bytes The number of available space in bytes.
+# TYPE lxd_filesystem_avail_bytes gauge
+lxd_filesystem_avail_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-journald.service",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_avail_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 3.7638144e+07
+lxd_filesystem_avail_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 3.9824646144e+10
+lxd_filesystem_avail_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 8.0953344e+08
+lxd_filesystem_avail_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.02828032e+08
+lxd_filesystem_avail_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-resolved.service",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_avail_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/user/1000",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 4.07871488e+08
+lxd_filesystem_avail_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 4.7749332992e+10
+lxd_filesystem_avail_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 8.08689664e+08
+lxd_filesystem_avail_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.02828032e+08
+lxd_filesystem_avail_bytes{device="/dev/rbd3",fstype="ext4",mountpoint="/",name="ubuntu-mirror-urc",project="default",type="container"} 1.4457724928e+10
+lxd_filesystem_avail_bytes{device="/dev/rbd0",fstype="ext4",mountpoint="/",name="route-reflector-1-as211437",project="default",type="container"} 4.6880882688e+10
+# HELP lxd_filesystem_free_bytes The number of free space in bytes.
+# TYPE lxd_filesystem_free_bytes gauge
+lxd_filesystem_free_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-journald.service",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_free_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 3.7638144e+07
+lxd_filesystem_free_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 3.984142336e+10
+lxd_filesystem_free_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 8.7994368e+08
+lxd_filesystem_free_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.02828032e+08
+lxd_filesystem_free_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-resolved.service",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_free_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/user/1000",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 4.07871488e+08
+lxd_filesystem_free_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 4.7766110208e+10
+lxd_filesystem_free_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 8.79099904e+08
+lxd_filesystem_free_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.02828032e+08
+lxd_filesystem_free_bytes{device="/dev/rbd3",fstype="ext4",mountpoint="/",name="ubuntu-mirror-urc",project="default",type="container"} 1.7895645184e+10
+lxd_filesystem_free_bytes{device="/dev/rbd0",fstype="ext4",mountpoint="/",name="route-reflector-1-as211437",project="default",type="container"} 4.9245089792e+10
+# HELP lxd_filesystem_size_bytes The size of the filesystem in bytes.
+# TYPE lxd_filesystem_size_bytes gauge
+lxd_filesystem_size_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-journald.service",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_size_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/lxd_agent",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5.24288e+07
+lxd_filesystem_size_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5.0839412736e+10
+lxd_filesystem_size_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.03643136e+09
+lxd_filesystem_size_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.09395456e+08
+lxd_filesystem_size_bytes{device="none",fstype="tmpfs",mountpoint="/run/credentials/systemd-resolved.service",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.048576e+06
+lxd_filesystem_size_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/run/user/1000",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 4.0787968e+08
+lxd_filesystem_size_bytes{device="/dev/sda1",fstype="ext4",mountpoint="/",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 5.0839412736e+10
+lxd_filesystem_size_bytes{device="/dev/sda13",fstype="ext4",mountpoint="/boot",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.03643136e+09
+lxd_filesystem_size_bytes{device="/dev/sda15",fstype="0x4d44",mountpoint="/boot/efi",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.09395456e+08
+lxd_filesystem_size_bytes{device="/dev/rbd3",fstype="ext4",mountpoint="/",name="ubuntu-mirror-urc",project="default",type="container"} 7.9076016128e+10
+lxd_filesystem_size_bytes{device="/dev/rbd0",fstype="ext4",mountpoint="/",name="route-reflector-1-as211437",project="default",type="container"} 5.2654358528e+10
+# HELP lxd_go_alloc_bytes Number of bytes allocated and still in use.
+# TYPE lxd_go_alloc_bytes gauge
+lxd_go_alloc_bytes 4.7268632e+07
+# HELP lxd_go_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE lxd_go_alloc_bytes_total counter
+lxd_go_alloc_bytes_total 1.00417044192e+11
+# HELP lxd_go_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table.
+# TYPE lxd_go_buck_hash_sys_bytes gauge
+lxd_go_buck_hash_sys_bytes 3.682109e+06
+# HELP lxd_go_frees_total Total number of frees.
+# TYPE lxd_go_frees_total counter
+lxd_go_frees_total 7.78539122e+08
+# HELP lxd_go_gc_sys_bytes Number of bytes used for garbage collection system metadata.
+# TYPE lxd_go_gc_sys_bytes gauge
+lxd_go_gc_sys_bytes 5.166864e+06
+# HELP lxd_go_goroutines Number of goroutines that currently exist.
+# TYPE lxd_go_goroutines gauge
+lxd_go_goroutines 148
+# HELP lxd_go_heap_alloc_bytes Number of heap bytes allocated and still in use.
+# TYPE lxd_go_heap_alloc_bytes gauge
+lxd_go_heap_alloc_bytes 4.7268632e+07
+# HELP lxd_go_heap_idle_bytes Number of heap bytes waiting to be used.
+# TYPE lxd_go_heap_idle_bytes gauge
+lxd_go_heap_idle_bytes 8.024064e+07
+# HELP lxd_go_heap_inuse_bytes Number of heap bytes that are in use.
+# TYPE lxd_go_heap_inuse_bytes gauge
+lxd_go_heap_inuse_bytes 5.492736e+07
+# HELP lxd_go_heap_objects Number of allocated objects.
+# TYPE lxd_go_heap_objects gauge
+lxd_go_heap_objects 582853
+# HELP lxd_go_heap_released_bytes Number of heap bytes released to OS.
+# TYPE lxd_go_heap_released_bytes gauge
+lxd_go_heap_released_bytes 8.0060416e+07
+# HELP lxd_go_heap_sys_bytes Number of heap bytes obtained from system.
+# TYPE lxd_go_heap_sys_bytes gauge
+lxd_go_heap_sys_bytes 1.35168e+08
+# HELP lxd_go_lookups_total Total number of pointer lookups.
+# TYPE lxd_go_lookups_total counter
+lxd_go_lookups_total 0
+# HELP lxd_go_mallocs_total Total number of mallocs.
+# TYPE lxd_go_mallocs_total counter
+lxd_go_mallocs_total 7.79121975e+08
+# HELP lxd_go_mcache_inuse_bytes Number of bytes in use by mcache structures.
+# TYPE lxd_go_mcache_inuse_bytes gauge
+lxd_go_mcache_inuse_bytes 18368
+# HELP lxd_go_mcache_sys_bytes Number of bytes used for mcache structures obtained from system.
+# TYPE lxd_go_mcache_sys_bytes gauge
+lxd_go_mcache_sys_bytes 32144
+# HELP lxd_go_mspan_inuse_bytes Number of bytes in use by mspan structures.
+# TYPE lxd_go_mspan_inuse_bytes gauge
+lxd_go_mspan_inuse_bytes 939840
+# HELP lxd_go_mspan_sys_bytes Number of bytes used for mspan structures obtained from system.
+# TYPE lxd_go_mspan_sys_bytes gauge
+lxd_go_mspan_sys_bytes 1.27296e+06
+# HELP lxd_go_next_gc_bytes Number of heap bytes when next garbage collection will take place.
+# TYPE lxd_go_next_gc_bytes gauge
+lxd_go_next_gc_bytes 5.3501186e+07
+# HELP lxd_go_other_sys_bytes Number of bytes used for other system allocations.
+# TYPE lxd_go_other_sys_bytes gauge
+lxd_go_other_sys_bytes 1.630768e+06
+# HELP lxd_go_stack_inuse_bytes Number of bytes in use by the stack allocator.
+# TYPE lxd_go_stack_inuse_bytes gauge
+lxd_go_stack_inuse_bytes 3.244032e+06
+# HELP lxd_go_stack_sys_bytes Number of bytes obtained from system for stack allocator.
+# TYPE lxd_go_stack_sys_bytes gauge
+lxd_go_stack_sys_bytes 3.244032e+06
+# HELP lxd_go_sys_bytes Number of bytes obtained from system.
+# TYPE lxd_go_sys_bytes gauge
+lxd_go_sys_bytes 1.50196877e+08
+# HELP lxd_instances The number of instances.
+# TYPE lxd_instances gauge
+lxd_instances{project="default",type="container"} 2
+lxd_instances{project="default",type="virtual-machine"} 2
+# HELP lxd_memory_Active_anon_bytes The amount of anonymous memory on active LRU list.
+# TYPE lxd_memory_Active_anon_bytes gauge
+lxd_memory_Active_anon_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.929900032e+09
+lxd_memory_Active_anon_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 6.4909312e+08
+lxd_memory_Active_anon_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 2.69295616e+08
+lxd_memory_Active_anon_bytes{name="route-reflector-1-as211437",project="default",type="container"} 6.31300096e+08
+# HELP lxd_memory_Active_bytes The amount of memory on active LRU list.
+# TYPE lxd_memory_Active_bytes gauge
+lxd_memory_Active_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.36449792e+09
+lxd_memory_Active_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 8.4434944e+08
+lxd_memory_Active_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 2.556616704e+09
+lxd_memory_Active_bytes{name="route-reflector-1-as211437",project="default",type="container"} 7.82401536e+08
+# HELP lxd_memory_Active_file_bytes The amount of file-backed memory on active LRU list.
+# TYPE lxd_memory_Active_file_bytes gauge
+lxd_memory_Active_file_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 4.34597888e+08
+lxd_memory_Active_file_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.9525632e+08
+lxd_memory_Active_file_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 2.287321088e+09
+lxd_memory_Active_file_bytes{name="route-reflector-1-as211437",project="default",type="container"} 1.5110144e+08
+# HELP lxd_memory_Cached_bytes The amount of cached memory.
+# TYPE lxd_memory_Cached_bytes gauge
+lxd_memory_Cached_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 4.563677184e+09
+lxd_memory_Cached_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 2.204655616e+09
+lxd_memory_Cached_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 7.848656896e+09
+lxd_memory_Cached_bytes{name="route-reflector-1-as211437",project="default",type="container"} 8.8522752e+08
+# HELP lxd_memory_Dirty_bytes The amount of memory waiting to get written back to the disk.
+# TYPE lxd_memory_Dirty_bytes gauge
+lxd_memory_Dirty_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 741376
+lxd_memory_Dirty_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 311296
+lxd_memory_Dirty_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 57344
+lxd_memory_Dirty_bytes{name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_memory_HugepagesFree_bytes The amount of free memory for hugetlb.
+# TYPE lxd_memory_HugepagesFree_bytes gauge
+lxd_memory_HugepagesFree_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_HugepagesFree_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_memory_HugepagesTotal_bytes The amount of used memory for hugetlb.
+# TYPE lxd_memory_HugepagesTotal_bytes gauge
+lxd_memory_HugepagesTotal_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_HugepagesTotal_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+# HELP lxd_memory_Inactive_anon_bytes The amount of anonymous memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_anon_bytes gauge
+lxd_memory_Inactive_anon_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 4.73088e+07
+lxd_memory_Inactive_anon_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_Inactive_anon_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 6.4765952e+07
+lxd_memory_Inactive_anon_bytes{name="route-reflector-1-as211437",project="default",type="container"} 131072
+# HELP lxd_memory_Inactive_bytes The amount of memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_bytes gauge
+lxd_memory_Inactive_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 4.213940224e+09
+lxd_memory_Inactive_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 2.070196224e+09
+lxd_memory_Inactive_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 5.625724928e+09
+lxd_memory_Inactive_bytes{name="route-reflector-1-as211437",project="default",type="container"} 7.34040064e+08
+# HELP lxd_memory_Inactive_file_bytes The amount of file-backed memory on inactive LRU list.
+# TYPE lxd_memory_Inactive_file_bytes gauge
+lxd_memory_Inactive_file_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 4.166631424e+09
+lxd_memory_Inactive_file_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 2.070196224e+09
+lxd_memory_Inactive_file_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 5.560958976e+09
+lxd_memory_Inactive_file_bytes{name="route-reflector-1-as211437",project="default",type="container"} 7.33908992e+08
+# HELP lxd_memory_Mapped_bytes The amount of mapped memory.
+# TYPE lxd_memory_Mapped_bytes gauge
+lxd_memory_Mapped_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5.91699968e+08
+lxd_memory_Mapped_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 3.12696832e+08
+lxd_memory_Mapped_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 1.02264832e+08
+lxd_memory_Mapped_bytes{name="route-reflector-1-as211437",project="default",type="container"} 9.61536e+07
+# HELP lxd_memory_MemAvailable_bytes The amount of available memory.
+# TYPE lxd_memory_MemAvailable_bytes gauge
+lxd_memory_MemAvailable_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5.730062336e+09
+lxd_memory_MemAvailable_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 2.900606976e+09
+lxd_memory_MemAvailable_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 7.875813376e+09
+lxd_memory_MemAvailable_bytes{name="route-reflector-1-as211437",project="default",type="container"} 6.6587516928e+10
+# HELP lxd_memory_MemFree_bytes The amount of free memory.
+# TYPE lxd_memory_MemFree_bytes gauge
+lxd_memory_MemFree_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.063346176e+09
+lxd_memory_MemFree_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 6.97643008e+08
+lxd_memory_MemFree_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 2.715648e+07
+lxd_memory_MemFree_bytes{name="route-reflector-1-as211437",project="default",type="container"} 6.5702289408e+10
+# HELP lxd_memory_MemTotal_bytes The amount of used memory.
+# TYPE lxd_memory_MemTotal_bytes gauge
+lxd_memory_MemTotal_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 8.299851776e+09
+lxd_memory_MemTotal_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 4.078800896e+09
+lxd_memory_MemTotal_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 8.589934592e+09
+lxd_memory_MemTotal_bytes{name="route-reflector-1-as211437",project="default",type="container"} 6.7317440512e+10
+# HELP lxd_memory_OOM_kills_total The number of out of memory kills.
+# TYPE lxd_memory_OOM_kills_total counter
+lxd_memory_OOM_kills_total{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_OOM_kills_total{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_OOM_kills_total{name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_memory_OOM_kills_total{name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_memory_RSS_bytes The amount of anonymous and swap cache memory.
+# TYPE lxd_memory_RSS_bytes gauge
+lxd_memory_RSS_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.56978944e+09
+lxd_memory_RSS_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.17819392e+09
+# HELP lxd_memory_Shmem_bytes The amount of cached filesystem data that is swap-backed.
+# TYPE lxd_memory_Shmem_bytes gauge
+lxd_memory_Shmem_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.3584768e+07
+lxd_memory_Shmem_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 2.07872e+07
+lxd_memory_Shmem_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 376832
+lxd_memory_Shmem_bytes{name="route-reflector-1-as211437",project="default",type="container"} 217088
+# HELP lxd_memory_Swap_bytes The amount of used swap memory.
+# TYPE lxd_memory_Swap_bytes gauge
+lxd_memory_Swap_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_Swap_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_Swap_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 2.22232576e+08
+lxd_memory_Swap_bytes{name="route-reflector-1-as211437",project="default",type="container"} 86016
+# HELP lxd_memory_Unevictable_bytes The amount of unevictable memory.
+# TYPE lxd_memory_Unevictable_bytes gauge
+lxd_memory_Unevictable_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.3889536e+07
+lxd_memory_Unevictable_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.3606912e+07
+lxd_memory_Unevictable_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 4096
+lxd_memory_Unevictable_bytes{name="route-reflector-1-as211437",project="default",type="container"} 16384
+# HELP lxd_memory_Writeback_bytes The amount of memory queued for syncing to disk.
+# TYPE lxd_memory_Writeback_bytes gauge
+lxd_memory_Writeback_bytes{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_Writeback_bytes{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_memory_Writeback_bytes{name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_memory_Writeback_bytes{name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_network_receive_bytes_total The amount of received bytes on a given interface.
+# TYPE lxd_network_receive_bytes_total counter
+lxd_network_receive_bytes_total{device="br-8c6f9b32b258",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 1.071201e+07
+lxd_network_receive_bytes_total{device="docker0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 594050
+lxd_network_receive_bytes_total{device="enp5s0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 6.314461863e+09
+lxd_network_receive_bytes_total{device="lo",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.731942e+06
+lxd_network_receive_bytes_total{device="veth27f1924",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 711188
+lxd_network_receive_bytes_total{device="veth97bec1a",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 20717
+lxd_network_receive_bytes_total{device="vethb72e009",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 126
+lxd_network_receive_bytes_total{device="lo",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 135819
+lxd_network_receive_bytes_total{device="enp5s0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1.087232602e+09
+lxd_network_receive_bytes_total{device="eth0",name="ubuntu-mirror-urc",project="default",type="container"} 1.1467290764101e+13
+lxd_network_receive_bytes_total{device="lo",name="ubuntu-mirror-urc",project="default",type="container"} 2.060013571411e+12
+lxd_network_receive_bytes_total{device="eth0",name="route-reflector-1-as211437",project="default",type="container"} 4.0203760309e+10
+lxd_network_receive_bytes_total{device="lo",name="route-reflector-1-as211437",project="default",type="container"} 6.340516e+08
+lxd_network_receive_bytes_total{device="zt5u4q22jr",name="route-reflector-1-as211437",project="default",type="container"} 2.3651542392e+10
+# HELP lxd_network_receive_drop_total The amount of received dropped bytes on a given interface.
+# TYPE lxd_network_receive_drop_total counter
+lxd_network_receive_drop_total{device="br-8c6f9b32b258",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="docker0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="enp5s0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="lo",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="veth27f1924",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="veth97bec1a",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="vethb72e009",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="lo",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="enp5s0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_drop_total{device="eth0",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="lo",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="eth0",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="lo",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_network_receive_drop_total{device="zt5u4q22jr",name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_network_receive_errs_total The amount of received errors on a given interface.
+# TYPE lxd_network_receive_errs_total counter
+lxd_network_receive_errs_total{device="br-8c6f9b32b258",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="docker0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="enp5s0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="lo",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="veth27f1924",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="veth97bec1a",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="vethb72e009",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="lo",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="enp5s0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_receive_errs_total{device="eth0",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="lo",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="eth0",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="lo",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_network_receive_errs_total{device="zt5u4q22jr",name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_network_receive_packets_total The amount of received packets on a given interface.
+# TYPE lxd_network_receive_packets_total counter
+lxd_network_receive_packets_total{device="br-8c6f9b32b258",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 148022
+lxd_network_receive_packets_total{device="docker0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 8652
+lxd_network_receive_packets_total{device="enp5s0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 4.581213e+06
+lxd_network_receive_packets_total{device="lo",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 19638
+lxd_network_receive_packets_total{device="veth27f1924",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 8557
+lxd_network_receive_packets_total{device="veth97bec1a",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 139
+lxd_network_receive_packets_total{device="vethb72e009",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 3
+lxd_network_receive_packets_total{device="lo",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1225
+lxd_network_receive_packets_total{device="enp5s0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 2.420203e+06
+lxd_network_receive_packets_total{device="eth0",name="ubuntu-mirror-urc",project="default",type="container"} 5.319071783e+09
+lxd_network_receive_packets_total{device="lo",name="ubuntu-mirror-urc",project="default",type="container"} 9.66279669e+08
+lxd_network_receive_packets_total{device="eth0",name="route-reflector-1-as211437",project="default",type="container"} 1.84851552e+08
+lxd_network_receive_packets_total{device="lo",name="route-reflector-1-as211437",project="default",type="container"} 5.869262e+06
+lxd_network_receive_packets_total{device="zt5u4q22jr",name="route-reflector-1-as211437",project="default",type="container"} 1.61551262e+08
+# HELP lxd_network_transmit_bytes_total The amount of transmitted bytes on a given interface.
+# TYPE lxd_network_transmit_bytes_total counter
+lxd_network_transmit_bytes_total{device="br-8c6f9b32b258",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 6.18946392e+08
+lxd_network_transmit_bytes_total{device="docker0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 3.4540784e+07
+lxd_network_transmit_bytes_total{device="enp5s0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5.63929496e+08
+lxd_network_transmit_bytes_total{device="lo",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.731942e+06
+lxd_network_transmit_bytes_total{device="veth27f1924",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 3.4660494e+07
+lxd_network_transmit_bytes_total{device="veth97bec1a",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 65513
+lxd_network_transmit_bytes_total{device="vethb72e009",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 5125
+lxd_network_transmit_bytes_total{device="lo",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 135819
+lxd_network_transmit_bytes_total{device="enp5s0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 5.18732624e+08
+lxd_network_transmit_bytes_total{device="eth0",name="ubuntu-mirror-urc",project="default",type="container"} 3.267747103746e+12
+lxd_network_transmit_bytes_total{device="lo",name="ubuntu-mirror-urc",project="default",type="container"} 2.060013571411e+12
+lxd_network_transmit_bytes_total{device="eth0",name="route-reflector-1-as211437",project="default",type="container"} 5.8745476705e+10
+lxd_network_transmit_bytes_total{device="lo",name="route-reflector-1-as211437",project="default",type="container"} 6.340516e+08
+lxd_network_transmit_bytes_total{device="zt5u4q22jr",name="route-reflector-1-as211437",project="default",type="container"} 3.189113352e+10
+# HELP lxd_network_transmit_drop_total The amount of transmitted dropped bytes on a given interface.
+# TYPE lxd_network_transmit_drop_total counter
+lxd_network_transmit_drop_total{device="br-8c6f9b32b258",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="docker0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="enp5s0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="lo",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="veth27f1924",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="veth97bec1a",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="vethb72e009",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="lo",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="enp5s0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_drop_total{device="eth0",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="lo",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="eth0",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="lo",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_network_transmit_drop_total{device="zt5u4q22jr",name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_network_transmit_errs_total The amount of transmitted errors on a given interface.
+# TYPE lxd_network_transmit_errs_total counter
+lxd_network_transmit_errs_total{device="br-8c6f9b32b258",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="docker0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="enp5s0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="lo",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="veth27f1924",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="veth97bec1a",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="vethb72e009",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="lo",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="enp5s0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 0
+lxd_network_transmit_errs_total{device="eth0",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="lo",name="ubuntu-mirror-urc",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="eth0",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="lo",name="route-reflector-1-as211437",project="default",type="container"} 0
+lxd_network_transmit_errs_total{device="zt5u4q22jr",name="route-reflector-1-as211437",project="default",type="container"} 0
+# HELP lxd_network_transmit_packets_total The amount of transmitted packets on a given interface.
+# TYPE lxd_network_transmit_packets_total counter
+lxd_network_transmit_packets_total{device="br-8c6f9b32b258",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 281287
+lxd_network_transmit_packets_total{device="docker0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 14513
+lxd_network_transmit_packets_total{device="enp5s0",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 2.489381e+06
+lxd_network_transmit_packets_total{device="lo",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 19638
+lxd_network_transmit_packets_total{device="veth27f1924",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 16134
+lxd_network_transmit_packets_total{device="veth97bec1a",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 182
+lxd_network_transmit_packets_total{device="vethb72e009",name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 40
+lxd_network_transmit_packets_total{device="lo",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 1225
+lxd_network_transmit_packets_total{device="enp5s0",name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 2.20049e+06
+lxd_network_transmit_packets_total{device="eth0",name="ubuntu-mirror-urc",project="default",type="container"} 3.340757206e+09
+lxd_network_transmit_packets_total{device="lo",name="ubuntu-mirror-urc",project="default",type="container"} 9.66279669e+08
+lxd_network_transmit_packets_total{device="eth0",name="route-reflector-1-as211437",project="default",type="container"} 2.28827855e+08
+lxd_network_transmit_packets_total{device="lo",name="route-reflector-1-as211437",project="default",type="container"} 5.869262e+06
+lxd_network_transmit_packets_total{device="zt5u4q22jr",name="route-reflector-1-as211437",project="default",type="container"} 1.72623348e+08
+# HELP lxd_operations_total The number of running operations
+# TYPE lxd_operations_total counter
+lxd_operations_total 0
+# HELP lxd_procs_total The number of running processes.
+# TYPE lxd_procs_total gauge
+lxd_procs_total{name="CosmosCloud",project="default",state="RUNNING",type="virtual-machine"} 41
+lxd_procs_total{name="minecraft",project="default",state="RUNNING",type="virtual-machine"} 27
+lxd_procs_total{name="ubuntu-mirror-urc",project="default",type="container"} 750
+lxd_procs_total{name="route-reflector-1-as211437",project="default",type="container"} 123
+# HELP lxd_uptime_seconds The daemon uptime in seconds.
+# TYPE lxd_uptime_seconds counter
+lxd_uptime_seconds 1.148954912191985e+06
+# HELP lxd_warnings_total The number of active warnings.
+# TYPE lxd_warnings_total counter
+lxd_warnings_total 0
+# EOF

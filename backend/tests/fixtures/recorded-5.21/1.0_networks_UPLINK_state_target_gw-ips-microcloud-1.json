@@ -1,0 +1,35 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "addresses": [
+      {
+        "address": "2001:db8::27",
+        "family": "inet6",
+        "netmask": "64",
+        "scope": "link"
+      }
+    ],
+    "bond": null,
+    "bridge": null,
+    "counters": {
+      "bytes_received": 571563532,
+      "bytes_sent": 328854,
+      "packets_received": 11260902,
+      "packets_sent": 4043
+    },
+    "hwaddr": "00:16:3e:00:00:37",
+    "mtu": 1500,
+    "ovn": null,
+    "state": "up",
+    "type": "broadcast",
+    "vlan": {
+      "lower_device": "bond-core",
+      "vid": 2001
+    }
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

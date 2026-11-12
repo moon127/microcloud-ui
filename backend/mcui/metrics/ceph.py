@@ -32,6 +32,7 @@ class CephScrape:
     url: str | None = None
     error: str | None = None
     exposition: Exposition = field(default_factory=Exposition)
+    text: str = ""  # as served, for record-fixtures
 
 
 class CephScraper:
@@ -52,7 +53,7 @@ class CephScraper:
         exp = parse(r.text)
         if not exp.samples:
             return CephScrape(False, url, "standby mgr (no data)")
-        return CephScrape(True, url, exposition=exp)
+        return CephScrape(True, url, exposition=exp, text=r.text)
 
     async def scrape(self, members: list[Member]) -> CephScrape:
         urls = mgr_urls(self.settings, members)

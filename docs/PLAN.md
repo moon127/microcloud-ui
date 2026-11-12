@@ -171,7 +171,7 @@ Live tests (D41): everything inside a throwaway LXD in a `mcui-test` VM, which a
 Renumbered 2026-11-12 (D73): MicroCloud 3.4 LTS support became Phase 5, so the earlier
 Phases 5, 6 and 7 are now 6, 7 and 8. Decisions D58 and D63–D65 keep the old numbers.
 
-**Phase 5: MicroCloud 3.4 LTS. Proposed 2026-11-12, waiting for the owner's cluster
+**Phase 5: MicroCloud 3.4 LTS. Agreed 2026-11-12; starts after the owner's cluster
 upgrade.** Make the app fully support MicroCloud 3.4 LTS while still working with
 MicroCloud 2.1 LTS, which the test cloud runs today.
 
@@ -190,7 +190,8 @@ never to the MicroCloud, MicroCeph or MicroOVN daemons. So the work is mostly ab
 of anything LXD 6 removed outright: no `/1.0/containers` or `/1.0/virtual-machines`, no
 direct-URL image import, no `nvidia.*` keys, no `security.secure_boot`.
 
-*Support policy (proposed):* support both LXD 5.21 and 6.10, with each feature switched on
+*Support policy (agreed with the owner):* support both MicroCloud 2.x (LXD 5.21) and 3.4
+(LXD 6.10), with each feature switched on
 by `api_extensions` as now (D19). Both LTS releases are supported upstream until 2029 and
 2031. Once the test cloud is upgraded, the only cluster left on 5.21 is the recorded
 fixtures, so record a full set **before** the upgrade (5.0).
@@ -199,9 +200,10 @@ fixtures, so record a full set **before** the upgrade (5.0).
 - **Security first:** LXD before 5.21.9 or 6.10.1 has a critical authentication bypass
   in client-certificate checking (advisory of 2026-10-28). Member 1 still runs 5.21.8:
   `sudo snap refresh lxd` there now.
-- **Record the 5.21 baseline:** `mcui record-fixtures` into
-  `backend/tests/fixtures/recorded-5.21/`, plus a Ceph mgr `/metrics` sample with perf
-  counters and RBD stats. It's read-only, so I can do it.
+- **Record the 5.21 baseline. ✅ Done 2026-11-12:** `record-fixtures` now covers everything
+  the app reads (profiles, images, projects, ACLs, allocations, operations, each network's
+  forwards, load balancers, peers, leases and state, the Ceph mgr and node_exporter), and
+  `backend/tests/fixtures/recorded-5.21/` holds the result (55 files).
 - **Upgrade** following MicroCloud's "Upgrade MicroCloud" guide (2 → 3 track). Caveats
   from the release notes:
   - Squid → Tentacle: an upgrade from Squid 19.2.6 to Tentacle releases before 20.2.4
@@ -251,25 +253,30 @@ LTS releases and checked live on 3.4.
 - **Hosts on Ubuntu 26.04** (if the owner upgrades them): node_exporter from 26.04 and
   `docs/HOST-METRICS.md`.
 
-**5b What LXD 6 adds, and the MicroCloud 3.4 UI shows** (each behind its
-`api_extensions` flag; order to agree):
+**5b What LXD 6 adds** (each behind its `api_extensions` flag). The owner chose
+(2026-11-12) placement groups, image registries, OVN load balancers, child operations
+and multi-volume snapshots for Phase 5:
 - **Placement groups** (`instance_placement_groups`): list, create, edit, and use them in
   the create-instance target.
 - **Image registries** (`image_registries`): manage them, and use them in the image
   picker, replacing or alongside our own remote catalogues (D47).
   `restricted.registries` per project.
-- **Identities and access** (AC-1, moved here from Phase 7): TLS, OIDC and bearer
-  identities, `expires_at`, effective groups, pending tokens, and security events in the
-  event feed (`event_security`).
 - **OVN:** load-balancer pools and health checks (`network_load_balancer_pool*`, from
   NW-4/7), internal load balancers and forwards, DHCP ranges, automatic IP allocation
   for forwards and load balancers.
-- **Operations:** child and bulk operations, durable operations (shown, nothing to do).
-- **Instances and storage:** forced delete, multi-volume snapshots, per-project images
-  and backups volumes; GPU via CDI shown in hardware and devices.
-- **Disaster recovery:** cluster links, replicators (with `lxd_replicator_*` metrics) and
-  project replica mode (leader or standby, promote/demote). Needs a second cluster: read
-  views from fixtures first; changes only if the owner wants them and can test them.
+- **Child operations:** parent and child operations on the operations page and in
+  toasts (`recursion=2`, `child_count`); bulk and durable operations shown as they come.
+- **Multi-volume snapshots** (`instance_snapshots_multi_volume`): snapshot an instance
+  with its attached volumes, and show which volumes a snapshot holds.
+
+Not in Phase 5:
+- **Disaster recovery** (cluster links, replicators, project replica mode): a later
+  stage. It needs a second cluster.
+- **Identities, OIDC and bearer tokens** (AC-1): waiting for a separate discussion. The
+  app talks to LXD as one admin client; whether it should act with each user's or
+  project's own credentials instead is a design question to settle first.
+- Forced delete, per-project images and backups volumes, GPU via CDI: small; pick up
+  in Phase 7 or when needed.
 
 **5c MicroCloud itself (evaluate, then decide).** MicroCloud 3.4 has a generally available
 Cluster Manager with its own API, and an observability charm for COS/Grafana. Decide
@@ -281,14 +288,15 @@ updated and run), the recorded-fixture suites pass for both LTS releases, the 5b
 agreed with the owner are built, and README, DEPLOY.md and CEPH-METRICS.md say which
 MicroCloud releases are supported.
 
-*Open questions for the owner:*
-1. Keep supporting MicroCloud 2.1 / LXD 5.21 (proposed: yes, through recorded fixtures)?
-2. Which 5b items are in Phase 5, and in what order? Disaster recovery needs a second
-   cluster.
-3. Ceph perf counters on Tentacle: set `exclude_perf_counters=false` on the cluster, or
-   should we scrape `ceph-exporter`?
-4. Will the members move to Ubuntu 26.04 too, or stay on 24.04 with the core26 snaps?
-5. Shall I record the 5.21 fixtures now, before the upgrade?
+*Decided 2026-11-12:* keep supporting MicroCloud 2.x; the 5b scope above; 5.21 fixtures
+recorded.
+
+*Still open:*
+1. Ceph perf counters on Tentacle: set `exclude_perf_counters=false` on the cluster, or
+   should we scrape `ceph-exporter`? (Check what MicroCeph runs after the upgrade.)
+2. The hosts' own Ubuntu: MicroCloud 3.4 asks for an Ubuntu LTS from 22.04 up with
+   snapd 2.75 or later, so the members can stay on 24.04. Moving them to 26.04 is the
+   owner's choice; it would change node_exporter and the kernel under LXD.
 
 **Phase 6: Metric store evaluation** (was Phase 5; MO-14): benchmark SQLite against
 Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
@@ -298,8 +306,8 @@ history (MO-10).
 
 **Phase 7: Remaining parity** (was Phase 6). Backups (IN-13, ST-4), project moves and
 restrictions (IN-6, PJ-2), ISO upload (IM-3), sriov, peers, zones, ACL logs
-(NW-3/4/6/7), cluster groups and config (CL-4/5). Login options evaluation (AU-4).
-Identities (AC-1) and OVN load balancers moved to Phase 5b.
+(NW-3/4/6/7), cluster groups and config (CL-4/5). Login options evaluation (AU-4), with
+identities (AC-1) once the auth model is agreed. OVN load balancers moved to Phase 5b.
 
 **Phase 8: Packaging** (was Phase 7). Wheel + systemd unit, OCI image, docs for running
 on the MicroCloud itself as an LXD instance (NF-6).

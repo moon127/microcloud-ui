@@ -1,0 +1,31 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "config": {
+      "cephfs.cluster_name": "ceph",
+      "cephfs.create_missing": "true",
+      "cephfs.data_pool": "lxd_cephfs_data",
+      "cephfs.meta_pool": "lxd_cephfs_meta",
+      "cephfs.osd_pg_num": "32",
+      "cephfs.osd_pool_size": "3",
+      "cephfs.path": "lxd_cephfs",
+      "cephfs.user.name": "admin",
+      "source": "lxd_cephfs"
+    },
+    "description": "Distributed file-system storage using CephFS",
+    "driver": "cephfs",
+    "locations": [
+      "gw-ips-microcloud-1",
+      "gw-ips-microcloud-3",
+      "gw-ips-microcloud-2"
+    ],
+    "name": "remote-fs",
+    "status": "Created",
+    "used_by": []
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

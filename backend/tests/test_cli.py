@@ -148,6 +148,10 @@ def test_record_fixtures(config, tmp_path, capsys):
     respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(fixture_json("server_standalone.json")))
     respx.get(url__regex=rf"{EP1}/1\.0/(?!metrics).+").mock(return_value=lxd_ok([]))
     route = respx.get(f"{EP1}/1.0/metrics").mock(return_value=httpx.Response(200, text="a 1\n"))
+    # no Ceph mgr and no node_exporter: optional, so still a success
+    respx.get(url__regex=r"https?://192\.0\.2\.1:(9283|9100)/metrics").mock(
+        side_effect=httpx.ConnectError("refused")
+    )
     out = tmp_path / "rec"
     assert cli.main(["-c", str(config), "record-fixtures", "--out", str(out)]) == 0
     assert (out / "metrics_solo.txt").read_text() == "a 1\n"

@@ -6,6 +6,25 @@ import respx
 from mcui.record import Scrubber, record
 from tests.conftest import EP1, fixture_json, lxd_ok
 
+# lists recorded besides members, instances, pools, networks and warnings
+LISTS = ["profiles", "images", "projects", "network-acls", "network-allocations", "operations"]
+
+
+def lxd_only(settings):
+    """No Ceph mgr or node_exporter, so only LXD has to be mocked."""
+    off = {"enabled": False}
+    return settings.model_copy(
+        update={
+            "ceph": settings.ceph.model_copy(update=off),
+            "node_exporter": settings.node_exporter.model_copy(update=off),
+        }
+    )
+
+
+def mock_lists():
+    for name in LISTS:
+        respx.get(f"{EP1}/1.0/{name}").mock(return_value=lxd_ok([]))
+
 
 def test_scrubber_consistent_and_safe():
     s = Scrubber()
@@ -58,10 +77,11 @@ async def test_record_writes_scrubbed_files(settings, lxd, tmp_path):
         return_value=httpx.Response(200, text='lxd_uptime_seconds{addr="10.20.30.1"} 1\n')
     )
     respx.get("https://192.0.2.2:8443/1.0/metrics").mock(return_value=httpx.Response(403))
+    mock_lists()
 
     out = tmp_path / "rec"
     log: list[str] = []
-    failures = await record(settings, lxd, lxd, out, log.append)
+    failures = await record(lxd_only(settings), lxd, lxd, out, log.append)
     assert failures == 2  # networks + m2 metrics
     names = sorted(p.name for p in out.iterdir())
     assert names == [
@@ -69,7 +89,13 @@ async def test_record_writes_scrubbed_files(settings, lxd, tmp_path):
         "1.0_cluster_members_m1_state.json",
         "1.0_cluster_members_m2_state.json",
         "1.0_cluster_members_recursion_1.json",
+        "1.0_images_recursion_1_all-projects_true.json",
         "1.0_instances_recursion_2_all-projects_true.json",
+        "1.0_network-acls_recursion_1_all-projects_true.json",
+        "1.0_network-allocations_all-projects_true.json",
+        "1.0_operations_recursion_1_all-projects_true.json",
+        "1.0_profiles_recursion_1_all-projects_true.json",
+        "1.0_projects_recursion_1.json",
         "1.0_resources_target_m1.json",
         "1.0_resources_target_m2.json",
         "1.0_storage-pools_recursion_1.json",
@@ -98,9 +124,65 @@ async def test_record_pools_standalone(settings, lxd, tmp_path):
     respx.get(f"{EP1}/1.0/storage-pools/lz/resources").mock(return_value=lxd_ok({"space": {}}))
     respx.get(f"{EP1}/1.0/storage-pools/lz/volumes").mock(return_value=lxd_ok([]))
     respx.get(f"{EP1}/1.0/metrics").mock(return_value=httpx.Response(200, text="x 1\n"))
+    mock_lists()
     out = tmp_path / "rec"
-    assert await record(settings, lxd, lxd, out, lambda _: None) == 0
+    assert await record(lxd_only(settings), lxd, lxd, out, lambda _: None) == 0
     names = sorted(p.name for p in out.iterdir())
     assert "1.0_storage-pools_lz.json" in names
     assert "1.0_storage-pools_lz_resources.json" in names
     assert "1.0_storage-pools_lz_volumes_recursion_1_all-projects_true.json" in names
+
+
+@respx.mock
+async def test_record_networks_ceph_and_hosts(settings, lxd, tmp_path):
+    """Each managed network's sub-resources, the Ceph mgr and node_exporter (Phase 5.0)."""
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(fixture_json("server_standalone.json")))
+    respx.get(f"{EP1}/1.0/cluster/members").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/instances").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/warnings").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/storage-pools").mock(return_value=lxd_ok([]))
+    mock_lists()
+    nets = [
+        {"name": "UPLINK", "type": "physical", "managed": True},
+        {"name": "default", "type": "ovn", "managed": True},
+        {"name": "lxdbr0", "type": "bridge", "managed": True},
+        {"name": "eth0", "type": "physical", "managed": False},
+    ]
+    # only the detailed list (recursion=1) says which networks are managed and their type
+    respx.get(f"{EP1}/1.0/networks", params={"recursion": "1"}).mock(return_value=lxd_ok(nets))
+    respx.get(f"{EP1}/1.0/networks").mock(
+        return_value=lxd_ok([f"/1.0/networks/{n['name']}" for n in nets])
+    )
+    for path in (
+        "networks/UPLINK/leases",
+        "networks/UPLINK/state",
+        "networks/default/forwards",
+        "networks/default/load-balancers",
+        "networks/default/peers",
+        "networks/default/state",
+        "networks/lxdbr0/leases",
+        "networks/lxdbr0/state",
+    ):
+        respx.get(f"{EP1}/1.0/{path}").mock(return_value=lxd_ok([]))
+    respx.get(f"{EP1}/1.0/metrics").mock(return_value=httpx.Response(200, text="x 1\n"))
+    # one mgr answers with data, node_exporter isn't installed
+    respx.get("http://192.0.2.1:9283/metrics").mock(
+        return_value=httpx.Response(200, text='ceph_health_status{addr="10.20.30.9"} 0\n')
+    )
+    respx.get("https://192.0.2.1:9100/metrics").mock(side_effect=httpx.ConnectError("refused"))
+    out = tmp_path / "rec"
+    log: list[str] = []
+    assert await record(settings, lxd, lxd, out, log.append) == 0  # optional sources
+    names = {p.name for p in out.iterdir()}
+    assert {
+        "1.0_networks_default_forwards_recursion_1.json",
+        "1.0_networks_default_load-balancers_recursion_1.json",
+        "1.0_networks_default_peers_recursion_1.json",
+        "1.0_networks_default_state.json",
+        "1.0_networks_lxdbr0_leases.json",
+        "1.0_networks_lxdbr0_state.json",
+        "ceph_mgr.txt",
+    } <= names
+    assert not any(n.startswith("1.0_networks_eth0") for n in names)  # unmanaged
+    assert "10.20.30.9" not in (out / "ceph_mgr.txt").read_text()  # scrubbed
+    assert any("no node_exporter on" in line for line in log)

@@ -1,0 +1,807 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "route-reflector-1-as211437-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2022-11-17T02:40:42Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000009",
+      "last_used_at": "2026-07-09T13:27:18.486309633Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 22.04 LTS server (20221117)",
+        "os": "ubuntu",
+        "release": "jammy"
+      },
+      "public": false,
+      "size": 1131973847,
+      "type": "container",
+      "uploaded_at": "2026-07-09T13:26:18.608659471Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "plex-server-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2016-11-15T15:13:17Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000015",
+      "last_used_at": "0001-01-01T00:00:00Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 16.04 LTS server (20161115)",
+        "os": "ubuntu",
+        "release": "xenial"
+      },
+      "public": false,
+      "size": 18168640689,
+      "type": "container",
+      "uploaded_at": "2026-07-10T06:35:20.887319013Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-05-20T00:00:00Z",
+      "expires_at": "2031-05-29T00:00:00Z",
+      "filename": "",
+      "fingerprint": "000000000000000000000000000000000000000000000000000000000000000a",
+      "last_used_at": "2026-07-12T09:47:07.898551352Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 26.04 LTS amd64 (release) (20260520)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "resolute",
+        "serial": "SCRUBBED",
+        "type": "disk1.img",
+        "version": "26.04"
+      },
+      "public": false,
+      "size": 858720668,
+      "type": "virtual-machine",
+      "update_source": {
+        "alias": "26.04",
+        "certificate": "",
+        "image_type": "virtual-machine",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-06-07T16:22:20.37838312Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "test-routing-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2022-11-17T02:40:42Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "000000000000000000000000000000000000000000000000000000000000000b",
+      "last_used_at": "2026-07-09T14:13:35.140523447Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 22.04 LTS server (20221117)",
+        "os": "ubuntu",
+        "release": "jammy"
+      },
+      "public": false,
+      "size": 3461021145,
+      "type": "container",
+      "uploaded_at": "2026-07-09T14:12:17.38786649Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-07-22T00:00:00Z",
+      "expires_at": "2027-06-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000008",
+      "last_used_at": "2026-07-23T20:30:21.666519206Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 22.04 LTS amd64 (release) (20260722)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "jammy",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "version": "22.04"
+      },
+      "public": false,
+      "size": 507007388,
+      "type": "container",
+      "update_source": {
+        "alias": "22.04",
+        "certificate": "",
+        "image_type": "container",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-07-23T11:10:34.014371408Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-11-05T03:36:00Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000014",
+      "last_used_at": "2026-11-05T18:11:06.987461224Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "mcui-test",
+      "properties": {
+        "architecture": "amd64",
+        "description": "Debian bookworm amd64 (20261105_0336)",
+        "os": "Debian",
+        "release": "bookworm",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "variant": "default"
+      },
+      "public": false,
+      "size": 109744840,
+      "type": "container",
+      "update_source": {
+        "alias": "debian/12",
+        "certificate": "",
+        "image_type": "container",
+        "protocol": "simplestreams",
+        "server": "https://images.lxd.canonical.com"
+      },
+      "uploaded_at": "2026-11-05T18:07:17.27099531Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-07-05T00:00:00Z",
+      "expires_at": "2029-05-31T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000013",
+      "last_used_at": "2026-07-23T10:51:53.326179255Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 24.04 LTS amd64 (release) (20260705)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "noble",
+        "serial": "SCRUBBED",
+        "type": "disk1.img",
+        "version": "24.04"
+      },
+      "public": false,
+      "size": 621674396,
+      "type": "virtual-machine",
+      "update_source": {
+        "alias": "24.04",
+        "certificate": "",
+        "image_type": "virtual-machine",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-07-23T10:51:51.954656233Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "mcui-test-image"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-11-05T17:52:44.857453604Z",
+      "expires_at": "2026-12-05T00:48:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000011",
+      "last_used_at": "2026-11-11T14:15:27.405722524Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "mcui-test",
+      "properties": {
+        "description": "mcui test image"
+      },
+      "public": false,
+      "size": 4183567,
+      "type": "container",
+      "uploaded_at": "2026-11-05T17:52:44.86201292Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-11-05T00:47:00Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000012",
+      "last_used_at": "2026-11-05T17:58:52.233333418Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "mcui-test",
+      "properties": {
+        "architecture": "amd64",
+        "description": "Alpine edge amd64 (20261105_0047)",
+        "os": "Alpine",
+        "release": "edge",
+        "requirements.secureboot": "false",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "variant": "default"
+      },
+      "public": false,
+      "size": 3457944,
+      "type": "container",
+      "update_source": {
+        "alias": "alpine/edge",
+        "certificate": "",
+        "image_type": "container",
+        "protocol": "simplestreams",
+        "server": "https://images.lxd.canonical.com"
+      },
+      "uploaded_at": "2026-11-05T17:52:00.086541524Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2025-10-01T00:00:00Z",
+      "expires_at": "2029-05-31T00:00:00Z",
+      "filename": "",
+      "fingerprint": "000000000000000000000000000000000000000000000000000000000000000e",
+      "last_used_at": "2026-11-11T13:17:35.881559981Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 24.04 LTS amd64 (release) (20251001)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "noble",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "version": "24.04"
+      },
+      "public": false,
+      "size": 276074908,
+      "type": "container",
+      "update_source": {
+        "alias": "24.04",
+        "certificate": "",
+        "image_type": "container",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2025-10-21T18:22:08.328874574Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-11-05T00:00:00Z",
+      "expires_at": "2027-07-15T00:00:00Z",
+      "filename": "",
+      "fingerprint": "000000000000000000000000000000000000000000000000000000000000000f",
+      "last_used_at": "2026-11-11T13:24:46.370839445Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 26.10 amd64 (release) (20261105)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "stonking",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "version": "26.10"
+      },
+      "public": false,
+      "size": 324968856,
+      "type": "container",
+      "update_source": {
+        "alias": "26.10",
+        "certificate": "",
+        "image_type": "container",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-11-11T13:24:17.206666337Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2025-08-05T00:00:00Z",
+      "expires_at": "2029-05-31T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000010",
+      "last_used_at": "2026-06-07T13:06:18.177260229Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 24.04 LTS amd64 (release) (20250805)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "noble",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "version": "24.04"
+      },
+      "public": false,
+      "size": 274694556,
+      "type": "container",
+      "update_source": {
+        "alias": "24.04",
+        "certificate": "",
+        "image_type": "container",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2025-09-28T20:10:35.647126042Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "cacti-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2021-05-10T23:08:44Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000016",
+      "last_used_at": "0001-01-01T00:00:00Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 20.04 LTS server (20210510)",
+        "os": "ubuntu",
+        "release": "focal"
+      },
+      "public": false,
+      "size": 1728736387,
+      "type": "container",
+      "uploaded_at": "2026-07-09T15:22:16.199891195Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2025-06-24T00:00:00Z",
+      "expires_at": "2025-05-29T00:00:00Z",
+      "filename": "",
+      "fingerprint": "000000000000000000000000000000000000000000000000000000000000000c",
+      "last_used_at": "2026-07-23T11:25:44.39403229Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 20.04 LTS amd64 (release) (20250624)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "focal",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "version": "20.04"
+      },
+      "public": false,
+      "size": 453620540,
+      "type": "container",
+      "update_source": {
+        "alias": "20.04",
+        "certificate": "",
+        "image_type": "container",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-07-23T11:25:42.926033523Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "nextcloud-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2017-05-16T15:26:40Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000017",
+      "last_used_at": "0001-01-01T00:00:00Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 16.04 LTS server (20170516)",
+        "os": "ubuntu",
+        "release": "xenial"
+      },
+      "public": false,
+      "size": 5021806751,
+      "type": "container",
+      "uploaded_at": "2026-07-09T20:54:54.28044156Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "quasselcore-canonical-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2019-12-17T23:10:04Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000004",
+      "last_used_at": "2026-06-07T15:57:31.321623801Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 20.04 LTS server (20191217)",
+        "os": "ubuntu",
+        "release": "focal"
+      },
+      "public": false,
+      "size": 3606630009,
+      "type": "container",
+      "uploaded_at": "2026-06-07T12:46:16.486819368Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "iphotopd-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2020-04-20T07:55:46Z",
+      "expires_at": "2020-05-20T07:55:46Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000018",
+      "last_used_at": "0001-01-01T00:00:00Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "Ubuntu focal amd64 (20200420_07:42)",
+        "name": "ubuntu-focal-amd64-default-20200420_07:42",
+        "os": "ubuntu",
+        "release": "focal",
+        "serial": "SCRUBBED",
+        "variant": "default"
+      },
+      "public": false,
+      "size": 352432113,
+      "type": "container",
+      "uploaded_at": "2026-07-09T15:46:31.732506152Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-06-27T00:00:00Z",
+      "expires_at": "2031-05-29T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000003",
+      "last_used_at": "2026-11-07T14:00:59.980618514Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 26.04 LTS amd64 (release) (20260627)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "resolute",
+        "serial": "SCRUBBED",
+        "type": "disk1.img",
+        "version": "26.04"
+      },
+      "public": false,
+      "size": 859024796,
+      "type": "virtual-machine",
+      "update_source": {
+        "alias": "26.04",
+        "certificate": "",
+        "image_type": "virtual-machine",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-07-12T09:49:32.674441261Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "lxd-ipswich-core-1-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2020-07-01T22:27:50Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000019",
+      "last_used_at": "0001-01-01T00:00:00Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 20.04 LTS server (20200701)",
+        "os": "ubuntu",
+        "release": "focal"
+      },
+      "public": false,
+      "size": 659820973,
+      "type": "container",
+      "uploaded_at": "2026-07-09T15:53:54.975560137Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-07-31T00:00:00Z",
+      "expires_at": "2031-05-29T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000007",
+      "last_used_at": "2026-08-12T09:38:16.048419878Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 26.04 LTS amd64 (release) (20260731)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "resolute",
+        "serial": "SCRUBBED",
+        "type": "disk1.img",
+        "version": "26.04"
+      },
+      "public": false,
+      "size": 860448156,
+      "type": "virtual-machine",
+      "update_source": {
+        "alias": "26.04",
+        "certificate": "",
+        "image_type": "virtual-machine",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-08-12T09:38:14.762838771Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-07-20T00:00:00Z",
+      "expires_at": "2031-05-29T00:00:00Z",
+      "filename": "",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000006",
+      "last_used_at": "2026-11-07T13:59:07.330173434Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 26.04 LTS amd64 (release) (20260720)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "resolute",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "version": "26.04"
+      },
+      "public": false,
+      "size": 317850012,
+      "type": "container",
+      "update_source": {
+        "alias": "26.04",
+        "certificate": "",
+        "image_type": "container",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-07-22T16:23:20.798392408Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "phpmyadmin-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2021-04-16T03:15:55Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "000000000000000000000000000000000000000000000000000000000000001a",
+      "last_used_at": "0001-01-01T00:00:00Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 20.04 LTS server (20210415)",
+        "os": "ubuntu",
+        "release": "focal"
+      },
+      "public": false,
+      "size": 1358067454,
+      "type": "container",
+      "uploaded_at": "2026-07-09T21:14:14.201029096Z"
+    },
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2026-10-17T00:00:00Z",
+      "expires_at": "2029-05-31T00:00:00Z",
+      "filename": "",
+      "fingerprint": "000000000000000000000000000000000000000000000000000000000000000d",
+      "last_used_at": "2026-11-12T16:59:14.802120853Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "mcui-test",
+      "properties": {
+        "architecture": "amd64",
+        "description": "ubuntu 24.04 LTS amd64 (release) (20261017)",
+        "label": "release",
+        "os": "ubuntu",
+        "release": "noble",
+        "serial": "SCRUBBED",
+        "type": "disk1.img",
+        "version": "24.04"
+      },
+      "public": false,
+      "size": 621284764,
+      "type": "virtual-machine",
+      "update_source": {
+        "alias": "24.04",
+        "certificate": "",
+        "image_type": "virtual-machine",
+        "protocol": "simplestreams",
+        "server": "https://cloud-images.ubuntu.com/releases"
+      },
+      "uploaded_at": "2026-11-12T16:59:13.308403348Z"
+    },
+    {
+      "aliases": [
+        {
+          "description": "",
+          "name": "exabgp-backup-from-po"
+        }
+      ],
+      "architecture": "x86_64",
+      "auto_update": false,
+      "cached": false,
+      "created_at": "2021-02-01T22:24:55Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "",
+      "fingerprint": "000000000000000000000000000000000000000000000000000000000000001b",
+      "last_used_at": "0001-01-01T00:00:00Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "x86_64",
+        "description": "Ubuntu 20.04 LTS server (20210201)",
+        "os": "ubuntu",
+        "release": "focal"
+      },
+      "public": false,
+      "size": 2478034981,
+      "type": "container",
+      "uploaded_at": "2026-07-09T15:24:52.380254765Z"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

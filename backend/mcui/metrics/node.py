@@ -52,6 +52,7 @@ class NodeScrape:
     # nothing listening: node_exporter isn't installed (or is firewalled off)
     absent: bool = False
     exposition: Exposition = field(default_factory=Exposition)
+    text: str = ""  # as served, for record-fixtures
 
     def status(self) -> dict[str, Any]:
         return {"url": self.url, "ok": self.ok, "error": self.error, "absent": self.absent}
@@ -109,7 +110,7 @@ class NodeScraper:
         exp = parse(r.text)
         if not any(s.name.startswith("node_") for s in exp.samples):
             return NodeScrape(member.name, url, False, now, "not a node_exporter")
-        return NodeScrape(member.name, url, True, now, exposition=exp)
+        return NodeScrape(member.name, url, True, now, exposition=exp, text=r.text)
 
     async def scrape_all(self, members: list[Member]) -> list[NodeScrape]:
         res = list(await asyncio.gather(*(self.scrape_member(m) for m in members)))

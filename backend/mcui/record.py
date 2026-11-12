@@ -12,6 +12,8 @@ from typing import Any
 from mcui.config import Settings
 from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import members, server_info
+from mcui.metrics.ceph import CephScraper
+from mcui.metrics.node import NodeScraper
 from mcui.metrics.scrape import Scraper
 
 # PEM blocks, raw (real newlines) or inside JSON strings (escaped "\\n")
@@ -103,6 +105,26 @@ async def _pool_paths(api: LXDClient, members: list[str | None]) -> list[str]:
     return out
 
 
+async def _network_paths(api: LXDClient, members: list[str | None]) -> list[str]:
+    """What the network pages read for each managed network (NW-1/4/5, MO-9)."""
+    try:
+        nets = await api.get("/1.0/networks", recursion=1) or []
+    except (LXDError, ValueError):
+        return []
+    out = []
+    for n in nets:
+        if not isinstance(n, dict) or not n.get("managed"):
+            continue
+        base = f"/1.0/networks/{n['name']}"
+        if n.get("type") == "ovn":
+            out += [f"{base}/{sub}?recursion=1" for sub in ("forwards", "load-balancers", "peers")]
+            out.append(f"{base}/state")
+        else:
+            out.append(f"{base}/leases")
+            out += [f"{base}/state" + (f"?target={m}" if m else "") for m in members]
+    return out
+
+
 async def record(
     settings: Settings,
     api: LXDClient,
@@ -128,10 +150,18 @@ async def record(
         "/1.0/storage-pools?recursion=1",
         "/1.0/networks?recursion=1",
         "/1.0/warnings?recursion=1",
+        "/1.0/profiles?recursion=1&all-projects=true",
+        "/1.0/images?recursion=1&all-projects=true",
+        "/1.0/projects?recursion=1",
+        "/1.0/network-acls?recursion=1&all-projects=true",
+        "/1.0/network-allocations?all-projects=true",
+        "/1.0/operations?recursion=1&all-projects=true",
     ]
     paths += [f"/1.0/cluster/members/{m.name}/state" for m in ms if info.clustered]
     paths += [f"/1.0/resources?target={m.name}" for m in ms if info.clustered]
-    paths += await _pool_paths(api, [m.name for m in ms] if info.clustered else [None])
+    targets: list[str | None] = [m.name for m in ms] if info.clustered else [None]
+    paths += await _pool_paths(api, targets)
+    paths += await _network_paths(api, targets)
     for p in paths:
         path, _, query = p.partition("?")
         params = dict(kv.split("=", 1) for kv in query.split("&")) if query else None
@@ -153,5 +183,28 @@ async def record(
         else:
             log(f"  FAIL metrics {s.member}: {s.error}")
             failures += 1
+
+    # Ceph mgr (MO-7) and node_exporter (MO-12) as the app scrapes them; optional, so a
+    # source that isn't there is noted, not counted as a failure
+    if settings.ceph.enabled:
+        ceph = CephScraper(settings.ceph)
+        try:
+            c = await ceph.scrape(ms)
+        finally:
+            await ceph.aclose()
+        if c.ok:
+            write("ceph_mgr.txt", c.text)
+        else:
+            log(f"  no ceph mgr metrics: {c.error}")
+    if settings.node_exporter.enabled:
+        node = NodeScraper(settings.node_exporter)
+        try:
+            for n in await node.scrape_all(ms):
+                if n.ok:
+                    write(f"node_{_fname(n.member)}.txt", n.text)
+                else:
+                    log(f"  no node_exporter on {n.member}: {n.error}")
+        finally:
+            await node.aclose()
     log(f"Scrubbed {len(scrub.map)} identifiers. Review {out_dir} before committing.")
     return failures
