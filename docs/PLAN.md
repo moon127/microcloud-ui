@@ -246,6 +246,7 @@ LTS releases and checked live on 3.4.
   default; `ceph-exporter` does. So the OSD apply/commit and per-op latency graphs
   (MO-7a) go blank unless `mgr/prometheus/exclude_perf_counters` is set to false (one
   `ceph config set`, owner's call) or we scrape `ceph-exporter`, if MicroCeph runs it.
+  Either way, hide those views with a hint when the counters are missing.
   Check the RBD image stats and the remaining metric names on the live cluster;
   `docs/CEPH-METRICS.md` follows.
 - **`mcui check`:** report each member's LXD version and LTS track, warn about mixed
@@ -289,14 +290,18 @@ agreed with the owner are built, and README, DEPLOY.md and CEPH-METRICS.md say w
 MicroCloud releases are supported.
 
 *Decided 2026-11-12:* keep supporting MicroCloud 2.x; the 5b scope above; 5.21 fixtures
-recorded.
+recorded. The owner moves the members to Ubuntu 26.04 (`do-release-upgrade`, one member at a
+time: evacuate, `ceph osd set noout`, upgrade, reboot, check, unset, restore) **before**
+the MicroCloud upgrade. In between, MicroCloud 2.1 / LXD 5.21 runs on 26.04's 7.0 kernel,
+a combination LXD's support table doesn't list, so keep that gap short. node_exporter
+then comes from 26.04; the `recorded-5.21` node samples are from 24.04.
 
-*Still open:*
-1. Ceph perf counters on Tentacle: set `exclude_perf_counters=false` on the cluster, or
-   should we scrape `ceph-exporter`? (Check what MicroCeph runs after the upgrade.)
-2. The hosts' own Ubuntu: MicroCloud 3.4 asks for an Ubuntu LTS from 22.04 up with
-   snapd 2.75 or later, so the members can stay on 24.04. Moving them to 26.04 is the
-   owner's choice; it would change node_exporter and the kernel under LXD.
+*Still open:* Ceph perf counters on Tentacle, decided once the upgraded cluster shows
+what it exports. (A) `ceph config set mgr mgr/prometheus/exclude_perf_counters false`
+restores today's behaviour with no app change (the lean for three nodes; owner's call, as
+D23); (B) scrape `ceph-exporter` per host if MicroCeph runs it; (C) do without the OSD
+latency views. Whatever is chosen, the Ceph page hides the latency views with a hint when
+the counters are missing.
 
 **Phase 6: Metric store evaluation** (was Phase 5; MO-14): benchmark SQLite against
 Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
