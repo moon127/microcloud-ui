@@ -135,6 +135,49 @@ placeholders; review the files before committing them.
 > If you copy `frontend/node_modules` between machines (e.g. from a Linux VM),
 > delete it and run `npm ci` again: it contains platform-specific binaries.
 
+### Moving development to a new machine
+
+The repository holds no secrets. The app, `mcui check`, the integration tests and
+`scripts/lxd_api.py` all read the config from `~/.config/mcui/config.toml`, or from
+`$MCUI_CONFIG` if that's set. A new machine, or a new Claude Code session on it, picks
+everything up once those files exist.
+
+1. **Clone and install:** `git clone …`, then `make install`. This sets up `.venv` and
+   `frontend/node_modules`; don't copy either between machines. Run `make hooks` if you
+   want the pre-commit check.
+2. **Copy from the old machine** (for example with `scp -r`):
+
+   | What | Where |
+   |---|---|
+   | Config | `~/.config/mcui/config.toml` |
+   | Cluster certificate (pinned) | `~/.config/mcui/certs/lxd-cluster.crt` |
+   | Management certificate and key | `~/.config/mcui/certs/client.crt`, `client.key` |
+   | Metrics certificate and key, if the config uses them | `~/.config/mcui/certs/metrics.crt`, `metrics.key` |
+   | node_exporter password file and CA, if `[node_exporter]` uses HTTPS and auth | the paths named there |
+   | Metric history and local users (optional) | `~/.local/share/mcui/` (the config's `data_dir`) |
+
+3. **Fix the permissions**, because the app refuses keys that others can read:
+   `chmod 700 ~/.config/mcui/certs && chmod 600 ~/.config/mcui/certs/*.key`.
+4. **Check the paths** in the config. Paths written with `~/` carry over. If you keep the
+   config elsewhere, export `MCUI_CONFIG=/path/to/config.toml`.
+5. **Check the network:** the machine must reach every member on 8443, plus 9100
+   (node_exporter) and 9283 (Ceph mgr) if you use them.
+6. **Test it:**
+   - `.venv/bin/mcui -c ~/.config/mcui/config.toml check` should be all OK.
+   - `.venv/bin/python scripts/lxd_api.py GET "/1.0/instances?project=mcui-test"` should
+     answer.
+   - Then run `MCUI_CONFIG=~/.config/mcui/config.toml make serve`.
+
+**Same certificates or new ones?** Copying the existing ones is simplest: LXD already
+trusts them, so nothing changes on the cluster. If you'd rather keep keys on one machine,
+make new ones on the new machine instead. Trust them in LXD
+([`docs/LXD-CREDENTIALS.md`](docs/LXD-CREDENTIALS.md) §1–4), then revoke the old machine's
+(§ Revoking).
+
+A Claude Code session never needs a secret pasted into the chat. It uses these files
+through the app and `scripts/lxd_api.py`. [`CLAUDE.md`](CLAUDE.md) briefs a new session on
+the rules, the test cluster and the gotchas.
+
 ## LXD certificates
 
 The backend talks to LXD with mutual TLS; browsers never need a certificate.

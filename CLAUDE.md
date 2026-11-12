@@ -62,7 +62,9 @@ MicroOVN). Backend FastAPI (Python ≥3.10), frontend React 19 + TS + Vite + uPl
   
   For Linux-only checks (installers, systemd, containers), use a throwaway VM as above.
 - Dev config and certs: `~/.config/mcui/config.toml` and `~/.config/mcui/certs/`, outside
-  the repo. Run against the cluster with `MCUI_CONFIG=~/.config/mcui/config.toml make serve`
+  the repo. The owner puts them there; they're never pasted into the chat. On a new
+  machine, follow README "Moving development to a new machine" (copy, `chmod`,
+  `mcui check`). If they're missing, ask the owner rather than making new certificates. Run against the cluster with `MCUI_CONFIG=~/.config/mcui/config.toml make serve`
   (http://127.0.0.1:8000; the dev config has `secure_cookies = false`). node_exporter runs
   over plain http on the three hosts (`[node_exporter] scheme = "http"` in the dev config).
 - The shell is zsh: an unquoted `$VAR` holding several words is **not** split into
