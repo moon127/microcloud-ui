@@ -3,7 +3,8 @@
 #   podman build -f deploy/container/Containerfile -t mcui .
 
 # --- 1. the web UI ------------------------------------------------------------
-FROM docker.io/library/node:22-bookworm-slim AS spa
+# plain JS output, so it builds natively even for another architecture (D67)
+FROM --platform=$BUILDPLATFORM docker.io/library/node:22-bookworm-slim AS spa
 WORKDIR /src/frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund

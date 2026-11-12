@@ -18,6 +18,7 @@ MicroOVN). Backend FastAPI (Python ≥3.10), frontend React 19 + TS + Vite + uPl
    | Host metrics | `docs/HOST-METRICS.md` |
    | Ceph metrics | `docs/CEPH-METRICS.md` |
    | Production (bundle, systemd, container) | `docs/DEPLOY.md` |
+   | Releases (tag → GHCR image + GitHub Release) | `docs/RELEASING.md` |
    | Checks only the owner can run | `docs/LIVE-TESTS.md` |
 
 ## Rules that must hold

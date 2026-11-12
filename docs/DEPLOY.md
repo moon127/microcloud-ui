@@ -44,6 +44,9 @@ Browsers reach it on **8843** (HTTPS) by default. The history grows to roughly
 
 ## 2. Build the bundle (on your dev machine)
 
+Each GitHub Release has the four bundles attached (24.04 and 22.04, x86_64 and
+aarch64; docs/RELEASING.md). Download one, or build your own:
+
 ```bash
 make install          # once: venv + npm packages
 make bundle           # Ubuntu 24.04 on x86_64
@@ -230,9 +233,19 @@ with only `python3`, `openssl` and `ca-certificates` added.
 - On first start it makes a self-signed certificate in `/var/lib/mcui/tls`.
 - Its health check calls `/api/health`.
 
-### 9.1 Build and copy the image
+### 9.1 Get the image
 
-On a machine with Podman or Docker and internet access:
+Releases are published to the GitHub Container Registry for amd64 and arm64
+(docs/RELEASING.md):
+```bash
+sudo podman pull ghcr.io/moon127/microcloud-ui:latest     # or :X.Y.Z
+sudo podman tag ghcr.io/moon127/microcloud-ui:latest mcui:latest
+```
+Tagging it `mcui:latest` lets the Quadlet and Compose files below work unchanged. To
+use the registry name directly, set `Image=ghcr.io/moon127/microcloud-ui:latest` in
+the Quadlet; adding `AutoUpdate=registry` lets `podman auto-update` upgrade it.
+
+To build it yourself, on a machine with Podman or Docker and internet access:
 ```bash
 make image                 # mcui:<version> and mcui:latest (ENGINE=docker to choose)
 make image-save            # dist/mcui-image-<version>.tar.gz, about 60 MB
@@ -246,7 +259,6 @@ On the server:
 ```bash
 sudo podman load -i /tmp/mcui-image-*.tar.gz          # or: sudo docker load -i …
 ```
-The image isn't published to a registry yet.
 
 ### 9.2 Podman Quadlet (recommended; fine on a MicroCloud member)
 
@@ -287,7 +299,7 @@ place of `systemctl enable`.
   - `sudo podman exec mcui mcui user list`
   
   A config error stops it with exit code 2 and doesn't restart it, as with the bundle.
-- **Upgrade:** load the new image, which retags `mcui:latest`, then run
+- **Upgrade:** pull and retag, or load, the new image so `mcui:latest` points at it, then run
   `sudo systemctl restart mcui`.
 - **Roll back:** `sudo podman tag mcui:<old version> mcui:latest`, then restart.
 - **Backup:** `/etc/mcui`, plus the volume: stop the service, then

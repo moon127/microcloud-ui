@@ -9,7 +9,8 @@ Wants=network-online.target
 
 [Container]
 ContainerName=mcui
-# make image && podman image load, or a registry name with AutoUpdate=registry
+# make image && podman image load, or the published image (D67) with
+# Image=ghcr.io/moon127/microcloud-ui:latest and AutoUpdate=registry
 Image=localhost/mcui:latest
 # the host's network: no NAT and no firewall rules added on the host, which suits a
 # MicroCloud member (the server listens on [server] host/port, default 0.0.0.0:8843)

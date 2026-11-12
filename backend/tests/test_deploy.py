@@ -86,3 +86,14 @@ def test_container_files_agree():
     ignore = (DEPLOY.parent / ".dockerignore").read_text()
     for path in ("deploy/config.example.toml", "deploy/container/entrypoint.sh", "LICENSE"):
         assert f"!{path}" in ignore
+
+
+def test_bundle_names_the_backports():
+    """pip download judges markers by the running Python, so bundle.sh names each backport
+    the oldest supported target (3.10) needs (D67)."""
+    project = tomllib.loads((DEPLOY.parent / "backend/pyproject.toml").read_text())["project"]
+    backports = [d.split(";")[0] for d in project["dependencies"] if "python_version <" in d]
+    assert backports
+    bundle = (DEPLOY.parent / "scripts/bundle.sh").read_text()
+    for dep in backports:
+        assert f'3.10) extra+=("{dep}")' in bundle

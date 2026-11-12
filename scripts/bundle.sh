@@ -31,8 +31,12 @@ assert 'mcui/static/index.html' in n, 'SPA missing from the wheel'" "${whl[0]}"
 # binary wheels for the target (Ubuntu 22.04+ glibc is manylinux_2_35 or newer)
 platforms=()
 for p in manylinux_2_28 manylinux_2_17 manylinux2014; do platforms+=(--platform "${p}_$ARCH"); done
+# pip judges markers by the Python running it, not --python-version: name the
+# backports the target needs (backend/pyproject.toml) explicitly
+extra=()
+case "$PYVER" in 3.10) extra+=("tomli>=2.0") ;; esac
 "$BIN/pip" download --quiet --dest "$out/wheels" --only-binary=:all: \
-    --implementation cp --python-version "$PYVER" "${platforms[@]}" "${whl[0]}"
+    --implementation cp --python-version "$PYVER" "${platforms[@]}" "${whl[0]}" ${extra[@]+"${extra[@]}"}
 
 cp deploy/install.sh deploy/mcui.service deploy/mcui-cli deploy/config.example.toml "$out/"
 cp docs/DEPLOY.md "$out/README.md"

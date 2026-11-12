@@ -1,5 +1,8 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_call:  # the release workflow runs CI first (D67)
 jobs:
   backend:
     runs-on: ubuntu-latest
