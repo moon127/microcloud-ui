@@ -64,6 +64,9 @@ MicroOVN). Backend FastAPI (Python ≥3.10), frontend React 19 + TS + Vite + uPl
   - in Python: `req`, `wait`, `exec_`, `push`
   
   For Linux-only checks (installers, systemd, containers), use a throwaway VM as above.
+- **GitHub:** `origin` is `github.com/moon127/microcloud-ui` (public). `gh` is installed
+  and logged in as the owner; use it for Actions runs and logs. Unauthenticated API calls
+  are limited to 60 an hour, so don't poll with `curl`.
 - Dev config and certs: `~/.config/mcui/config.toml` and `~/.config/mcui/certs/`, outside
   the repo. The owner puts them there; they're never pasted into the chat. On a new
   machine, follow README "Moving development to a new machine" (copy, `chmod`,
@@ -90,7 +93,11 @@ MicroOVN). Backend FastAPI (Python ≥3.10), frontend React 19 + TS + Vite + uPl
   stalls.** Build with `--network=host` (D64).
 - **Images from the `default` project can't be used to create instances in `mcui-test`.**
   Pull from `https://cloud-images.ubuntu.com/releases` (simplestreams, alias `24.04`). Give
-  the VM a NIC on OVN network `default`; apt works through it.
+  the VM a NIC on OVN network `legacy-infra` (as the owner's other VMs; MTU 1442); apt
+  and Docker Hub work through it.
+- **Podman 4.9 (Ubuntu 24.04) ignores `--platform`** for cross-builds: it reuses amd64
+  layers and base images and labels the result arm64. Check `file` on a binary. Emulated
+  arm64 is also very slow (45+ min); release images build on native runners (D67).
 - **Tarballs made on macOS** need `COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata
   --no-fflags`. Otherwise GNU tar prints a warning for every file.
 - **After a backend change, the owner's running server needs a restart** before they see it.

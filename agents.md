@@ -197,9 +197,11 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - **Container image (2026-11-12):** `make image`, Podman Quadlet (recommended, also on members) and Compose (not on members); DEPLOY.md §9 (D64).
 - **Reverse proxies (2026-11-12):** DEPLOY.md §10 (NGINX Proxy Manager, Cosmos, Caddy, nginx); `public_url`, `forwarded_allow_ips` (D65).
 - **Release workflow 2026-11-12 (D67):** tag `vX.Y.Z` → GHCR image (amd64+arm64, native runners) +
-  GitHub Release with bundles; docs/RELEASING.md. Not yet run on GitHub: needs a dry run
-  (Actions → Release → Run workflow), then the first tag; the GHCR package must then be
-  made public once. 22.04 (py3.10) bundles now include `tomli`.
+  GitHub Release with bundles; docs/RELEASING.md. **Dry run passed 2026-11-12** (run
+  43240796585): CI, both images natively (arm64 on an aarch64 runner, 97 s, `push=false`),
+  four bundles. amd64 image also run-tested in a throwaway VM (health, uid 8843,
+  healthcheck). Still to do: the first real tag, then make the GHCR package public once;
+  the arm64 image hasn't been *run* yet (pull it on an ARM host after the first release). 22.04 (py3.10) bundles now include `tomli`.
 - **Git history scrubbed 2026-11-12 (D66):** no `Claude-Session:` trailers; commit-msg hook
   guards against them.
 - Next: **Phase 5** (metric store evaluation, alerts, export, quota history; node_exporter done in 4g) — awaiting the owner
