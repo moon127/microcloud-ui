@@ -209,9 +209,9 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: make install
-      # Ubuntu 24.04 (Python 3.12) and 22.04 (3.10), x86_64 and aarch64
+      # Ubuntu 26.04 (Python 3.14), 24.04 (3.12) and 22.04 (3.10), x86_64 and aarch64
       - run: |
-          for pyver in 3.12 3.10; do
+          for pyver in 3.14 3.12 3.10; do
             for arch in x86_64 aarch64; do make bundle PYVER=$pyver ARCH=$arch; done
           done
       - uses: actions/upload-artifact@v4
@@ -249,7 +249,7 @@ jobs:
           gh release create "$GITHUB_REF_NAME" dist/*.tar.gz \
             --title "microcloud-ui $VERSION" --generate-notes "${start[@]}" \
             --notes "Container image: \`podman pull $IMAGE:$VERSION\` (amd64, arm64).
-          Offline bundles for Ubuntu 24.04 (py3.12) and 22.04 (py3.10) are attached; see docs/DEPLOY.md.
+          Offline bundles for Ubuntu 26.04 (py3.14), 24.04 (py3.12) and 22.04 (py3.10) are attached; see docs/DEPLOY.md.
 
           ## Changes${SINCE:+ since $SINCE}
 

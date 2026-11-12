@@ -200,6 +200,16 @@ def test_publishing():
     assert jobs["release"]["permissions"] == {"contents": "write"}
 
 
+def test_ubuntu_lts_releases():
+    """Bundles for each supported LTS's Python; the image on the newest LTS (D72)."""
+    ci, jobs = workflow("ci.yml"), workflow("release.yml")["jobs"]
+    assert ci["jobs"]["backend"]["strategy"]["matrix"]["python"] == ["3.10", "3.12", "3.14"]
+    loop = [s["run"] for s in jobs["bundle"]["steps"] if "make bundle" in s.get("run", "")]
+    assert loop and "for pyver in 3.14 3.12 3.10; do" in loop[0]
+    image = (ROOT / "deploy/container/Containerfile").read_text()
+    assert image.count("FROM docker.io/library/ubuntu:26.04") == 2
+
+
 def test_spa_stage_builds_natively():
     """A local cross-build (e.g. arm64 under emulation) is slow; the web UI is plain JS."""
     image = (ROOT / "deploy/container/Containerfile").read_text()

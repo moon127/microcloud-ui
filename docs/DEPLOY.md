@@ -10,9 +10,9 @@ There are two supported ways to run it. Both use the same config file and the sa
 | Runs as | systemd unit, user `mcui` | Podman Quadlet (systemd) or Compose, uid 8843 |
 | On a MicroCloud member | yes | Podman only, never Docker (§9) |
 | HTTPS | built in (self-signed or your own certificate), or a reverse proxy (§10) | the same |
-| Tested on | Ubuntu 24.04 VM | Ubuntu 24.04 VM: Podman 4.9 Quadlet, Docker 29 Compose |
+| Tested on | Ubuntu 26.04 and 24.04 VMs | Ubuntu 26.04 VM: Podman 5.7 Quadlet; Ubuntu 24.04 VM: Podman 4.9 Quadlet, Docker 29 Compose |
 
-The bundle installs microcloud-ui as a systemd service on Ubuntu 24.04 (or 22.04). It is an
+The bundle installs microcloud-ui as a systemd service on Ubuntu 26.04, 24.04 or 22.04. It is an
 **offline bundle**: one tarball with the program, the web UI and every Python
 dependency. The target machine needs only `python3`, `python3-venv` and `openssl`
 from Ubuntu, and never contacts PyPI. Design notes: D63 (bundle) and D64 (containers) in
@@ -44,13 +44,15 @@ Browsers reach it on **8843** (HTTPS) by default. The history grows to roughly
 
 ## 2. Build the bundle (on your dev machine)
 
-Each GitHub Release has the four bundles attached (24.04 and 22.04, x86_64 and
-aarch64; docs/RELEASING.md). The pre-release **edge** has the same four, built from the
+Each GitHub Release has six bundles attached: Ubuntu 26.04 (py3.14), 24.04 (py3.12) and
+22.04 (py3.10), each for x86_64 and aarch64 (docs/RELEASING.md). Pick the one whose
+Python matches the server's `python3`. The pre-release **edge** has the same six, built from the
 tip of `main` (version `X.Y.Z.devN`). Download one, or build your own:
 
 ```bash
 make install          # once: venv + npm packages
 make bundle           # Ubuntu 24.04 on x86_64
+# make bundle PYVER=3.14            # Ubuntu 26.04
 # make bundle PYVER=3.10            # Ubuntu 22.04
 # make bundle ARCH=aarch64          # ARM servers
 ```
@@ -213,7 +215,7 @@ Or run `sudo systemctl stop mcui`, copy the files, then start it again.
 
 | Symptom | Cause |
 |---|---|
-| `this bundle is for Python 3.12 but python3 is 3.10` | Built for 24.04 but installing on 22.04. Run `make bundle PYVER=3.10` |
+| `this bundle is for Python 3.12 but python3 is 3.14` | Built for another Ubuntu (here 24.04, installing on 26.04). Use the bundle with the server's Python: py3.14 for 26.04, py3.12 for 24.04, py3.10 for 22.04 |
 | Service stopped, journal says `config error: … chmod 600` | A key is readable by group or other, or not owned by `mcui` |
 | Browser: certificate warning | The self-signed `ui.crt`. Trust it or install your own (§5) |
 | Sign-in does nothing | You're on plain HTTP. Use `https://` (or the proxy's HTTPS) |
@@ -224,7 +226,7 @@ Or run `sudo systemctl stop mcui`, copy the files, then start it again.
 ## 9. Containers (Podman Quadlet, Docker, Compose)
 
 The image (`deploy/container/Containerfile`) is built in three stages: the web UI with
-Node 22, the program with its dependencies in a virtualenv, and an `ubuntu:24.04` runtime
+Node 22, the program with its dependencies in a virtualenv, and an `ubuntu:26.04` runtime
 with only `python3`, `openssl` and `ca-certificates` added.
 
 - It runs as **uid/gid 8843** (`mcui`) and needs no capabilities.
@@ -353,7 +355,7 @@ stalls HTTPS to LXD. Set the MTU to 1442, using the commented block at the end o
 | `config error: cannot read config` or permission denied on `/etc/mcui` | The files aren't readable by uid 8843. Use the owners in §9.2 |
 | Key refused (`chmod 600`) | Keys must be mode 0600 and owned by 8843. Docker or Kubernetes secrets mounted 0444/0644 won't do: mount the file instead |
 | Builds or LXD connections hang inside an LXD instance | The bridge MTU is larger than the host's (§9.1, §9.3) |
-| Switching between the bundle and the container | Both use uid 8843 and the same `/etc/mcui`, so stop one and start the other. `install.sh` resets the config's group and the owner of `certs/` on every run |
+| Switching between the bundle and the container | Both use uid 8843 and the same `/etc/mcui` and `/var/lib/mcui`, and both are `mcui.service`: the bundle's unit in `/etc/systemd/system` hides the Quadlet's. To the container: `sudo ./install.sh --uninstall` (keeps config and data), install the Quadlet, `daemon-reload`, start. Back: remove `/etc/containers/systemd/mcui.container`, `daemon-reload`, run `install.sh`. `install.sh` resets the config's group and the owner of `certs/` on every run |
 | `podman run` shows no health status | The image was built in OCI format. `make image` uses `--format docker` with Podman |
 
 ## 10. Behind a reverse proxy (NGINX Proxy Manager, Cosmos, Caddy, nginx)

@@ -12,7 +12,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # --- 2. the program, in a venv with its dependencies --------------------------
-FROM docker.io/library/ubuntu:24.04 AS build
+FROM docker.io/library/ubuntu:26.04 AS build
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3 python3-venv \
     && rm -rf /var/lib/apt/lists/*
@@ -23,7 +23,7 @@ RUN python3 -m venv /opt/mcui \
     && /opt/mcui/bin/python -c "import importlib.resources as r; assert (r.files('mcui') / 'static/index.html').is_file()"
 
 # --- 3. runtime ----------------------------------------------------------------
-FROM docker.io/library/ubuntu:24.04
+FROM docker.io/library/ubuntu:26.04
 # python3 for the venv, openssl for the self-signed certificate, ca-certificates for
 # node_exporter over https with public CAs
 RUN apt-get update \

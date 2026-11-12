@@ -20,8 +20,8 @@ Pushing a tag `vX.Y.Z` runs:
    `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64; free for public repositories),
    each pushed by digest. A merge job then tags both as one image,
    **`ghcr.io/moon127/microcloud-ui`**, with `X.Y.Z`, `X.Y` and `latest`.
-3. **The offline bundles** are built for Ubuntu 24.04 (py3.12) and 22.04 (py3.10), x86_64
-   and aarch64.
+3. **The offline bundles** are built for Ubuntu 26.04 (py3.14), 24.04 (py3.12) and 22.04
+   (py3.10), x86_64 and aarch64: six in all.
 4. **The GitHub Release** is created with the bundles attached. Its notes list the
    commits since the previous release (`scripts/build_version.py changes`), leaving out
    the version bumps ("Release X.Y.Z", "Back to development"), then a compare link.
@@ -64,7 +64,7 @@ After CI passes on a push to `main`, the same workflow builds that commit:
 - **Image:** `:edge` (moves with each build) and `:edge-<sha>` (kept, to go back to a
   build). The image's `org.opencontainers.image.revision` label is the commit.
 - **Bundles:** the pre-release **edge** on the Releases page, its tag moved to the commit
-  and its four bundles replaced. Being a pre-release it never shows as "Latest". Its notes
+  and its six bundles replaced. Being a pre-release it never shows as "Latest". Its notes
   list the commits since the latest release.
 
 A newer push cancels an edge build still running. CI runs from pull requests, and from
