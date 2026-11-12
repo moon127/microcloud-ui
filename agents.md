@@ -204,6 +204,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   healthcheck).
 - **Edge channel 2026-11-12 (D68):** every push to `main` that passes CI publishes
   `:edge`, `:edge-<sha>` and the pre-release `edge` (bundles), version `X.Y.Z.devN`.
+  First edge build passed on GitHub (run 43245626348, `05eefb0`, 0.1.1.dev2); the
+  following push checks the update path (tag moved, bundles replaced).
 - **0.1.0 released 2026-11-12** (run 43242283224): GitHub Release with the four bundles;
   `ghcr.io/moon127/microcloud-ui` `0.1.0`, `0.1`, `latest` (amd64 + arm64), public and
   pullable anonymously. `main` is now 0.1.1.dev0. Not yet done: *running* the arm64 image
