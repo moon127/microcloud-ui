@@ -175,6 +175,7 @@ describe("instance helpers", () => {
     await api.renameSnapshot("p", "c1", "s 1", "s2");
     await api.deleteSnapshot("p", "c1", "s1");
     await api.restoreSnapshot("p", "c1", "s1");
+    await api.restoreSnapshot("p", "c1", "s1", true);
     await api.publishInstance("p", "c1", { alias: "g" });
     await api.fetchLogs("p", "c1");
     await api.fetchStoragePools();
@@ -194,6 +195,7 @@ describe("instance helpers", () => {
       ["/api/instances/p/c1/snapshots/s%201/rename", "POST", '{"name":"s2"}'],
       ["/api/instances/p/c1/snapshots/s1", "DELETE", null],
       ["/api/instances/p/c1/snapshots/s1/restore", "POST", "{}"],
+      ["/api/instances/p/c1/snapshots/s1/restore", "POST", '{"disk_volumes_mode":"all-exclusive"}'],
       ["/api/instances/p/c1/publish", "POST", '{"alias":"g"}'],
       ["/api/instances/p/c1/logs", "GET", null],
       ["/api/storage-pools", "GET", null],

@@ -22,6 +22,7 @@ FEATURES: dict[str, tuple[str, ...]] = {
     "fine_grained_auth": ("access_management",),
     "cluster_evacuation": ("clustering_evacuation",),
     "placement_groups": ("instance_placement_groups",),  # LXD 6.6+
+    "snapshot_volumes": ("instance_snapshots_multi_volume",),  # LXD 6.6+
 }
 
 

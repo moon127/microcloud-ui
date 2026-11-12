@@ -3,6 +3,7 @@ import {
   copyInstance,
   createSnapshot,
   deleteSnapshot,
+  fetchServer,
   patchInstanceConfig,
   publishInstance,
   renameSnapshot,
@@ -12,6 +13,7 @@ import {
 } from "../../api";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
+import { useApi } from "../../useApi";
 import { useSession } from "../../session";
 import { NameDialog } from "./Actions";
 
@@ -37,6 +39,10 @@ export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
   const [name, setName] = useState(defaultName);
   const [expires, setExpires] = useState("");
   const [stateful, setStateful] = useState(false);
+  // LXD 6.6+: snapshot and restore the volumes attached only to this instance too
+  const multiVolume = !!useApi("server", fetchServer).data?.features.snapshot_volumes;
+  const [withVolumes, setWithVolumes] = useState(false);
+  const [restoreVolumes, setRestoreVolumes] = useState(false);
   const [schedule, setSchedule] = useState(() =>
     Object.fromEntries(SCHEDULE.map((s) => [s.key, inst.config[s.key] ?? ""])),
   );
@@ -110,6 +116,12 @@ export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
               <input type="checkbox" checked={stateful} onChange={(e) => setStateful(e.target.checked)} /> Include memory
               (stateful)
             </label>
+            {multiVolume && (
+              <label>
+                <input type="checkbox" checked={withVolumes} onChange={(e) => setWithVolumes(e.target.checked)} /> Include
+                volumes attached only to this instance
+              </label>
+            )}
             <button
               type="button"
               className="primary"
@@ -119,6 +131,7 @@ export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
                   name: name.trim(),
                   stateful,
                   ...(expires ? { expires_at: new Date(expires).toISOString() } : {}),
+                  ...(multiVolume && withVolumes ? { disk_volumes_mode: "all-exclusive" as const } : {}),
                 };
                 void run(`Snapshot ${inst.name}/${opts.name}`, () => createSnapshot(project, inst.name, opts));
                 setName(defaultName());
@@ -155,10 +168,16 @@ export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
           onConfirm={() => {
             const s = pending.snap;
             close();
-            void run(`Restore ${label(s)}`, () => restoreSnapshot(project, inst.name, s.name));
+            void run(`Restore ${label(s)}`, () => restoreSnapshot(project, inst.name, s.name, multiVolume && restoreVolumes));
           }}
         >
           <p>The instance's current disk is replaced by the snapshot. Changes since then are lost.</p>
+          {multiVolume && (
+            <label>
+              <input type="checkbox" checked={restoreVolumes} onChange={(e) => setRestoreVolumes(e.target.checked)} /> Also
+              restore the volumes attached only to this instance, from the snapshots taken with it
+            </label>
+          )}
         </Confirm>
       )}
       {pending?.kind === "delete" && (
@@ -172,7 +191,13 @@ export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
             close();
             void run(`Delete ${label(s)}`, () => deleteSnapshot(project, inst.name, s.name));
           }}
-        />
+        >
+          {multiVolume && (
+            <p className="muted">
+              Volume snapshots taken with it are kept; delete them on each volume&apos;s page.
+            </p>
+          )}
+        </Confirm>
       )}
       {pending?.kind === "rename" && (
         <NameDialog

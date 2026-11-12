@@ -275,14 +275,19 @@ export const copyInstance = (
 export const createSnapshot = (
   project: string,
   name: string,
-  opts: { name: string; stateful?: boolean; expires_at?: string },
+  opts: { name: string; stateful?: boolean; expires_at?: string; disk_volumes_mode?: "root" | "all-exclusive" },
 ) => send<Started>("POST", `${inst(project, name)}/snapshots`, opts);
 export const renameSnapshot = (project: string, name: string, snap: string, to: string) =>
   send<Started>("POST", `${inst(project, name)}/snapshots/${encodeURIComponent(snap)}/rename`, { name: to });
 export const deleteSnapshot = (project: string, name: string, snap: string) =>
   send<Started>("DELETE", `${inst(project, name)}/snapshots/${encodeURIComponent(snap)}`);
-export const restoreSnapshot = (project: string, name: string, snap: string) =>
-  send<Started>("POST", `${inst(project, name)}/snapshots/${encodeURIComponent(snap)}/restore`, {});
+/** ``volumes``: also restore the exclusively attached volumes from their snapshots (LXD 6.6+). */
+export const restoreSnapshot = (project: string, name: string, snap: string, volumes = false) =>
+  send<Started>(
+    "POST",
+    `${inst(project, name)}/snapshots/${encodeURIComponent(snap)}/restore`,
+    volumes ? { disk_volumes_mode: "all-exclusive" } : {},
+  );
 export const publishInstance = (project: string, name: string, opts: { alias?: string; snapshot?: string }) =>
   send<Started>("POST", `${inst(project, name)}/publish`, opts);
 

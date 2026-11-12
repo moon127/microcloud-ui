@@ -229,6 +229,34 @@ async def test_snapshots(app, services):
         assert body(rename) == {"name": "s2"}
         await c.post("/api/instances/p/c1/snapshots/s1/restore", json={}, headers=h)
         assert body(restore) == {"restore": "s1", "stateful": False}
+        # LXD 6.6+: with the exclusively attached volumes (recorded live on the 6.10 VM)
+        await c.post(
+            "/api/instances/p/c1/snapshots",
+            json={"name": "s3", "disk_volumes_mode": "all-exclusive"},
+            headers=h,
+        )
+        assert body(create) == {
+            "name": "s3",
+            "stateful": False,
+            "disk_volumes_mode": "all-exclusive",
+        }
+        assert last_audit(services)[4] == {"snapshot": "s3", "volumes": True}
+        await c.post(
+            "/api/instances/p/c1/snapshots/s3/restore",
+            json={"disk_volumes_mode": "all-exclusive"},
+            headers=h,
+        )
+        assert body(restore) == {
+            "restore": "s3",
+            "stateful": False,
+            "disk_volumes_mode": "all-exclusive",
+        }
+        r = await c.post(
+            "/api/instances/p/c1/snapshots",
+            json={"name": "x", "disk_volumes_mode": "all"},
+            headers=h,
+        )
+        assert r.status_code == 422
         await c.delete("/api/instances/p/c1/snapshots/s1", headers=h)
         assert delete.called
         assert last_audit(services) == ("snapshot.delete", "p/c1", True, "op1", {"snapshot": "s1"})

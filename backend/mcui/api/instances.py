@@ -377,10 +377,16 @@ async def copy(project: ProjectName, name: InstName, body: Copy, ctx: CtxDep) ->
 # --- snapshots (IN-5) ------------------------------------------------------------
 
 
+# LXD 6.6+ (instance_snapshots_multi_volume): "all-exclusive" also snapshots (or restores)
+# the volumes attached only to this instance; unset is LXD's default, root only
+DiskVolumes = Literal["root", "all-exclusive"]
+
+
 class NewSnapshot(BaseModel):
     name: str = Field(pattern=NAME, max_length=63)
     stateful: bool = False
     expires_at: str | None = None
+    disk_volumes_mode: DiskVolumes | None = None
 
 
 @router.post("/{project}/{name}/snapshots")
@@ -394,7 +400,10 @@ async def create_snapshot(
         "POST",
         f"{_inst(name)}/snapshots",
         json=body.model_dump(exclude_none=True),
-        detail={"snapshot": body.name},
+        detail={
+            "snapshot": body.name,
+            **({"volumes": True} if body.disk_volumes_mode == "all-exclusive" else {}),
+        },
     )
 
 
@@ -429,6 +438,7 @@ async def delete_snapshot(
 
 class Restore(BaseModel):
     stateful: bool = False
+    disk_volumes_mode: DiskVolumes | None = None
 
 
 @router.post("/{project}/{name}/snapshots/{snap}/restore")
@@ -441,7 +451,7 @@ async def restore_snapshot(
         name,
         "PUT",
         _inst(name),
-        json={"restore": snap, "stateful": body.stateful},
+        json={"restore": snap, **body.model_dump(exclude_none=True)},
         detail={"snapshot": snap},
     )
 

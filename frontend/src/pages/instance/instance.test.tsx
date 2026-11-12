@@ -290,7 +290,7 @@ describe("snapshots tab", () => {
 
     fireEvent.click(s1.getByRole("button", { name: "Restore" }));
     fireEvent.click(dialog().getByRole("button", { name: "Restore" }));
-    expect(restore).toHaveBeenCalledWith("default", "c1", "s1");
+    expect(restore).toHaveBeenCalledWith("default", "c1", "s1", false);
     fireEvent.click(s1.getByRole("button", { name: "Delete" }));
     fireEvent.click(dialog().getByRole("button", { name: "Delete" }));
     expect(del).toHaveBeenCalledWith("default", "c1", "s1");
@@ -314,6 +314,27 @@ describe("snapshots tab", () => {
       fireEvent.click(dialog().getByRole("button", { name: "Cancel" }));
     }
     expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("LXD 6.6+: snapshots and restores the attached volumes too, when asked", async () => {
+    vi.spyOn(api, "fetchServer").mockResolvedValue({
+      version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "", features: { snapshot_volumes: true },
+    });
+    const take = vi.spyOn(api, "createSnapshot").mockResolvedValue(ok);
+    const restore = vi.spyOn(api, "restoreSnapshot").mockResolvedValue(ok);
+    open(full(), { tab: "snapshots" });
+    const box = await screen.findByLabelText(/Include volumes attached only to this instance/);
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "multi" } });
+    fireEvent.click(box);
+    fireEvent.click(screen.getByRole("button", { name: "Take snapshot" }));
+    expect(take).toHaveBeenCalledWith("default", "c1", { name: "multi", stateful: false, disk_volumes_mode: "all-exclusive" });
+    const s1 = within(within(screen.getByRole("region", { name: "Snapshots" })).getAllByRole("row")[2]);
+    fireEvent.click(s1.getByRole("button", { name: "Restore" }));
+    fireEvent.click(dialog().getByLabelText(/Also restore the volumes/));
+    fireEvent.click(dialog().getByRole("button", { name: "Restore" }));
+    expect(restore).toHaveBeenCalledWith("default", "c1", "s1", true);
+    fireEvent.click(s1.getByRole("button", { name: "Delete" }));
+    expect(dialog().getByText(/Volume snapshots taken with it are kept/)).toBeInTheDocument();
   });
 
   it("takes snapshots and saves the schedule", async () => {

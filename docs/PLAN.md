@@ -297,8 +297,11 @@ and multi-volume snapshots for Phase 5:
   for forwards and load balancers.
 - ✅ **Child operations:** a bulk operation's children nested under it on the operations
   page (`recursion=2`, `child_count`).
-- **Multi-volume snapshots** (`instance_snapshots_multi_volume`): snapshot an instance
-  with its attached volumes, and show which volumes a snapshot holds.
+- ✅ **Multi-volume snapshots** (`instance_snapshots_multi_volume`): "include volumes
+  attached only to this instance" when taking a snapshot and when restoring one
+  (`disk_volumes_mode: all-exclusive`). LXD records no link back from the instance
+  snapshot; each volume snapshot is described "Created alongside container …", and
+  deleting the instance snapshot keeps them, which the delete dialog says.
 
 Not in Phase 5:
 - **Disaster recovery** (cluster links, replicators, project replica mode): a later
