@@ -1,0 +1,395 @@
+{
+  "failure": [
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:00.225928674Z",
+      "description": "Updating network load balancer",
+      "err": "Failed updating load balancer: Missing target_backend or target_pool in port specification 0",
+      "err_code": 500,
+      "id": "01a1d109-c2a1-7da5-acb4-37d0b27a015f",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/networks/default"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Failure",
+      "status_code": 400,
+      "updated_at": "2026-11-12T18:34:00.255779928Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:00.564344329Z",
+      "description": "Updating network load balancer",
+      "err": "Failed updating load balancer: Invalid option \"description\"",
+      "err_code": 500,
+      "id": "01a1d109-c3f4-752d-a99a-f505162e717e",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/networks/default"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Failure",
+      "status_code": 400,
+      "updated_at": "2026-11-12T18:34:00.599730346Z"
+    }
+  ],
+  "running": [
+    {
+      "child_count": 3,
+      "children": [
+        {
+          "child_count": 0,
+          "class": "task",
+          "created_at": "2026-11-12T18:34:48.123859598Z",
+          "description": "Stopping instance",
+          "err": "",
+          "err_code": 0,
+          "id": "01a1d10a-7dbb-7d1b-9939-4aebc862f595",
+          "location": "mcui-test-mc34",
+          "may_cancel": true,
+          "metadata": {
+            "entity_url": "/1.0/instances/c1"
+          },
+          "requestor": {
+            "address": "",
+            "protocol": "unix",
+            "username": ""
+          },
+          "resources": {},
+          "status": "Running",
+          "status_code": 103,
+          "updated_at": "2026-11-12T18:34:48.123859598Z"
+        },
+        {
+          "child_count": 0,
+          "class": "task",
+          "created_at": "2026-11-12T18:34:48.123866674Z",
+          "description": "Stopping instance",
+          "err": "",
+          "err_code": 0,
+          "id": "01a1d10a-7dbb-7d37-94bf-83cbf63812f6",
+          "location": "mcui-test-mc34",
+          "may_cancel": true,
+          "metadata": {
+            "entity_url": "/1.0/instances/c2"
+          },
+          "requestor": {
+            "address": "",
+            "protocol": "unix",
+            "username": ""
+          },
+          "resources": {},
+          "status": "Running",
+          "status_code": 103,
+          "updated_at": "2026-11-12T18:34:48.123866674Z"
+        },
+        {
+          "child_count": 0,
+          "class": "task",
+          "created_at": "2026-11-12T18:34:48.123876464Z",
+          "description": "Stopping instance",
+          "err": "",
+          "err_code": 0,
+          "id": "01a1d10a-7dbb-7d5e-afe0-ef1910318995",
+          "location": "mcui-test-mc34",
+          "may_cancel": true,
+          "metadata": {
+            "entity_url": "/1.0/instances/c3"
+          },
+          "requestor": {
+            "address": "",
+            "protocol": "unix",
+            "username": ""
+          },
+          "resources": {},
+          "status": "Running",
+          "status_code": 103,
+          "updated_at": "2026-11-12T18:34:48.123876464Z"
+        }
+      ],
+      "class": "task",
+      "created_at": "2026-11-12T18:34:48.123827683Z",
+      "description": "Updating the state of multiple instances",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d10a-7dbb-7c97-b45e-b3ab245198fe",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/projects/default"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Running",
+      "status_code": 103,
+      "updated_at": "2026-11-12T18:34:48.123827683Z"
+    }
+  ],
+  "success": [
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:33:57.397311433Z",
+      "description": "Synchronizing operations",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d109-b795-74ae-bbea-c87ac97c4882",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {},
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:33:57.47209932Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:33:58.132508047Z",
+      "description": "Updating network",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d109-ba74-77b8-b2fe-24dce5ca8b0a",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/networks/lxdbr0"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:33:59.029466782Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:33:59.33805106Z",
+      "description": "Creating network load balancer",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d109-bf2a-70bf-b6ff-06d09f77f32e",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/networks/default?project=default",
+        "listen_address": "192.0.2.3"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:33:59.582791879Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:09.662841508Z",
+      "description": "Updating network load balancer",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d109-e77e-7cce-9bdf-c8d27bf6676c",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/networks/default"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:34:10.668954064Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:11.007461665Z",
+      "description": "Updating network load balancer",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d109-ecbf-7701-937a-0a83cd1610c0",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/networks/default"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:34:11.715458053Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:27.591997765Z",
+      "description": "Stopping instance",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d10a-2d87-7f2f-817a-aec9293fd0d9",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/instances/c1"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:34:31.012067904Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:27.600825748Z",
+      "description": "Stopping instance",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d10a-2d90-7c8f-88ae-60e9beb39c71",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/instances/c3"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:34:30.261314056Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:27.609491348Z",
+      "description": "Stopping instance",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d10a-2d99-7776-9f4f-bf6bd69a8210",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/instances/c2"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:34:30.318732011Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:34.469923948Z",
+      "description": "Starting instance",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d10a-4865-7e14-9ef3-4eb1f918cd7b",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/instances/c2"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:34:36.905404691Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:34.475930912Z",
+      "description": "Starting instance",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d10a-486b-7e2e-9a47-a86854c56d72",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/instances/c1"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:34:37.183413562Z"
+    },
+    {
+      "child_count": 0,
+      "class": "task",
+      "created_at": "2026-11-12T18:34:34.506279498Z",
+      "description": "Starting instance",
+      "err": "",
+      "err_code": 0,
+      "id": "01a1d10a-488a-743c-98f0-fc39a34ba7e1",
+      "location": "mcui-test-mc34",
+      "may_cancel": true,
+      "metadata": {
+        "entity_url": "/1.0/instances/c3"
+      },
+      "requestor": {
+        "address": "",
+        "protocol": "unix",
+        "username": ""
+      },
+      "resources": {},
+      "status": "Success",
+      "status_code": 200,
+      "updated_at": "2026-11-12T18:34:36.282768384Z"
+    }
+  ]
+}

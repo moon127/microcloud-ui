@@ -136,11 +136,20 @@ async def test_record_pools_standalone(settings, lxd, tmp_path):
 @respx.mock
 async def test_record_networks_ceph_and_hosts(settings, lxd, tmp_path):
     """Each managed network's sub-resources, the Ceph mgr and node_exporter (Phase 5.0)."""
-    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(fixture_json("server_standalone.json")))
+    md = fixture_json("server_standalone.json")
+    # an LXD 6 server: its own objects are recorded too
+    md["api_extensions"] += [
+        "network_load_balancer_pool",
+        "instance_placement_groups",
+        "image_registries",
+    ]
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(md))
     respx.get(f"{EP1}/1.0/cluster/members").mock(return_value=lxd_ok([]))
     respx.get(f"{EP1}/1.0/instances").mock(return_value=lxd_ok([]))
     respx.get(f"{EP1}/1.0/warnings").mock(return_value=lxd_ok([]))
     respx.get(f"{EP1}/1.0/storage-pools").mock(return_value=lxd_ok([]))
+    for name in ("placement-groups", "image-registries", "networks/default/load-balancer-pools"):
+        respx.get(f"{EP1}/1.0/{name}").mock(return_value=lxd_ok([]))
     mock_lists()
     nets = [
         {"name": "UPLINK", "type": "physical", "managed": True},
@@ -178,6 +187,9 @@ async def test_record_networks_ceph_and_hosts(settings, lxd, tmp_path):
         "1.0_networks_default_forwards_recursion_1.json",
         "1.0_networks_default_load-balancers_recursion_1.json",
         "1.0_networks_default_peers_recursion_1.json",
+        "1.0_networks_default_load-balancer-pools_recursion_1.json",
+        "1.0_placement-groups_recursion_1_all-projects_true.json",
+        "1.0_image-registries_recursion_1.json",
         "1.0_networks_default_state.json",
         "1.0_networks_lxdbr0_leases.json",
         "1.0_networks_lxdbr0_state.json",

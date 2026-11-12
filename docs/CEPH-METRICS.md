@@ -65,10 +65,33 @@ sudo microceph.ceph config set mgr mgr/prometheus/scrape_interval 15
 # the module must be restarted to apply changes
 sudo microceph.ceph mgr module disable prometheus
 sudo microceph.ceph mgr module enable prometheus
+# Ceph Tentacle (MicroCloud 3.4): that isn't enough for exclude_perf_counters;
+# restart the mgr daemon itself (on the host running the active mgr)
+sudo snap restart microceph.mgr
 
 # review
 sudo microceph.ceph config dump | grep mgr/prometheus
 ```
+
+### Ceph Tentacle (MicroCloud 3.4 LTS)
+
+Ceph Tentacle's mgr leaves the OSD performance counters out by default
+(`exclude_perf_counters` is `true`); upstream now reads them with a separate
+`ceph-exporter` daemon, which **MicroCeph doesn't run** (checked 2026-11-12). Measured on
+MicroCeph Tentacle 20.2.1 in a test VM:
+
+| Series | Tentacle default | `exclude_perf_counters false` + mgr restart |
+|---|---|---|
+| `ceph_osd_apply_latency_ms`, `_commit_latency_ms`, `ceph_osd_up`/`_in`, pools, `ceph_rbd_*` | yes | yes |
+| `ceph_osd_stat_bytes`/`_used` (OSD used and size) | **no** | yes |
+| `ceph_osd_op_r_latency_*`, `ceph_osd_op_w_latency_*` (per-op latency) | **no** | yes |
+
+Without them, the Ceph page hides OSD used/size and the per-op latency graphs and shows
+these two commands. The setting is kept in Ceph's configuration database, so a cluster
+that had it on Squid (step 2) should keep it through the upgrade; check with
+`sudo microceph.ceph config get mgr mgr/prometheus/exclude_perf_counters`. Changing it
+needs the mgr daemon restarted (`sudo snap restart microceph.mgr`): disabling and
+re-enabling the module wasn't enough in the test.
 
 ## 3. Test from the machine running microcloud-ui
 ```bash

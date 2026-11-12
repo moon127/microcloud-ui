@@ -1,0 +1,27 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "architecture": "x86_64",
+      "config": {},
+      "database": true,
+      "description": "",
+      "failure_domain": "default",
+      "groups": [
+        "default"
+      ],
+      "message": "Fully operational",
+      "roles": [
+        "database-leader"
+      ],
+      "server_name": "mcui-test-mc34",
+      "status": "Online",
+      "url": "https://192.0.2.2:8443"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

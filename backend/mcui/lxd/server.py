@@ -53,9 +53,17 @@ def release(version: str) -> tuple[str, str | None]:
     return label, None
 
 
+# API changes the UI adapts to rather than hides (Phase 5): either way works, so `mcui check`
+# doesn't list them as unavailable
+ADAPTS: dict[str, tuple[str, ...]] = {
+    # LXD 6.8+: CephFS pools take cephfs.path; source is refused
+    "cephfs_path": ("storage_remote_drop_source",),
+}
+
+
 def features(api_extensions: list[str]) -> dict[str, bool]:
     have = set(api_extensions)
-    return {name: all(x in have for x in needs) for name, needs in FEATURES.items()}
+    return {name: all(x in have for x in needs) for name, needs in {**FEATURES, **ADAPTS}.items()}
 
 
 @dataclass

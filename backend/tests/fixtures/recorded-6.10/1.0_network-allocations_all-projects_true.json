@@ -1,0 +1,74 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "addresses": "192.0.2.6/24",
+      "hwaddr": "",
+      "nat": true,
+      "network": "default",
+      "type": "network",
+      "used_by": "/1.0/networks/default"
+    },
+    {
+      "addresses": "192.0.2.3/32",
+      "hwaddr": "00:16:3e:00:00:01",
+      "nat": true,
+      "network": "default",
+      "type": "instance",
+      "used_by": "/1.0/instances/c1"
+    },
+    {
+      "addresses": "192.0.2.4/32",
+      "hwaddr": "00:16:3e:00:00:02",
+      "nat": true,
+      "network": "default",
+      "type": "instance",
+      "used_by": "/1.0/instances/c2"
+    },
+    {
+      "addresses": "192.0.2.5/32",
+      "hwaddr": "00:16:3e:00:00:03",
+      "nat": true,
+      "network": "default",
+      "type": "instance",
+      "used_by": "/1.0/instances/c3"
+    },
+    {
+      "addresses": "192.0.2.13/32",
+      "hwaddr": "",
+      "nat": false,
+      "network": "default",
+      "type": "network-load-balancer",
+      "used_by": "/1.0/networks/default/load-balancers/192.0.2.13"
+    },
+    {
+      "addresses": "192.0.2.8/24",
+      "hwaddr": "",
+      "nat": true,
+      "network": "lxdbr0",
+      "type": "network",
+      "used_by": "/1.0/networks/lxdbr0"
+    },
+    {
+      "addresses": "2001:db8::4/64",
+      "hwaddr": "",
+      "nat": true,
+      "network": "lxdbr0",
+      "type": "network",
+      "used_by": "/1.0/networks/lxdbr0"
+    },
+    {
+      "addresses": "192.0.2.7/32",
+      "hwaddr": "",
+      "nat": true,
+      "network": "lxdbr0",
+      "type": "uplink",
+      "used_by": "/1.0/networks/default"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

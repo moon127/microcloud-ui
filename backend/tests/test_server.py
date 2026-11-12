@@ -1,12 +1,12 @@
 import respx
 
-from mcui.lxd.server import FEATURES, ServerInfo, features, members, server_info
+from mcui.lxd.server import ADAPTS, FEATURES, ServerInfo, features, members, server_info
 from tests.conftest import EP1, fixture_json, lxd_ok
 
 
 def test_features_flags():
     f = features(["metrics", "network_peer"])
-    assert set(f) == set(FEATURES)
+    assert set(f) == set(FEATURES) | set(ADAPTS)
     assert f["metrics"] and f["network_peers"]
     assert not f["clustering"] and not f["storage_buckets"]
 
@@ -18,7 +18,14 @@ def test_server_info_from_metadata():
     assert info.auth_method == "tls"
     d = info.as_dict()
     assert d["server_name"] == "m1"
-    assert all(d["features"].values())
+    assert all(d["features"][k] for k in FEATURES)
+    assert d["features"]["cephfs_path"] is False  # LXD 5.21 takes source
+
+
+def test_adapts_on_lxd_6_10():
+    md = fixture_json("server_clustered.json")
+    md["api_extensions"] = [*md["api_extensions"], "storage_remote_drop_source"]
+    assert ServerInfo.from_metadata(md).features()["cephfs_path"] is True
 
 
 def test_server_info_untrusted_minimal():

@@ -1,0 +1,31 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "healthcheck": "true",
+        "healthcheck.interval": "5",
+        "protocol": "tcp",
+        "target_port": "80"
+      },
+      "description": "",
+      "instances": [
+        {
+          "name": "c1"
+        },
+        {
+          "name": "c2"
+        }
+      ],
+      "name": "web",
+      "used_by": [
+        "/1.0/networks/default/load-balancers/192.0.2.13"
+      ]
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

@@ -1,0 +1,596 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "cpu": {
+      "architecture": "x86_64",
+      "sockets": [
+        {
+          "cache": [
+            {
+              "level": 1,
+              "size": 32768,
+              "type": "Data"
+            },
+            {
+              "level": 1,
+              "size": 32768,
+              "type": "Instruction"
+            },
+            {
+              "level": 2,
+              "size": 4194304,
+              "type": "Unified"
+            },
+            {
+              "level": 3,
+              "size": 16777216,
+              "type": "Unified"
+            }
+          ],
+          "cores": [
+            {
+              "core": 0,
+              "die": 0,
+              "threads": [
+                {
+                  "id": 0,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                }
+              ]
+            },
+            {
+              "core": 5,
+              "die": 0,
+              "threads": [
+                {
+                  "id": 1,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                }
+              ]
+            },
+            {
+              "core": 6,
+              "die": 0,
+              "threads": [
+                {
+                  "id": 2,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                }
+              ]
+            },
+            {
+              "core": 7,
+              "die": 0,
+              "threads": [
+                {
+                  "id": 3,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                }
+              ]
+            }
+          ],
+          "name": "Intel(R) Xeon(R) D-2123IT CPU @ 2.20GHz",
+          "socket": 0,
+          "vendor": "GenuineIntel"
+        }
+      ],
+      "total": 4
+    },
+    "gpu": {
+      "cards": [
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "drm": {
+            "card_device": "226:1",
+            "card_name": "card1",
+            "control_device": "226:1",
+            "control_name": "controlD65",
+            "id": 1,
+            "render_device": "226:128",
+            "render_name": "renderD128"
+          },
+          "numa_node": 0,
+          "pci_address": "0000:04:00.0",
+          "product": "Virtio 1.0 GPU",
+          "product_id": "1050",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4"
+        }
+      ],
+      "total": 1
+    },
+    "memory": {
+      "hugepages_size": 2097152,
+      "hugepages_total": 0,
+      "hugepages_used": 0,
+      "nodes": [
+        {
+          "hugepages_total": 0,
+          "hugepages_used": 0,
+          "numa_node": 0,
+          "total": 8589934592,
+          "used": 3672178688
+        }
+      ],
+      "total": 8589934592,
+      "used": 1745649664
+    },
+    "network": {
+      "cards": [
+        {
+          "driver": "virtio_net",
+          "driver_version": "7.0.0-38-generic",
+          "numa_node": 0,
+          "pci_address": "0000:05:00.0",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:04",
+              "auto_negotiation": false,
+              "id": "enp5s0",
+              "link_detected": true,
+              "port": 0,
+              "port_type": "other",
+              "protocol": "ethernet",
+              "transceiver_type": "internal"
+            }
+          ],
+          "product_id": "0001",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4"
+        }
+      ],
+      "total": 1
+    },
+    "pci": {
+      "devices": [
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:00.0",
+          "product": "82G33/G31/P35/P31 Express DRAM Controller",
+          "product_id": "29c0",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.0",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.1",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.2",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.3",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.4",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.5",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.6",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:01.7",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:02.0",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:02.1",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:02.2",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:02.3",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:02.4",
+          "product": "QEMU PCIe Root port",
+          "product_id": "000c",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "lpc_ich",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.0",
+          "product": "82801IB (ICH9) LPC Interface Controller",
+          "product_id": "2918",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ahci",
+          "driver_version": "3.0",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.2",
+          "product": "82801IR/IO/IH (ICH9R/DO/DH) 6 port SATA Controller [AHCI mode]",
+          "product_id": "2922",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "i801_smbus",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.3",
+          "product": "82801I (ICH9 Family) SMBus Controller",
+          "product_id": "2930",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:01:00.0",
+          "product": "Virtio 1.0 balloon",
+          "product_id": "1045",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:01:00.1",
+          "product": "Virtio 1.0 RNG",
+          "product_id": "1044",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:01:00.2",
+          "product": "Virtio 1.0 input",
+          "product_id": "1052",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:01:00.3",
+          "product": "Virtio 1.0 input",
+          "product_id": "1052",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:01:00.4",
+          "product": "Virtio 1.0 socket",
+          "product_id": "1053",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:01:00.5",
+          "product": "Virtio 1.0 console",
+          "product_id": "1043",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "xhci_hcd",
+          "driver_version": "7.0.0-38-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:01:00.6",
+          "product": "QEMU XHCI Host Controller",
+          "product_id": "000d",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1b36",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:02:00.0",
+          "product": "Virtio 1.0 SCSI",
+          "product_id": "1048",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:03:00.0",
+          "product": "Virtio 9P transport",
+          "product_id": "1049",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:04:00.0",
+          "product": "Virtio 1.0 GPU",
+          "product_id": "1050",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        },
+        {
+          "driver": "virtio-pci",
+          "driver_version": "1",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:05:00.0",
+          "product": "Virtio 1.0 network device",
+          "product_id": "1041",
+          "vendor": "Red Hat, Inc.",
+          "vendor_id": "1af4",
+          "vpd": {}
+        }
+      ],
+      "total": 28
+    },
+    "storage": {
+      "disks": [
+        {
+          "block_size": 512,
+          "device": "8:0",
+          "device_fs_uuid": "",
+          "device_id": "scsi-0QEMU_QEMU_HARDDISK_lxd_root",
+          "device_path": "pci-0000:02:00.0-scsi-0:0:0:1",
+          "firmware_version": "2.5+",
+          "id": "sda",
+          "model": "QEMU HARDDISK",
+          "mounted": true,
+          "numa_node": 0,
+          "partitions": [
+            {
+              "device": "8:1",
+              "device_fs_uuid": "a9c87573-c170-44a0-8c14-09fcc03a56a9",
+              "id": "sda1",
+              "mounted": true,
+              "partition": 1,
+              "read_only": false,
+              "size": 41759522304
+            },
+            {
+              "device": "8:13",
+              "device_fs_uuid": "a09eb40e-ee73-47d1-816b-80e2c7f3791e",
+              "id": "sda13",
+              "mounted": true,
+              "partition": 13,
+              "read_only": false,
+              "size": 1072693760
+            },
+            {
+              "device": "8:14",
+              "device_fs_uuid": "",
+              "id": "sda14",
+              "mounted": false,
+              "partition": 14,
+              "read_only": false,
+              "size": 4194304
+            },
+            {
+              "device": "8:15",
+              "device_fs_uuid": "1709-D254",
+              "id": "sda15",
+              "mounted": true,
+              "partition": 15,
+              "read_only": false,
+              "size": 111149056
+            }
+          ],
+          "read_only": false,
+          "removable": false,
+          "rpm": 1,
+          "serial": "SCRUBBED",
+          "size": 42949672960,
+          "type": "scsi"
+        }
+      ],
+      "total": 5
+    },
+    "system": {
+      "chassis": {
+        "serial": "",
+        "type": "Other",
+        "vendor": "QEMU",
+        "version": "pc-q35-8.2"
+      },
+      "family": "",
+      "firmware": {
+        "date": "09/23/2026",
+        "vendor": "Ubuntu distribution of EDK II",
+        "version": "2024.02-2ubuntu0.10"
+      },
+      "motherboard": {
+        "product": "LXD",
+        "serial": "",
+        "vendor": "Canonical Ltd.",
+        "version": "pc-q35-8.2"
+      },
+      "product": "Standard PC (Q35 + ICH9, 2009)",
+      "serial": "",
+      "sku": "",
+      "type": "virtual-machine",
+      "uuid": "SCRUBBED",
+      "vendor": "QEMU",
+      "version": "pc-q35-8.2"
+    },
+    "usb": {
+      "devices": [],
+      "total": 0
+    }
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

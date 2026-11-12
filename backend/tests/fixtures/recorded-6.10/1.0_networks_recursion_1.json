@@ -1,0 +1,135 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "bridge.mtu": "1442",
+        "ipv4.address": "192.0.2.6/24",
+        "ipv4.nat": "true",
+        "ipv6.address": "none",
+        "network": "lxdbr0",
+        "volatile.network.ipv4.address": "192.0.2.7"
+      },
+      "description": "",
+      "locations": [
+        "mcui-test-mc34"
+      ],
+      "managed": true,
+      "name": "default",
+      "project": "default",
+      "status": "Created",
+      "type": "ovn",
+      "used_by": [
+        "/1.0/instances/c2",
+        "/1.0/instances/c3",
+        "/1.0/instances/c1",
+        "/1.0/profiles/default"
+      ]
+    },
+    {
+      "config": {
+        "ipv4.address": "192.0.2.8/24",
+        "ipv4.dhcp.ranges": "192.0.2.9-192.0.2.10",
+        "ipv4.nat": "true",
+        "ipv4.ovn.ranges": "192.0.2.7-192.0.2.11",
+        "ipv4.routes": "192.0.2.12/24",
+        "ipv6.address": "2001:db8::4/64",
+        "ipv6.nat": "true"
+      },
+      "description": "",
+      "locations": [
+        "mcui-test-mc34"
+      ],
+      "managed": true,
+      "name": "lxdbr0",
+      "project": "default",
+      "status": "Created",
+      "type": "bridge",
+      "used_by": [
+        "/1.0/networks/default"
+      ]
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "lo",
+      "project": "default",
+      "status": "",
+      "type": "loopback",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "enp5s0",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "ovs-system",
+      "project": "default",
+      "status": "",
+      "type": "unknown",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "br-int",
+      "project": "default",
+      "status": "",
+      "type": "bridge",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "lxdovn1b",
+      "project": "default",
+      "status": "",
+      "type": "unknown",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "lxdovn1a",
+      "project": "default",
+      "status": "",
+      "type": "unknown",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "lxdovn1",
+      "project": "default",
+      "status": "",
+      "type": "bridge",
+      "used_by": []
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

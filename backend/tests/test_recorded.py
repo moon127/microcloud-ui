@@ -10,9 +10,8 @@ from mcui.metrics.prom import parse
 FIXTURES = Path(__file__).parent / "fixtures"
 # the first recording (2026-11-05) and the full LXD 5.21 baseline taken before the
 # MicroCloud 3.4 upgrade (2026-11-12, Phase 5.0)
-RECORDED = sorted(
-    p for d in ("recorded", "recorded-5.21") for p in (FIXTURES / d).glob("metrics_*.txt")
-)
+SETS = ("recorded", "recorded-5.21", "recorded-6.10")
+RECORDED = sorted(p for d in SETS for p in (FIXTURES / d).glob("metrics_*.txt"))
 
 
 @pytest.mark.skipif(not RECORDED, reason="no recorded fixtures (mcui record-fixtures)")
@@ -26,10 +25,10 @@ def test_recorded_metrics_parse(path):
         assert live.cpu_percent == 0
 
 
-BASELINE = FIXTURES / "recorded-5.21"
+EXPORTERS = sorted(p for d in SETS[1:] for p in (FIXTURES / d).glob("*.txt"))
 
 
-@pytest.mark.parametrize("path", sorted(BASELINE.glob("*.txt")), ids=lambda p: p.stem)
+@pytest.mark.parametrize("path", EXPORTERS, ids=lambda p: f"{p.parent.name}/{p.stem}")
 def test_baseline_exporters_parse(path):
     """The Ceph mgr and node_exporter samples parse as the app scrapes them."""
     exp = parse(path.read_text(), strict=True)

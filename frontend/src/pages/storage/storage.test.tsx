@@ -16,6 +16,9 @@ const noData: api.QueryResult = { name: "", fn: "value", start: 0, end: 1, resol
 
 beforeEach(() => {
   vi.spyOn(api, "queryMetric").mockResolvedValue(noData);
+  vi.spyOn(api, "fetchServer").mockResolvedValue({
+    version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "", features: { cephfs_path: true },
+  });
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -60,6 +63,16 @@ describe("pool request builder", () => {
     expect(buildPool(dir, ["m1", "m2"]).members).toEqual({ m1: { source: "/srv/lxd" } });
     const ceph = { ...emptyPool(), name: "r", driver: "ceph" as const, perMember: { m1: { source: "x", size: "" } }, fields: { "ceph.osd.pool_name": " lxd " } };
     expect(buildPool(ceph, ["m1"])).toEqual({ name: "r", driver: "ceph", description: "", config: { "ceph.osd.pool_name": "lxd" }, members: {} });
+  });
+
+  it("CephFS takes cephfs.path on LXD 6.8+ and source before (storage_remote_drop_source)", () => {
+    const fs = { ...emptyPool(), name: "f", driver: "cephfs" as const, fields: { source: "lxd_cephfs" } };
+    expect(buildPool(fs, ["m1"]).config).toEqual({ source: "lxd_cephfs" });
+    expect(buildPool(fs, ["m1"], { cephfs_path: false }).config).toEqual({ source: "lxd_cephfs" });
+    expect(buildPool(fs, ["m1"], { cephfs_path: true }).config).toEqual({ "cephfs.path": "lxd_cephfs" });
+    // other drivers keep their own keys
+    const dir = { ...emptyPool(), name: "d", driver: "dir" as const, perMember: { m1: { source: "/srv", size: "" } } };
+    expect(buildPool(dir, ["m1"], { cephfs_path: true }).members).toEqual({ m1: { source: "/srv" } });
   });
 
   it("explains what's missing", () => {

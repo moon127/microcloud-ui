@@ -1,0 +1,53 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "ceph.cluster_name": "ceph",
+        "ceph.osd.pg_num": "32",
+        "ceph.osd.pool_name": "lxd_remote",
+        "ceph.osd.pool_size": "3",
+        "ceph.user.name": "admin",
+        "volatile.pool.pristine": "true"
+      },
+      "description": "",
+      "driver": "ceph",
+      "locations": [
+        "mcui-test-mc34"
+      ],
+      "name": "remote",
+      "status": "Created",
+      "used_by": [
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003",
+        "/1.0/instances/c1",
+        "/1.0/instances/c2",
+        "/1.0/instances/c3",
+        "/1.0/instances/c1/snapshots/s-multi",
+        "/1.0/profiles/default",
+        "/1.0/storage-pools/remote/volumes/custom/v1",
+        "/1.0/storage-pools/remote/volumes/custom/v1/snapshots/snap0"
+      ]
+    },
+    {
+      "config": {
+        "cephfs.cluster_name": "ceph",
+        "cephfs.osd_pool_size": "3",
+        "cephfs.path": "lxd_cephfs",
+        "cephfs.user.name": "admin"
+      },
+      "description": "",
+      "driver": "cephfs",
+      "locations": [
+        "mcui-test-mc34"
+      ],
+      "name": "remote-fs",
+      "status": "Created",
+      "used_by": []
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

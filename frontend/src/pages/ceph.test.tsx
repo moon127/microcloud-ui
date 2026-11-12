@@ -113,6 +113,20 @@ describe("CephPage", () => {
     expect(lat.map((p) => p.data[1])).toContainEqual([2]); // read: 0.1 / 50 s
   });
 
+  it("hides OSD size and per-op latency when the mgr leaves out perf counters (Tentacle)", async () => {
+    vi.spyOn(api, "fetchCeph").mockResolvedValue({ ...state, perf_counters: false });
+    renderAt(<CephPage />);
+    expect(await screen.findByText(/doesn't export OSD performance counters/)).toHaveTextContent(
+      "sudo ceph config set mgr mgr/prometheus/exclude_perf_counters false",
+    );
+    const osdTable = screen.getAllByRole("table")[0];
+    expect(within(osdTable).queryByRole("columnheader", { name: "Size" })).toBeNull();
+    expect(within(osdTable).getByRole("columnheader", { name: "Apply" })).toBeInTheDocument();
+    expect(screen.getByText("OSD apply latency")).toBeInTheDocument();
+    expect(screen.queryByText("OSD read latency (per op)")).toBeNull();
+    expect(screen.queryByText("OSD write latency (per op)")).toBeNull();
+  });
+
   it("lists the busiest RBD images with their owners", async () => {
     vi.spyOn(api, "fetchCeph").mockResolvedValue({ enabled: true, ok: true, pools: [] });
     const top = vi.spyOn(api, "fetchRbdTop").mockResolvedValue({

@@ -1,0 +1,140 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "block.filesystem": "ext4",
+        "block.mount_options": "discard",
+        "volatile.uuid": "f63eb460-bd67-44d2-aae9-4c6486fb6a1d"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-12T18:30:26.925211616Z",
+      "description": "",
+      "location": "",
+      "name": "c1",
+      "pool": "remote",
+      "project": "default",
+      "type": "container",
+      "used_by": [
+        "/1.0/instances/c1"
+      ]
+    },
+    {
+      "config": {
+        "block.filesystem": "ext4",
+        "block.mount_options": "discard",
+        "volatile.uuid": "1aa6dc53-ee5b-4948-a770-e390de11b77c"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-12T18:32:15.301102378Z",
+      "description": "",
+      "location": "",
+      "name": "c1/s-multi",
+      "pool": "remote",
+      "project": "default",
+      "type": "container",
+      "used_by": [
+        "/1.0/instances/c1/snapshots/s-multi"
+      ]
+    },
+    {
+      "config": {
+        "block.filesystem": "ext4",
+        "block.mount_options": "discard",
+        "volatile.uuid": "1777879c-ea96-4234-a265-14d90c0db081"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-12T18:30:48.757534067Z",
+      "description": "",
+      "location": "",
+      "name": "c2",
+      "pool": "remote",
+      "project": "default",
+      "type": "container",
+      "used_by": [
+        "/1.0/instances/c2"
+      ]
+    },
+    {
+      "config": {
+        "block.filesystem": "ext4",
+        "block.mount_options": "discard",
+        "volatile.uuid": "37fed0b2-8467-402a-aceb-e7e08c4e1202"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-12T18:31:09.320566545Z",
+      "description": "",
+      "location": "",
+      "name": "c3",
+      "pool": "remote",
+      "project": "default",
+      "type": "container",
+      "used_by": [
+        "/1.0/instances/c3"
+      ]
+    },
+    {
+      "config": {
+        "block.filesystem": "ext4",
+        "block.mount_options": "discard",
+        "size": "1GiB",
+        "volatile.idmap.last": "[{\"Isuid\":true,\"Isgid\":false,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000},{\"Isuid\":false,\"Isgid\":true,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000}]",
+        "volatile.idmap.next": "[{\"Isuid\":true,\"Isgid\":false,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000},{\"Isuid\":false,\"Isgid\":true,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000}]",
+        "volatile.uuid": "72e8f6fa-5c6e-4943-9156-3ca255d733d5"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-12T18:32:12.952115285Z",
+      "description": "",
+      "location": "",
+      "name": "v1",
+      "pool": "remote",
+      "project": "default",
+      "type": "custom",
+      "used_by": [
+        "/1.0/instances/c1"
+      ]
+    },
+    {
+      "config": {
+        "block.filesystem": "ext4",
+        "block.mount_options": "discard",
+        "size": "1GiB",
+        "volatile.idmap.last": "[{\"Isuid\":true,\"Isgid\":false,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000},{\"Isuid\":false,\"Isgid\":true,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000}]",
+        "volatile.idmap.next": "[{\"Isuid\":true,\"Isgid\":false,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000},{\"Isuid\":false,\"Isgid\":true,\"Hostid\":1000000,\"Nsid\":0,\"Maprange\":1000000000}]",
+        "volatile.uuid": "71b80f6c-65b7-4a4f-b207-0fab69d89036"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-12T18:32:16.638678862Z",
+      "description": "Created alongside container c1/s-multi snapshot in project default",
+      "location": "",
+      "name": "v1/snap0",
+      "pool": "remote",
+      "project": "default",
+      "type": "custom",
+      "used_by": []
+    },
+    {
+      "config": {
+        "block.filesystem": "ext4",
+        "block.mount_options": "discard",
+        "volatile.uuid": "c2789fda-f690-4615-b8b9-a2183ecfffda"
+      },
+      "content_type": "filesystem",
+      "created_at": "2026-11-12T18:30:33.257611303Z",
+      "description": "",
+      "location": "",
+      "name": "0000000000000000000000000000000000000000000000000000000000000003",
+      "pool": "remote",
+      "project": "default",
+      "type": "image",
+      "used_by": [
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003"
+      ]
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

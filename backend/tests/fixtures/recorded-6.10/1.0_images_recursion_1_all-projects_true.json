@@ -1,0 +1,47 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "aliases": [],
+      "architecture": "x86_64",
+      "auto_update": true,
+      "cached": true,
+      "created_at": "2026-11-12T00:47:00Z",
+      "expires_at": "1970-01-01T00:00:00Z",
+      "filename": "lxd.tar.xz",
+      "fingerprint": "0000000000000000000000000000000000000000000000000000000000000003",
+      "last_used_at": "2026-11-12T18:31:10.132379115Z",
+      "profiles": [
+        "default"
+      ],
+      "project": "default",
+      "properties": {
+        "architecture": "amd64",
+        "description": "Alpine edge (default)",
+        "os": "Alpine",
+        "release": "edge",
+        "requirements.secureboot": "false",
+        "serial": "SCRUBBED",
+        "type": "squashfs",
+        "variant": "default"
+      },
+      "public": false,
+      "size": 3457924,
+      "type": "container",
+      "update_source": {
+        "alias": "alpine/edge",
+        "certificate": "",
+        "image_registry": "images",
+        "image_type": "container",
+        "protocol": "",
+        "server": ""
+      },
+      "uploaded_at": "2026-11-12T18:30:26.822551757Z"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

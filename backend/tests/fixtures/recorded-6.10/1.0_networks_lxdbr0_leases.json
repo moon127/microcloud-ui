@@ -1,0 +1,34 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "address": "192.0.2.8",
+      "hostname": "lxdbr0.gw",
+      "hwaddr": "",
+      "location": "",
+      "project": "",
+      "type": "gateway"
+    },
+    {
+      "address": "2001:db8::4",
+      "hostname": "lxdbr0.gw",
+      "hwaddr": "",
+      "location": "",
+      "project": "",
+      "type": "gateway"
+    },
+    {
+      "address": "192.0.2.7",
+      "hostname": "default-default.uplink",
+      "hwaddr": "",
+      "location": "",
+      "project": "default",
+      "type": "uplink"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

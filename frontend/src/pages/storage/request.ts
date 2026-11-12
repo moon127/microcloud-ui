@@ -72,11 +72,16 @@ export const emptyPool = (): PoolForm => ({
   extra: {},
 });
 
-export function buildPool(f: PoolForm, members: string[]): NewPool {
+export function buildPool(f: PoolForm, members: string[], features: Record<string, boolean> = {}): NewPool {
   const config: Record<string, string> = { ...f.extra };
   for (const { key } of FIELDS[f.driver]) {
     const v = (f.fields[key] ?? "").trim();
     if (v) config[key] = v;
+  }
+  // LXD 6.8+ refuses source on CephFS pools and takes cephfs.path (storage_remote_drop_source)
+  if (f.driver === "cephfs" && features.cephfs_path && config.source) {
+    config["cephfs.path"] = config.source;
+    delete config.source;
   }
   const out: NewPool["members"] = {};
   if (LOCAL.has(f.driver)) {

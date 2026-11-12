@@ -1,0 +1,25 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "backends": [],
+      "config": {},
+      "description": "mcui test LB",
+      "listen_address": "192.0.2.13",
+      "location": "",
+      "ports": [
+        {
+          "description": "",
+          "listen_port": "80",
+          "protocol": "tcp",
+          "target_pool": "web"
+        }
+      ]
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

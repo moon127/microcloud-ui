@@ -1,0 +1,23 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "policy": "spread",
+        "rigor": "permissive"
+      },
+      "description": "mcui test: spread",
+      "name": "pg-spread",
+      "project": "default",
+      "used_by": [
+        "/1.0/instances/c2",
+        "/1.0/instances/c3"
+      ]
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

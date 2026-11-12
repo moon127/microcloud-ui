@@ -53,6 +53,7 @@ def summarize(exp: Exposition) -> dict[str, Any]:
         "mons": mons,
         "mgrs": mgrs,
         "osds": _osds(exp),
+        "perf_counters": _perf_counters(exp),
         "pgs": _pgs(exp),
         "capacity": {
             "total": _one(exp, "ceph_cluster_total_bytes"),
@@ -80,6 +81,16 @@ _OSD_VALUES = {
     "ceph_osd_apply_latency_ms": "apply_latency_ms",
     "ceph_osd_commit_latency_ms": "commit_latency_ms",
 }
+
+
+def _perf_counters(exp: Exposition) -> bool:
+    """False when OSDs are listed but their daemon perf counters aren't: Ceph Tentacle's mgr
+    leaves them out by default (``exclude_perf_counters``), and MicroCeph runs no
+    ``ceph-exporter`` (Phase 5). OSD used/size and per-op latency need them."""
+    names = {s.name for s in exp.samples}
+    if "ceph_osd_metadata" not in names:
+        return True  # no OSDs listed: nothing missing to explain
+    return "ceph_osd_stat_bytes" in names or "ceph_osd_op_r_latency_sum" in names
 
 
 def _osd_id(daemon: str) -> int | None:

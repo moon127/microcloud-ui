@@ -83,8 +83,8 @@ async def run_check(settings: Settings, api: LXDClient, metrics: LXDClient, out:
             await node.aclose()
 
     feats = info.features()
-    on = sorted(k for k, v in feats.items() if v)
-    off = sorted(k for k, v in feats.items() if not v)
+    on = sorted(k for k in FEATURES if feats[k])
+    off = sorted(k for k in FEATURES if not feats[k])
     out(f"Features: {', '.join(on) or 'none'}")
     if off:
         out("Unavailable (hidden in the UI): " + ", ".join(off))

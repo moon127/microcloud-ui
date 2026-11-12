@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { stringify } from "yaml";
-import { createPool, fetchMembers } from "../../api";
+import { createPool, fetchMembers, fetchServer } from "../../api";
 import { useActions } from "../../actions";
 import { useSession } from "../../session";
 import { useApi } from "../../useApi";
@@ -26,6 +26,7 @@ export default function CreatePoolPage() {
   const [extraProblem, setExtraProblem] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const members = useApi("members", fetchMembers);
+  const server = useApi("server", fetchServer);
   const names = (members.data ?? []).map((m) => m.name);
 
   if (user.role !== "admin") return <p role="alert">Creating storage pools needs the admin role.</p>;
@@ -34,7 +35,7 @@ export default function CreatePoolPage() {
   const setOwn = (m: string, patch: Partial<{ source: string; size: string }>) =>
     set("perMember", { ...f.perMember, [m]: { ...(f.perMember[m] ?? { source: "", size: "" }), ...patch } });
   const issues = [...poolProblems(f), ...(extraProblem ? [extraProblem] : [])];
-  const req = buildPool(f, names);
+  const req = buildPool(f, names, server.data?.features);
   const local = LOCAL.has(f.driver);
   const first = names.length ? f.perMember[names[0]] : undefined;
 

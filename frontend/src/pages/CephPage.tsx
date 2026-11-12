@@ -41,7 +41,7 @@ export default function CephPage() {
         <>
           <h2>History</h2>
           <RangePicker />
-          <History range={range} pools={data.pools ?? []} />
+          <History range={range} pools={data.pools ?? []} perfCounters={data.perf_counters !== false} />
           <Rbd range={range} />
         </>
       )}
@@ -108,6 +108,7 @@ function Now({ s }: { s: CephState }) {
         </dl>
       </div>
       <h2>OSDs</h2>
+      {s.perf_counters === false && <PerfCountersHint />}
       <div className="scroll">
         <table>
           <thead>
@@ -117,9 +118,13 @@ function Now({ s }: { s: CephState }) {
               <th>Class</th>
               <th>State</th>
               <th className="num">PGs</th>
-              <th className="num">Used</th>
-              <th className="num">Size</th>
-              <th />
+              {s.perf_counters !== false && (
+                <>
+                  <th className="num">Used</th>
+                  <th className="num">Size</th>
+                  <th />
+                </>
+              )}
               <th className="num">Apply</th>
               <th className="num">Commit</th>
             </tr>
@@ -134,9 +139,13 @@ function Now({ s }: { s: CephState }) {
                   {o.up ? "up" : <strong role="alert">down</strong>}, {o.in ? "in" : <strong>out</strong>}
                 </td>
                 <td className="num">{o.pgs ?? "–"}</td>
-                <td className="num">{o.used != null ? formatBytes(o.used) : "–"}</td>
-                <td className="num">{o.size != null ? formatBytes(o.size) : "–"}</td>
-                <td>{o.size ? <meter min={0} max={100} high={80} value={pct(o.used ?? 0, o.size)} aria-label={`osd.${o.id} used`} /> : null}</td>
+                {s.perf_counters !== false && (
+                  <>
+                    <td className="num">{o.used != null ? formatBytes(o.used) : "–"}</td>
+                    <td className="num">{o.size != null ? formatBytes(o.size) : "–"}</td>
+                    <td>{o.size ? <meter min={0} max={100} high={80} value={pct(o.used ?? 0, o.size)} aria-label={`osd.${o.id} used`} /> : null}</td>
+                  </>
+                )}
                 <td className="num">{o.apply_latency_ms != null ? ms(o.apply_latency_ms) : "–"}</td>
                 <td className="num">{o.commit_latency_ms != null ? ms(o.commit_latency_ms) : "–"}</td>
               </tr>
@@ -188,7 +197,15 @@ function Now({ s }: { s: CephState }) {
   );
 }
 
-function History({ range, pools }: { range: number; pools: { id: number; name?: string }[] }) {
+function History({
+  range,
+  pools,
+  perfCounters,
+}: {
+  range: number;
+  pools: { id: number; name?: string }[];
+  perfCounters: boolean;
+}) {
   const pool = (id: string) => pools.find((p) => String(p.id) === id)?.name ?? `pool ${id}`;
   const osd = (l: Record<string, string>) => l.ceph_daemon;
   return (
@@ -223,27 +240,43 @@ function History({ range, pools }: { range: number; pools: { id: number; name?: 
       />
       <MetricPanel title="OSD apply latency" range={range} format={ms} queries={[{ name: "ceph_osd_apply_latency_ms", label: osd }]} />
       <MetricPanel title="OSD commit latency" range={range} format={ms} queries={[{ name: "ceph_osd_commit_latency_ms", label: osd }]} />
-      <MetricPanel
-        title="OSD write latency (per op)"
-        range={range}
-        format={ms}
-        queries={[
-          { name: "ceph_osd_op_w_latency_sum", fn: "rate" },
-          { name: "ceph_osd_op_w_latency_count", fn: "rate" },
-        ]}
-        compute={ratioSeries("ceph_daemon", 1000)}
-      />
-      <MetricPanel
-        title="OSD read latency (per op)"
-        range={range}
-        format={ms}
-        queries={[
-          { name: "ceph_osd_op_r_latency_sum", fn: "rate" },
-          { name: "ceph_osd_op_r_latency_count", fn: "rate" },
-        ]}
-        compute={ratioSeries("ceph_daemon", 1000)}
-      />
+      {perfCounters && (
+        <>
+          <MetricPanel
+            title="OSD write latency (per op)"
+            range={range}
+            format={ms}
+            queries={[
+              { name: "ceph_osd_op_w_latency_sum", fn: "rate" },
+              { name: "ceph_osd_op_w_latency_count", fn: "rate" },
+            ]}
+            compute={ratioSeries("ceph_daemon", 1000)}
+          />
+          <MetricPanel
+            title="OSD read latency (per op)"
+            range={range}
+            format={ms}
+            queries={[
+              { name: "ceph_osd_op_r_latency_sum", fn: "rate" },
+              { name: "ceph_osd_op_r_latency_count", fn: "rate" },
+            ]}
+            compute={ratioSeries("ceph_daemon", 1000)}
+          />
+        </>
+      )}
     </div>
+  );
+}
+
+/** Ceph Tentacle's mgr leaves OSD perf counters out by default; MicroCeph runs no ceph-exporter. */
+function PerfCountersHint() {
+  return (
+    <p className="muted">
+      This Ceph doesn't export OSD performance counters (Ceph Tentacle's default), so OSD used and size and the
+      per-operation latency graphs are hidden. To show them, on a member:{" "}
+      <code>sudo ceph config set mgr mgr/prometheus/exclude_perf_counters false</code>, then restart the mgr (
+      <code>sudo snap restart microceph.mgr</code>); see <code>docs/CEPH-METRICS.md</code>.
+    </p>
   );
 }
 

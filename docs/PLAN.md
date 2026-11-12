@@ -207,19 +207,44 @@ fixtures, so record a full set **before** the upgrade (5.0).
 - **Upgrade** following MicroCloud's "Upgrade MicroCloud" guide (2 → 3 track). Caveats
   from the release notes:
   - Squid → Tentacle: an upgrade from Squid 19.2.6 to Tentacle releases before 20.2.4
-    may leave the Ceph managers unable to start. Go straight to a current Tentacle.
+    may leave the Ceph managers unable to start. The test cloud runs 19.2.3, and
+    MicroCeph's `tentacle/stable` was 20.2.1 on 2026-11-12, so read the upgrade guide's
+    Ceph part closely.
   - LXD 6.10 lists a known issue: during MicroCeph upgrades, don't rotate keys until
     LXD's Ceph client supports the new key type.
   - snapd 2.75 or later on every member.
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
   "verify the current code still works"; anything that fails feeds 5a.
 
+**5.1 Seeded from a "MicroCloud 3.4 in a box" VM. ✅ 2026-11-12 (D74).** A throwaway Ubuntu
+26.04 VM in `mcui-test` with the 3.4 component snaps (LXD 6.10.1, MicroCeph 20.2.1
+Tentacle, MicroOVN 26.03, MicroCloud 3.4.1), wired as MicroCloud does, with throwaway
+certificates. Findings:
+- **The current app works against LXD 6.10 nearly unchanged:** `mcui check` passes, all
+  38 read endpoints answer, and creates, updates, renames and deletes of ACLs, volumes,
+  volume snapshots, profiles, networks and OVN forwards complete through LXD's new
+  background operations (`operations.start`/`wait` already handled them).
+- **Broken on 6.10, fixed:** creating a CephFS pool (LXD refuses `source`); the form
+  now sends `cephfs.path` when the server has `storage_remote_drop_source`.
+- **Ceph Tentacle:** without `exclude_perf_counters=false` (and a mgr restart), OSD
+  used/size and per-op latency are missing; the Ceph page now hides them with a hint
+  (`docs/CEPH-METRICS.md`).
+- **Operations:** every one carries `entity_url`, and `resources` is empty. A bulk state
+  change on `/1.0/instances` makes a parent with `child_count` and nested children; the
+  CLI's `lxc stop a b c` makes separate operations.
+- **New objects recorded** (`tests/fixtures/recorded-6.10`): placement groups, image
+  registries (with built-ins: `images`, `ubuntu`, `ubuntu-daily`, minimal), OVN
+  load-balancer pools with health checks behind an automatically addressed load
+  balancer, a multi-volume snapshot. `placement.group` accepts a group that doesn't exist.
+- **LXD quirk:** creating an OVN load balancer failed (`invalid CIDR address: none/32`)
+  while the uplink bridge had `ipv6.address: none`.
+
 **5a Compatibility (must have).** One commit per item, each tested on fixtures from both
 LTS releases and checked live on 3.4.
-- **Two fixture sets:** `recorded-5.21` (from 5.0) and `recorded-6.10`, with the
+- **Two fixture sets** (both recorded): `recorded-5.21` (from 5.0) and `recorded-6.10` (from 5.1), with the
   recorded-fixture tests run against both. The demo cluster for screenshots (D59) moves
   to LXD 6.10.
-- **Background operations:** LXD 6.6 and 6.8 made create, update, rename and delete
+- **Background operations** (verified working on 6.10, 5.1): LXD 6.6 and 6.8 made create, update, rename and delete
   return background operations for storage pools, volumes, buckets, networks, ACLs,
   forwards, load balancers, peers, zones, and profile PUT/PATCH; project delete followed
   in 6.7. The backend (`operations.start`) and the frontend (`actions.ts`) already follow
@@ -229,8 +254,8 @@ LTS releases and checked live on 3.4.
   `entity_url` (and `original_entity_url` after a rename). The operations page, toasts
   and audit log should use it. Show child operations (`recursion=2`, `child_count`).
 - **Renamed and removed settings:**
-  - CephFS pools take `cephfs.path`, not `source`: the create-pool form still sends
-    `source`. Ceph RBD pools use `ceph.osd.pool_name`, which the form already does.
+  - ✅ CephFS pools take `cephfs.path`, not `source` (5.1). Ceph RBD pools use
+    `ceph.osd.pool_name`, which the form already does.
   - `boot.mode` replaces `security.secure_boot`/`security.csm`, and VM disks use
     virtiofs instead of 9p: hints in the create wizard and the config editor.
   - Gone: `cluster.healing_threshold`, `nvidia.*`, `maas.*` and `fan.type=ipip`.
@@ -249,8 +274,10 @@ LTS releases and checked live on 3.4.
   those views with a hint when the counters are missing.
   Check the RBD image stats and the remaining metric names on the live cluster;
   `docs/CEPH-METRICS.md` follows.
-- **`mcui check`:** report each member's LXD version and LTS track, warn about mixed
-  versions, and flag LXD releases with known security fixes outstanding (5.21.8 today).
+- ✅ **`mcui check`:** each member's LXD version and LTS track, a warning for mixed
+  versions and for releases missing the October 2026 TLS fix (5.21.8 today).
+- ✅ **Ceph page without perf counters** (5.1): hides OSD used/size and per-op latency with
+  the fix.
 - **Hosts on Ubuntu 26.04** (if the owner upgrades them): node_exporter from 26.04 and
   `docs/HOST-METRICS.md`.
 

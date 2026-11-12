@@ -983,6 +983,8 @@ export interface CephState {
   mons?: { name: string; in_quorum: boolean }[];
   mgrs?: { name: string; active: boolean }[];
   osds?: CephOsd[];
+  /** false: the mgr leaves out OSD perf counters (Ceph Tentacle's default) */
+  perf_counters?: boolean;
   pgs?: { total: number; states: Record<string, number> };
   capacity?: { total: number | null; used_raw: number | null };
   pools?: CephPool[];

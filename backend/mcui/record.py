@@ -105,7 +105,9 @@ async def _pool_paths(api: LXDClient, members: list[str | None]) -> list[str]:
     return out
 
 
-async def _network_paths(api: LXDClient, members: list[str | None]) -> list[str]:
+async def _network_paths(
+    api: LXDClient, members: list[str | None], extensions: frozenset[str] | set[str] = frozenset()
+) -> list[str]:
     """What the network pages read for each managed network (NW-1/4/5, MO-9)."""
     try:
         nets = await api.get("/1.0/networks", recursion=1) or []
@@ -118,6 +120,8 @@ async def _network_paths(api: LXDClient, members: list[str | None]) -> list[str]
         base = f"/1.0/networks/{n['name']}"
         if n.get("type") == "ovn":
             out += [f"{base}/{sub}?recursion=1" for sub in ("forwards", "load-balancers", "peers")]
+            if "network_load_balancer_pool" in extensions:  # LXD 6.9+
+                out.append(f"{base}/load-balancer-pools?recursion=1")
             out.append(f"{base}/state")
         else:
             out.append(f"{base}/leases")
@@ -157,11 +161,17 @@ async def record(
         "/1.0/network-allocations?all-projects=true",
         "/1.0/operations?recursion=1&all-projects=true",
     ]
+    # LXD 6 objects (Phase 5b), only where the server has them
+    have = set(info.api_extensions)
+    if "instance_placement_groups" in have:
+        paths.append("/1.0/placement-groups?recursion=1&all-projects=true")
+    if "image_registries" in have:
+        paths.append("/1.0/image-registries?recursion=1")
     paths += [f"/1.0/cluster/members/{m.name}/state" for m in ms if info.clustered]
     paths += [f"/1.0/resources?target={m.name}" for m in ms if info.clustered]
     targets: list[str | None] = [m.name for m in ms] if info.clustered else [None]
     paths += await _pool_paths(api, targets)
-    paths += await _network_paths(api, targets)
+    paths += await _network_paths(api, targets, have)
     for p in paths:
         path, _, query = p.partition("?")
         params = dict(kv.split("=", 1) for kv in query.split("&")) if query else None

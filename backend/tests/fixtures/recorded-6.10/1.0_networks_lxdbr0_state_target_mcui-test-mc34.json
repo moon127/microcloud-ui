@@ -1,0 +1,53 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "addresses": [
+      {
+        "address": "192.0.2.8",
+        "family": "inet",
+        "netmask": "24",
+        "scope": "global"
+      },
+      {
+        "address": "2001:db8::4",
+        "family": "inet6",
+        "netmask": "64",
+        "scope": "global"
+      },
+      {
+        "address": "2001:db8::5",
+        "family": "inet6",
+        "netmask": "64",
+        "scope": "link"
+      }
+    ],
+    "bond": null,
+    "bridge": {
+      "forward_delay": 1500,
+      "id": "8000.00163ed84dc8",
+      "stp": false,
+      "upper_devices": [
+        "lxdovn1a"
+      ],
+      "vlan_default": 1,
+      "vlan_filtering": true
+    },
+    "counters": {
+      "bytes_received": 504,
+      "bytes_sent": 3076,
+      "packets_received": 14,
+      "packets_sent": 24
+    },
+    "hwaddr": "00:16:3e:00:00:06",
+    "mtu": 1500,
+    "ovn": null,
+    "state": "up",
+    "type": "broadcast",
+    "vlan": null
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

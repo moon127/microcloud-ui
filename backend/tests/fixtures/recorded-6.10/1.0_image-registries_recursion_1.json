@@ -1,0 +1,70 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "builtin": true,
+      "config": {
+        "url": "https://images.lxd.canonical.com"
+      },
+      "description": "",
+      "name": "images",
+      "protocol": "simplestreams",
+      "public": true
+    },
+    {
+      "builtin": false,
+      "config": {
+        "url": "https://images.lxd.canonical.com"
+      },
+      "description": "mcui test registry",
+      "name": "lab-mirror",
+      "protocol": "simplestreams",
+      "public": true
+    },
+    {
+      "builtin": true,
+      "config": {
+        "url": "https://cloud-images.ubuntu.com/releases/"
+      },
+      "description": "",
+      "name": "ubuntu",
+      "protocol": "simplestreams",
+      "public": true
+    },
+    {
+      "builtin": true,
+      "config": {
+        "url": "https://cloud-images.ubuntu.com/daily/"
+      },
+      "description": "",
+      "name": "ubuntu-daily",
+      "protocol": "simplestreams",
+      "public": true
+    },
+    {
+      "builtin": true,
+      "config": {
+        "url": "https://cloud-images.ubuntu.com/minimal/releases/"
+      },
+      "description": "",
+      "name": "ubuntu-minimal",
+      "protocol": "simplestreams",
+      "public": true
+    },
+    {
+      "builtin": true,
+      "config": {
+        "url": "https://cloud-images.ubuntu.com/minimal/daily/"
+      },
+      "description": "",
+      "name": "ubuntu-minimal-daily",
+      "protocol": "simplestreams",
+      "public": true
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}
