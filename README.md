@@ -97,21 +97,29 @@ cd frontend && npm run dev             # open http://localhost:5173
 make serve                             # open http://127.0.0.1:8000
 ```
 
+Without a config these run on built-in defaults: no cluster, no users (so the login page
+can't be passed) and data in `./data`. That's enough to check the build; to use the UI,
+connect it to your MicroCloud as below.
+
 ## Connecting to your MicroCloud
 
 1. Create the certificates and trust them in LXD: [`docs/LXD-CREDENTIALS.md`](docs/LXD-CREDENTIALS.md).
 2. Write a `config.toml` (git-ignored), e.g. `~/.config/mcui/config.toml`; see
    [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md). For plain-http local dev set
    `secure_cookies = false` under `[server]`.
-3. Check it, create a login, and run:
+3. Check it, create a login, and run. `mcui` has **no default config path**: every
+   command, `make serve` and `make dev-backend` included, needs `-c <file>` or
+   `MCUI_CONFIG`. Without either it quietly uses the built-in defaults (no cluster, data
+   in `./data`), so exporting it once per shell is simplest:
 
 ```bash
-mcui -c ~/.config/mcui/config.toml check                    # endpoints, trust, members, metrics, features
-mcui -c ~/.config/mcui/config.toml user add admin --role admin   # prompts for a password
-mcui -c ~/.config/mcui/config.toml serve --reload           # or: MCUI_CONFIG=... make dev-backend
+export MCUI_CONFIG=~/.config/mcui/config.toml
+mcui check                             # endpoints, trust, members, metrics, features
+mcui user add admin --role admin       # prompts for a password
+make serve                             # or: make dev-backend (+ npm run dev for Vite)
 ```
 
-Sign in at http://localhost:5173 (Vite) or http://127.0.0.1:8000 (`make serve`).
+Sign in at http://127.0.0.1:8000 (`make serve`) or http://localhost:5173 (Vite).
 Pages: Overview (hosts, members, top instances, live table), Instances (filters, bulk
 actions, create wizard) and an instance page (graphs, configuration, console and
 terminal, files, snapshots, logs), Profiles, Images, Projects, member pages
@@ -121,8 +129,10 @@ latency, busiest disks), Networks (create/edit per member, ACLs, forwards, lease
 OVN overview), Operations and Warnings. Admins can change things; viewers read only. Pick the time range (15 min to 1 year) above
 the graphs. History is collected in the background into `<data_dir>/metrics.db`.
 
-Other user commands: `mcui user list`, `mcui user passwd <name>`, `mcui user delete <name>`
-(also available to admins via the `/api/users` endpoints).
+Other user commands, with the same config: `mcui user list`, `mcui user passwd <name>`
+(also signs the user out), `mcui user delete <name>`. Admins can do the same through the
+`/api/users` endpoints. Users live in the config's `data_dir`, so a server started with
+another config (or none) doesn't know them.
 
 ### Live tests and fixtures (run on a machine that reaches the cluster)
 
@@ -140,10 +150,16 @@ placeholders; review the files before committing them.
 
 ### Moving development to a new machine
 
-The repository holds no secrets. The app, `mcui check`, the integration tests and
-`scripts/lxd_api.py` all read the config from `~/.config/mcui/config.toml`, or from
-`$MCUI_CONFIG` if that's set. A new machine, or a new Claude Code session on it, picks
-everything up once those files exist.
+The repository holds no secrets. Everything reads one config file, kept outside the
+repo at `~/.config/mcui/config.toml`:
+
+- `mcui` (the server, `check`, `user`, `record-fixtures`, and so `make serve` and
+  `make dev-backend`): `-c <file>` or `$MCUI_CONFIG`; there's no default path.
+- `scripts/lxd_api.py`: `$MCUI_CONFIG`, else `~/.config/mcui/config.toml`.
+- the integration tests: `$MCUI_IT_CONFIG`.
+
+A new machine, or a new Claude Code session on it, picks everything up once those files
+exist.
 
 1. **Clone and install:** `git clone …`, then `make install`. This sets up `.venv` and
    `frontend/node_modules`; don't copy either between machines. Run `make hooks` if you
@@ -161,14 +177,15 @@ everything up once those files exist.
 
 3. **Fix the permissions**, because the app refuses keys that others can read:
    `chmod 700 ~/.config/mcui/certs && chmod 600 ~/.config/mcui/certs/*.key`.
-4. **Check the paths** in the config. Paths written with `~/` carry over. If you keep the
-   config elsewhere, export `MCUI_CONFIG=/path/to/config.toml`.
+4. **Check the paths** in the config. Paths written with `~/` carry over.
 5. **Check the network:** the machine must reach every member on 8443, plus 9100
    (node_exporter) and 9283 (Ceph mgr) if you use them.
 6. **Test it:**
    - `.venv/bin/mcui -c ~/.config/mcui/config.toml check` should be all OK.
    - `.venv/bin/python scripts/lxd_api.py GET "/1.0/instances?project=mcui-test"` should
      answer.
+   - If you didn't copy `data_dir`, there are no users yet:
+     `.venv/bin/mcui -c ~/.config/mcui/config.toml user add <name> --role admin`.
    - Then run `MCUI_CONFIG=~/.config/mcui/config.toml make serve`.
 
 **Same certificates or new ones?** Copying the existing ones is simplest: LXD already
