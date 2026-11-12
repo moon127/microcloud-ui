@@ -193,6 +193,15 @@ sudo ln -sfn /opt/mcui/<previous> /opt/mcui/current && sudo systemctl restart mc
 ```
 A newer version may have changed the databases, so back up before upgrading (below).
 
+**Upgrading Ubuntu under the bundle** (for example 24.04 → 26.04 with
+`do-release-upgrade`): the bundle is built for one Python, and the release upgrade
+replaces it (3.12 → 3.14). After the reboot the service fails in a loop with
+`ModuleNotFoundError: No module named 'mcui'`. Install the bundle for the new Python,
+the py3.14 one for 26.04, with `sudo ./install.sh`; users, data, config and the
+self-signed certificate are kept. Directories kept for rollback from before the upgrade
+won't run any more, so roll back only to an install made after it. Tested 2026-11-12:
+24.04.5 → 26.04.1 in a VM, 0.1.2 py3.12 → py3.14 (D72).
+
 **Backup:** copy `/etc/mcui` (config and keys) and `/var/lib/mcui`.
 
 - `mcui.db` is small and holds the users and the audit log.
