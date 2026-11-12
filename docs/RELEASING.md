@@ -37,8 +37,8 @@ sed -i '' 's/^__version__ = .*/__version__ = "0.1.0"/' backend/mcui/__init__.py
 make lint test
 git commit -am "Release 0.1.0"
 
-# 2. tag and push
-git tag -a v0.1.0 -m "microcloud-ui 0.1.0"
+# 2. tag and push; anything after the tag message's first line heads the release notes
+git tag -a v0.1.0 -m "microcloud-ui 0.1.0" -m "Why this release matters, if it isn't obvious."
 git push origin main v0.1.0
 
 # 3. afterwards, move main on to the next development version

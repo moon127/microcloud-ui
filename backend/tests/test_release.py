@@ -186,6 +186,8 @@ def test_publishing():
     steps = {s.get("name"): s for s in jobs["release"]["steps"]}
     tagged = steps["GitHub Release for the tag"]
     assert tagged["if"] == "env.MODE == 'release'" and "--notes-start-tag" in tagged["run"]
+    # the annotated tag's message (after its title line) heads the notes
+    assert "git/tags/$tag" in tagged["run"] and '--notes "${headline:+$headline' in tagged["run"]
     edge = steps['Rolling pre-release "edge"']
     assert edge["if"] == "env.MODE == 'edge'"
     assert jobs["release"]["env"]["CHANGES"] == "${{ needs.setup.outputs.changes }}"

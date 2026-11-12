@@ -246,9 +246,18 @@ jobs:
         run: |
           start=()
           if [ -n "$PREVIOUS" ]; then start=(--notes-start-tag "$PREVIOUS"); fi
+          # an annotated tag's message after its first line is the release's headline
+          # (read through the API: a tag-triggered checkout may lose the annotation)
+          headline=""
+          tag=$(gh api "repos/$GH_REPO/git/ref/tags/$GITHUB_REF_NAME" --jq 'select(.object.type == "tag") | .object.sha')
+          if [ -n "$tag" ]; then
+            headline=$(gh api "repos/$GH_REPO/git/tags/$tag" --jq .message | sed '1d' | sed '/./,$!d')
+          fi
           gh release create "$GITHUB_REF_NAME" dist/*.tar.gz \
             --title "microcloud-ui $VERSION" --generate-notes "${start[@]}" \
-            --notes "Container image: \`podman pull $IMAGE:$VERSION\` (amd64, arm64).
+            --notes "${headline:+$headline
+
+          }Container image: \`podman pull $IMAGE:$VERSION\` (amd64, arm64).
           Offline bundles for Ubuntu 26.04 (py3.14), 24.04 (py3.12) and 22.04 (py3.10) are attached; see docs/DEPLOY.md.
 
           ## Changes${SINCE:+ since $SINCE}
