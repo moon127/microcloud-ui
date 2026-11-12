@@ -476,7 +476,7 @@ volumes. It refuses to start if `/etc/letsencrypt` isn't mounted.
   `Host` and consoles are refused, unless you set `public_url` (tested both ways).
 - **Authentication required:** Cosmos's own login in front of mcui works, but you then sign
   in twice. mcui doesn't yet accept the proxy's login as its own; that's for the login
-  options work in Phase 6 (AU-4).
+  options work in Phase 7 (AU-4).
 
 Cosmos adds HSTS and `frame-ancestors 'self'` headers; mcui is fine with both. Set
 `forwarded_allow_ips` to Cosmos's address. With Cosmos on the host network, that's its

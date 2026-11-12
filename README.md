@@ -81,7 +81,7 @@ Leave the venv with `deactivate`.
 
 ## Manual run for development (macOS)
 
-For prototyping only; production uses the systemd unit or container image (Phase 7).
+For prototyping only; production uses the systemd unit or container image (Phase 8).
 
 ```bash
 source .venv/bin/activate

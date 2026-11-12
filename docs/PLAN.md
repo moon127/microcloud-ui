@@ -69,7 +69,7 @@ No native Prometheus exporter. `microovn status`, `microovn inspect --format=jso
 (health/convergence report), and `microovn.ovn-nbctl` / `ovn-sbctl` /
 `ovs-appctl` on nodes. LXD's own API already exposes OVN networks and their
 sub-objects. Deeper stats (logical flows, chassis, port bindings, OVS datapath
-counters) need host access → optional agent or ovn-exporter (Phase 5).
+counters) need host access → optional agent or ovn-exporter (Phase 6).
 
 ### Host metrics
 LXD metrics are per-instance. For host CPU/disk/NIC history, use LXD member
@@ -168,33 +168,156 @@ Sub-phases, one commit each (approved 2026-11-11):
 Live tests (D41): everything inside a throwaway LXD in a `mcui-test` VM, which also supplies the local-pool fixtures; on the real cluster only `mcui-test-*` ACLs, forwards and a bridge network.
 
 ### Post-MVP
-**Phase 5: Metric store evaluation** (MO-14): benchmark SQLite against
+Renumbered 2026-11-12 (D73): MicroCloud 3.4 LTS support became Phase 5, so the earlier
+Phases 5, 6 and 7 are now 6, 7 and 8. Decisions D58 and D63–D65 keep the old numbers.
+
+**Phase 5: MicroCloud 3.4 LTS. Proposed 2026-11-12, waiting for the owner's cluster
+upgrade.** Make the app fully support MicroCloud 3.4 LTS while still working with
+MicroCloud 2.1 LTS, which the test cloud runs today.
+
+*What changes underneath* (release notes read 2026-11-12):
+
+| | MicroCloud 2.1 LTS (test cloud now) | MicroCloud 3.4 LTS (3.4.1 current) |
+|---|---|---|
+| LXD | 5.21 LTS (5.21.8/5.21.9 on the test cloud); maintenance support to June 2029 | 6.10 LTS (6.10.1 current); full support, then maintenance to June 2031 |
+| Ceph | MicroCeph Squid (19.2) | MicroCeph Tentacle (20.2) |
+| OVN | MicroOVN 24.03 | MicroOVN 26.03 |
+| Snap base | core24 | core26 (needs snapd 2.75 or later) |
+
+The app only talks to the LXD API, the Ceph mgr's Prometheus endpoint and node_exporter,
+never to the MicroCloud, MicroCeph or MicroOVN daemons. So the work is mostly about LXD
+5.21 → 6.10 and Ceph Squid → Tentacle. A first check of the code (2026-11-12) found no use
+of anything LXD 6 removed outright: no `/1.0/containers` or `/1.0/virtual-machines`, no
+direct-URL image import, no `nvidia.*` keys, no `security.secure_boot`.
+
+*Support policy (proposed):* support both LXD 5.21 and 6.10, with each feature switched on
+by `api_extensions` as now (D19). Both LTS releases are supported upstream until 2029 and
+2031. Once the test cloud is upgraded, the only cluster left on 5.21 is the recorded
+fixtures, so record a full set **before** the upgrade (5.0).
+
+**5.0 Before and during the upgrade (owner, with help).**
+- **Security first:** LXD before 5.21.9 or 6.10.1 has a critical authentication bypass
+  in client-certificate checking (advisory of 2026-10-28). Member 1 still runs 5.21.8:
+  `sudo snap refresh lxd` there now.
+- **Record the 5.21 baseline:** `mcui record-fixtures` into
+  `backend/tests/fixtures/recorded-5.21/`, plus a Ceph mgr `/metrics` sample with perf
+  counters and RBD stats. It's read-only, so I can do it.
+- **Upgrade** following MicroCloud's "Upgrade MicroCloud" guide (2 → 3 track). Caveats
+  from the release notes:
+  - Squid → Tentacle: an upgrade from Squid 19.2.6 to Tentacle releases before 20.2.4
+    may leave the Ceph managers unable to start. Go straight to a current Tentacle.
+  - LXD 6.10 lists a known issue: during MicroCeph upgrades, don't rotate keys until
+    LXD's Ceph client supports the new key type.
+  - snapd 2.75 or later on every member.
+- **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
+  "verify the current code still works"; anything that fails feeds 5a.
+
+**5a Compatibility (must have).** One commit per item, each tested on fixtures from both
+LTS releases and checked live on 3.4.
+- **Two fixture sets:** `recorded-5.21` (from 5.0) and `recorded-6.10`, with the
+  recorded-fixture tests run against both. The demo cluster for screenshots (D59) moves
+  to LXD 6.10.
+- **Background operations:** LXD 6.6 and 6.8 made create, update, rename and delete
+  return background operations for storage pools, volumes, buckets, networks, ACLs,
+  forwards, load balancers, peers, zones, and profile PUT/PATCH; project delete followed
+  in 6.7. The backend (`operations.start`) and the frontend (`actions.ts`) already follow
+  operations, so this is mainly checking every form waits for the result and shows its
+  errors.
+- **Operation targets:** an operation's `resources` is now empty; the target is in
+  `entity_url` (and `original_entity_url` after a rename). The operations page, toasts
+  and audit log should use it. Show child operations (`recursion=2`, `child_count`).
+- **Renamed and removed settings:**
+  - CephFS pools take `cephfs.path`, not `source`: the create-pool form still sends
+    `source`. Ceph RBD pools use `ceph.osd.pool_name`, which the form already does.
+  - `boot.mode` replaces `security.secure_boot`/`security.csm`, and VM disks use
+    virtiofs instead of 9p: hints in the create wizard and the config editor.
+  - Gone: `cluster.healing_threshold`, `nvidia.*`, `maas.*` and `fan.type=ipip`.
+  - The `event-hub` member role becomes `control-plane`.
+- **Evacuate and restore:** LXD 6.9 refuses to evacuate a member when that would break
+  the database quorum, unless forced (`clustering_evacuation_force`). Restore conflicts
+  with a running evacuation. Show the refusal and offer "force" with a warning
+  (fixture-tested; the owner runs it, D41).
+- **Metrics:** check that `/1.0/metrics` names still match (none are renamed in the
+  release notes). Memory "available" now counts reclaimable slab (6.9), so check the
+  memory figures.
+- **Ceph Tentacle:** the mgr Prometheus module no longer exports daemon perf counters by
+  default; `ceph-exporter` does. So the OSD apply/commit and per-op latency graphs
+  (MO-7a) go blank unless `mgr/prometheus/exclude_perf_counters` is set to false (one
+  `ceph config set`, owner's call) or we scrape `ceph-exporter`, if MicroCeph runs it.
+  Check the RBD image stats and the remaining metric names on the live cluster;
+  `docs/CEPH-METRICS.md` follows.
+- **`mcui check`:** report each member's LXD version and LTS track, warn about mixed
+  versions, and flag LXD releases with known security fixes outstanding (5.21.8 today).
+- **Hosts on Ubuntu 26.04** (if the owner upgrades them): node_exporter from 26.04 and
+  `docs/HOST-METRICS.md`.
+
+**5b What LXD 6 adds, and the MicroCloud 3.4 UI shows** (each behind its
+`api_extensions` flag; order to agree):
+- **Placement groups** (`instance_placement_groups`): list, create, edit, and use them in
+  the create-instance target.
+- **Image registries** (`image_registries`): manage them, and use them in the image
+  picker, replacing or alongside our own remote catalogues (D47).
+  `restricted.registries` per project.
+- **Identities and access** (AC-1, moved here from Phase 7): TLS, OIDC and bearer
+  identities, `expires_at`, effective groups, pending tokens, and security events in the
+  event feed (`event_security`).
+- **OVN:** load-balancer pools and health checks (`network_load_balancer_pool*`, from
+  NW-4/7), internal load balancers and forwards, DHCP ranges, automatic IP allocation
+  for forwards and load balancers.
+- **Operations:** child and bulk operations, durable operations (shown, nothing to do).
+- **Instances and storage:** forced delete, multi-volume snapshots, per-project images
+  and backups volumes; GPU via CDI shown in hardware and devices.
+- **Disaster recovery:** cluster links, replicators (with `lxd_replicator_*` metrics) and
+  project replica mode (leader or standby, promote/demote). Needs a second cluster: read
+  views from fixtures first; changes only if the owner wants them and can test them.
+
+**5c MicroCloud itself (evaluate, then decide).** MicroCloud 3.4 has a generally available
+Cluster Manager with its own API, and an observability charm for COS/Grafana. Decide
+whether the app should show MicroCloud-level facts (component versions, Cluster Manager
+status) or leave them to those tools.
+
+*Exit:* every page and action works against the upgraded 3.4 test cloud (`LIVE-TESTS.md`
+updated and run), the recorded-fixture suites pass for both LTS releases, the 5b items
+agreed with the owner are built, and README, DEPLOY.md and CEPH-METRICS.md say which
+MicroCloud releases are supported.
+
+*Open questions for the owner:*
+1. Keep supporting MicroCloud 2.1 / LXD 5.21 (proposed: yes, through recorded fixtures)?
+2. Which 5b items are in Phase 5, and in what order? Disaster recovery needs a second
+   cluster.
+3. Ceph perf counters on Tentacle: set `exclude_perf_counters=false` on the cluster, or
+   should we scrape `ceph-exporter`?
+4. Will the members move to Ubuntu 26.04 too, or stay on 24.04 with the core26 snaps?
+5. Shall I record the 5.21 fixtures now, before the upgrade?
+
+**Phase 6: Metric store evaluation** (was Phase 5; MO-14): benchmark SQLite against
 Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
 on ingest, query latency, disk use and ops burden; implement the chosen
 adapter. Alerts (MO-13), export (MO-15), project quota
 history (MO-10).
 
-**Phase 6: Remaining parity.** Backups (IN-13, ST-4), project moves and restrictions (IN-6, PJ-2), ISO
-upload (IM-3), sriov, LBs, peers, zones, ACL logs (NW-3/4/6/7), cluster groups
-and config (CL-4/5), identities view (AC-1). Login options evaluation (AU-4).
+**Phase 7: Remaining parity** (was Phase 6). Backups (IN-13, ST-4), project moves and
+restrictions (IN-6, PJ-2), ISO upload (IM-3), sriov, peers, zones, ACL logs
+(NW-3/4/6/7), cluster groups and config (CL-4/5). Login options evaluation (AU-4).
+Identities (AC-1) and OVN load balancers moved to Phase 5b.
 
-**Phase 7: Packaging.** Wheel + systemd unit, OCI image, docs for running
+**Phase 8: Packaging** (was Phase 7). Wheel + systemd unit, OCI image, docs for running
 on the MicroCloud itself as an LXD instance (NF-6).
-- 7a ✅ 2026-11-12 (brought forward): Ubuntu + systemd. `make bundle` (wheel with the SPA
+- 8a (was 7a) ✅ 2026-11-12 (brought forward): Ubuntu + systemd. `make bundle` (wheel with the SPA
   plus dependency wheels, offline), `deploy/install.sh` (install/upgrade/rollback/uninstall),
   hardened unit, `mcui` admin wrapper, built-in HTTPS (`[server] tls_cert/tls_key`),
   `docs/DEPLOY.md` (D63). Install, upgrade, rollback and uninstall verified in an Ubuntu 24.04 VM
   on the test cloud.
-- 7b ✅ 2026-11-12: OCI image (`deploy/container/Containerfile`, `make image`/`image-save`),
+- 8b (was 7b) ✅ 2026-11-12: OCI image (`deploy/container/Containerfile`, `make image`/`image-save`),
   Podman Quadlet (recommended, host network) and Compose (not on members), databases 0600
   regardless of umask; DEPLOY.md §9 (D64). Verified in an Ubuntu 24.04 VM with Podman 4.9 and
-  Docker 29. Later: publish to a registry (ghcr.io, multi-arch) once the repo is on GitHub.
-- 7c ✅ 2026-11-12: behind a reverse proxy (DEPLOY.md §10: NGINX Proxy Manager, Cosmos,
+  Docker 29. Published to ghcr.io (multi-arch) with releases and edge builds (D67, D68).
+- 8c (was 7c) ✅ 2026-11-12: behind a reverse proxy (DEPLOY.md §10: NGINX Proxy Manager, Cosmos,
   Caddy, nginx); `[server] public_url` and `forwarded_allow_ips` (D65). Tested live in an
   Ubuntu 24.04 VM against NPM 2.17.0, Cosmos and Caddy 2.6.2.
+- 8d ✅ 2026-11-12: Ubuntu 26.04 bundles and image (D72).
 
-**Later:** OVN/OVS node agent (MO-11), cluster links/replicators,
-placement groups, image registries, buckets, LXD auth management.
+**Later:** OVN/OVS node agent (MO-11), buckets, LXD auth management beyond identities.
 
 ## 4. Test strategy
 - Unit: parser, rollups, rate maths (incl. counter resets), config, auth.
