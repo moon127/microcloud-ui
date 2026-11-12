@@ -205,6 +205,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   43240796585): CI, both images natively (arm64 on an aarch64 runner, 97 s, `push=false`),
   four bundles. amd64 image also run-tested in a throwaway VM (health, uid 8843,
   healthcheck).
+- **Release and edge notes list the commits since the previous/latest release**
+  (`build_version.py changes`, version bumps left out; D67/D68).
 - **0.1.1 released 2026-11-12** (run 43254431150): D69–D71 (table alignment, Hosts table
   fits 1280px, config fallback). `main` is now 0.1.2.dev0.
 - **`mcui` finds `~/.config/mcui/config.toml` by itself 2026-11-12 (D71);** README dev

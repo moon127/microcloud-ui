@@ -2,6 +2,7 @@
 
     python scripts/build_version.py release v0.1.0   # checks the tag, prints 0.1.0
     python scripts/build_version.py dev              # prints 0.1.1.dev<N> for HEAD
+    python scripts/build_version.py changes v0.1.0   # Markdown list of commits since it
 
 A release is a final X.Y.Z, and its tag is exactly "v" + mcui.__version__, so the image
 tags, the bundle names and the program all say the same thing. A dev build (the edge
@@ -42,21 +43,38 @@ def dev_version(version: str, commits: int) -> str:
     return f"{base}.dev{commits}" if dev else version
 
 
-def commits_since_release(cwd: Path = ROOT) -> int:
-    def git(*args: str) -> str:
-        return subprocess.run(  # noqa: S603
-            ["git", *args],  # noqa: S607
-            cwd=cwd,
-            check=True,
-            capture_output=True,
-            text=True,
-        ).stdout.strip()
+# version bumps say nothing about what changed
+HOUSEKEEPING = re.compile(r"^(Release \d+\.\d+\.\d+$|Back to development\b)")
 
+
+def _git(cwd: Path, *args: str) -> str:
+    return subprocess.run(  # noqa: S603
+        ["git", *args],  # noqa: S607
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+def commits_since_release(cwd: Path = ROOT) -> int:
     try:
-        tag = git("describe", "--tags", "--abbrev=0", "--match", "v[0-9]*")
+        tag = _git(cwd, "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*")
     except subprocess.CalledProcessError:  # no release yet
-        return int(git("rev-list", "--count", "HEAD"))
-    return int(git("rev-list", "--count", f"{tag}..HEAD"))
+        return int(_git(cwd, "rev-list", "--count", "HEAD"))
+    return int(_git(cwd, "rev-list", "--count", f"{tag}..HEAD"))
+
+
+def changes(since: str | None, cwd: Path = ROOT) -> list[str]:
+    """The commits after ``since`` up to HEAD (all of them without it), newest first, as
+    Markdown list items "- subject (sha)", leaving out version bumps."""
+    log = _git(cwd, "log", "--no-merges", "--format=%h %s", f"{since}..HEAD" if since else "HEAD")
+    items = []
+    for line in log.splitlines():
+        sha, _, subject = line.partition(" ")
+        if not HOUSEKEEPING.match(subject):
+            items.append(f"- {subject} ({sha})")
+    return items
 
 
 def main(argv: list[str]) -> int:
@@ -71,7 +89,10 @@ def main(argv: list[str]) -> int:
     if len(argv) == 2 and argv[1] == "dev":
         print(dev_version(package_version(), commits_since_release()))
         return 0
-    print("usage: build_version.py release <tag> | dev", file=sys.stderr)
+    if len(argv) in (2, 3) and argv[1] == "changes":
+        print("\n".join(changes(argv[2] if len(argv) == 3 else None)) or "- (no changes)")
+        return 0
+    print("usage: build_version.py release <tag> | dev | changes [<since>]", file=sys.stderr)
     return 2
 
 

@@ -40,6 +40,8 @@ jobs:
       version: ${{ steps.v.outputs.version }}
       tags: ${{ steps.v.outputs.tags }}
       previous: ${{ steps.v.outputs.previous }}
+      since: ${{ steps.v.outputs.since }}
+      changes: ${{ steps.v.outputs.changes }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -69,9 +71,15 @@ jobs:
               tags="" ;;
           esac
           previous=$(git describe --tags --abbrev=0 --match 'v[0-9]*' "$REF^" 2>/dev/null || true)
+          # a release lists what's new since the one before; edge, since the latest release
+          if [ "$mode" = release ]; then since=$previous
+          else since=$(git describe --tags --abbrev=0 --match 'v[0-9]*' "$REF" 2>/dev/null || true); fi
+          changes=$(python scripts/build_version.py changes ${since:+"$since"})
+          delim="CHANGES_$RANDOM$RANDOM"
           {
             echo "mode=$mode"; echo "ref=$REF"; echo "version=$version"
-            echo "tags=$tags"; echo "previous=$previous"
+            echo "tags=$tags"; echo "previous=$previous"; echo "since=$since"
+            echo "changes<<$delim"; echo "$changes"; echo "$delim"
           } >> "$GITHUB_OUTPUT"
           echo "**$mode** build of \`${REF::7}\`: mcui $version" >> "$GITHUB_STEP_SUMMARY"
 
@@ -226,6 +234,8 @@ jobs:
       REF: ${{ needs.setup.outputs.ref }}
       VERSION: ${{ needs.setup.outputs.version }}
       PREVIOUS: ${{ needs.setup.outputs.previous }}
+      SINCE: ${{ needs.setup.outputs.since }}
+      CHANGES: ${{ needs.setup.outputs.changes }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -239,7 +249,11 @@ jobs:
           gh release create "$GITHUB_REF_NAME" dist/*.tar.gz \
             --title "microcloud-ui $VERSION" --generate-notes "${start[@]}" \
             --notes "Container image: \`podman pull $IMAGE:$VERSION\` (amd64, arm64).
-          Offline bundles for Ubuntu 24.04 (py3.12) and 22.04 (py3.10) are attached; see docs/DEPLOY.md."
+          Offline bundles for Ubuntu 24.04 (py3.12) and 22.04 (py3.10) are attached; see docs/DEPLOY.md.
+
+          ## Changes${SINCE:+ since $SINCE}
+
+          $CHANGES"
       - name: Rolling pre-release "edge"
         if: env.MODE == 'edge'
         run: |
@@ -248,7 +262,11 @@ jobs:
             || gh api -X POST "repos/$GH_REPO/git/refs" -f ref=refs/tags/edge -f sha="$REF" >/dev/null
           notes="Development build of \`main\` at ${REF::7} (mcui $VERSION), rebuilt after every push
           that passes CI. Not a release: for trying what's next. Image:
-          \`podman pull $IMAGE:edge\` (or \`:edge-${REF::7}\` for this build), amd64 and arm64."
+          \`podman pull $IMAGE:edge\` (or \`:edge-${REF::7}\` for this build), amd64 and arm64.
+
+          ## Changes${SINCE:+ since $SINCE}
+
+          $CHANGES"
           if gh release view edge >/dev/null 2>&1; then
             old=$(gh release view edge --json assets --jq '.assets[].name')
             gh release edit edge --prerelease --latest=false --title "Development build (edge)" --notes "$notes"

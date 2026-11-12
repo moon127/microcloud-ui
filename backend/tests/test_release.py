@@ -84,6 +84,24 @@ def test_commits_since_release(tmp_path):
     assert build_version.commits_since_release(tmp_path) == 2
 
 
+def test_changes(tmp_path):
+    _git(tmp_path, "init", "-q")
+    for subject in ("First feature", "Release 0.1.0"):
+        _git(tmp_path, "commit", "-q", "--allow-empty", "-m", subject)
+    _git(tmp_path, "tag", "-a", "v0.1.0", "-m", "r")
+    for subject in ("Back to development: 0.1.1.dev0", "Fix `tables` & $HOME", "Release 0.1.1"):
+        _git(tmp_path, "commit", "-q", "--allow-empty", "-m", subject)
+    items = build_version.changes("v0.1.0", tmp_path)
+    assert len(items) == 1 and items[0].startswith("- Fix `tables` & $HOME (")  # bumps left out
+    assert [i.split(" (")[0] for i in build_version.changes(None, tmp_path)] == [
+        "- Fix `tables` & $HOME",
+        "- First feature",
+    ]
+    assert build_version.changes("HEAD", tmp_path) == []
+    # "Release" alone at the start of a real change isn't a version bump
+    assert build_version.HOUSEKEEPING.match("Release workflow: tags") is None
+
+
 def test_main(monkeypatch, capsys):
     monkeypatch.setattr(build_version, "package_version", lambda: "0.2.0")
     assert build_version.main(["build_version.py", "release", "v0.2.0"]) == 0
@@ -94,6 +112,12 @@ def test_main(monkeypatch, capsys):
     monkeypatch.setattr(build_version, "commits_since_release", lambda: 4)
     assert build_version.main(["build_version.py", "dev"]) == 0
     assert capsys.readouterr().out == "0.2.1.dev4\n"
+    monkeypatch.setattr(build_version, "changes", lambda since: [f"- since {since} (abc1234)"])
+    assert build_version.main(["build_version.py", "changes", "v0.2.0"]) == 0
+    assert capsys.readouterr().out == "- since v0.2.0 (abc1234)\n"
+    monkeypatch.setattr(build_version, "changes", lambda since: [])
+    assert build_version.main(["build_version.py", "changes"]) == 0
+    assert capsys.readouterr().out == "- (no changes)\n"
     assert build_version.main(["build_version.py"]) == 2
     assert build_version.main(["build_version.py", "release"]) == 2
 
@@ -121,6 +145,9 @@ def test_triggers_and_modes():
     assert "build_version.py dev" in mode
     assert 'tags="$IMAGE:$version $IMAGE:${version%.*} $IMAGE:latest"' in mode
     assert 'tags="$IMAGE:edge $IMAGE:edge-${REF::7}"' in mode
+    # notes list the commits since the previous release (a release) or the latest (edge)
+    assert 'build_version.py changes ${since:+"$since"}' in mode
+    assert 'echo "changes<<$delim"' in mode
     # CI runs inline except for edge, which follows a CI run that passed
     assert jobs["ci"]["uses"] == "./.github/workflows/ci.yml"
     assert jobs["ci"]["if"] == "needs.setup.outputs.mode != 'edge'"
@@ -161,6 +188,9 @@ def test_publishing():
     assert tagged["if"] == "env.MODE == 'release'" and "--notes-start-tag" in tagged["run"]
     edge = steps['Rolling pre-release "edge"']
     assert edge["if"] == "env.MODE == 'edge'"
+    assert jobs["release"]["env"]["CHANGES"] == "${{ needs.setup.outputs.changes }}"
+    for step in (tagged, edge):
+        assert "## Changes${SINCE:+ since $SINCE}" in step["run"] and "$CHANGES" in step["run"]
     for part in ("refs/tags/edge", "--prerelease --latest=false", "delete-asset edge"):
         assert part in edge["run"]
     # the only write permissions: packages for the image, contents for the release
