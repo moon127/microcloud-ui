@@ -292,9 +292,11 @@ and multi-volume snapshots for Phase 5:
 - **Image registries** (`image_registries`): manage them, and use them in the image
   picker, replacing or alongside our own remote catalogues (D47).
   `restricted.registries` per project.
-- **OVN:** load-balancer pools and health checks (`network_load_balancer_pool*`, from
-  NW-4/7), internal load balancers and forwards, DHCP ranges, automatic IP allocation
-  for forwards and load balancers.
+- ✅ **OVN load balancers** (from NW-4/7) on the OVN network page: list, add (an
+  address, or one allocated from the uplink: `listen_address` `0.0.0.0`), edit and
+  delete; ports send to named backends or (LXD 6.9+) a pool; pools with instances,
+  target port and (6.10+) a health check, each target's live status from the pool's
+  `/state`. Not yet: internal load balancers and forwards, DHCP ranges.
 - ✅ **Child operations:** a bulk operation's children nested under it on the operations
   page (`recursion=2`, `child_count`).
 - ✅ **Multi-volume snapshots** (`instance_snapshots_multi_volume`): "include volumes

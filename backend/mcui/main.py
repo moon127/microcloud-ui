@@ -19,6 +19,7 @@ from mcui.api import (
     files,
     hosts,
     instances,
+    loadbalancers,
     manage,
     metrics,
     networks,
@@ -88,6 +89,7 @@ def create_app(
     app.include_router(manage.router)
     app.include_router(networks.router)
     app.include_router(acls.router)
+    app.include_router(loadbalancers.router)
     app.include_router(placement.router)
     app.include_router(storage.router)
     app.include_router(volumes.router)

@@ -852,6 +852,77 @@ export const updateForward = (project: string, network: string, listen: string, 
 export const deleteForward = (project: string, network: string, listen: string, target?: string) =>
   send<Started>("DELETE", `${fwd(project, network, listen)}${tq(target)}`);
 
+// --- Phase 5b: OVN load balancers and pools ----------------------------------------
+
+export interface LbBackend {
+  name: string;
+  target_address: string;
+  target_port: string;
+  description: string;
+}
+/** A port sends to named backends, or (LXD 6.9+) to a pool. */
+export interface LbPort {
+  protocol: "tcp" | "udp";
+  listen_port: string;
+  target_backend?: string[];
+  target_pool?: string;
+  description: string;
+}
+export interface LoadBalancer {
+  listen_address: string;
+  description: string;
+  config: Record<string, string>;
+  backends: LbBackend[];
+  ports: LbPort[];
+  location?: string;
+}
+export type LbBody = Omit<LoadBalancer, "listen_address" | "location">;
+export interface LbPool {
+  name: string;
+  description: string;
+  /** protocol, target_port; healthcheck, healthcheck.interval (LXD 6.10+) */
+  config: Record<string, string>;
+  instances: { name: string }[];
+  used_by?: string[];
+}
+export interface PoolTarget {
+  name: string;
+  address: string;
+  port: string;
+  listen_address: string;
+  listen_port: string;
+  status: string;
+}
+export interface PoolBody {
+  description: string;
+  protocol: "tcp" | "udp";
+  target_port: string;
+  instances: string[];
+  healthcheck: boolean;
+  healthcheck_interval?: number;
+}
+const lbs = (project: string, network: string, listen?: string) =>
+  `${net(project, network)}/load-balancers${listen ? `/${encodeURIComponent(listen)}` : ""}`;
+const lbPools = (project: string, network: string, name?: string) =>
+  `${net(project, network)}/load-balancer-pools${name ? `/${encodeURIComponent(name)}` : ""}`;
+export const fetchLoadBalancers = (project: string, network: string) => api<LoadBalancer[]>(lbs(project, network));
+/** ``listen_address`` "0.0.0.0" or "::" asks LXD to allocate one from the uplink. */
+export const createLoadBalancer = (project: string, network: string, body: LbBody & { listen_address: string }) =>
+  send<Started>("POST", lbs(project, network), body);
+export const updateLoadBalancer = (project: string, network: string, listen: string, body: LbBody) =>
+  send<Started>("PUT", lbs(project, network, listen), body);
+export const deleteLoadBalancer = (project: string, network: string, listen: string) =>
+  send<Started>("DELETE", lbs(project, network, listen));
+export const fetchLbPools = (project: string, network: string) => api<LbPool[]>(lbPools(project, network));
+export const fetchLbPoolState = (project: string, network: string, name: string) =>
+  api<{ targets: PoolTarget[] | null }>(`${lbPools(project, network, name)}/state`);
+export const createLbPool = (project: string, network: string, name: string, body: PoolBody) =>
+  send<Started>("POST", lbPools(project, network), { name, ...body });
+export const updateLbPool = (project: string, network: string, name: string, body: PoolBody) =>
+  send<Started>("PUT", lbPools(project, network, name), body);
+export const deleteLbPool = (project: string, network: string, name: string) =>
+  send<Started>("DELETE", lbPools(project, network, name));
+
 // --- Phase 4c: storage pools ------------------------------------------------------
 
 export type PoolDriver = "dir" | "zfs" | "btrfs" | "lvm" | "ceph" | "cephfs";

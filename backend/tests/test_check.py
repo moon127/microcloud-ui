@@ -46,7 +46,8 @@ async def test_all_good(settings, lxd):
     assert "ok   m1: 65 samples" in out
     assert "--   m2: https://192.0.2.2:9100: not reachable (not installed?)" in out
     # LXD 6 features are hidden on this 5.21 fixture, and said so
-    assert "Unavailable (hidden in the UI): placement_groups" in out and out.endswith("Result: OK")
+    lxd6 = "load_balancer_health_checks, load_balancer_pools, placement_groups, snapshot_volumes"
+    assert f"Unavailable (hidden in the UI): {lxd6}" in out and out.endswith("Result: OK")
 
 
 @respx.mock

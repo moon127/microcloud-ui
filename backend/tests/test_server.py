@@ -18,7 +18,13 @@ def test_server_info_from_metadata():
     assert info.auth_method == "tls"
     d = info.as_dict()
     assert d["server_name"] == "m1"
-    lxd6 = {"placement_groups", "snapshot_volumes"}  # not in this 5.21 fixture
+    # not in this 5.21 fixture
+    lxd6 = {
+        "placement_groups",
+        "snapshot_volumes",
+        "load_balancer_pools",
+        "load_balancer_health_checks",
+    }
     assert all(d["features"][k] for k in FEATURES if k not in lxd6)
     assert not any(d["features"][k] for k in lxd6)
     assert d["features"]["cephfs_path"] is False  # LXD 5.21 takes source

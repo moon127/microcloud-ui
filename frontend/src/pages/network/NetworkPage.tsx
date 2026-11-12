@@ -8,6 +8,7 @@ import {
   fetchNetworkLeases,
   fetchNetworkMembers,
   fetchNetworkState,
+  fetchServer,
   updateNetwork,
   type NetworkState,
 } from "../../api";
@@ -21,6 +22,7 @@ import MemberConfig from "../../MemberConfig";
 import YamlEditor from "../../YamlEditor";
 import { asConfig } from "../instance/state";
 import Forwards from "./Forwards";
+import LoadBalancers from "./LoadBalancers";
 import { aclPath } from "./paths";
 
 interface Draft {
@@ -39,6 +41,7 @@ export default function NetworkPage() {
   const n = net.data;
   const managed = !!n?.managed;
   const admin = user.role === "admin" && managed;
+  const features = useApi("server", fetchServer).data?.features ?? {};
   const [draft, setDraft] = useState<Draft | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -124,6 +127,14 @@ export default function NetworkPage() {
               <MemberSettings project={project} name={name} admin={admin} />
               {(n.type === "bridge" || n.type === "ovn") && (
                 <Forwards project={project} network={name} admin={admin} members={n.type === "bridge" ? (n.locations ?? []) : []} />
+              )}
+              {n.type === "ovn" && features.network_load_balancers && (
+                <LoadBalancers
+                  project={project}
+                  network={name}
+                  admin={admin}
+                  features={{ pools: !!features.load_balancer_pools, healthChecks: !!features.load_balancer_health_checks }}
+                />
               )}
             </>
           )}

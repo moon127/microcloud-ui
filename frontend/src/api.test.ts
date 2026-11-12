@@ -288,3 +288,33 @@ describe("operationProgress", () => {
     expect(api.operationProgress(op({ progress: { stage: "copy" } }))).toBe("copy");
   });
 });
+
+describe("OVN load balancers (Phase 5b)", () => {
+  it("build the right URLs", async () => {
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    const lb: api.LbBody = { description: "", config: {}, backends: [], ports: [] };
+    const pool: api.PoolBody = { description: "", protocol: "tcp", target_port: "80", instances: ["c1"], healthcheck: false };
+    await api.fetchLoadBalancers("p", "o n");
+    await api.createLoadBalancer("p", "ovn", { listen_address: "0.0.0.0", ...lb });
+    await api.updateLoadBalancer("p", "ovn", "198.51.100.1", lb);
+    await api.deleteLoadBalancer("p", "ovn", "198.51.100.1");
+    await api.fetchLbPools("p", "ovn");
+    await api.fetchLbPoolState("p", "ovn", "web");
+    await api.createLbPool("p", "ovn", "web", pool);
+    await api.updateLbPool("p", "ovn", "web", pool);
+    await api.deleteLbPool("p", "ovn", "web");
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    const B = "/api/networks/p/ovn";
+    expect(calls).toEqual([
+      ["/api/networks/p/o%20n/load-balancers", "GET", null],
+      [`${B}/load-balancers`, "POST", JSON.stringify({ listen_address: "0.0.0.0", ...lb })],
+      [`${B}/load-balancers/198.51.100.1`, "PUT", JSON.stringify(lb)],
+      [`${B}/load-balancers/198.51.100.1`, "DELETE", null],
+      [`${B}/load-balancer-pools`, "GET", null],
+      [`${B}/load-balancer-pools/web/state`, "GET", null],
+      [`${B}/load-balancer-pools`, "POST", JSON.stringify({ name: "web", ...pool })],
+      [`${B}/load-balancer-pools/web`, "PUT", JSON.stringify(pool)],
+      [`${B}/load-balancer-pools/web`, "DELETE", null],
+    ]);
+  });
+});
