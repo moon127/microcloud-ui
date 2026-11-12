@@ -22,3 +22,5 @@ frontend/coverage/
 .env
 config.toml
 data/
+Claude outputs/
+.DS_Store
