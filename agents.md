@@ -200,8 +200,11 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   GitHub Release with bundles; docs/RELEASING.md. **Dry run passed 2026-11-12** (run
   43240796585): CI, both images natively (arm64 on an aarch64 runner, 97 s, `push=false`),
   four bundles. amd64 image also run-tested in a throwaway VM (health, uid 8843,
-  healthcheck). Still to do: the first real tag, then make the GHCR package public once;
-  the arm64 image hasn't been *run* yet (pull it on an ARM host after the first release). 22.04 (py3.10) bundles now include `tomli`.
+  healthcheck).
+- **0.1.0 released 2026-11-12** (run 43242283224): GitHub Release with the four bundles;
+  `ghcr.io/moon127/microcloud-ui` `0.1.0`, `0.1`, `latest` (amd64 + arm64), public and
+  pullable anonymously. `main` is now 0.1.1.dev0. Not yet done: *running* the arm64 image
+  on an ARM host. 22.04 (py3.10) bundles now include `tomli`.
 - **Git history scrubbed 2026-11-12 (D66):** no `Claude-Session:` trailers; commit-msg hook
   guards against them.
 - Next: **Phase 5** (metric store evaluation, alerts, export, quota history; node_exporter done in 4g) — awaiting the owner

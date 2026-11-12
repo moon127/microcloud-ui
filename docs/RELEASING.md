@@ -43,9 +43,9 @@ re-run the failed jobs rather than re-tagging.
 architectures, natively) and the bundles, but logs in to nothing, pushes nothing and creates no
 release. The bundles are kept as a downloadable artifact of the run.
 
-## Once only: make the package public
+## Package visibility
 
-The first push creates the package `microcloud-ui` under your GitHub account as
-**private**. To let hosts pull it without logging in: GitHub → your profile → Packages →
-`microcloud-ui` → Package settings → Change visibility → Public. The image's
-`org.opencontainers.image.source` label links the package to this repository.
+The package `ghcr.io/moon127/microcloud-ui` was created by the first release (0.1.0) and is
+**public**, like the repository it is linked to through the image's
+`org.opencontainers.image.source` annotation: hosts pull it without logging in. Its
+settings are under GitHub → your profile → Packages → `microcloud-ui`.
