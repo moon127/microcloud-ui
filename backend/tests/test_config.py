@@ -75,9 +75,23 @@ def test_server_tls(tmp_path, certs):
         Settings(server={"tls_cert": str(certs.other_cert)})
     with pytest.raises(ValueError, match="file not found"):
         Settings(server={"tls_cert": str(tmp_path / "nope"), "tls_key": str(certs.other_key)})
-    certs.other_key.chmod(0o640)
+    loose = tmp_path / "loose.key"  # a copy: the certs fixture is shared
+    loose.write_bytes(certs.other_key.read_bytes())
+    loose.chmod(0o640)
     with pytest.raises(ValueError, match="chmod 600"):
-        Settings(server={"tls_cert": str(certs.other_cert), "tls_key": str(certs.other_key)})
+        Settings(server={"tls_cert": str(certs.other_cert), "tls_key": str(loose)})
+
+
+def test_server_proxy_settings():
+    s = Settings(
+        server={"public_url": "HTTPS://Mcui.Example.org:8443/", "forwarded_allow_ips": "*"}
+    )
+    assert s.server.public_url == "https://mcui.example.org:8443"
+    assert s.server.forwarded_allow_ips == "*"
+    assert Settings().server.public_url is None
+    for bad in ("mcui.example.org", "ftp://x", "https://", "https://x/ui"):
+        with pytest.raises(ValueError, match="public_url"):
+            Settings(server={"public_url": bad})
 
 
 def test_interval_minimum(tmp_path, certs):

@@ -9,7 +9,8 @@ usage, and OVN network visibility.
 
 **Running it for real:** an offline bundle (`make bundle`) installs on Ubuntu as a
 hardened systemd service serving HTTPS. There's also a container image (`make image`) for a
-Podman Quadlet or Docker Compose. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
+Podman Quadlet or Docker Compose. Either can sit behind NGINX Proxy Manager, Cosmos, Caddy
+or nginx, which then handle Let's Encrypt certificates. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## Screenshots
 

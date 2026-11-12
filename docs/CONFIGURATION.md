@@ -19,6 +19,9 @@ host = "127.0.0.1"                 # where `mcui serve` listens (--host/--port o
 port = 8000                        # production: 8843, see docs/DEPLOY.md
 # tls_cert = "/etc/mcui/certs/ui.crt"   # serve HTTPS directly; set both or neither
 # tls_key  = "/etc/mcui/certs/ui.key"   # key: chmod 600
+# public_url = "https://mcui.example.org"   # behind a proxy that rewrites Host or drops its port:
+#                                          # also accepted as the websocket Origin (DEPLOY.md §10)
+# forwarded_allow_ips = "192.0.2.20"        # proxies trusted for X-Forwarded-For (IPs/CIDRs, "*")
 
 [lxd]
 endpoints   = ["https://<member1-ip>:8443", "https://<member2-ip>:8443"]  # any members; used for failover

@@ -67,6 +67,9 @@ def _serve(args: argparse.Namespace) -> int:
     if args.config is not None:
         os.environ[CONFIG_ENV] = str(args.config)
     server = _settings(args).server  # fail fast with a readable error
+    proxy = (
+        {"forwarded_allow_ips": server.forwarded_allow_ips} if server.forwarded_allow_ips else {}
+    )
     tls: dict[str, str] = {}
     if server.tls_cert is not None and server.tls_key is not None:
         tls = {"ssl_certfile": str(server.tls_cert), "ssl_keyfile": str(server.tls_key)}
@@ -79,6 +82,7 @@ def _serve(args: argparse.Namespace) -> int:
         # one process: the collector and live metrics live in it
         workers=1,
         server_header=False,
+        **proxy,  # type: ignore[arg-type]
         **tls,  # type: ignore[arg-type]
     )
     return 0

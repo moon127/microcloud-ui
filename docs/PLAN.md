@@ -189,6 +189,9 @@ on the MicroCloud itself as an LXD instance (NF-6).
   Podman Quadlet (recommended, host network) and Compose (not on members), databases 0600
   regardless of umask; DEPLOY.md §9 (D64). Verified in an Ubuntu 24.04 VM with Podman 4.9 and
   Docker 29. Later: publish to a registry (ghcr.io, multi-arch) once the repo is on GitHub.
+- 7c ✅ 2026-11-12: behind a reverse proxy (DEPLOY.md §10: NGINX Proxy Manager, Cosmos,
+  Caddy, nginx); `[server] public_url` and `forwarded_allow_ips` (D65). Tested live in an
+  Ubuntu 24.04 VM against NPM 2.17.0, Cosmos and Caddy 2.6.2.
 
 **Later:** OVN/OVS node agent (MO-11), cluster links/replicators,
 placement groups, image registries, buckets, LXD auth management.

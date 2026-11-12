@@ -24,13 +24,19 @@ UNAUTHORIZED = 4401
 UPSTREAM = 4502
 
 
-def same_origin(ws: WebSocket) -> bool:
-    """The browser's Origin must name this host (blocks cross-site websocket hijacking)."""
+def same_origin(ws: WebSocket, public_url: str | None = None) -> bool:
+    """The browser's Origin must name this host (blocks cross-site websocket hijacking).
+
+    Behind a proxy that rewrites ``Host`` or drops a non-default port, the configured
+    ``public_url`` is accepted too (D65).
+    """
     origin = ws.headers.get("origin")
-    host = ws.headers.get("host")
-    if not origin or not host:
+    if not origin:
         return False
-    return urlsplit(origin).netloc == host
+    if public_url is not None and origin.lower().rstrip("/") == public_url:
+        return True
+    host = ws.headers.get("host")
+    return host is not None and urlsplit(origin).netloc == host
 
 
 async def authenticate(
@@ -45,7 +51,7 @@ async def authenticate(
     offered = ws.scope.get("subprotocols") or []
     chosen = next((p for p in subprotocols if p in offered), None)
     await ws.accept(subprotocol=chosen)
-    if not same_origin(ws):
+    if not same_origin(ws, services.settings.server.public_url):
         await ws.close(code=POLICY, reason="cross-origin websocket refused")
         return None
     token = ws.cookies.get(COOKIE)

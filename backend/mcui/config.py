@@ -7,6 +7,7 @@ import stat
 import sys
 from pathlib import Path
 from typing import Annotated, Any, Literal
+from urllib.parse import urlsplit
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_settings import (
@@ -66,6 +67,22 @@ class ServerSettings(_Section):
     # serve HTTPS directly (production without a reverse proxy, docs/DEPLOY.md)
     tls_cert: ExpandedPath | None = None
     tls_key: ExpandedPath | None = None
+    # behind a reverse proxy (docs/DEPLOY.md §10, D65): the address browsers use, accepted
+    # as a websocket Origin even when the proxy rewrites Host or drops its port
+    public_url: str | None = None
+    # proxies whose X-Forwarded-For/-Proto are trusted for the logged client address
+    # (comma-separated IPs or CIDRs, or "*"); unset: uvicorn's default, 127.0.0.1
+    forwarded_allow_ips: str | None = None
+
+    @field_validator("public_url")
+    @classmethod
+    def _public_url(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        u = urlsplit(v)
+        if u.scheme not in ("http", "https") or not u.hostname or u.path not in ("", "/"):
+            raise ValueError("public_url must be like https://mcui.example.org[:port]")
+        return f"{u.scheme}://{u.netloc.lower()}"
 
     @model_validator(mode="after")
     def _tls(self) -> ServerSettings:

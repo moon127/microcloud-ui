@@ -98,6 +98,12 @@ tls_key = "{certs.other_key}"
     assert fake_uvicorn["host"] == "0.0.0.0" and fake_uvicorn["port"] == 8843  # noqa: S104
     assert fake_uvicorn["ssl_certfile"] == str(certs.other_cert)
     assert fake_uvicorn["ssl_keyfile"] == str(certs.other_key)
+    assert "forwarded_allow_ips" not in fake_uvicorn
+    p.write_text(
+        p.read_text().replace("port = 8843", 'port = 8843\nforwarded_allow_ips = "192.0.2.9"')
+    )
+    assert cli.main(["-c", str(p), "serve"]) == 0
+    assert fake_uvicorn["forwarded_allow_ips"] == "192.0.2.9"
     assert cli.main(["-c", str(p), "serve", "--host", "192.0.2.5", "--port", "9443"]) == 0
     assert fake_uvicorn["host"] == "192.0.2.5" and fake_uvicorn["port"] == 9443
 

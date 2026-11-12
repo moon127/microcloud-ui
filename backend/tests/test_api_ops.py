@@ -303,3 +303,39 @@ def test_relay_closes_browser_when_lxd_ends():
         with pytest.raises(WebSocketDisconnect):
             ws.receive_text()
     assert up.closed
+
+
+@pytest.mark.parametrize(
+    "public_url,headers,code",
+    [
+        # a proxy that drops the public port from Host (NGINX Proxy Manager's $host)
+        (None, {"origin": "https://mcui.example.org:8443", "host": "mcui.example.org"}, 4403),
+        (
+            "https://mcui.example.org:8443",
+            {"origin": "https://mcui.example.org:8443", "host": "mcui.example.org"},
+            4502,
+        ),
+        # a proxy that rewrites Host to the upstream address
+        (
+            "https://MCUI.example.org/",
+            {"origin": "https://mcui.example.org", "host": "127.0.0.1:8843"},
+            4502,
+        ),
+        # public_url doesn't open the door to other sites
+        ("https://mcui.example.org", {"origin": "https://evil.example", "host": "x"}, 4403),
+        ("https://mcui.example.org", {"origin": "http://mcui.example.org", "host": "x"}, 4403),
+    ],
+)
+def test_events_origin_behind_proxy(tmp_path, public_url, headers, code):
+    """Past the Origin check the socket closes 4502 (no LXD here); refused is 4403 (D65)."""
+    store = fast_store()
+    store.add_user("viewer", "viewerpw")
+    server = {"data_dir": str(tmp_path), "secure_cookies": False, "public_url": public_url}
+    svc = build_services(Settings(server=server), store=store)
+    app = create_app(services=svc, static_dir=None)
+    with (
+        ws_client(app).websocket_connect("/api/events", headers=headers) as ws,
+        pytest.raises(WebSocketDisconnect) as e,
+    ):
+        ws.receive_text()
+    assert e.value.code == code

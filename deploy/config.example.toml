@@ -10,6 +10,10 @@ tls_cert = "/var/lib/mcui/tls/ui.crt"      # a self-signed pair is made here if 
 tls_key = "/var/lib/mcui/tls/ui.key"       # CA's, point these at /etc/mcui/certs (key: chmod 600)
 secure_cookies = true                       # keep true: the browser only reaches us over HTTPS
 session_hours = 12
+# Behind a reverse proxy that does HTTPS (docs/DEPLOY.md §10): comment out tls_cert/tls_key,
+# set host to where the proxy connects, and if needed:
+# public_url = "https://mcui.example.org"   # the address browsers use (Host rewritten or port dropped)
+# forwarded_allow_ips = "192.0.2.20"        # the proxy's address: log the real client IP
 
 # Uncomment once the certificates are in /etc/mcui/certs (docs/LXD-CREDENTIALS.md).
 # Until then the UI starts and says "LXD is not configured".

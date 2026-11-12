@@ -32,14 +32,16 @@ def test_example_config_is_valid(tmp_path):
 
 
 def test_commented_sections_use_real_keys():
-    """Uncommenting the [lxd]/[metrics]/[node_exporter] examples gives known keys only."""
+    """Uncommenting the [server] proxy keys and the [lxd]/[metrics]/[node_exporter] examples
+    gives known keys only."""
     lines = [
         line[2:]
         for line in read("config.example.toml").splitlines()
         if re.match(r"# (\[\w+\]|\w+ *=)", line)
     ]
-    data = tomllib.loads("\n".join(lines))
-    assert set(data) == {"lxd", "metrics", "node_exporter"}
+    data = tomllib.loads("[server]\n" + "\n".join(lines))  # the first ones are [server]'s
+    assert set(data) == {"server", "lxd", "metrics", "node_exporter"}
+    assert set(data["server"]) == {"public_url", "forwarded_allow_ips"}
     for section, keys in data.items():
         model = Settings.model_fields[section].annotation
         if not hasattr(model, "model_fields"):  # "X | None": the model in the union

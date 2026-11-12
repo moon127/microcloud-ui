@@ -9,6 +9,7 @@ There are two supported ways to run it. Both use the same config file and the sa
 | Needs on the host | `python3-venv`, `openssl` from Ubuntu | Podman 4.4+ (or Docker on a non-member host) |
 | Runs as | systemd unit, user `mcui` | Podman Quadlet (systemd) or Compose, uid 8843 |
 | On a MicroCloud member | yes | Podman only, never Docker (§9) |
+| HTTPS | built in (self-signed or your own certificate), or a reverse proxy (§10) | the same |
 | Tested on | Ubuntu 24.04 VM | Ubuntu 24.04 VM: Podman 4.9 Quadlet, Docker 29 Compose |
 
 The bundle installs microcloud-ui as a systemd service on Ubuntu 24.04 (or 22.04). It is an
@@ -142,24 +143,8 @@ sign in.
   AmbientCapabilities=CAP_NET_BIND_SERVICE
   CapabilityBoundingSet=CAP_NET_BIND_SERVICE
   ```
-- **Behind a reverse proxy** (nginx, Caddy, HAProxy): set `host = "127.0.0.1"`,
-  drop `tls_cert`/`tls_key`, and keep `secure_cookies = true`. The proxy must:
-  - pass the original `Host` header, because the console and terminal websockets are refused
-    when the browser's Origin doesn't match it
-  - support websocket upgrades on `/api/`
-
-  For nginx:
-  ```nginx
-  location / {
-      proxy_pass http://127.0.0.1:8843;
-      proxy_http_version 1.1;
-      proxy_set_header Host $http_host;
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection $connection_upgrade;   # map $http_upgrade in http {}
-      proxy_read_timeout 1h;                             # long-lived consoles
-      client_max_body_size 0;                            # file uploads to instances
-  }
-  ```
+- **Behind a reverse proxy** that handles HTTPS and certificate renewal (Let's Encrypt)
+  for you: NGINX Proxy Manager, Cosmos Cloud, Caddy or plain nginx. See §10.
 
 ## 6. Who can reach it
 
@@ -345,3 +330,175 @@ stalls HTTPS to LXD. Set the MTU to 1442, using the commented block at the end o
 | Builds or LXD connections hang inside an LXD instance | The bridge MTU is larger than the host's (§9.1, §9.3) |
 | Switching between the bundle and the container | Both use uid 8843 and the same `/etc/mcui`, so stop one and start the other. `install.sh` resets the config's group and the owner of `certs/` on every run |
 | `podman run` shows no health status | The image was built in OCI format. `make image` uses `--format docker` with Podman |
+
+## 10. Behind a reverse proxy (NGINX Proxy Manager, Cosmos, Caddy, nginx)
+
+Let a proxy you already run handle HTTPS. It gets and renews short-lived certificates such
+as Let's Encrypt's, so you never copy certificates into mcui. mcui then serves plain HTTP
+to the proxy only.
+
+| | Built-in HTTPS (§5) | Behind a proxy |
+|---|---|---|
+| Certificates | self-signed, or files you renew and copy in | the proxy's, renewed automatically |
+| Extra service | none (suits a MicroCloud member) | the proxy, usually on another host |
+| Extras | | one place for all your sites; optional SSO, IP rules or rate limits at the edge |
+
+Each recipe below was tested on Ubuntu 24.04 with mcui as the bundle, using the proxy's
+default settings. Recipes that need no changes say so.
+
+- **Tested:** sign-in, the Secure cookie, the console websocket's Origin check, a
+  150-second idle websocket and a 50 MB upload.
+- **Versions:** NGINX Proxy Manager 2.17.0 and Caddy 2.6.2 in their default setups; Cosmos
+  as the then-current `azukaar/cosmos-server:latest`.
+- **Not tested:** real Let's Encrypt certificates, because the test machine had no public
+  DNS name. Each proxy served a self-signed certificate instead.
+
+### 10.1 What every proxy setup needs
+
+1. **mcui config:** comment out `tls_cert` and `tls_key`, and keep `secure_cookies = true`.
+   The browser talks HTTPS to the proxy, so the cookie works. Set `host` to:
+   - `127.0.0.1` if the proxy runs on the same machine, outside a container
+   - otherwise the address the proxy connects to, such as the management IP, firewalled so
+     only the proxy can reach port 8843 (§6)
+
+   ```toml
+   [server]
+   host = "192.0.2.10"                       # or 127.0.0.1
+   port = 8843
+   # tls_cert = …                            # commented out: the proxy does HTTPS
+   # tls_key  = …
+   secure_cookies = true
+   public_url = "https://mcui.example.org"   # what browsers type (see 4)
+   forwarded_allow_ips = "192.0.2.20"        # the proxy's address (see 5)
+   ```
+2. **Websockets** must be allowed. The console, terminal and live updates use them on
+   `/api/…`.
+3. **Timeouts:** mcui pings every websocket every 20 seconds, so an idle console survives a
+   proxy's read timeout (NGINX Proxy Manager's 90 seconds, for example). A *total* request
+   deadline still ends a console session when it expires (Cosmos, §10.3).
+4. **`Host` and `public_url`:** mcui refuses a websocket whose browser Origin doesn't match
+   the `Host` header it receives. This protects against cross-site websocket hijacking.
+   - A proxy that keeps `Host` needs nothing: NGINX Proxy Manager, Caddy, and Cosmos by
+     default.
+   - A proxy that rewrites `Host`, or drops a non-standard port from it, needs `public_url`
+     set to exactly what the browser shows: scheme, name and any port, such as
+     `https://mcui.example.org:8443`. Other sites are still refused.
+5. **`forwarded_allow_ips`:** without it, every request is logged with the proxy's address.
+   List the proxy's IP or network (for example `"192.0.2.20"` or `"172.17.0.0/16"`). Only
+   those addresses are trusted to set `X-Forwarded-For`, so others can't fake a client IP.
+6. **Uploads:** image tarballs and file uploads can be large. Allow big request bodies.
+   NGINX Proxy Manager allows 2000 MB and Caddy sets no limit. A 50 MB upload went through
+   Cosmos's defaults in testing.
+7. **Proxy to mcui:** plain HTTP is fine on the same machine or a trusted network. Across an
+   untrusted one, leave mcui's HTTPS on and have the proxy connect with `https://`. The
+   proxy then talks to the self-signed certificate, so tell it not to verify (NPM doesn't
+   by default; in Cosmos, *Accept insecure HTTPS target*).
+8. **Docker:** NGINX Proxy Manager and Cosmos run on Docker, so put them **on another host
+   or VM, never on a MicroCloud member** (§9.3). Caddy and nginx are fine anywhere.
+9. **Internal-only names:** for names like `mcui.lan.example.org`, Let's Encrypt needs the
+   **DNS challenge**. NPM, Cosmos and Caddy (with a DNS plugin) all support it.
+
+**Containers:** with the image (§9) behind a proxy, the container's health check falls back
+to plain HTTP by itself (tested).
+- **Podman Quadlet:** it uses the host network, so set `host` in `/etc/mcui/config.toml` as
+  above.
+- **Compose / `docker run`:** keep `host = "0.0.0.0"` inside the container, and publish the
+  port only where the proxy connects, for example `127.0.0.1:8843:8843` or
+  `<management IP>:8843:8843`.
+
+### 10.2 NGINX Proxy Manager
+
+*Hosts → Proxy Hosts → Add Proxy Host:*
+
+- **Details:**
+  - **Domain Names:** `mcui.example.org`
+  - **Scheme:** `http` (or `https`, see 10.1 point 7)
+  - **Forward Hostname / IP:** mcui's address; **Forward Port:** `8843`
+  - **Websockets Support:** **on** (required)
+  - *Block Common Exploits* and *Cache Assets*: optional; tested off
+- **SSL:**
+  - **SSL Certificate:** *Request a new Certificate* (Let's Encrypt), with *Use a DNS
+    Challenge* for internal-only names
+  - **Force SSL:** on. HTTP/2 and HSTS are optional.
+- **Advanced:** nothing needed.
+
+Its defaults were enough in testing: a 90-second read timeout (pings keep consoles open)
+and a 2000 MB upload limit. NGINX Proxy Manager 2.17.0 passes the browser's port in `Host`,
+so even a non-standard public port worked without `public_url`.
+
+Set `forwarded_allow_ips` to NPM's address. That's its host's IP, or the Docker network
+(`172.17.0.0/16`) if mcui runs on the same host.
+
+When starting NGINX Proxy Manager, mount **both** `/data` and `/etc/letsencrypt` as
+volumes. It refuses to start if `/etc/letsencrypt` isn't mounted.
+
+### 10.3 Cosmos Cloud
+
+*URLs → Create URL*, or add mcui as a ServApp from `deploy/container/compose.yaml`:
+
+- **Mode:** *Reverse proxy* to `http://<mcui address>:8843`, or the ServApp.
+- **Source:** *Use host* with `mcui.example.org`. Cosmos gets the Let's Encrypt
+  certificate for it, using a DNS challenge if you set one up.
+- **Timeout:** the default is **4 hours (14 400 000 ms), and it's a total deadline,
+  websockets included.** A console or terminal session is cut when it expires, however
+  busy it is (tested with 60 seconds: closed at 60 s). Raise it (for example to 24 h) if
+  you keep consoles open longer.
+- **Throttle** (10 000 a minute), **SmartShield** and **Block common bots:** the defaults
+  were fine.
+- **Spoof hostname:** leave it **off**. With it on, Cosmos sends mcui's own address as
+  `Host` and consoles are refused, unless you set `public_url` (tested both ways).
+- **Authentication required:** Cosmos's own login in front of mcui works, but you then sign
+  in twice. mcui doesn't yet accept the proxy's login as its own; that's for the login
+  options work in Phase 6 (AU-4).
+
+Cosmos adds HSTS and `frame-ancestors 'self'` headers; mcui is fine with both. Set
+`forwarded_allow_ips` to Cosmos's address. With Cosmos on the host network, that's its
+host's IP.
+
+### 10.4 Caddy
+
+Caddy gets and renews Let's Encrypt certificates by itself:
+```caddyfile
+mcui.example.org {
+	reverse_proxy 192.0.2.10:8843
+}
+```
+Websockets, keeping the original `Host`, `X-Forwarded-For` and no upload limit are its
+defaults (tested with a local certificate: everything worked with no extra settings).
+Set `forwarded_allow_ips` to Caddy's address.
+
+### 10.5 nginx
+
+```nginx
+map $http_upgrade $connection_upgrade { default upgrade; '' close; }   # in http {}
+
+server {
+    listen 443 ssl;
+    server_name mcui.example.org;
+    # ssl_certificate … (certbot or similar)
+
+    location / {
+        proxy_pass http://192.0.2.10:8843;
+        proxy_http_version 1.1;
+        proxy_set_header Host $http_host;          # keeps the port
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        client_max_body_size 0;                    # large uploads
+    }
+}
+```
+(`$host` drops the port: use `$http_host`, or set `public_url`.)
+
+### 10.6 Troubleshooting behind a proxy
+
+| Symptom | Cause |
+|---|---|
+| Console or terminal: "cross-origin websocket refused" | The proxy rewrote `Host` (Cosmos *Spoof hostname*, nginx `$host` on a non-standard port). Set `public_url` to the exact browser address, or keep `Host` |
+| Console doesn't connect at all | Websockets aren't enabled in the proxy (NPM *Websockets Support*) |
+| Console closes after a fixed time, even when busy | A total request deadline: Cosmos route *Timeout* |
+| Upload fails with 413 | The proxy's body size limit (`client_max_body_size` in nginx or NPM *Advanced*) |
+| Sign-in does nothing | The browser reaches the proxy over plain HTTP. Use HTTPS. Keep `secure_cookies = true` |
+| Every log line shows the proxy's IP | Set `forwarded_allow_ips` to the proxy's address |
+| 502 or connection refused from the proxy | mcui listens on `127.0.0.1` but the proxy is elsewhere or in a container. Set `host` to an address the proxy can reach |
