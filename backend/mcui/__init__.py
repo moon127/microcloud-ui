@@ -1,3 +1,3 @@
 """microcloud-ui backend."""
 
-__version__ = "0.1.4.dev0"
+__version__ = "0.1.4"
