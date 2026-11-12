@@ -5,6 +5,7 @@ import httpx
 import pytest
 import respx
 
+import mcui.config
 from mcui import __version__, cli
 from mcui.auth.store import Store
 from tests.conftest import EP1, fixture_json, fixture_text, lxd_ok
@@ -77,9 +78,20 @@ def test_serve_invokes_uvicorn_factory(fake_uvicorn, monkeypatch):
     }
 
 
-def test_serve_passes_config_via_env(fake_uvicorn, config, monkeypatch):
+def test_serve_passes_config_via_env(fake_uvicorn, config, monkeypatch, capsys):
     assert cli.main(["--config", str(config), "serve"]) == 0
     assert os.environ["MCUI_CONFIG"] == str(config)
+    assert f"mcui: config {config}" in capsys.readouterr().err
+
+
+def test_serve_says_which_config(fake_uvicorn, monkeypatch, capsys):
+    """Unconfigured is easy to miss (no cluster, no users): say so (D71)."""
+    assert cli.main(["serve"]) == 0
+    assert "no config file; built-in defaults" in capsys.readouterr().err
+    default = mcui.config.DEFAULT_CONFIG
+    default.write_text("")
+    assert cli.main(["serve"]) == 0
+    assert f"mcui: config {default}" in capsys.readouterr().err
 
 
 def test_serve_listen_and_tls_from_config(fake_uvicorn, tmp_path, certs, monkeypatch):

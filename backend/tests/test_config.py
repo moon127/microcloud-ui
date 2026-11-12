@@ -2,7 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from mcui.config import ConfigError, Settings, check_key_file, load_settings
+import mcui.config
+from mcui.config import ConfigError, Settings, check_key_file, config_path, load_settings
 from tests.conftest import EP1, SERVER_NAME
 
 
@@ -23,6 +24,22 @@ client_key = "{certs.client_key}"
 """
     )
     return p
+
+
+def test_default_config_path(tmp_path, monkeypatch):
+    """-c, else $MCUI_CONFIG, else ~/.config/mcui/config.toml if it exists (D71)."""
+    default = mcui.config.DEFAULT_CONFIG
+    assert config_path() is None  # nothing named, no file: built-in defaults
+    default.write_text("[metrics]\nport = 8444\n")
+    assert config_path() == default
+    assert load_settings().metrics.port == 8444
+    named = tmp_path / "named.toml"
+    named.write_text("[metrics]\nport = 9443\n")
+    monkeypatch.setenv("MCUI_CONFIG", str(named))
+    assert config_path() == named  # the environment wins over the default
+    assert config_path(tmp_path / "x.toml") == tmp_path / "x.toml"  # and -c over both
+    monkeypatch.setenv("MCUI_CONFIG", "")
+    assert config_path() == default  # empty means unset
 
 
 def test_defaults_without_file(monkeypatch):

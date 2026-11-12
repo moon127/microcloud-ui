@@ -3,7 +3,9 @@
 Implemented in Phase 1 (`backend/mcui/config.py`). Keep this file in sync with
 the code (agents.md rule).
 
-Config is TOML (`config.toml`, path via `mcui --config <file>` or `MCUI_CONFIG`). Any key
+Config is TOML (`config.toml`). `mcui` reads `--config <file>`, else `MCUI_CONFIG`, else
+`~/.config/mcui/config.toml` if it exists (for development), else nothing: built-in
+defaults, no cluster, data in `./data` (D71). `mcui serve` logs which on start. Any key
 can be overridden with an env var `MCUI_<SECTION>__<KEY>`, e.g.
 `MCUI_METRICS__PORT=8444`. Env vars win over the file. Unknown keys are errors.
 `~` is expanded in paths.

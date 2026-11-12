@@ -97,9 +97,9 @@ cd frontend && npm run dev             # open http://localhost:5173
 make serve                             # open http://127.0.0.1:8000
 ```
 
-Without a config these run on built-in defaults: no cluster, no users (so the login page
-can't be passed) and data in `./data`. That's enough to check the build; to use the UI,
-connect it to your MicroCloud as below.
+Without a config file these run on built-in defaults: no cluster, no users (so the login
+page can't be passed) and data in `./data`. `mcui serve` says which it's using on its
+first line. To use the UI, connect it to your MicroCloud as below.
 
 ## Connecting to your MicroCloud
 
@@ -107,13 +107,12 @@ connect it to your MicroCloud as below.
 2. Write a `config.toml` (git-ignored), e.g. `~/.config/mcui/config.toml`; see
    [`docs/CONFIGURATION.md`](docs/CONFIGURATION.md). For plain-http local dev set
    `secure_cookies = false` under `[server]`.
-3. Check it, create a login, and run. `mcui` has **no default config path**: every
-   command, `make serve` and `make dev-backend` included, needs `-c <file>` or
-   `MCUI_CONFIG`. Without either it quietly uses the built-in defaults (no cluster, data
-   in `./data`), so exporting it once per shell is simplest:
+3. Check it, create a login, and run. Every `mcui` command (so `make serve` and
+   `make dev-backend` too) reads `-c <file>`, else `$MCUI_CONFIG`, else
+   `~/.config/mcui/config.toml` if it exists. With the config there, nothing needs
+   naming:
 
 ```bash
-export MCUI_CONFIG=~/.config/mcui/config.toml
 mcui check                             # endpoints, trust, members, metrics, features
 mcui user add admin --role admin       # prompts for a password
 make serve                             # or: make dev-backend (+ npm run dev for Vite)
@@ -129,10 +128,10 @@ latency, busiest disks), Networks (create/edit per member, ACLs, forwards, lease
 OVN overview), Operations and Warnings. Admins can change things; viewers read only. Pick the time range (15 min to 1 year) above
 the graphs. History is collected in the background into `<data_dir>/metrics.db`.
 
-Other user commands, with the same config: `mcui user list`, `mcui user passwd <name>`
-(also signs the user out), `mcui user delete <name>`. Admins can do the same through the
-`/api/users` endpoints. Users live in the config's `data_dir`, so a server started with
-another config (or none) doesn't know them.
+Other user commands: `mcui user list`, `mcui user passwd <name>` (also signs the user
+out), `mcui user delete <name>`. Admins can do the same through the `/api/users`
+endpoints. Users live in the config's `data_dir`, so a server started with another
+config (or none) doesn't know them.
 
 ### Live tests and fixtures (run on a machine that reaches the cluster)
 
@@ -154,7 +153,8 @@ The repository holds no secrets. Everything reads one config file, kept outside 
 repo at `~/.config/mcui/config.toml`:
 
 - `mcui` (the server, `check`, `user`, `record-fixtures`, and so `make serve` and
-  `make dev-backend`): `-c <file>` or `$MCUI_CONFIG`; there's no default path.
+  `make dev-backend`): `-c <file>`, else `$MCUI_CONFIG`, else
+  `~/.config/mcui/config.toml` if it exists.
 - `scripts/lxd_api.py`: `$MCUI_CONFIG`, else `~/.config/mcui/config.toml`.
 - the integration tests: `$MCUI_IT_CONFIG`.
 
@@ -181,12 +181,12 @@ exist.
 5. **Check the network:** the machine must reach every member on 8443, plus 9100
    (node_exporter) and 9283 (Ceph mgr) if you use them.
 6. **Test it:**
-   - `.venv/bin/mcui -c ~/.config/mcui/config.toml check` should be all OK.
+   - `.venv/bin/mcui check` should be all OK.
    - `.venv/bin/python scripts/lxd_api.py GET "/1.0/instances?project=mcui-test"` should
      answer.
    - If you didn't copy `data_dir`, there are no users yet:
-     `.venv/bin/mcui -c ~/.config/mcui/config.toml user add <name> --role admin`.
-   - Then run `MCUI_CONFIG=~/.config/mcui/config.toml make serve`.
+     `.venv/bin/mcui user add <name> --role admin`.
+   - Then run `make serve`; its first line should name your config.
 
 **Same certificates or new ones?** Copying the existing ones is simplest: LXD already
 trusts them, so nothing changes on the cluster. If you'd rather keep keys on one machine,

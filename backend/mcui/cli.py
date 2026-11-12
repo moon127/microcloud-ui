@@ -11,7 +11,14 @@ from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
 
 from mcui import __version__
-from mcui.config import CONFIG_ENV, ConfigError, Settings, load_settings
+from mcui.config import (
+    CONFIG_ENV,
+    DEFAULT_CONFIG,
+    ConfigError,
+    Settings,
+    config_path,
+    load_settings,
+)
 from mcui.lxd.client import LXDClient
 
 ClientsFn = Callable[[Settings, LXDClient, LXDClient], Awaitable[int]]
@@ -20,7 +27,12 @@ ClientsFn = Callable[[Settings, LXDClient, LXDClient], Awaitable[int]]
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="mcui", description="microcloud-ui")
     parser.add_argument("--version", action="version", version=f"mcui {__version__}")
-    parser.add_argument("-c", "--config", type=Path, help=f"config.toml (default: ${CONFIG_ENV})")
+    parser.add_argument(
+        "-c",
+        "--config",
+        type=Path,
+        help=f"config.toml (default: ${CONFIG_ENV}, else {DEFAULT_CONFIG} if it exists)",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     serve = sub.add_parser("serve", help="run the web server")
@@ -67,6 +79,13 @@ def _serve(args: argparse.Namespace) -> int:
     if args.config is not None:
         os.environ[CONFIG_ENV] = str(args.config)
     server = _settings(args).server  # fail fast with a readable error
+    used = config_path(args.config)
+    print(
+        f"mcui: config {used}"
+        if used
+        else "mcui: no config file; built-in defaults (no cluster, data in ./data)",
+        file=sys.stderr,
+    )
     proxy = (
         {"forwarded_allow_ips": server.forwarded_allow_ips} if server.forwarded_allow_ips else {}
     )

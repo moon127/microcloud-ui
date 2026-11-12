@@ -37,6 +37,15 @@ def lxd_err(message: str, code: int) -> httpx.Response:
     return httpx.Response(code, json={"type": "error", "error": message, "error_code": code})
 
 
+@pytest.fixture(autouse=True)
+def no_default_config(tmp_path_factory, monkeypatch):
+    """Never read the developer's own ~/.config/mcui/config.toml (D71)."""
+    monkeypatch.setattr(
+        "mcui.config.DEFAULT_CONFIG", tmp_path_factory.mktemp("home") / "config.toml"
+    )
+    monkeypatch.delenv("MCUI_CONFIG", raising=False)
+
+
 @dataclass
 class Certs:
     dir: Path

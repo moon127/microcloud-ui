@@ -22,6 +22,9 @@ else:  # pragma: no cover - exercised on Python 3.10 in CI
     import tomli as tomllib  # type: ignore[import-not-found,unused-ignore]
 
 CONFIG_ENV = "MCUI_CONFIG"
+# used when neither a path nor $MCUI_CONFIG is given and it exists (development, D71);
+# production always names its config (-c /etc/mcui/config.toml, or MCUI_CONFIG)
+DEFAULT_CONFIG = Path("~/.config/mcui/config.toml")
 
 
 class ConfigError(Exception):
@@ -212,13 +215,22 @@ class Settings(BaseSettings):
         return None
 
 
-def load_settings(path: Path | str | None = None) -> Settings:
-    """Load settings from ``path`` (or ``$MCUI_CONFIG``); env vars override."""
+def config_path(path: Path | str | None = None) -> Path | None:
+    """The config file to read: ``path``, else ``$MCUI_CONFIG``, else ``DEFAULT_CONFIG`` if
+    it exists, else none (built-in defaults: no cluster, data in ./data)."""
     if path is None:
         path = os.environ.get(CONFIG_ENV) or None
-    data: dict[str, Any] = {}
     if path is not None:
-        p = Path(path).expanduser()
+        return Path(path).expanduser()
+    default = DEFAULT_CONFIG.expanduser()
+    return default if default.is_file() else None
+
+
+def load_settings(path: Path | str | None = None) -> Settings:
+    """Load settings from ``config_path(path)``; env vars override."""
+    p = config_path(path)
+    data: dict[str, Any] = {}
+    if p is not None:
         try:
             data = tomllib.loads(p.read_text())
         except OSError as e:
