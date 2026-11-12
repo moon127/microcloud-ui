@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Rejects commit messages that carry a Claude session URL (D66). Install: make hooks
+set -euo pipefail
+if grep -Eiq '^Claude-Session:|claude\.ai/code/session' "$1"; then
+  echo "commit-msg: remove the Claude session URL; only the Co-Authored-By line is kept (D66)" >&2
+  exit 1
+fi

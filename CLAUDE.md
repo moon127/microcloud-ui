@@ -25,6 +25,8 @@ MicroOVN). Backend FastAPI (Python ≥3.10), frontend React 19 + TS + Vite + uPl
 - **Commits:** author *and* committer `Gareth Woolridge <gareth@woolridge.org.uk>`:
   `git -c user.email=gareth@woolridge.org.uk -c user.name="Gareth Woolridge" commit …`.
   Commit on `main` when a piece of work is done and green; don't push unless asked.
+  Messages end with the `Co-Authored-By` line only: **no `Claude-Session:` trailer or
+  claude.ai session URL** (D66; `make hooks` installs a commit-msg hook that rejects them).
 - **Tests in the same commit** as every change. Coverage must stay **≥90%** for backend and
   frontend (currently about 99.7% and 98%).
 - **`make lint test` before every commit:** ruff, mypy strict, eslint, tsc, shellcheck,

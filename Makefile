@@ -39,7 +39,7 @@ lint-frontend:
 	cd $(FE) && npm run lint && npm run typecheck
 
 lint-shell:
-	$(BIN)/shellcheck deploy/install.sh deploy/mcui-cli deploy/container/entrypoint.sh scripts/bundle.sh scripts/pre-commit
+	$(BIN)/shellcheck deploy/install.sh deploy/mcui-cli deploy/container/entrypoint.sh scripts/bundle.sh scripts/pre-commit scripts/commit-msg
 
 format:          ## auto-format backend
 	cd backend && $(BIN)/ruff format . && $(BIN)/ruff check --fix .
@@ -76,8 +76,9 @@ dev-frontend:    ## Vite dev server on :5173 (proxies /api to :8000)
 serve: build     ## build SPA and serve everything from the backend on :8000
 	$(BIN)/mcui serve
 
-hooks:           ## install the git pre-commit hook
+hooks:           ## install the git pre-commit and commit-msg hooks
 	ln -sf ../../scripts/pre-commit .git/hooks/pre-commit
+	ln -sf ../../scripts/commit-msg .git/hooks/commit-msg
 
 clean:           ## remove build/test artefacts
 	rm -rf $(FE)/dist $(FE)/coverage backend/.pytest_cache backend/.coverage backend/htmlcov
