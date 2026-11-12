@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../api";
 import { cpuModeSeries, usedPercentSeries } from "../chart/panel";
@@ -59,6 +59,7 @@ const host = (over: Partial<api.Host> = {}): api.Host => ({
   allocated_cpus: 12,
   allocated_memory: 20 * GIB,
   unlimited: 2,
+  unlimited_instances: [],
   net_rx_bps: 1024,
   net_tx_bps: 2048,
   node: node(),
@@ -132,6 +133,57 @@ describe("HostsSection", () => {
     vi.spyOn(api, "fetchHosts").mockRejectedValue(new Error("LXD is not configured"));
     renderAt(<HostsSection />);
     expect(await screen.findByRole("alert")).toHaveTextContent("LXD is not configured");
+  });
+
+  it("lists instances without limits, opened from a host's count", async () => {
+    vi.spyOn(api, "fetchHosts").mockResolvedValue({
+      node_exporter: true,
+      hosts: [
+        host({
+          unlimited_instances: [
+            { project: "default", name: "c1", missing: ["cpu", "memory"] },
+            { project: "lab", name: "c2", missing: ["memory"] },
+          ],
+        }),
+        host({ name: "gw-2", unlimited: 1, unlimited_instances: [{ project: "lab", name: "c3", missing: ["cpu"] }] }),
+        host({ name: "gw-3", unlimited: 0 }),
+      ],
+    });
+    renderAt(<HostsSection />);
+    const gw3 = (await screen.findByRole("link", { name: "gw-3" })).closest("tr")!;
+    expect(within(gw3).queryByRole("button")).toBeNull();
+    const details = screen.getByText("3 running instances without a CPU or memory limit").closest("details")!;
+    expect(details.open).toBe(false);
+
+    const gw2 = screen.getByRole("link", { name: "gw-2" }).closest("tr")!;
+    fireEvent.click(within(gw2).getByRole("button", { name: "1 unlimited" }));
+    expect(details.open).toBe(true);
+    expect(details.querySelector("summary")).toHaveTextContent("(on gw-2)");
+    const list = within(details);
+    expect(list.getAllByRole("row")).toHaveLength(2); // heading + c3
+    const c3 = list.getByRole("link", { name: "c3" }).closest("tr")!;
+    expect(c3).toHaveTextContent("c3labgw-2CPU");
+    expect(list.getByRole("link", { name: "Set limits on c3" })).toHaveAttribute("href", "/instances/lab/c3?tab=config");
+
+    fireEvent.click(list.getByRole("button", { name: "Show all hosts" }));
+    expect(list.getAllByRole("row")).toHaveLength(4);
+    expect(list.getByRole("link", { name: "c2" }).closest("tr")).toHaveTextContent("c2labgw-1memory");
+    expect(list.getByRole("link", { name: "c1" }).closest("tr")).toHaveTextContent("CPU, memory");
+    expect(list.queryByRole("button", { name: "Show all hosts" })).toBeNull();
+
+    details.open = false; // closed from its summary
+    fireEvent(details, new Event("toggle"));
+    expect(details.open).toBe(false);
+    details.open = true;
+    fireEvent(details, new Event("toggle"));
+    expect(list.getAllByRole("row")).toHaveLength(4); // reopened by hand: every host
+  });
+
+  it("no list when every running instance has limits", async () => {
+    vi.spyOn(api, "fetchHosts").mockResolvedValue({ node_exporter: true, hosts: [host({ unlimited: 0 })] });
+    renderAt(<HostsSection />);
+    await screen.findByRole("link", { name: "gw-1" });
+    expect(screen.queryByText(/without a CPU or memory limit/)).toBeNull();
   });
 
   it("hostMemory without any data", () => {

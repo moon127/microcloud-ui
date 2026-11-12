@@ -343,6 +343,7 @@ describe("projects", () => {
     fireEvent.change(screen.getByLabelText(/Config/), { target: { value: "a: {b: 1}" } });
     expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText(/Config/), { target: { value: "limits.instances: 9" } });
+    await waitFor(() => expect(screen.getByRole("button", { name: "Save" })).toBeEnabled()); // slow under a full run
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(upd).toHaveBeenCalledWith("lab", { description: "Lab 2", config: { "limits.instances": "9" } });
     fireEvent.click(screen.getByRole("button", { name: "Rename" }));

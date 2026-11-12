@@ -1099,6 +1099,8 @@ export interface Host {
   allocated_cpus: number;
   allocated_memory: number;
   unlimited: number;
+  /** Running instances with no CPU and/or memory limit (containers; VMs get LXD's defaults). */
+  unlimited_instances: { project: string; name: string; missing: ("cpu" | "memory")[] }[];
   net_rx_bps: number | null;
   net_tx_bps: number | null;
   node: NodeNow | null;

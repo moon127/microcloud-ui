@@ -120,12 +120,21 @@ async def hosts(_: SessionDep, services: ServicesDep) -> dict[str, Any]:
         mem_total = si.get("total_ram")
         mine = [i for i in insts or [] if single or i.get("location") == m.name]
         running = [i for i in mine if i.get("status") == "Running"]
-        cpus_alloc, mem_alloc, unlimited = 0, 0.0, 0
+        cpus_alloc, mem_alloc = 0, 0.0
+        unlimited: list[dict[str, Any]] = []
         for i in running:
             c, mem = allocation(i, mem_total)
             cpus_alloc += c or 0
             mem_alloc += mem or 0
-            unlimited += c is None or mem is None
+            if c is None or mem is None:  # so they can be found and given limits
+                missing = [k for k, v in (("cpu", c), ("memory", mem)) if v is None]
+                unlimited.append(
+                    {
+                        "project": i.get("project") or "default",
+                        "name": i["name"],
+                        "missing": missing,
+                    }
+                )
         cores = mem_used = 0.0
         for i in live.get("instances", []):
             if i["member"] != m.name:
@@ -154,7 +163,8 @@ async def hosts(_: SessionDep, services: ServicesDep) -> dict[str, Any]:
                 "instances_memory": mem_used,
                 "allocated_cpus": cpus_alloc,
                 "allocated_memory": mem_alloc,
-                "unlimited": unlimited,
+                "unlimited": len(unlimited),
+                "unlimited_instances": sorted(unlimited, key=lambda u: (u["project"], u["name"])),
                 "net_rx_bps": rx.get(m.name),
                 "net_tx_bps": tx.get(m.name),
                 "node": node.now(m.name) if node is not None else None,

@@ -1,3 +1,4 @@
+import { useRef, useState } from "react";
 import { Link } from "react-router";
 import { fetchHosts, type Host } from "../api";
 import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
@@ -80,19 +81,26 @@ function Disk({ h }: { h: Host }) {
   );
 }
 
-function Allocated({ h }: { h: Host }) {
+function Allocated({ h, onUnlimited }: { h: Host; onUnlimited: (host: string) => void }) {
   const ratio = h.cpus ? h.allocated_cpus / h.cpus : null;
   return (
     <>
       {h.allocated_cpus} vCPU{h.cpus ? ` / ${h.cpus}` : ""}
       {ratio != null && ratio > 1 && <strong> ({ratio.toFixed(1)}×)</strong>}, {formatBytes(h.allocated_memory)}
       {h.memory_total ? ` / ${formatBytes(h.memory_total)}` : ""}
-      {h.unlimited > 0 && <span className="muted"> + {h.unlimited} unlimited</span>}
+      {h.unlimited > 0 && (
+        <>
+          {" + "}
+          <button type="button" className="link" onClick={() => onUnlimited(h.name)}>
+            {h.unlimited} unlimited
+          </button>
+        </>
+      )}
     </>
   );
 }
 
-export function HostsTable({ hosts }: { hosts: Host[] }) {
+export function HostsTable({ hosts, onUnlimited }: { hosts: Host[]; onUnlimited: (host: string) => void }) {
   return (
     <div className="scroll">
       <table>
@@ -135,7 +143,7 @@ export function HostsTable({ hosts }: { hosts: Host[] }) {
                 {formatNumber(h.instances_cpu)} CPUs, {formatBytes(h.instances_memory)}
               </td>
               <td>
-                <Allocated h={h} />
+                <Allocated h={h} onUnlimited={onUnlimited} />
               </td>
               <td>
                 {formatRate(h.net_rx_bps)} / {formatRate(h.net_tx_bps)}
@@ -145,6 +153,65 @@ export function HostsTable({ hosts }: { hosts: Host[] }) {
         </tbody>
       </table>
     </div>
+  );
+}
+
+const MISSING = { cpu: "CPU", memory: "memory" } as const;
+
+/** Running instances with no CPU and/or memory limit, each a link to where limits are set. */
+function Unlimited({ hosts, host, open, onToggle }: { hosts: Host[]; host: string | null; open: boolean; onToggle: (open: boolean, host?: string | null) => void }) {
+  const rows = hosts.flatMap((h) => h.unlimited_instances.map((i) => ({ ...i, host: h.name })));
+  if (rows.length === 0) return null;
+  const shown = host ? rows.filter((r) => r.host === host) : rows;
+  return (
+    <details open={open} onToggle={(e) => onToggle(e.currentTarget.open)}>
+      <summary>
+        {rows.length} running instance{rows.length === 1 ? "" : "s"} without a CPU or memory limit
+        {host && open && <> (on {host})</>}
+      </summary>
+      <p className="muted">
+        These can use all of their host&apos;s CPUs or memory, so they aren&apos;t counted in Allocated. Set limits on
+        the instance, or on a profile it uses.
+      </p>
+      <div className="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Instance</th>
+              <th>Project</th>
+              <th>Host</th>
+              <th>No limit on</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((r) => {
+              const to = `/instances/${encodeURIComponent(r.project)}/${encodeURIComponent(r.name)}`;
+              return (
+                <tr key={`${r.project}/${r.name}`}>
+                  <td>
+                    <Link to={to}>{r.name}</Link>
+                  </td>
+                  <td>{r.project}</td>
+                  <td>{r.host}</td>
+                  <td>{r.missing.map((m) => MISSING[m]).join(", ")}</td>
+                  <td>
+                    <Link to={`${to}?tab=config`} aria-label={`Set limits on ${r.name}`}>
+                      Set limits
+                    </Link>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {host && shown.length < rows.length && (
+        <button type="button" className="link" onClick={() => onToggle(true, null)}>
+          Show all hosts
+        </button>
+      )}
+    </details>
   );
 }
 
@@ -177,6 +244,12 @@ function NodeNote({ hosts, enabled }: { hosts: Host[]; enabled: boolean }) {
 
 export default function HostsSection() {
   const { data, error } = useApi("hosts", fetchHosts, REFRESH_MS);
+  const [unlimited, setUnlimited] = useState<{ open: boolean; host: string | null }>({ open: false, host: null });
+  const list = useRef<HTMLDivElement>(null);
+  const showUnlimited = (host: string) => {
+    setUnlimited({ open: true, host });
+    requestAnimationFrame(() => list.current?.scrollIntoView?.({ block: "nearest" }));
+  };
   return (
     <section aria-label="Hosts">
       <h2>Hosts</h2>
@@ -184,7 +257,15 @@ export default function HostsSection() {
       {!data && !error && <p role="status">Loading hosts…</p>}
       {data && (
         <>
-          <HostsTable hosts={data.hosts} />
+          <HostsTable hosts={data.hosts} onUnlimited={showUnlimited} />
+          <div ref={list}>
+            <Unlimited
+              hosts={data.hosts}
+              host={unlimited.host}
+              open={unlimited.open}
+              onToggle={(open, host = open ? unlimited.host : null) => setUnlimited({ open, host })}
+            />
+          </div>
           <NodeNote hosts={data.hosts} enabled={data.node_exporter} />
         </>
       )}

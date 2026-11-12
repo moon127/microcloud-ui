@@ -97,6 +97,10 @@ export const INSTANCES: Demo[] = [
   I("lab", "k8s-test", "virtual-machine", "node-2", 4, 8, 0, 0, 0, 0, "k3s experiments", "Stopped"),
 ];
 const running = INSTANCES.filter((i) => i.status === "Running");
+/** Set no limits (its cpus/memory are what it happens to use), so the Hosts table lists it. */
+const unlimited = (d: Demo) => d.project === "lab" && d.name === "sandbox";
+const limits = (d: Demo): Record<string, string> =>
+  unlimited(d) ? {} : { "limits.cpu": String(d.cpus), "limits.memory": `${d.memory / GIB}GiB` };
 
 export const SERVER: ServerInfo = {
   version: "5.21.3",
@@ -149,9 +153,9 @@ export function instanceFull(project: string, name: string): InstanceFull | unde
     ephemeral: false,
     stateful: false,
     profiles: ["default"],
-    config: { "limits.cpu": String(d.cpus), "limits.memory": `${d.memory / GIB}GiB`, "image.os": "Ubuntu", "image.release": "noble" },
+    config: { ...limits(d), "image.os": "Ubuntu", "image.release": "noble" },
     devices: {},
-    expanded_config: { "limits.cpu": String(d.cpus), "limits.memory": `${d.memory / GIB}GiB` },
+    expanded_config: limits(d),
     expanded_devices: { root: { type: "disk", path: "/", pool: "remote" }, eth0: { type: "nic", network: "default", name: "eth0" } },
     created_at: "2026-09-02T10:14:00Z",
     last_used_at: "2026-11-10T07:00:00Z",
@@ -300,6 +304,7 @@ export const HOSTS_VIEW: { node_exporter: boolean; hosts: Host[] } = {
   hosts: HOSTS.map((name, i): Host => {
     const mine = INSTANCES.filter((d) => d.member === name);
     const on = mine.filter((d) => d.status === "Running");
+    const capped = on.filter((d) => !unlimited(d));
     const memUsed = [18, 27, 41][i] * GIB;
     return {
       name,
@@ -318,9 +323,10 @@ export const HOSTS_VIEW: { node_exporter: boolean; hosts: Host[] } = {
       instances_running: on.length,
       instances_cpu: on.reduce((s, d) => s + (d.cpu / 100) * d.cpus, 0),
       instances_memory: on.reduce((s, d) => s + used(d), 0),
-      allocated_cpus: on.reduce((s, d) => s + d.cpus, 0),
-      allocated_memory: on.reduce((s, d) => s + d.memory, 0),
-      unlimited: 0,
+      allocated_cpus: capped.reduce((s, d) => s + d.cpus, 0),
+      allocated_memory: capped.reduce((s, d) => s + d.memory, 0),
+      unlimited: on.length - capped.length,
+      unlimited_instances: on.filter(unlimited).map((d) => ({ project: d.project, name: d.name, missing: ["cpu", "memory"] })),
       net_rx_bps: [3.1e6, 2.6e6, 6.4e6][i],
       net_tx_bps: [1.9e6, 1.5e6, 4.2e6][i],
       node:

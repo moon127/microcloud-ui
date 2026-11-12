@@ -59,7 +59,7 @@ INSTANCES = [
     {"name": "v1", "location": "m1", "status": "Running", "type": "virtual-machine",
      "expanded_config": {}},
     {"name": "c3", "location": "m1", "status": "Running", "type": "container",
-     "expanded_config": {}},
+     "project": "lab", "expanded_config": {}},
     {"name": "off", "location": "m1", "status": "Stopped", "type": "container",
      "expanded_config": {"limits.cpu": "16"}},
     {"name": "c2", "location": "m2", "status": "Running", "type": "container",
@@ -143,6 +143,9 @@ async def test_hosts(services):
         assert m1["allocated_cpus"] == 3  # c1 2 + v1 default 1; c3 unlimited, "off" stopped
         assert m1["allocated_memory"] == 5 * GIB
         assert m1["unlimited"] == 1
+        assert m1["unlimited_instances"] == [
+            {"project": "lab", "name": "c3", "missing": ["cpu", "memory"]}
+        ]
         assert m1["net_rx_bps"] == pytest.approx(100) and m1["net_tx_bps"] is None
         assert m1["instances_cpu"] == 0 and m1["instances_memory"] > 0
         assert m1["node"]["ok"] and m1["node"]["memory_used"] == 16 * GIB
@@ -180,6 +183,9 @@ async def test_hosts_standalone_and_without_node_exporter(tmp_path):
     (h,) = body["hosts"]
     assert h["instances"] == 1 and h["node"] is None and h["cpus"] is None
     assert h["load1"] is None
+    assert h["unlimited_instances"] == [
+        {"project": "default", "name": "c1", "missing": ["cpu", "memory"]}
+    ]
 
 
 async def test_hosts_without_lxd(tmp_path):
