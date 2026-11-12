@@ -1,9 +1,13 @@
 import { useRef, useState } from "react";
 import {
   addImageAlias,
+  createImageRegistry,
   deleteImage,
   deleteImageAlias,
+  deleteImageRegistry,
+  fetchImageRegistries,
   fetchLocalImages,
+  fetchServer,
   importImage,
   updateImage,
   uploadImage,
@@ -170,7 +174,119 @@ export default function ImagesPage() {
           }}
         />
       )}
+      <Registries admin={user.role === "admin"} />
     </>
+  );
+}
+
+/** LXD 6.10+ image registries: where the create-instance picker finds images (Phase 5b). */
+function Registries({ admin }: { admin: boolean }) {
+  const { run, version } = useActions();
+  const supported = !!useApi("server", fetchServer).data?.features.image_registries;
+  const { data, error } = useApi(`image-registries:${version}:${supported}`, () =>
+    supported ? fetchImageRegistries() : Promise.resolve([]),
+  );
+  const [adding, setAdding] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: "", url: "https://", description: "" });
+  if (!supported) return null;
+  const problem = !/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(form.name)
+    ? "Name: letters, digits, dots, dashes and underscores"
+    : !/^https:\/\/[^\s/]+/.test(form.url)
+      ? "The URL must be https://"
+      : null;
+  return (
+    <section aria-label="Image registries">
+      <h2>Image registries</h2>
+      <p className="muted">
+        Where new instances find their images. LXD keeps them for the whole cluster; the built-in ones can&apos;t be removed.
+      </p>
+      {error && <p role="alert">{error}</p>}
+      {data && (
+        <div className="scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>URL</th>
+                <th>Protocol</th>
+                <th>Description</th>
+                {admin && <th />}
+              </tr>
+            </thead>
+            <tbody>
+              {data.map((r) => (
+                <tr key={r.name}>
+                  <td>
+                    {r.name}
+                    {r.builtin && <span className="muted"> (built-in)</span>}
+                  </td>
+                  <td>{r.config.url ?? "–"}</td>
+                  <td>{r.protocol}</td>
+                  <td>{r.description}</td>
+                  {admin && (
+                    <td>
+                      {!r.builtin && (
+                        <button type="button" className="danger" onClick={() => setDeleting(r.name)}>
+                          Delete
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {admin && (
+        <button type="button" onClick={() => setAdding(true)}>
+          Add registry
+        </button>
+      )}
+      {adding && (
+        <Confirm
+          title="Add image registry"
+          confirmLabel="Add"
+          onCancel={() => setAdding(false)}
+          onConfirm={() => {
+            if (problem) return;
+            setAdding(false);
+            const body = { name: form.name.trim(), url: form.url.trim(), description: form.description.trim() };
+            setForm({ name: "", url: "https://", description: "" });
+            void run(`Add image registry ${body.name}`, () => createImageRegistry(body));
+          }}
+        >
+          <fieldset>
+            <label>
+              Name <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </label>
+            <label>
+              SimpleStreams URL <input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} />
+            </label>
+            <label>
+              Description <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+            </label>
+          </fieldset>
+          {problem && form.name && <p role="alert">{problem}</p>}
+        </Confirm>
+      )}
+      {deleting && (
+        <Confirm
+          title={`Delete image registry ${deleting}?`}
+          confirmLabel="Delete"
+          danger
+          onCancel={() => setDeleting(null)}
+          onConfirm={() => {
+            const name = deleting;
+            setDeleting(null);
+            void run(`Delete image registry ${name}`, () => deleteImageRegistry(name));
+          }}
+        >
+          <p>Instances already created from its images keep working.</p>
+        </Confirm>
+      )}
+    </section>
   );
 }
 

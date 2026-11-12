@@ -317,6 +317,26 @@ describe("CreateInstancePage", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Loading images");
   });
 
+  it("LXD 6.10: offers the server's image registries and creates from one", async () => {
+    vi.spyOn(api, "fetchServer").mockResolvedValue({
+      version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "", features: { image_registries: true },
+    });
+    vi.spyOn(api, "fetchImageRegistries").mockResolvedValue([
+      { name: "ubuntu", description: "", protocol: "simplestreams", builtin: true, public: true, config: {} },
+      { name: "lab-mirror", description: "our mirror", protocol: "simplestreams", builtin: false, public: true, config: {} },
+    ]);
+    const remote = vi.spyOn(api, "fetchRemoteImages");
+    const create = vi.spyOn(api, "createInstance").mockResolvedValue({ operation: null, metadata: null });
+    open();
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "web1" } });
+    fireEvent.click(await screen.findByRole("button", { name: "lab-mirror: (our mirror)" }));
+    expect(screen.queryByRole("button", { name: /community/ })).toBeNull(); // the 5.21 list is gone
+    expect(remote).toHaveBeenLastCalledWith("lab-mirror");
+    fireEvent.click(await screen.findByRole("button", { name: "Use lab-mirror:alpine/edge" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    expect(create.mock.calls[0][0].image).toEqual({ remote: "lab-mirror", alias: "alpine/edge" });
+  });
+
   it("is admin-only", () => {
     open(session({ user: { username: "v", role: "viewer" } }));
     expect(screen.getByRole("alert")).toHaveTextContent("needs the admin role");

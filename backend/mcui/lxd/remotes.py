@@ -1,15 +1,17 @@
-"""Remote image catalogues (simplestreams) for the create-instance image picker (IN-2).
+"""Remote image catalogues for the create-instance image picker (IN-2).
 
-LXD has no API to list a remote server's images, so the backend reads the
+LXD 5.21 has no API to list a remote server's images, so the backend reads the
 server's simplestreams index itself and keeps a compact summary for a while.
 Only the named remotes below can be used: the browser picks a name, never a URL.
+LXD 6.10 (``image_registries``) lists a registry's images itself; that catalogue is
+summarised the same way (``parse_registry_images``, Phase 5b).
 """
 
 from __future__ import annotations
 
 import asyncio
 import time
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -84,6 +86,50 @@ def parse_products(doc: dict[str, Any]) -> list[RemoteImage]:
     return sorted(out, key=lambda i: (i.os.lower(), i.release_title, i.variant, i.arch))
 
 
+def parse_registry_images(images: list[dict[str, Any]]) -> list[RemoteImage]:
+    """Summarise an LXD 6.10 registry catalogue (``/1.0/image-registries/{name}/images``).
+
+    It lists every serial of every product, each image type apart (14 000 entries for
+    ``ubuntu``); keep the newest serial of each product, with that serial's aliases and
+    whether it has a container and a VM image."""
+    products: dict[tuple[str, str, str, str], dict[str, list[dict[str, Any]]]] = {}
+    for i in images:
+        p = i.get("properties") or {}
+        key = (
+            str(p.get("os") or ""),
+            str(p.get("release") or ""),
+            str(p.get("variant") or "default"),
+            str(p.get("architecture") or ""),
+        )
+        products.setdefault(key, {}).setdefault(str(p.get("serial") or ""), []).append(i)
+    out: list[RemoteImage] = []
+    for (os_, release, variant, arch), by_serial in products.items():
+        latest = max(by_serial)
+        entries = by_serial[latest]
+        aliases: list[str] = []
+        for e in entries:
+            for a in e.get("aliases") or []:
+                name = str(a.get("name") or "")
+                if name and name not in aliases:
+                    aliases.append(name)
+        title = next((str(e["release_title"]) for e in entries if e.get("release_title")), release)
+        out.append(
+            RemoteImage(
+                alias=aliases[0] if aliases else f"{os_}/{release}".lower(),
+                aliases=aliases,
+                os=os_,
+                release=release,
+                release_title=title,
+                variant=variant,
+                arch=arch,
+                container=any(e.get("type") == "container" for e in entries),
+                vm=any(e.get("type") == "virtual-machine" for e in entries),
+                version=latest,
+            )
+        )
+    return sorted(out, key=lambda i: (i.os.lower(), i.release_title, i.variant, i.arch))
+
+
 class RemoteCatalog:
     def __init__(
         self,
@@ -108,6 +154,18 @@ class RemoteCatalog:
             path = next(v["path"] for v in index.values() if v.get("datatype") == "image-downloads")
             items = parse_products(await self._get(f"{base}/{path}"))
             self._cache[remote] = (self.clock(), items)
+            return items
+
+    async def cached(
+        self, key: str, load: Callable[[], Awaitable[list[RemoteImage]]]
+    ) -> list[RemoteImage]:
+        """``load()`` at most every CACHE_SECONDS per ``key`` (LXD registries are slow)."""
+        async with self._lock:
+            hit = self._cache.get(key)
+            if hit and self.clock() - hit[0] < CACHE_SECONDS:
+                return hit[1]
+            items = await load()
+            self._cache[key] = (self.clock(), items)
             return items
 
     async def _get(self, url: str) -> dict[str, Any]:

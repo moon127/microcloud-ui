@@ -289,9 +289,14 @@ and multi-volume snapshots for Phase 5:
 - ✅ **Placement groups** (`instance_placement_groups`): a page (from Instances) to list,
   create, edit and delete them, and a "Placement group" choice in the create wizard
   (`placement.group`); LXD before 6.6 gets an explanation.
-- **Image registries** (`image_registries`): manage them, and use them in the image
-  picker, replacing or alongside our own remote catalogues (D47).
-  `restricted.registries` per project.
+- ✅ **Image registries** (`image_registries`, LXD 6.10+): the create-instance picker
+  offers the server's registries (built-in and custom) and lists their images through
+  LXD (`/1.0/image-registries/{name}/images`, newest serial per product, cached like
+  D47); instances are created with `source.image_registry`. The Images page lists
+  registries and lets admins add (an HTTPS SimpleStreams URL) and delete custom ones.
+  On LXD 5.21 the picker keeps `images:`/`ubuntu:` read by the backend (D47). Not yet:
+  registries that point at an LXD project or cluster link, `restricted.registries`, and
+  importing (IM-2) from a custom registry.
 - ✅ **OVN load balancers** (from NW-4/7) on the OVN network page: list, add (an
   address, or one allocated from the uplink: `listen_address` `0.0.0.0`), edit and
   delete; ports send to named backends or (LXD 6.9+) a pool; pools with instances,

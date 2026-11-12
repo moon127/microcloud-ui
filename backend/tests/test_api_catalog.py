@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 
 import httpx
 import pytest
@@ -8,9 +9,11 @@ from mcui.config import Settings
 from mcui.lxd.remotes import RemoteCatalog
 from mcui.main import create_app
 from mcui.services import build_services
-from tests.conftest import EP1, fast_store, fixture_json, lxd_ok
+from tests.conftest import EP1, fast_store, fixture_json, lxd_err, lxd_ok
 from tests.test_api import CSRF_HEADER, client, login, lxd_pair
 from tests.test_remotes import INDEX, PRODUCTS
+
+RECORDED = Path(__file__).parent / "fixtures/recorded-6.10"
 
 
 @pytest.fixture
@@ -119,6 +122,8 @@ async def test_remote_images(app, services):
 
 @respx.mock
 async def test_create_instance(app, services):
+    # LXD 5.21: no image registries, so the simplestreams server is named
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(fixture_json("server_clustered.json")))
     route = respx.post(f"{EP1}/1.0/instances").mock(
         return_value=httpx.Response(
             202, json={"type": "async", "metadata": {"id": "op9", "status": "Running"}}
@@ -196,3 +201,65 @@ async def test_create_instance(app, services):
             ({"name": "c", "type": "lxc", "image": {"alias": "x"}}, 422),
         ]:
             assert (await c.post("/api/instances", json=bad, headers=h)).status_code == code, bad
+
+
+def lxd610():
+    md = fixture_json("server_clustered.json")
+    md["api_extensions"] = [*md["api_extensions"], "image_registries"]
+    md["environment"]["architectures"] = ["x86_64"]
+    return md
+
+
+@respx.mock
+async def test_remote_images_from_lxd_registries(app, services):
+    """LXD 6.10 lists a registry's images itself (Phase 5b); recorded on the 6.10 VM."""
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(lxd610()))
+    rec = RECORDED / "image-registry_ubuntu_images_slice.json"
+    reg = respx.get(f"{EP1}/1.0/image-registries/ubuntu/images").mock(
+        return_value=lxd_ok(json.loads(rec.read_text()))
+    )
+    respx.get(f"{EP1}/1.0/image-registries/nope/images").mock(
+        return_value=lxd_err('Failed loading image registry "nope": not found', 404)
+    )
+    respx.get(f"{EP1}/1.0/image-registries/broken/images").mock(
+        return_value=lxd_err("upstream timeout", 500)
+    )
+    async with client(app) as c:
+        await login(c, "admin", "adminpw")
+        r = (await c.get("/api/images/remote/ubuntu")).json()
+        assert [(i["alias"], i["container"], i["vm"]) for i in r] == [
+            ("24.04", True, True),
+            ("26.04", True, True),
+        ]  # newest serial per product, amd64 only (the cluster's architecture)
+        await c.get("/api/images/remote/ubuntu")
+        assert reg.call_count == 1  # cached: LXD takes seconds for big registries
+        assert (await c.get("/api/images/remote/nope")).status_code == 404
+        assert (await c.get("/api/images/remote/broken")).status_code == 502
+        assert (await c.get("/api/images/remote/bad name")).status_code == 404
+
+
+@respx.mock
+async def test_create_instance_from_a_registry(app, services):
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(lxd610()))
+    route = respx.post(f"{EP1}/1.0/instances").mock(
+        return_value=httpx.Response(202, json={"type": "async", "metadata": {"id": "op9"}})
+    )
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "admin", "adminpw")}
+        body = {"name": "c1", "image": {"remote": "lab-mirror", "alias": "alpine/edge"}}
+        await c.post("/api/instances", json=body, headers=h)
+        assert json.loads(route.calls.last.request.content)["source"] == {
+            "type": "image",
+            "alias": "alpine/edge",
+            "image_registry": "lab-mirror",
+        }
+
+
+@respx.mock
+async def test_unknown_remote_on_lxd_5_21(app, services):
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(fixture_json("server_clustered.json")))
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "admin", "adminpw")}
+        body = {"name": "c1", "image": {"remote": "lab-mirror", "alias": "alpine/edge"}}
+        r = await c.post("/api/instances", json=body, headers=h)
+        assert r.status_code == 400 and "unknown remote" in r.text

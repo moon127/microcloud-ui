@@ -24,6 +24,7 @@ def test_server_info_from_metadata():
         "snapshot_volumes",
         "load_balancer_pools",
         "load_balancer_health_checks",
+        "image_registries",
     }
     assert all(d["features"][k] for k in FEATURES if k not in lxd6)
     assert not any(d["features"][k] for k in lxd6)

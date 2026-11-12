@@ -318,3 +318,20 @@ describe("OVN load balancers (Phase 5b)", () => {
     ]);
   });
 });
+
+describe("image registries (Phase 5b)", () => {
+  it("build the right URLs", async () => {
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    await api.fetchImageRegistries();
+    await api.createImageRegistry({ name: "m", url: "https://m.example.org", description: "" });
+    await api.deleteImageRegistry("m 2");
+    await api.fetchRemoteImages("lab-mirror");
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/image-registries", "GET", null],
+      ["/api/image-registries", "POST", JSON.stringify({ name: "m", url: "https://m.example.org", description: "" })],
+      ["/api/image-registries/m%202", "DELETE", null],
+      ["/api/images/remote/lab-mirror", "GET", null],
+    ]);
+  });
+});

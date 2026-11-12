@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { fetchLocalImages, fetchRemoteImages, type NewInstance, type RemoteImage } from "../../api";
+import { fetchImageRegistries, fetchLocalImages, fetchRemoteImages, fetchServer, type NewInstance, type RemoteImage } from "../../api";
 import { formatBytes } from "../../format";
 import { useApi } from "../../useApi";
 
-type Source = "local" | "images" | "ubuntu";
+/** "local", or a remote: images/ubuntu (LXD 5.21) or an image registry (LXD 6.10+) */
+type Source = string;
 type Choice = NewInstance["image"];
 
 interface Row {
@@ -15,8 +16,10 @@ interface Row {
   choice: Choice;
 }
 
+const LOCAL = { id: "local", label: "Local images" };
+// LXD 5.21: the two simplestreams servers the backend reads itself (D47)
 const SOURCES: { id: Source; label: string }[] = [
-  { id: "local", label: "Local images" },
+  LOCAL,
   { id: "images", label: "images: (community)" },
   { id: "ubuntu", label: "ubuntu: (official)" },
 ];
@@ -31,6 +34,15 @@ interface Props {
 export default function ImagePicker({ project, type, value, onChange }: Props) {
   const [source, setSource] = useState<Source>("images");
   const [search, setSearch] = useState("");
+  // LXD 6.10+: the server's own image registries, custom ones included
+  const server = useApi("server", fetchServer);
+  const useRegistries = !!server.data?.features.image_registries;
+  const registries = useApi(`image-registries:${useRegistries}`, () =>
+    useRegistries ? fetchImageRegistries() : Promise.resolve([]),
+  );
+  const sources = useRegistries
+    ? [LOCAL, ...(registries.data ?? []).map((r) => ({ id: r.name, label: `${r.name}:${r.description ? ` (${r.description})` : ""}` }))]
+    : SOURCES;
   const local = useApi(`images:${project}`, () => fetchLocalImages(project));
   // tag results with their source so a previous source's list is never shown
   const remote = useApi<{ source: Source; items: RemoteImage[] }>(`remote:${source}`, () =>
@@ -73,7 +85,7 @@ export default function ImagePicker({ project, type, value, onChange }: Props) {
   return (
     <div className="image-picker">
       <div className="tabs" role="group" aria-label="Image source">
-        {SOURCES.map((s) => (
+        {sources.map((s) => (
           <button key={s.id} type="button" aria-pressed={s.id === source} onClick={() => setSource(s.id)}>
             {s.label}
           </button>

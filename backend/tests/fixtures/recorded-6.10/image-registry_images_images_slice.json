@@ -1,0 +1,1363 @@
+[
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.21/default/arm64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.21/arm64"
+   }
+  ],
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:48:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "000000000000000000000000000000000000000000000000000000000000019f",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.21 (default)",
+   "os": "Alpine",
+   "release": "3.21",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0048",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.21",
+  "size": 3453820,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:48:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.21/default"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.21/default/amd64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.21"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.21/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a0",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.21 (default)",
+   "os": "Alpine",
+   "release": "3.21",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.21",
+  "size": 3228580,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.21/default"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.21/default/amd64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.21"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.21/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a1",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.21 (default)",
+   "os": "Alpine",
+   "release": "3.21",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "disk-kvm.img",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.21",
+  "size": 134284196,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a2",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.21 (default)",
+   "os": "Alpine",
+   "release": "3.21",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.21",
+  "size": 3228580,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a3",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.21 (default)",
+   "os": "Alpine",
+   "release": "3.21",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "disk-kvm.img",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.21",
+  "size": 134677412,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:50:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a4",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.21 (default)",
+   "os": "Alpine",
+   "release": "3.21",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0050",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.21",
+  "size": 3453832,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:50:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.22/cloud"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22/cloud/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a5",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.22 (cloud)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 21886296,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.22/cloud"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22/cloud/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a6",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.22 (cloud)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "disk-kvm.img",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 160587608,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.22/cloud/arm64"
+   }
+  ],
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a7",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.22 (cloud)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 21456216,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a8",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.22 (cloud)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 21886296,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001a9",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.22 (cloud)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "disk-kvm.img",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 160564568,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001aa",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.22 (cloud)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 21456204,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.22/default"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22/default/amd64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001ab",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.22 (default)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 3359620,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.22/default"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22/default/amd64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001ac",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.22 (default)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "disk-kvm.img",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 135453060,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.22/default/arm64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.22/arm64"
+   }
+  ],
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001ad",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.22 (default)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 3568508,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:52:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001ae",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.22 (default)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0052",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 3359620,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:52:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:52:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001af",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.22 (default)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0052",
+   "type": "disk-kvm.img",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 135398276,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-11T00:52:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b0",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.22 (default)",
+   "os": "Alpine",
+   "release": "3.22",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.22",
+  "size": 3568508,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.23/cloud/arm64"
+   }
+  ],
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b1",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.23 (cloud)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 21513568,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.23/cloud"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23/cloud/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b2",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.23 (cloud)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 21992792,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.23/cloud"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23/cloud/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b3",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.23 (cloud)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "disk-kvm.img",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 173081944,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b4",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.23 (cloud)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 21992796,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b5",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.23 (cloud)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "disk-kvm.img",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 173278556,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:49:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b6",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.23 (cloud)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0049",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 21513548,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:49:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.23/default/arm64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23/arm64"
+   }
+  ],
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:48:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b7",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.23 (default)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0048",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 3613564,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:48:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.23/default"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23/default/amd64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b8",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.23 (default)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 3408820,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.23/default"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23/default/amd64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.23/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001b9",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.23 (default)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "disk-kvm.img",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 147784628,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001ba",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.23 (default)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 3408776,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001bb",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.23 (default)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "disk-kvm.img",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 147784584,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001bc",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.23 (default)",
+   "os": "Alpine",
+   "release": "3.23",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.23",
+  "size": 3613564,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.24/cloud/arm64"
+   }
+  ],
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001bd",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.24 (cloud)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 22021468,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.24/cloud"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24/cloud/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001be",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.24 (cloud)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 22599016,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.24/cloud"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24/cloud/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:46:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001bf",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.24 (cloud)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0046",
+   "type": "disk-kvm.img",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 178849128,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-12T00:46:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001c0",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.24 (cloud)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 22599020,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:51:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001c1",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.24 (cloud)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0051",
+   "type": "disk-kvm.img",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 178849132,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-11T00:51:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:48:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001c2",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.24 (cloud)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0048",
+   "type": "squashfs",
+   "variant": "cloud"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 22021464,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:48:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.24/default/arm64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24/arm64"
+   }
+  ],
+  "architecture": "aarch64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:48:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001c3",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "arm64",
+   "description": "Alpine 3.24 (default)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0048",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 3621756,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:48:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.24/default"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24/default/amd64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001c4",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.24 (default)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 3453832,
+  "type": "container",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": [
+   {
+    "description": "",
+    "name": "alpine/3.24/default"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24/default/amd64"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24"
+   },
+   {
+    "description": "",
+    "name": "alpine/3.24/amd64"
+   }
+  ],
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-12T00:47:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001c5",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.24 (default)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261112_0047",
+   "type": "disk-kvm.img",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 152961928,
+  "type": "virtual-machine",
+  "uploaded_at": "2026-11-12T00:47:00Z"
+ },
+ {
+  "aliases": null,
+  "architecture": "x86_64",
+  "auto_update": false,
+  "cached": false,
+  "created_at": "2026-11-11T00:52:00Z",
+  "expires_at": "1970-01-01T00:00:00Z",
+  "filename": "lxd.tar.xz",
+  "fingerprint": "00000000000000000000000000000000000000000000000000000000000001c6",
+  "last_used_at": "0001-01-01T00:00:00Z",
+  "profiles": null,
+  "project": "",
+  "properties": {
+   "architecture": "amd64",
+   "description": "Alpine 3.24 (default)",
+   "os": "Alpine",
+   "release": "3.24",
+   "requirements.secureboot": "false",
+   "serial": "20261111_0052",
+   "type": "squashfs",
+   "variant": "default"
+  },
+  "public": true,
+  "release_title": "3.24",
+  "size": 3453828,
+  "type": "container",
+  "uploaded_at": "2026-11-11T00:52:00Z"
+ }
+]

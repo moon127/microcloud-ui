@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import httpx
 import pytest
 
@@ -116,3 +118,46 @@ async def test_catalog_http_error():
     with pytest.raises(httpx.HTTPStatusError):
         await cat.images("ubuntu")
     await cat.aclose()
+
+
+RECORDED = Path(__file__).parent / "fixtures/recorded-6.10"
+
+
+def test_parse_registry_images_recorded():
+    """LXD 6.10's registry catalogue: every serial, each type apart (recorded on the VM)."""
+    import json
+
+    from mcui.lxd.remotes import parse_registry_images
+
+    ubuntu = json.loads((RECORDED / "image-registry_ubuntu_images_slice.json").read_text())
+    got = parse_registry_images(ubuntu)
+    assert len(ubuntu) == 414 and len(got) == 4  # 24.04 and 26.04, amd64 and arm64
+    noble = got[0]
+    assert (noble.alias, noble.os, noble.release_title, noble.arch) == (
+        "24.04",
+        "ubuntu",
+        "24.04 LTS",
+        "amd64",
+    )
+    assert noble.container and noble.vm and noble.version == "20261017"
+    assert "noble/amd64" in noble.aliases
+    images = parse_registry_images(
+        json.loads((RECORDED / "image-registry_images_images_slice.json").read_text())
+    )
+    arm = next(i for i in images if i.alias == "alpine/3.21/default/arm64")
+    assert arm.container and not arm.vm  # no arm64 VM image there
+
+
+def test_parse_registry_images_gaps():
+    from mcui.lxd.remotes import parse_registry_images
+
+    got = parse_registry_images(
+        [
+            {"type": "container", "aliases": None, "properties": {"os": "X", "release": "1"}},
+            {"type": "container", "properties": {}},
+        ]
+    )
+    assert [(g.alias, g.variant, g.release_title) for g in got] == [
+        ("/", "default", ""),
+        ("x/1", "default", "1"),
+    ]

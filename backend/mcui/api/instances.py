@@ -103,7 +103,8 @@ def _inst(name: str) -> str:
 
 
 class ImageSource(BaseModel):
-    remote: Literal["local", "images", "ubuntu"] = "local"
+    # "local", or a remote: images/ubuntu on LXD 5.21, any image registry on LXD 6.10+
+    remote: str = Field(default="local", pattern=NAME, max_length=63)
     alias: str | None = Field(default=None, max_length=200)
     fingerprint: str | None = Field(default=None, pattern=r"^[0-9a-f]{12,64}$")
 
@@ -121,7 +122,9 @@ class NewInstance(BaseModel):
     start: bool = True
 
 
-def image_source(img: ImageSource) -> dict[str, str]:
+def image_source(img: ImageSource, registries: bool = False) -> dict[str, str]:
+    """``registries``: the server has image registries (LXD 6.10+), so a remote is one of
+    them, by name; otherwise only the simplestreams servers in ``REMOTES``."""
     if img.remote == "local":
         if img.fingerprint:
             return {"type": "image", "fingerprint": img.fingerprint}
@@ -130,6 +133,10 @@ def image_source(img: ImageSource) -> dict[str, str]:
         raise HTTPException(status_code=400, detail="choose an image (alias or fingerprint)")
     if not img.alias:
         raise HTTPException(status_code=400, detail="choose a remote image alias")
+    if registries:
+        return {"type": "image", "alias": img.alias, "image_registry": img.remote}
+    if img.remote not in REMOTES:
+        raise HTTPException(status_code=400, detail=f"unknown remote; use one of {sorted(REMOTES)}")
     return {
         "type": "image",
         "alias": img.alias,
@@ -141,6 +148,10 @@ def image_source(img: ImageSource) -> dict[str, str]:
 
 @router.post("")
 async def create_instance(body: NewInstance, ctx: CtxDep) -> dict[str, Any]:
+    registries = False
+    if body.image.remote != "local":
+        info = await ctx.lxd.get("/1.0")
+        registries = "image_registries" in (info.get("api_extensions") or [])
     payload = {
         "name": body.name,
         "type": body.type,
@@ -149,7 +160,7 @@ async def create_instance(body: NewInstance, ctx: CtxDep) -> dict[str, Any]:
         "config": body.config,
         "devices": body.devices,
         "start": body.start,
-        "source": image_source(body.image),
+        "source": image_source(body.image, registries),
     }
     return await ctx.change(
         "instance.create",

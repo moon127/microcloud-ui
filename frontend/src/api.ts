@@ -504,7 +504,22 @@ export interface Network {
 
 const q = (project: string) => `?project=${encodeURIComponent(project)}`;
 export const fetchLocalImages = (project: string) => api<LocalImage[]>(`/api/images${q(project)}`);
-export const fetchRemoteImages = (remote: "images" | "ubuntu") => api<RemoteImage[]>(`/api/images/remote/${remote}`);
+/** "images"/"ubuntu" on LXD 5.21; any image registry on LXD 6.10+ (image_registries). */
+export const fetchRemoteImages = (remote: string) => api<RemoteImage[]>(`/api/images/remote/${encodeURIComponent(remote)}`);
+
+/** LXD 6.10+: image servers kept by LXD itself; built-in ones can't be deleted. */
+export interface ImageRegistry {
+  name: string;
+  description: string;
+  protocol: string;
+  builtin: boolean;
+  public: boolean;
+  config: Record<string, string>;
+}
+export const fetchImageRegistries = () => api<ImageRegistry[]>("/api/image-registries");
+export const createImageRegistry = (body: { name: string; url: string; description: string }) =>
+  send<Started>("POST", "/api/image-registries", body);
+export const deleteImageRegistry = (name: string) => send<Started>("DELETE", `/api/image-registries/${encodeURIComponent(name)}`);
 export const fetchProfiles = (project: string) => api<Profile[]>(`/api/profiles${q(project)}`);
 
 /** LXD 6.6+ (instance_placement_groups): spread or pack instances across members. */
@@ -536,7 +551,8 @@ export interface NewInstance {
   type: "container" | "virtual-machine";
   project: string;
   target?: string;
-  image: { remote: "local" | "images" | "ubuntu"; alias?: string; fingerprint?: string };
+  /** remote: "local", "images"/"ubuntu" (LXD 5.21) or an image registry (LXD 6.10+) */
+  image: { remote: string; alias?: string; fingerprint?: string };
   description: string;
   profiles: string[];
   config: Record<string, string>;

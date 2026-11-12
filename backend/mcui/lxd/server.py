@@ -25,6 +25,7 @@ FEATURES: dict[str, tuple[str, ...]] = {
     "snapshot_volumes": ("instance_snapshots_multi_volume",),  # LXD 6.6+
     "load_balancer_pools": ("network_load_balancer_pool",),  # LXD 6.9+
     "load_balancer_health_checks": ("network_load_balancer_pool_health_checks",),  # 6.10+
+    "image_registries": ("image_registries",),  # LXD 6.10+
 }
 
 

@@ -450,3 +450,58 @@ describe("3f API helpers", () => {
     expect((f.mock.calls[3][1] as RequestInit).headers).toEqual({ "Content-Type": "application/octet-stream" });
   });
 });
+
+
+describe("image registries (LXD 6.10+)", () => {
+  const regs: api.ImageRegistry[] = [
+    { name: "images", description: "", protocol: "simplestreams", builtin: true, public: true, config: { url: "https://images.lxd.canonical.com" } },
+    { name: "lab-mirror", description: "mcui test registry", protocol: "simplestreams", builtin: false, public: true, config: { url: "https://mirror.example.org" } },
+  ];
+  const server = (image_registries: boolean): api.ServerInfo => ({
+    version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "", features: { image_registries },
+  });
+
+  it("lists registries; admins add and delete custom ones", async () => {
+    vi.spyOn(api, "fetchLocalImages").mockResolvedValue([]);
+    vi.spyOn(api, "fetchServer").mockResolvedValue(server(true));
+    vi.spyOn(api, "fetchImageRegistries").mockResolvedValue(regs);
+    const add = vi.spyOn(api, "createImageRegistry").mockResolvedValue({ operation: null, metadata: null });
+    const del = vi.spyOn(api, "deleteImageRegistry").mockResolvedValue({ operation: null, metadata: null });
+    renderAt(<ImagesPage />);
+    const section = await screen.findByRole("region", { name: "Image registries" });
+    const builtin = (await within(section).findByText("images")).closest("tr")!;
+    expect(builtin).toHaveTextContent("images (built-in)https://images.lxd.canonical.com");
+    expect(within(builtin).queryByRole("button", { name: "Delete" })).toBeNull();
+    fireEvent.click(within(section).getByRole("button", { name: "Add registry" }));
+    const dlg = within(screen.getByRole("dialog", { name: "Add image registry" }));
+    fireEvent.change(dlg.getByLabelText("Name"), { target: { value: "m2" } });
+    fireEvent.change(dlg.getByLabelText("SimpleStreams URL"), { target: { value: "http://plain.example.org" } });
+    expect(dlg.getByRole("alert")).toHaveTextContent("The URL must be https://");
+    fireEvent.click(dlg.getByRole("button", { name: "Add" }));
+    expect(add).not.toHaveBeenCalled();
+    fireEvent.change(dlg.getByLabelText("SimpleStreams URL"), { target: { value: "https://m2.example.org" } });
+    fireEvent.change(dlg.getByLabelText("Description"), { target: { value: "second" } });
+    fireEvent.click(dlg.getByRole("button", { name: "Add" }));
+    expect(add).toHaveBeenCalledWith({ name: "m2", url: "https://m2.example.org", description: "second" });
+    const custom = within(section).getByText("lab-mirror").closest("tr")!;
+    fireEvent.click(within(custom).getByRole("button", { name: "Delete" }));
+    fireEvent.click(within(screen.getByRole("dialog", { name: "Delete image registry lab-mirror?" })).getByRole("button", { name: "Delete" }));
+    expect(del).toHaveBeenCalledWith("lab-mirror");
+  });
+
+  it("hidden before LXD 6.10; read-only for viewers", async () => {
+    vi.spyOn(api, "fetchLocalImages").mockResolvedValue([]);
+    vi.spyOn(api, "fetchServer").mockResolvedValue(server(false));
+    const list = vi.spyOn(api, "fetchImageRegistries").mockResolvedValue(regs);
+    const { unmount } = renderAt(<ImagesPage />);
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByRole("region", { name: "Image registries" })).toBeNull();
+    expect(list).not.toHaveBeenCalled();
+    unmount();
+    vi.spyOn(api, "fetchServer").mockResolvedValue(server(true));
+    renderAt(<ImagesPage />, { s: session({ user: { username: "v", role: "viewer" } }) });
+    const section = await screen.findByRole("region", { name: "Image registries" });
+    expect(await within(section).findByText("lab-mirror")).toBeInTheDocument();
+    expect(within(section).queryByRole("button")).toBeNull();
+  });
+});

@@ -5,13 +5,16 @@ Phase 3f extends images and profiles with management.
 
 from __future__ import annotations
 
+import re
 from typing import Annotated, Any
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 
 from mcui.api.deps import LXDDep, ServicesDep, SessionDep
-from mcui.lxd.remotes import ARCH, REMOTES, RemoteCatalog
+from mcui.api.instances import NAME
+from mcui.lxd.client import LXDError
+from mcui.lxd.remotes import ARCH, REMOTES, RemoteCatalog, RemoteImage, parse_registry_images
 
 router = APIRouter(prefix="/api")
 
@@ -55,16 +58,31 @@ async def local_images(
 async def remote_images(
     remote: str, _: SessionDep, lxd: LXDDep, catalog: CatalogDep, arch: str | None = None
 ) -> list[dict[str, Any]]:
-    """Images on ``images:`` or ``ubuntu:``, for the cluster's architectures by default."""
-    if remote not in REMOTES:
+    """A remote's images, for the cluster's architectures by default: ``images:`` or
+    ``ubuntu:`` read from simplestreams (LXD 5.21), or any image registry as LXD 6.10+
+    lists it (``image_registries``, Phase 5b)."""
+    server = await lxd.get("/1.0")
+    registries = "image_registries" in (server.get("api_extensions") or [])
+    if not (re.fullmatch(NAME, remote) if registries else remote in REMOTES):
         raise HTTPException(status_code=404, detail=f"unknown remote; use one of {sorted(REMOTES)}")
     if arch is None:
-        env = (await lxd.get("/1.0")).get("environment") or {}
+        env = server.get("environment") or {}
         arches = {ARCH.get(a, a) for a in env.get("architectures") or []}
     else:
         arches = {arch}
+
+    async def from_lxd() -> list[RemoteImage]:
+        return parse_registry_images(
+            list(await lxd.get(f"/1.0/image-registries/{remote}/images") or [])
+        )
+
     try:
-        items = await catalog.images(remote)
+        if registries:
+            items = await catalog.cached(f"registry:{remote}", from_lxd)
+        else:
+            items = await catalog.images(remote)
+    except LXDError as e:
+        raise HTTPException(status_code=404 if e.status == 404 else 502, detail=str(e)) from e
     except httpx.HTTPError as e:
         raise HTTPException(status_code=502, detail=f"{remote}: {type(e).__name__}: {e}") from e
     return [i.as_dict() for i in items if not arches or i.arch in arches]
