@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { stringify } from "yaml";
-import { createNetwork, fetchMembers, fetchNetworks, type NetworkType } from "../../api";
+import { createNetwork, fetchMembers, fetchNetworks, fetchServer, type NetworkType } from "../../api";
 import { useActions } from "../../actions";
 import { useProject } from "../../project";
 import { useSession } from "../../session";
@@ -9,7 +9,7 @@ import { useApi } from "../../useApi";
 import YamlEditor from "../../YamlEditor";
 import { asConfig } from "../instance/state";
 import { networkPath } from "./paths";
-import { buildNetwork, emptyNetwork, FIELDS, MEMBER_KEY, networkProblems, type NetworkForm } from "./request";
+import { buildNetwork, emptyNetwork, fieldsFor, MEMBER_KEY, networkProblems, type NetworkForm } from "./request";
 
 const TYPES: { type: NetworkType; label: string; note: string }[] = [
   { type: "bridge", label: "Bridge", note: "A Linux bridge on each member, with LXD's DHCP/DNS and NAT" },
@@ -34,13 +34,14 @@ export default function CreateNetworkPage() {
   const ifaces = useApi(`ifaces:${f.project}:${names.join(",")}`, () =>
     Promise.all(names.map((m) => fetchNetworks(f.project, m).then((ns) => [m, ns.filter((n) => !n.managed)] as const))),
   );
+  const features = useApi("server", fetchServer).data?.features ?? {};
 
   if (user.role !== "admin") return <p role="alert">Creating networks needs the admin role.</p>;
 
   const set = <K extends keyof NetworkForm>(k: K, v: NetworkForm[K]) => setF((x) => ({ ...x, [k]: v }));
   const setField = (k: string, v: string) => set("fields", { ...f.fields, [k]: v });
   const issues = [...networkProblems(f, names), ...(extraProblem ? [extraProblem] : [])];
-  const req = buildNetwork(f, names);
+  const req = buildNetwork(f, names, features);
   const mk = MEMBER_KEY[f.type];
   const uplinks = (networks.data ?? []).filter((n) => n.managed && n.type === "physical");
   const first = names.length ? (f.perMember[names[0]] ?? "") : "";
@@ -141,7 +142,7 @@ export default function CreateNetworkPage() {
         <h2>Settings</h2>
         <p className="muted">Leave blank for LXD's default.</p>
         <div className="form-row">
-          {FIELDS[f.type].map((fd) => (
+          {fieldsFor(f.type, features).map((fd) => (
             <label key={fd.key} className="field">
               {fd.label}
               {fd.toggle ? (

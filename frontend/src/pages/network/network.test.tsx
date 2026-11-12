@@ -6,7 +6,7 @@ import { renderAt, session } from "../../test/render";
 import NetworksPage from "../NetworksPage";
 import CreateNetworkPage from "./CreateNetworkPage";
 import NetworkPage from "./NetworkPage";
-import { buildNetwork, emptyNetwork, networkProblems } from "./request";
+import { buildNetwork, emptyNetwork, fieldsFor, networkProblems } from "./request";
 
 beforeEach(() => {
   vi.spyOn(api, "fetchAcls").mockResolvedValue([]);
@@ -67,6 +67,13 @@ describe("network request builder", () => {
     const ovn = { ...emptyNetwork("default"), name: "o1", type: "ovn" as const, fields: { network: "UPLINK", "ipv4.nat": "true" } };
     expect(buildNetwork(ovn, ["m1"]).config).toEqual({ network: "UPLINK", "ipv4.nat": "true" });
     expect(buildNetwork(ovn, ["m1"]).members).toEqual({});
+    // LXD 6.6+ (ovn_dhcp_ranges): offered and sent only where the server has it
+    const ranges = { ...ovn, fields: { ...ovn.fields, "ipv4.dhcp.ranges": " 10.0.0.10-10.0.0.50 " } };
+    expect(buildNetwork(ranges, ["m1"]).config).not.toHaveProperty("ipv4.dhcp.ranges");
+    expect(buildNetwork(ranges, ["m1"], { ovn_dhcp_ranges: true }).config["ipv4.dhcp.ranges"]).toBe("10.0.0.10-10.0.0.50");
+    expect(fieldsFor("ovn").map((f) => f.key)).not.toContain("ipv4.dhcp.ranges");
+    expect(fieldsFor("ovn", { ovn_dhcp_ranges: true }).map((f) => f.key)).toContain("ipv4.dhcp.ranges");
+    expect(fieldsFor("bridge", { ovn_dhcp_ranges: true }).map((f) => f.key)).not.toContain("ipv4.dhcp.ranges");
     const br = { ...emptyNetwork("default"), name: "b", perMember: { m1: "eth9", m2: " " } };
     expect(buildNetwork(br, ["m1", "m2"]).members).toEqual({ m1: { "bridge.external_interfaces": "eth9" } });
     expect(networkProblems(br, ["m1", "m2"])).toEqual([]);

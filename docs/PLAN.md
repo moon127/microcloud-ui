@@ -301,7 +301,9 @@ and multi-volume snapshots for Phase 5:
   address, or one allocated from the uplink: `listen_address` `0.0.0.0`), edit and
   delete; ports send to named backends or (LXD 6.9+) a pool; pools with instances,
   target port and (6.10+) a health check, each target's live status from the pool's
-  `/state`. Not yet: internal load balancers and forwards, DHCP ranges.
+  `/state`. Not yet: internal load balancers and forwards.
+- ✅ **OVN DHCP ranges** (`ovn_dhcp_ranges`, LXD 6.6+): an "IPv4 DHCP ranges" field when
+  creating an OVN network, shown only where the server supports it.
 - ✅ **Child operations:** a bulk operation's children nested under it on the operations
   page (`recursion=2`, `child_count`).
 - ✅ **Multi-volume snapshots** (`instance_snapshots_multi_volume`): "include volumes

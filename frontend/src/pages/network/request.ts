@@ -20,6 +20,8 @@ export interface Field {
   placeholder?: string;
   /** "" = LXD's default, "true", "false" */
   toggle?: boolean;
+  /** only when the server has this feature (``/api/server`` features, Phase 5) */
+  feature?: string;
 }
 
 const ADDRESSES: Field[] = [
@@ -33,7 +35,16 @@ const ADDRESSES: Field[] = [
 
 export const FIELDS: Record<NetworkType, Field[]> = {
   bridge: ADDRESSES,
-  ovn: ADDRESSES,
+  ovn: [
+    ...ADDRESSES,
+    // LXD 6.6+ (ovn_dhcp_ranges): hand out only these; the rest stay for static addresses
+    {
+      key: "ipv4.dhcp.ranges",
+      label: "IPv4 DHCP ranges (optional)",
+      placeholder: "10.0.0.10-10.0.0.99",
+      feature: "ovn_dhcp_ranges",
+    },
+  ],
   physical: [
     { key: "mtu", label: "MTU", placeholder: "parent's" },
     { key: "vlan", label: "VLAN id" },
@@ -68,9 +79,13 @@ export const emptyNetwork = (project: string): NetworkForm => ({
   extra: {},
 });
 
-export function buildNetwork(f: NetworkForm, members: string[]): NewNetwork {
+/** The form's fields for this network type that the server supports. */
+export const fieldsFor = (type: NetworkType, features: Record<string, boolean> = {}) =>
+  FIELDS[type].filter((f) => !f.feature || features[f.feature]);
+
+export function buildNetwork(f: NetworkForm, members: string[], features: Record<string, boolean> = {}): NewNetwork {
   const config: Record<string, string> = { ...f.extra };
-  for (const { key } of FIELDS[f.type]) {
+  for (const { key } of fieldsFor(f.type, features)) {
     const v = (f.fields[key] ?? "").trim();
     if (v) config[key] = v;
   }

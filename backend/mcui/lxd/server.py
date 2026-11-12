@@ -67,6 +67,8 @@ ADAPTS: dict[str, tuple[str, ...]] = {
     "evacuation_force": ("clustering_evacuation_force",),
     # LXD 6.7+: boot.mode replaces security.secureboot (refused for VMs)
     "boot_mode": ("instance_boot_mode",),
+    # LXD 6.6+: OVN networks can limit DHCP to ipv4.dhcp.ranges
+    "ovn_dhcp_ranges": ("ovn_dhcp_ranges",),
 }
 
 
