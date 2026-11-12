@@ -245,8 +245,8 @@ LTS releases and checked live on 3.4.
 - **Ceph Tentacle:** the mgr Prometheus module no longer exports daemon perf counters by
   default; `ceph-exporter` does. So the OSD apply/commit and per-op latency graphs
   (MO-7a) go blank unless `mgr/prometheus/exclude_perf_counters` is set to false (one
-  `ceph config set`, owner's call) or we scrape `ceph-exporter`, if MicroCeph runs it.
-  Either way, hide those views with a hint when the counters are missing.
+  `ceph config set`, owner's call; MicroCeph runs no `ceph-exporter`, see below). Hide
+  those views with a hint when the counters are missing.
   Check the RBD image stats and the remaining metric names on the live cluster;
   `docs/CEPH-METRICS.md` follows.
 - **`mcui check`:** report each member's LXD version and LTS track, warn about mixed
@@ -296,12 +296,16 @@ the MicroCloud upgrade. In between, MicroCloud 2.1 / LXD 5.21 runs on 26.04's 7.
 a combination LXD's support table doesn't list, so keep that gap short. node_exporter
 then comes from 26.04; the `recorded-5.21` node samples are from 24.04.
 
-*Still open:* Ceph perf counters on Tentacle, decided once the upgraded cluster shows
-what it exports. (A) `ceph config set mgr mgr/prometheus/exclude_perf_counters false`
-restores today's behaviour with no app change (the lean for three nodes; owner's call, as
-D23); (B) scrape `ceph-exporter` per host if MicroCeph runs it; (C) do without the OSD
-latency views. Whatever is chosen, the Ceph page hides the latency views with a hint when
-the counters are missing.
+*Ceph perf counters on Tentacle:* MicroCeph doesn't run `ceph-exporter` (checked
+2026-11-12: its Tentacle snap on `main` has no exporter service or package, nothing in its
+code sets `exclude_perf_counters`, and the PR adding the exporter, microceph#552, is
+unmerged). Canonical's charm-microceph sets `exclude_perf_counters` to `False` instead.
+So the route is the same here: after the upgrade, check `:9283/metrics` serves (a Tentacle
+build once didn't start the module, microceph#874, fixed by #896 on 2026-09-24) and
+`ceph config get mgr mgr/prometheus/exclude_perf_counters`; if the OSD latency metrics are
+missing, `ceph config set mgr mgr/prometheus/exclude_perf_counters false` (owner's call,
+as D23) and document it in `docs/CEPH-METRICS.md`. The Ceph page hides the latency views
+with that hint when the counters are missing.
 
 **Phase 6: Metric store evaluation** (was Phase 5; MO-14): benchmark SQLite against
 Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
