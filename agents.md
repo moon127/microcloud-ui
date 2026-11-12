@@ -231,6 +231,9 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   on an ARM host. 22.04 (py3.10) bundles now include `tomli`.
 - **Git history scrubbed 2026-11-12 (D66):** no `Claude-Session:` trailers; commit-msg hook
   guards against them.
+- **Phase 5a started 2026-11-12 (owner's go-ahead):** `mcui check` labels each member's LXD release
+  (LTS series and support end), warns about releases missing the 2026-10-28 TLS security fix
+  (5.21.9 / 6.10.1 / 5.0.11) and about members on different versions; warnings, not failures.
 - **Phase 5.0: LXD 5.21 baseline recorded 2026-11-12** (`tests/fixtures/recorded-5.21`, 55 files;
   `record-fixtures` now covers everything the app reads, Ceph mgr and node_exporter included).
 - Next: **Phase 5, MicroCloud 3.4 LTS** (agreed 2026-11-12, `docs/PLAN.md`, D73): starts after the

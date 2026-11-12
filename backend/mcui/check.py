@@ -6,7 +6,7 @@ from collections.abc import Callable
 
 from mcui.config import Settings
 from mcui.lxd.client import LXDClient, LXDError
-from mcui.lxd.server import FEATURES, ServerInfo, members
+from mcui.lxd.server import FEATURES, ServerInfo, members, release
 from mcui.metrics.node import NodeScraper
 from mcui.metrics.scrape import Scraper
 
@@ -17,6 +17,7 @@ async def run_check(settings: Settings, api: LXDClient, metrics: LXDClient, out:
     """Print a report through ``out``; return True when everything needed works."""
     ok = True
     info: ServerInfo | None = None
+    versions: dict[str, str] = {}
     out("LXD endpoints:")
     for ep in api.endpoints:
         try:
@@ -30,12 +31,19 @@ async def run_check(settings: Settings, api: LXDClient, metrics: LXDClient, out:
             out(f"  FAIL {ep}: management certificate is not trusted (auth={this.auth!r})")
             ok = False
             continue
+        label, warning = release(this.version)
         out(
-            f"  ok   {ep}: LXD {this.version}, "
+            f"  ok   {ep}: LXD {this.version} ({label}), "
             f"{'clustered' if this.clustered else 'standalone'}, "
             f"server {this.server_name}, auth {this.auth_method or this.auth}"
         )
+        if warning:  # reported, not a failure: the app still works
+            out(f"  WARN {this.server_name or ep}: LXD {this.version} {warning}")
+        versions[this.server_name or ep] = this.version
         info = info or this
+    if len(set(versions.values())) > 1:
+        seen = ", ".join(f"{name} {v}" for name, v in sorted(versions.items()))
+        out(f"  WARN members run different LXD versions ({seen}); finish the upgrade")
     if info is None:
         out("No trusted LXD endpoint; cannot continue.")
         return False

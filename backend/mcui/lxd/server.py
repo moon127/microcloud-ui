@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -21,6 +22,35 @@ FEATURES: dict[str, tuple[str, ...]] = {
     "fine_grained_auth": ("access_management",),
     "cluster_evacuation": ("clustering_evacuation",),
 }
+
+
+# LTS series: end of support (LXD "Releases and snaps") and the first release fixing the
+# critical TLS client-certificate authentication bypass (advisory of 2026-10-28)
+LTS: dict[str, tuple[str, tuple[int, ...]]] = {
+    "5.0": ("June 2027", (5, 0, 11)),
+    "5.21": ("June 2029", (5, 21, 9)),
+    "6.10": ("June 2031", (6, 10, 1)),
+}
+
+
+def release(version: str) -> tuple[str, str | None]:
+    """How to describe an LXD version, and a warning if it misses a security fix."""
+    nums = tuple(int(n) for n in re.findall(r"\d+", version.split("-")[0])[:3])
+    if len(nums) < 2:
+        return "unknown release", None
+    series = f"{nums[0]}.{nums[1]}"
+    if series not in LTS:
+        return "feature release", None
+    until, fixed = LTS[series]
+    label = f"LTS {series}, supported until {until}"
+    if nums + (0,) * (3 - len(nums)) < fixed:
+        need = ".".join(map(str, fixed))
+        return (
+            label,
+            "misses a critical security fix (TLS client authentication): "
+            f"update to {need} or later (snap refresh lxd)",
+        )
+    return label, None
 
 
 def features(api_extensions: list[str]) -> dict[str, bool]:
