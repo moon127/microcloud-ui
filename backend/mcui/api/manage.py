@@ -23,7 +23,7 @@ from mcui.api.deps import (
 from mcui.api.instances import NAME, ProjectName
 from mcui.auth.store import Session, Store
 from mcui.lxd import operations
-from mcui.lxd.client import LXDClient, LXDError
+from mcui.lxd.client import LXDClient
 from mcui.lxd.remotes import REMOTES
 
 router = APIRouter(prefix="/api")
@@ -331,23 +331,16 @@ async def upload_image(
     await guard.check(project)
     session = guard.session
 
-    async def call() -> operations.Started:
-        r = await lxd.raw(
-            "POST",
-            "/1.0/images",
-            params={"project": project},
-            headers={"Content-Type": "application/octet-stream", "X-LXD-filename": filename},
-            content=request.stream(),
-        )
-        body = r.json() if r.headers.get("content-type", "").startswith("application/json") else {}
-        if r.status_code >= 400 or body.get("type") == "error":
-            raise LXDError(str(body.get("error") or f"HTTP {r.status_code}"), r.status_code)
-        return operations.Started(
-            operation=body.get("metadata") if body.get("type") == "async" else None
-        )
-
+    call = operations.start(
+        lxd,
+        "POST",
+        "/1.0/images",
+        params={"project": project},
+        headers={"Content-Type": "application/octet-stream", "X-LXD-filename": filename},
+        content=request.stream(),
+    )
     st = await audited(
-        session, store, "image.upload", f"{project}/{filename}", call(), detail={"alias": alias}
+        session, store, "image.upload", f"{project}/{filename}", call, detail={"alias": alias}
     )
     if alias and st.operation is not None:
         # the alias needs the fingerprint, known once the import finishes

@@ -76,7 +76,7 @@ describe("an instance by the user's right in its project", () => {
   it("viewers get no files, consoles or actions", async () => {
     open("default", viewer);
     expect(await screen.findByText(/container · Running/)).toBeInTheDocument();
-    expect(tabs()).toEqual(["Overview", "Configuration", "Snapshots", "Logs"]);
+    expect(tabs()).toEqual(["Overview", "Configuration", "Snapshots", "Backups", "Logs"]);
     expect(screen.queryByRole("toolbar", { name: "Instance actions" })).toBeNull();
   });
 

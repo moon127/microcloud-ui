@@ -32,24 +32,27 @@ export default function ActionsProvider({ children }: { children: ReactNode }) {
   const update = (id: number, patch: Partial<Toast>) =>
     setToasts((ts) => ts.map((t) => (t.id === id ? { ...t, ...patch } : t)));
 
-  const run = useCallback(async (label: string, start: () => Promise<Started | void>, opts: RunOptions = {}) => {
-    const id = next.current++;
-    setToasts((ts) => [...ts, { id, label, state: "running" }]);
-    try {
-      const st = await start();
-      const op = st?.operation ? await finish(st.operation, opts.onProgress) : null;
-      if (op && op.status !== "Success") throw new Error(op.err || op.status);
-      update(id, { state: "done" });
-      return true;
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e);
-      update(id, { state: "failed", message });
-      opts.onError?.(message);
-      return false;
-    } finally {
-      setVersion((v) => v + 1);
-    }
-  }, []);
+  const run = useCallback(
+    async (label: string, start: (progress: (message: string) => void) => Promise<Started | void>, opts: RunOptions = {}) => {
+      const id = next.current++;
+      setToasts((ts) => [...ts, { id, label, state: "running" }]);
+      try {
+        const st = await start((message) => update(id, { message }));
+        const op = st?.operation ? await finish(st.operation, opts.onProgress) : null;
+        if (op && op.status !== "Success") throw new Error(op.err || op.status);
+        update(id, { state: "done", message: undefined });
+        return true;
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        update(id, { state: "failed", message });
+        opts.onError?.(message);
+        return false;
+      } finally {
+        setVersion((v) => v + 1);
+      }
+    },
+    [],
+  );
 
   const runAll = useCallback(async (label: string, items: Item[]) => {
     const id = next.current++;

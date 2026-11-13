@@ -4,9 +4,10 @@ import { changeState, deleteInstance, fetchInstances, type Instance, type Starte
 import { useActions } from "../actions";
 import Confirm from "../Confirm";
 import { InstanceLink, MemberLink } from "../links";
-import { useProject } from "../project";
+import { useCurrentProject, useProject } from "../project";
 import { useApi } from "../useApi";
-import { useAccess } from "../access";
+import { manageable, useAccess } from "../access";
+import ImportBackup from "./instance/ImportBackup";
 
 const key = (i: Instance) => `${i.project}/${i.name}`;
 const uniq = (xs: string[]) => Array.from(new Set(xs.filter(Boolean))).sort();
@@ -29,6 +30,8 @@ export default function InstancesPage() {
   const [profile, setProfile] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const current = useCurrentProject();
   const admin = access.canManageSomewhere(project || undefined);
 
   const all = useMemo(() => (data ?? []).filter((i) => !project || i.project === project), [data, project]);
@@ -81,6 +84,9 @@ export default function InstancesPage() {
             <Link className="button primary" to="/instances/new">
               Create instance
             </Link>{" "}
+            <button type="button" onClick={() => setImporting(true)}>
+              Import backup
+            </button>{" "}
           </>
         )}
         <Link to="/placement-groups">Placement groups</Link>
@@ -190,6 +196,12 @@ export default function InstancesPage() {
           <p>{chosen.map((i) => i.name).join(", ")}</p>
           <p>Running instances are stopped first. Snapshots are deleted too. This can't be undone.</p>
         </Confirm>
+      )}
+      {importing && (
+        <ImportBackup
+          project={access.can(current, "manage") ? current : (manageable(access.user)[0] ?? current)}
+          onClose={() => setImporting(false)}
+        />
       )}
     </>
   );

@@ -15,8 +15,13 @@ export interface Item {
 }
 
 export interface Actions {
-  /** Run a change, follow its LXD operation to the end, report it as a toast. */
-  run: (label: string, start: () => Promise<Started | void>, opts?: RunOptions) => Promise<boolean>;
+  /** Run a change, follow its LXD operation to the end, report it as a toast. ``start`` can
+   * report progress before LXD has an operation (an upload) through its argument. */
+  run: (
+    label: string,
+    start: (progress: (message: string) => void) => Promise<Started | void>,
+    opts?: RunOptions,
+  ) => Promise<boolean>;
   /** Run several changes at once under one toast that counts them off and, at the end,
    * names any that failed. True if all succeeded. */
   runAll: (label: string, items: Item[]) => Promise<boolean>;

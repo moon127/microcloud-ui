@@ -270,6 +270,14 @@ sudo -u mcui sqlite3 /var/lib/mcui/mcui.db ".backup /var/lib/mcui/mcui-backup.db
 ```
 Or run `sudo systemctl stop mcui`, copy the files, then start it again.
 
+**Instance and volume backups (LXD's, not the app's):** the Backups tab asks LXD to make
+the tarball, and LXD keeps it on the member running the instance, under that member's
+`storage.backups_volume` (by default its root disk: `/var/snap/lxd/common/lxd/backups`).
+Big instances need room there; point `storage.backups_volume` at a volume if the root
+disk is small. Downloads and imports stream through microcloud-ui without being held in
+memory or written to its disk, so a reverse proxy in front needs a large enough body
+size and long enough timeouts (§10).
+
 **Uninstall:**
 
 - `sudo ./install.sh --uninstall` removes the service and the program, and keeps the config and data.

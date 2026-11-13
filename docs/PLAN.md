@@ -634,7 +634,7 @@ turned out to need.
 | Edit a project's restriction keys | cluster admin (unchanged: the project's own settings) |
 
 *Steps:*
-- **7a, instance backups (IN-13):** a Backups tab on the instance page: list (name,
+- ✅ 2026-11-13 **7a, instance backups (IN-13):** a Backups tab on the instance page: list (name,
   created, expiry, instance only, optimized), create (name, expiry, instance only,
   optimized storage, compression), rename, delete, download (streamed through the backend).
   Import from Instances → Import backup: a tarball upload (streamed) with project, name and
@@ -652,6 +652,12 @@ turned out to need.
   `restricted.*` keys as a form, snapshots and backups first, so a cluster admin can allow
   them. USERS.md corrected: operator snapshots and backups need them allowed.
 - **7f:** README, USERS.md, LIVE-TESTS.md, screenshots; then release 0.3.0.
+
+*Found in 7a (live, LXD 6.10.1):* importing a backup into any project with `limits.*` or
+`restricted` is refused: LXD counts the backup's own `volatile.*` keys as low-level options.
+`restricted.containers.lowlevel=allow` lets it through, but on a restricted project that
+also opens `raw.lxc`. A crafted privileged backup was still refused. 7c checks whether a
+move into a restricted project works, as the way round.
 
 *Watch:* backups live on the member that holds the instance, under its
 `storage.backups_volume` (unset on the test cloud, so the member's root disk). Large backups

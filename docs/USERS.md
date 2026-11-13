@@ -56,10 +56,10 @@ A project user has a **grant** per project:
 | Project role | Can |
 |---|---|
 | **viewer** | see the project's instances, volumes, networks, profiles, images and placement groups; their graphs; its operations and audit entries |
-| **operator** | viewer, plus start, stop, restart, freeze; consoles and the terminal; files; instance and volume snapshots |
-| **admin** | operator, plus create, change, rename, copy, move, publish and delete instances, and manage the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
+| **operator** | viewer, plus start, stop, restart, freeze; consoles and the terminal; files; instance and volume snapshots; instance backups (make, rename, delete, download) |
+| **admin** | operator, plus create, change, rename, copy, move, publish, import (from a backup) and delete instances, and manage the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
 
-Files and consoles need operator because they can expose secrets.
+Files, consoles and backup downloads need operator because they can expose secrets.
 
 ## Preparing a project
 
@@ -77,11 +77,20 @@ ticked, or with `lxc`:
 lxc project create web -c restricted=true -c features.storage.volumes=true
 ```
 
-**Allow snapshots if operators should take them.** A restricted project refuses
-snapshots and backups by default, even from the app, until `restricted.snapshots=allow`
-(and later `restricted.backups=allow`) is set. Checked on LXD 6.10 on 2026-11-13. Set it
-with `lxc project set web restricted.snapshots=allow`, or as a key in the project's
-configuration. Phase 7 adds these keys to the project page.
+**Allow snapshots and backups if operators should make them.** A restricted project
+refuses both by default, even from the app, until `restricted.snapshots=allow` and
+`restricted.backups=allow` are set. Checked on LXD 6.10 on 2026-11-13. Set them with
+`lxc project set web restricted.snapshots=allow restricted.backups=allow`, or as keys in
+the project's configuration. Phase 7 adds these keys to the project page.
+
+**Importing a backup into a restricted project doesn't work** on LXD 6.10.1 (checked
+2026-11-13). LXD counts the backup's own `volatile.*` keys as low-level options and
+refuses them in any project with `restricted` or `limits.*` set. Only
+`restricted.containers.lowlevel=allow` lets the import through. Don't set that on a
+restricted project: it also lets the project's users set `raw.lxc` and similar, which
+reach the host. LXD still refused a backup edited to be privileged, with low-level
+options allowed (CVE-2026-34178, fixed in 6.8, was a bypass of exactly that check). The
+import dialog warns when a project is affected.
 
 Keep **own storage volumes** (`features.storage.volumes=true`, LXD's default for new
 projects). LXD answers queries on a project without them with `default`'s volumes, so

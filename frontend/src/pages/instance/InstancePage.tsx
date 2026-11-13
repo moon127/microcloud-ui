@@ -4,6 +4,7 @@ import { useActions } from "../../actions";
 import { MemberLink } from "../../links";
 import { useApi } from "../../useApi";
 import Actions from "./Actions";
+import BackupsTab from "./BackupsTab";
 import ConfigTab from "./ConfigTab";
 import ConsoleTab from "./ConsoleTab";
 import FilesTab from "./FilesTab";
@@ -18,6 +19,7 @@ const TABS = [
   { id: "console", label: "Console" },
   { id: "files", label: "Files" },
   { id: "snapshots", label: "Snapshots" },
+  { id: "backups", label: "Backups" },
   { id: "logs", label: "Logs" },
 ] as const;
 
@@ -72,6 +74,7 @@ export default function InstancePage() {
       {tab === "console" && inst && <ConsoleTab key={`${inst.status}`} inst={inst} />}
       {tab === "files" && inst && <FilesTab inst={inst} />}
       {tab === "snapshots" && inst && <SnapshotsTab inst={inst} />}
+      {tab === "backups" && inst && <BackupsTab inst={inst} />}
       {tab === "logs" && <LogsTab project={project} name={name} />}
     </>
   );

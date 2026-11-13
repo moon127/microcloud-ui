@@ -329,6 +329,73 @@ export const restoreSnapshot = (project: string, name: string, snap: string, vol
 export const publishInstance = (project: string, name: string, opts: { alias?: string; snapshot?: string }) =>
   send<Started>("POST", `${inst(project, name)}/publish`, opts);
 
+// --- Phase 7a: backups (IN-13) ------------------------------------------------------
+
+export interface Backup {
+  name: string;
+  created_at: string;
+  expires_at?: string;
+  instance_only?: boolean;
+  optimized_storage?: boolean;
+}
+
+export type Compression = "gzip" | "zstd" | "xz" | "bzip2" | "none";
+
+export interface NewBackup {
+  name: string;
+  expires_at?: string;
+  instance_only: boolean;
+  optimized_storage: boolean;
+  compression_algorithm?: Compression;
+}
+
+const backups = (project: string, name: string) => `${inst(project, name)}/backups`;
+export const fetchBackups = (project: string, name: string) => api<Backup[]>(backups(project, name));
+export const createBackup = (project: string, name: string, body: NewBackup) =>
+  send<Started>("POST", backups(project, name), body);
+export const renameBackup = (project: string, name: string, backup: string, to: string) =>
+  send<Started>("POST", `${backups(project, name)}/${encodeURIComponent(backup)}/rename`, { name: to });
+export const deleteBackup = (project: string, name: string, backup: string) =>
+  send<Started>("DELETE", `${backups(project, name)}/${encodeURIComponent(backup)}`);
+/** A same-origin link the browser can download (the session cookie authorises it). */
+export const backupExportUrl = (project: string, name: string, backup: string) =>
+  `${backups(project, name)}/${encodeURIComponent(backup)}/export`;
+
+/** POST a file as the raw request body, reporting how much is sent (fetch can't). */
+export function uploadWithProgress(url: string, file: Blob, onProgress?: (fraction: number) => void): Promise<Started> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    if (csrfToken) xhr.setRequestHeader("X-CSRF-Token", csrfToken);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable && e.total > 0) onProgress?.(e.loaded / e.total);
+    };
+    xhr.onload = () => {
+      let body: { detail?: unknown } = {};
+      try {
+        body = JSON.parse(xhr.responseText) as { detail?: unknown };
+      } catch {
+        // not JSON: keep the status
+      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(body as Started);
+      else reject(new ApiError(xhr.status, typeof body.detail === "string" ? body.detail : `HTTP ${xhr.status}`));
+    };
+    xhr.onerror = () => reject(new ApiError(0, "the upload was interrupted"));
+    xhr.send(file);
+  });
+}
+
+/** Create an instance from a backup tarball; ``name`` and ``pool`` override the backup's. */
+export const importBackup = (
+  file: Blob,
+  target: { project: string; name?: string; pool?: string },
+  onProgress?: (fraction: number) => void,
+) => {
+  const q = new URLSearchParams(Object.entries(target).filter((e): e is [string, string] => !!e[1]));
+  return uploadWithProgress(`/api/instances/import?${q}`, file, onProgress);
+};
+
 export const fetchLogs = (project: string, name: string) => api<string[]>(`${inst(project, name)}/logs`);
 
 export async function fetchLog(project: string, name: string, file: string): Promise<string> {

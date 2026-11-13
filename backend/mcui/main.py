@@ -13,6 +13,7 @@ from mcui import __version__
 from mcui.api import (
     acls,
     auth,
+    backups,
     catalog,
     ceph,
     cluster,
@@ -88,6 +89,7 @@ def create_app(
     app.include_router(catalog.router)
     app.include_router(streams.router)
     app.include_router(files.router)
+    app.include_router(backups.router)
     app.include_router(manage.router)
     app.include_router(networks.router)
     app.include_router(acls.router)

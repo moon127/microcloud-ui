@@ -246,6 +246,16 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 7a done 2026-11-13 (D83):** instance backups: a Backups tab (list; make with
+  expiry, compression, without snapshots, optimized; rename; delete; download streamed and
+  named by its compression) and Instances → Import backup (streamed upload with progress in
+  the toast; `run` passes start a progress callback). Live in `mcui-test` through the app:
+  operator makes, renames and downloads, viewer only lists, operator can't import, other
+  projects 404, refused until `restricted.backups=allow`. Found live: LXD 6.10.1 refuses
+  importing a backup into any project with `limits.*` or `restricted` (its `volatile.*`
+  keys count as low-level) unless `restricted.containers.lowlevel=allow`; a crafted
+  privileged backup was still refused with that allowed. Unrestricted + lowlevel=allow
+  imported it with its files. The dialog warns; USERS.md says so. Next: 7b.
 - **Phase 7 agreed 2026-11-13 (D83):** backups, project moves, ISO upload and restriction
   keys (`docs/PLAN.md`). Found first, live: restricted projects refuse snapshots and backups
   by default. Next: 7a, instance backups.

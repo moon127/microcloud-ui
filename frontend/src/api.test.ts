@@ -335,3 +335,88 @@ describe("image registries (Phase 5b)", () => {
     ]);
   });
 });
+
+describe("backups (Phase 7a)", () => {
+  it("send the right method, URL and body", async () => {
+    setCsrf("t");
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    await api.fetchBackups("p", "c1");
+    await api.createBackup("p", "c1", { name: "b1", instance_only: true, optimized_storage: false });
+    await api.renameBackup("p", "c1", "b 1", "b2");
+    await api.deleteBackup("p", "c1", "b1");
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/instances/p/c1/backups", "GET", null],
+      ["/api/instances/p/c1/backups", "POST", '{"name":"b1","instance_only":true,"optimized_storage":false}'],
+      ["/api/instances/p/c1/backups/b%201/rename", "POST", '{"name":"b2"}'],
+      ["/api/instances/p/c1/backups/b1", "DELETE", null],
+    ]);
+    expect(api.backupExportUrl("p", "c1", "b1")).toBe("/api/instances/p/c1/backups/b1/export");
+  });
+});
+
+/** Just enough of XMLHttpRequest: records the request, answers when told. */
+class FakeXhr {
+  static last: FakeXhr;
+  method = "";
+  url = "";
+  headers: Record<string, string> = {};
+  body: unknown;
+  status = 0;
+  responseText = "";
+  upload: { onprogress?: (e: { lengthComputable: boolean; loaded: number; total: number }) => void } = {};
+  onload?: () => void;
+  onerror?: () => void;
+  constructor() {
+    FakeXhr.last = this;
+  }
+  open(method: string, url: string) {
+    this.method = method;
+    this.url = url;
+  }
+  setRequestHeader(k: string, v: string) {
+    this.headers[k] = v;
+  }
+  send(body: unknown) {
+    this.body = body;
+  }
+  answer(status: number, text: string) {
+    this.status = status;
+    this.responseText = text;
+    this.onload?.();
+  }
+}
+
+describe("uploadWithProgress", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("posts the file with the CSRF token and reports progress", async () => {
+    vi.stubGlobal("XMLHttpRequest", FakeXhr);
+    setCsrf("t");
+    const seen: number[] = [];
+    const file = new Blob(["x"]);
+    const p = api.importBackup(file, { project: "p", name: "c2", pool: "" }, (f) => seen.push(f));
+    const xhr = FakeXhr.last;
+    expect([xhr.method, xhr.url, xhr.body]).toEqual(["POST", "/api/instances/import?project=p&name=c2", file]);
+    expect(xhr.headers).toEqual({ "Content-Type": "application/octet-stream", "X-CSRF-Token": "t" });
+    xhr.upload.onprogress?.({ lengthComputable: true, loaded: 5, total: 10 });
+    xhr.upload.onprogress?.({ lengthComputable: false, loaded: 5, total: 0 });
+    xhr.answer(200, JSON.stringify({ operation: null, metadata: null }));
+    await expect(p).resolves.toEqual({ operation: null, metadata: null });
+    expect(seen).toEqual([0.5]);
+  });
+
+  it("reports the server's error, a bare status, or a lost connection", async () => {
+    vi.stubGlobal("XMLHttpRequest", FakeXhr);
+    let p = api.uploadWithProgress("/u", new Blob([]));
+    expect(FakeXhr.last.headers["X-CSRF-Token"]).toBeUndefined();
+    FakeXhr.last.answer(403, JSON.stringify({ detail: "needs the manage right in p" }));
+    await expect(p).rejects.toThrow("needs the manage right in p");
+    p = api.uploadWithProgress("/u", new Blob([]));
+    FakeXhr.last.answer(502, "<html>bad gateway</html>");
+    await expect(p).rejects.toThrow("HTTP 502");
+    p = api.uploadWithProgress("/u", new Blob([]));
+    FakeXhr.last.onerror?.();
+    await expect(p).rejects.toMatchObject({ status: 0, message: "the upload was interrupted" });
+  });
+});

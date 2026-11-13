@@ -26,6 +26,17 @@ export const manageable = (user: User): string[] =>
     .map(([p]) => p)
     .sort();
 
+/** Does a restricted project refuse ``what``? LXD's default for both, until set to allow
+ * (seen live on LXD 6.10, D83). */
+export const restrictionBlocks = (config: Record<string, string> | undefined, what: "backups" | "snapshots") =>
+  config?.restricted === "true" && config[`restricted.${what}`] !== "allow";
+
+/** LXD 6.10 refuses a backup's own ``volatile.*`` keys as low-level options in a project with
+ * limits or restrictions, unless ``restricted.containers.lowlevel=allow`` (seen live, D83). */
+export const importRefused = (config: Record<string, string> = {}) =>
+  (config.restricted === "true" || Object.keys(config).some((k) => k.startsWith("limits."))) &&
+  config["restricted.containers.lowlevel"] !== "allow";
+
 export interface Access {
   user: User;
   /** a global role: cluster-wide pages (members, Ceph, OVN, warnings, storage pools) */

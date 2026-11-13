@@ -32,9 +32,17 @@ async def start(
     *,
     json: Any = None,
     params: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
+    content: Any = None,
+    timeout: float | None = None,
 ) -> Started:
-    """Send a mutating request. Async LXD responses carry the operation as metadata."""
-    r = await client.raw(method, path, json=json, params=params)
+    """Send a mutating request. Async LXD responses carry the operation as metadata.
+
+    ``content`` (with ``headers``) sends a raw body instead, such as a streamed upload.
+    """
+    r = await client.raw(
+        method, path, json=json, params=params, headers=headers, content=content, timeout=timeout
+    )
     try:
         body = r.json()
     except ValueError as e:
