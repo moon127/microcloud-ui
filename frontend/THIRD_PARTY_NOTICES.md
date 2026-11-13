@@ -6,7 +6,7 @@ libraries, each under its own licence:
 | Library | Version | Licence | Notes |
 |---|---|---|---|
 | React, React DOM | 19.x | MIT | |
-| React Router | 7.18.4 | MIT | |
+| React Router | 8.5.1 | MIT | |
 | uPlot | 1.6.32 | MIT | charts |
 | yaml | 2.9.1 | ISC | YAML editor |
 | xterm.js (`@xterm/xterm`, `@xterm/addon-fit`) | 6.0.0 / 0.11.0 | MIT | terminal and text console |
