@@ -40,6 +40,8 @@ describe("PlacementGroupsPage", () => {
     expect(row).toHaveTextContent("spreadpermissivemcui test: spread");
     expect(within(row).getByRole("link", { name: "c3" })).toHaveAttribute("href", "/instances/default/c3");
     expect(screen.getByText("packed").closest("tr")).toHaveTextContent("compact–none");
+    // checked live on LXD 6.10: a move to a named member ignores a strict spread group
+    expect(screen.getByText(/moving an instance to a named member isn.t checked/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Create placement group" }));
     let dlg = screen.getByRole("dialog", { name: "New placement group in default" });

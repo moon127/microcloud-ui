@@ -219,6 +219,22 @@ fixtures, so record a full set **before** the upgrade (5.0).
 - ✅ **Recorded the cluster on 6.10** (2026-11-13): `backend/tests/fixtures/recorded-6.10-cluster/`
   (64 files), the same cluster as `recorded-5.21`. The Ceph perf-counter setting (D23)
   survived the upgrade, so the Tentacle hint isn't needed there.
+- ✅ **Multi-member checks on the cluster** (2026-11-13, through the app's API in
+  `mcui-test`):
+  - **Placement:** a strict `spread` group placed three containers on three different
+    members.
+  - **Image registries:** those containers were created from the `images` registry.
+  - **Moves:** a move to a named member that already held one of the group went ahead.
+    LXD applies a group only when it picks the member, and the placement page now says so.
+  - **Multi-volume snapshots:** a snapshot of a container with a Ceph custom volume
+    attached (`all-exclusive`) also made `v/snap0`. Restores worked both with and without
+    the volumes.
+  - **Child operations:** a bulk stop, start and restart across the members gave a parent
+    with `child_count` 4. Each child's `metadata.entity_url` names its instance, and each
+    has the coordinating member as `location`, whichever member runs the instance.
+
+  Not checked live yet: OVN load balancers on a real OVN network (outside `mcui-test`;
+  the owner's call) and the forced evacuation (owner only).
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
   "verify the current code still works"; anything that fails feeds 5a.
 

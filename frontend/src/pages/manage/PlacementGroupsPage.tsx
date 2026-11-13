@@ -21,7 +21,7 @@ const POLICIES = {
   compact: "compact: keep instances on the same member",
 } as const;
 const RIGORS = {
-  strict: "strict: refuse placements that break the policy",
+  strict: "strict: refuse when LXD can't place it within the policy",
   permissive: "permissive: place anyway when the policy can't be met",
 } as const;
 
@@ -64,7 +64,8 @@ export default function PlacementGroupsPage() {
       <h1>Placement groups in {project}</h1>
       <p className="muted">
         An instance joins a group through its <code>placement.group</code> key (or when it&apos;s created). The group decides
-        whether its instances are spread over members or kept together.
+        whether its instances are spread over members or kept together. LXD applies it when it picks the member, as
+        when an instance is created without one; moving an instance to a named member isn&apos;t checked.
       </p>
       {admin && (
         <p>
