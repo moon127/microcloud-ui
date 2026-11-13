@@ -69,8 +69,6 @@ def create_app(
 
     app = FastAPI(title="microcloud-ui", version=__version__, lifespan=lifespan)
     app.state.services = services
-    # project users (D81) stay locked out until every route enforces their grants
-    app.state.project_access = False
     app.state.restricted_cache = {}  # project -> (checked at, restricted=true)
 
     @app.exception_handler(LXDError)

@@ -202,7 +202,8 @@ async def clear_console_log(
 
 @router.websocket("/streams/{stream_id}")
 async def attach(ws: WebSocket, stream_id: str) -> None:
-    session = await authenticate(ws, admin=True, subprotocols=("binary",))
+    # starting the stream needed the operate right in its project; only its owner attaches
+    session = await authenticate(ws, subprotocols=("binary",))
     if session is None:
         return
     services: Services = ws.app.state.services

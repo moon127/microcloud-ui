@@ -242,8 +242,10 @@ def test_attach_without_control_secret(app, services, monkeypatch):
     assert list(ups.by_secret) == ["data-secret"]
 
 
+# someone else's stream is refused whatever their role: only its owner, who needed the
+# operate right to start it, may attach (D81)
 @pytest.mark.parametrize(
-    "who,reason", [("other", "no such session"), ("viewer", "admin role required")]
+    "who,reason", [("other", "no such session"), ("viewer", "no such session")]
 )
 def test_attach_refused(app, services, who, reason):
     add_stream(services, owner="admin")

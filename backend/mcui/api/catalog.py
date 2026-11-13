@@ -29,7 +29,10 @@ CatalogDep = Annotated[RemoteCatalog, Depends(get_catalog)]
 
 
 @router.get("/images")
-async def local_images(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+async def local_images(
+    scope: ScopeDep, lxd: LXDDep, project: str = "default"
+) -> list[dict[str, Any]]:
+    scope.require(project)
     data = await lxd.get("/1.0/images", recursion=1, project=project)
     return [
         {
@@ -87,7 +90,8 @@ async def remote_images(
 
 
 @router.get("/profiles")
-async def profiles(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+async def profiles(scope: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+    scope.require(project)
     data = await lxd.get("/1.0/profiles", recursion=1, project=project)
     return [
         {
@@ -104,9 +108,13 @@ async def profiles(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[d
 
 @router.get("/networks")
 async def networks(
-    _: ScopeDep, lxd: LXDDep, project: str = "default", target: str | None = None
+    scope: ScopeDep, lxd: LXDDep, project: str = "default", target: str | None = None
 ) -> list[dict[str, Any]]:
-    """Networks of a project; ``target`` lists that member's own interfaces too."""
+    """Networks of a project; ``target`` lists that member's own interfaces too (a cluster
+    role only: they're the host's)."""
+    scope.require(project)
+    if target and not scope.everything:
+        raise HTTPException(status_code=403, detail="needs a cluster role")
     params: dict[str, Any] = {"project": project}
     if target:
         params["target"] = target

@@ -43,10 +43,6 @@ async def current_session(request: Request, store: StoreDep) -> Session:
     session = store.get_session(token) if token else None
     if session is None:
         raise HTTPException(status_code=401, detail="not logged in")
-    if session.user.role == "project" and not request.app.state.project_access:
-        # project grants aren't enforced on every route yet (Phase 6a): until they are, a
-        # project user would see everything a viewer sees, so they can't sign in at all
-        raise HTTPException(status_code=403, detail="project users aren't enabled yet")
     if request.method not in SAFE_METHODS and not store.csrf_ok(
         session, request.headers.get(CSRF_HEADER)
     ):

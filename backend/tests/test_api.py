@@ -161,15 +161,15 @@ async def test_project_grants(app, services):
     assert "user.grant" in actions and "user.revoke" in actions
 
 
-async def test_project_users_locked_out_until_enforced(app, services):
-    """Until every route checks project grants (Phase 6a), a project user can't sign in to
-    anything: otherwise they'd see all a viewer sees."""
+async def test_project_user_signs_in(app, services):
+    """A project user signs in and learns their grants (D81); what they may see and do is
+    tested in test_policy.py."""
     services.store.add_user("pat", "patpw", "project")
+    services.store.set_grant("pat", "web", "operator")
     async with client(app) as c:
         await login(c, "pat", "patpw")
-        r = await c.get("/api/auth/me")
-        assert r.status_code == 403 and "aren't enabled yet" in r.text
-        assert (await c.get("/api/instances")).status_code == 403
+        me = (await c.get("/api/auth/me")).json()["user"]
+        assert me == {"username": "pat", "role": "project", "grants": {"web": "operator"}}
 
 
 async def test_last_admin_protected(app):

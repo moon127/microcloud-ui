@@ -77,13 +77,14 @@ async def _change(
 
 @router.get("")
 async def list_volumes(
-    _: ScopeDep,
+    scope: ScopeDep,
     lxd: LXDDep,
     project: str = "default",
     pool: str | None = None,
     all_types: Annotated[bool, Query(alias="all")] = False,
 ) -> list[dict[str, Any]]:
     """Custom volumes of a project on every pool (or one); ``all`` adds instance/image volumes."""
+    scope.require(project)
     pools = (
         [pool] if pool else [p["name"] for p in await lxd.get("/1.0/storage-pools", recursion=1)]
     )

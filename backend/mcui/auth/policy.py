@@ -11,7 +11,7 @@ deletes in it. The app talks to LXD as admin, so these checks are the boundary; 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
 from mcui.auth.store import User
 
@@ -39,6 +39,25 @@ class Scope:
 
     def sees(self, project: str) -> bool:
         return self.projects is None or project in self.projects
+
+    @property
+    def everything(self) -> bool:
+        """A global role: no filtering at all."""
+        return self.projects is None
+
+    def require(self, project: str) -> None:
+        """Refuse a project the user can't see, as "not found" (it mustn't reveal what
+        exists)."""
+        if not self.sees(project):
+            from fastapi import HTTPException
+
+            raise HTTPException(status_code=404, detail="not found")
+
+    def keep(self, items: list[dict[str, Any]], key: str = "project") -> list[dict[str, Any]]:
+        """The items in the user's projects (each names its project under ``key``)."""
+        if self.projects is None:
+            return items
+        return [i for i in items if i.get(key) in self.projects]
 
     @classmethod
     def of(cls, user: User) -> Scope:

@@ -53,17 +53,20 @@ async def names(_: ScopeDep, store: StoreDep) -> list[dict[str, Any]]:
 
 @router.get("/series")
 async def series(
-    _: ScopeDep,
+    scope: ScopeDep,
     store: StoreDep,
     name: str,
     match: Match = [],  # noqa: B006
 ) -> list[dict[str, str]]:
-    return [labels for _, labels, _ in await store.find_series(name, parse_match(match))]
+    found = [labels for _, labels, _ in await store.find_series(name, parse_match(match))]
+    return (
+        found if scope.everything else [lab for lab in found if scope.sees(lab.get("project", ""))]
+    )
 
 
 @router.get("/query")
 async def query(
-    _: ScopeDep,
+    scope: ScopeDep,
     store: StoreDep,
     name: str,
     match: Match = [],  # noqa: B006
@@ -77,13 +80,22 @@ async def query(
     if res is not None and res not in RESOLUTIONS:
         raise HTTPException(status_code=400, detail=f"res must be one of {RESOLUTIONS}")
     s, e = time_range(start, end, range)
-    result = await store.query(name, parse_match(match), s, e, fn=fn, res=res, by=by)
+    wanted = parse_match(match)
+    if not scope.everything:
+        # a sum over series (``by``) would mix other projects in before any filter, so a
+        # project user's query must name one of their projects
+        if "project" not in wanted:
+            raise HTTPException(
+                status_code=403, detail="a project user's query must match a project"
+            )
+        scope.require(wanted["project"])
+    result = await store.query(name, wanted, s, e, fn=fn, res=res, by=by)
     return {**result.as_dict(), "start": s, "end": e}
 
 
 @router.get("/top")
 async def top_n(
-    _: ScopeDep,
+    scope: ScopeDep,
     store: StoreDep,
     metric: TopMetric,
     range: Annotated[int, Query(ge=60)] = 3600,  # noqa: A002
@@ -93,7 +105,14 @@ async def top_n(
 ) -> dict[str, Any]:
     s, e = time_range(None, None, range)
     match = {k: v for k, v in (("project", project), ("member", member)) if v}
-    return await top(store, metric, s, e, limit, match)
+    if scope.everything:
+        return await top(store, metric, s, e, limit, match)
+    if project:
+        scope.require(project)
+        return await top(store, metric, s, e, limit, match)
+    # across the user's projects: ask for more, keep theirs
+    out = await top(store, metric, s, e, 1000, match)
+    return {**out, "rows": scope.keep(out["rows"])[:limit]}
 
 
 @router.get("/status")
@@ -108,7 +127,7 @@ async def status(_: ClusterReadDep, services: ServicesDep, store: StoreDep) -> d
 
 @router.get("/network-traffic")
 async def network_traffic(
-    _: ScopeDep,
+    scope: ScopeDep,
     services: ServicesDep,
     store: StoreDep,
     range: Annotated[int, Query(ge=60)] = 3600,  # noqa: A002
@@ -130,6 +149,8 @@ async def network_traffic(
         mapped = []
         for series in result.series:
             lab = series.labels
+            if not scope.sees(lab.get("project", "")):
+                continue
             net = nics.get((lab.get("project", ""), lab.get("name", ""), lab.get("device", "")))
             if net is not None:
                 mapped.append(SeriesData({"network": net}, series.points))

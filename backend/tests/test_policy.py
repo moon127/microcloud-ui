@@ -106,8 +106,7 @@ def test_roles_and_grants():
 
 @pytest.fixture
 def scoped(tmp_path):
-    """The app with project users switched on (they're locked out until 6b), and pat:
-    operator in the restricted project web, viewer in lab."""
+    """The app with pat: operator in the restricted project web, viewer in lab."""
     from mcui.config import Settings
     from mcui.main import create_app
     from mcui.services import build_services
@@ -123,7 +122,6 @@ def scoped(tmp_path):
     app = create_app(
         services=build_services(settings, store=store, clients=lxd_pair()), static_dir=None
     )
-    app.state.project_access = True
     return app
 
 
@@ -181,3 +179,167 @@ async def test_is_restricted_passes_other_errors_on():
     with pytest.raises(LXDError):
         await is_restricted(lxd, "web")
     await lxd.aclose()
+
+
+# --- what a project user sees (Phase 6b) ----------------------------------------------
+
+INSTANCES = [
+    {"name": n, "project": p, "status": "Running", "location": "m1"}
+    for n, p in (("a", "web"), ("b", "lab"), ("x", "other"))
+]
+
+
+@respx.mock
+async def test_lists_are_filtered(scoped):
+    respx.get(f"{EP1}/1.0/instances", params={"recursion": "2", "all-projects": "true"}).mock(
+        return_value=lxd_ok(INSTANCES)
+    )
+    respx.get(f"{EP1}/1.0/profiles", params={"recursion": "1", "project": "web"}).mock(
+        return_value=lxd_ok([{"name": "default", "description": "", "config": {}, "devices": {}}])
+    )
+    respx.get(f"{EP1}/1.0/projects", params={"recursion": "1"}).mock(
+        return_value=lxd_ok([{"name": p} for p in ("default", "web", "lab", "other")])
+    )
+    respx.get(f"{EP1}/1.0/network-allocations", params={"all-projects": "true"}).mock(
+        return_value=lxd_ok(
+            [{"address": "10.0.0.2", "project": "web"}, {"address": "10.0.0.9", "project": "other"}]
+        )
+    )
+    respx.get(f"{EP1}/1.0/networks/shared/leases", params={"project": "web"}).mock(
+        return_value=lxd_ok(
+            [{"hostname": "a", "project": "web"}, {"hostname": "x", "project": "other"}]
+        )
+    )
+    async with client(scoped) as c:
+        await login(c, "pat", "patpw")
+        assert {i["name"] for i in (await c.get("/api/instances")).json()} == {"a", "b"}
+        assert (await c.get("/api/profiles", params={"project": "web"})).status_code == 200
+        for path in (
+            "/api/profiles",
+            "/api/images",
+            "/api/networks",
+            "/api/volumes",
+            "/api/network-acls",
+            "/api/placement-groups",
+        ):
+            r = await c.get(path, params={"project": "other"})
+            assert r.status_code == 404, path
+        r = await c.get("/api/networks", params={"project": "web", "target": "m1"})
+        assert r.status_code == 403  # the host's own interfaces
+        assert [p["name"] for p in (await c.get("/api/projects")).json()] == ["web", "lab"]
+        allocs = (await c.get("/api/network-allocations")).json()
+        assert [a["project"] for a in allocs] == ["web"]
+        assert (
+            await c.get("/api/network-allocations", params={"project": "other"})
+        ).status_code == 404
+        leases = (await c.get("/api/networks/web/shared/leases")).json()
+        assert [x["hostname"] for x in leases] == ["a"]
+
+
+@respx.mock
+async def test_operations_are_filtered(scoped):
+    ops = {
+        "running": [
+            {"id": "w", "project": "web", "created_at": "2"},
+            {"id": "o", "project": "other", "created_at": "1"},
+            {"id": "c", "project": "", "created_at": "0"},  # cluster-wide (an evacuation)
+        ]
+    }
+    respx.get(f"{EP1}/1.0/operations", params={"recursion": "2", "all-projects": "true"}).mock(
+        return_value=lxd_ok(ops)
+    )
+    respx.get(f"{EP1}/1.0/operations/w").mock(return_value=lxd_ok(ops["running"][0]))
+    respx.get(f"{EP1}/1.0/operations/o").mock(return_value=lxd_ok(ops["running"][1]))
+    async with client(scoped) as c:
+        await login(c, "pat", "patpw")
+        assert [o["id"] for o in (await c.get("/api/operations")).json()] == ["w"]
+        assert (await c.get("/api/operations/w")).json()["id"] == "w"
+        assert (await c.get("/api/operations/o")).status_code == 404
+        assert (await c.get("/api/operations/o", params={"wait": 5})).status_code == 404
+
+
+async def test_metrics_are_filtered(scoped, monkeypatch):
+    import mcui.api.metrics as metrics_api
+
+    services = scoped.state.services
+
+    async def fake_top(store, metric, s, e, limit, match):
+        rows = [
+            {"project": p, "name": n, "value": v}
+            for p, n, v in (("other", "x", 9), ("web", "a", 5), ("lab", "b", 1))
+        ]
+        return {
+            "metric": metric,
+            "rows": [r for r in rows if match.get("project") in (None, r["project"])][:limit],
+        }
+
+    async def fake_find(name, match):
+        return [(1, {"project": p, "name": n}, None) for p, n in (("web", "a"), ("other", "x"))] + [
+            (3, {"member": "m1"}, None)
+        ]
+
+    async def fake_snapshot():
+        return {
+            "members": [{"name": "m1"}],
+            "instances": [{"project": "web", "name": "a"}, {"project": "other", "name": "x"}],
+        }
+
+    monkeypatch.setattr(metrics_api, "top", fake_top)
+    monkeypatch.setattr(services.metrics, "find_series", fake_find)
+    monkeypatch.setattr(services.live, "snapshot", fake_snapshot)
+
+    from types import SimpleNamespace
+
+    async def fake_query(name, match, s, e, fn="value", res=None, by=None):
+        series = [
+            SimpleNamespace(labels={"project": p, "name": n, "device": "eth0"}, points=[(10, 1.0)])
+            for p, n in (("web", "a"), ("other", "x"))
+        ]
+        return SimpleNamespace(series=series, resolution=15, as_dict=lambda: {"series": []})
+
+    async def fake_nics():
+        return {("web", "a", "eth0"): "net-web", ("other", "x", "eth0"): "net-other"}
+
+    monkeypatch.setattr(services.metrics, "query", fake_query)
+    monkeypatch.setattr(services.instances, "nic_networks", fake_nics)
+    async with client(scoped) as c:
+        await login(c, "pat", "patpw")
+        top = (await c.get("/api/metrics/top", params={"metric": "cpu", "limit": 5})).json()
+        assert [r["name"] for r in top["rows"]] == ["a", "b"]
+        r = await c.get("/api/metrics/top", params={"metric": "cpu", "project": "other"})
+        assert r.status_code == 404
+        series = (await c.get("/api/metrics/series", params={"name": "m"})).json()
+        assert series == [{"project": "web", "name": "a"}]  # no other project, no host series
+        r = await c.get("/api/metrics/query", params={"name": "m"})
+        assert r.status_code == 403 and "must match a project" in r.text
+        r = await c.get("/api/metrics/query", params={"name": "m", "match": "project=other"})
+        assert r.status_code == 404
+        r = await c.get("/api/metrics/query", params={"name": "m", "match": "project=web"})
+        assert r.status_code == 200
+        live = (await c.get("/api/metrics/live")).json()
+        assert live["members"] == [] and [i["name"] for i in live["instances"]] == ["a"]
+        top = (await c.get("/api/metrics/top", params={"metric": "cpu", "project": "web"})).json()
+        assert [r["name"] for r in top["rows"]] == ["a"]
+        traffic = (await c.get("/api/metrics/network-traffic")).json()
+        assert [x["labels"] for x in traffic["rx"]] == [{"network": "net-web"}]
+
+
+async def test_audit_is_filtered(scoped):
+    store = scoped.state.services.store
+    store.audit("admin", "instance.start", "web/a")
+    store.audit("admin", "instance.start", "other/x")
+    store.audit("admin", "user.grant", "pat", detail={"project": "web"})
+    store.audit("pat", "auth.login")
+    async with client(scoped) as c:
+        await login(c, "pat", "patpw")
+        assert [e["target"] for e in (await c.get("/api/audit")).json()] == ["web/a"]
+
+
+def test_events_keep_the_users_projects():
+    from mcui.api.wsproxy import ProjectEvents
+
+    keep = ProjectEvents(Scope(frozenset({"web"})), lambda m: True)
+    assert keep('{"type":"lifecycle","project":"web"}')
+    assert not keep('{"type":"lifecycle","project":"other"}')
+    assert not keep('{"type":"operation"}')  # no project: cluster-wide
+    assert not keep(b"\x01") and not keep("[1]")

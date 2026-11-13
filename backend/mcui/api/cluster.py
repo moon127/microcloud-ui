@@ -24,8 +24,12 @@ async def cluster_members(_: ClusterReadDep, lxd: LXDDep) -> list[dict[str, Any]
 
 
 @router.get("/metrics/live")
-async def live_metrics(_: ScopeDep, live: LiveDep) -> dict[str, Any]:
-    return await live.snapshot()
+async def live_metrics(scope: ScopeDep, live: LiveDep) -> dict[str, Any]:
+    """A project user gets their instances only, and no member rows (cluster-wide)."""
+    snap = await live.snapshot()
+    if scope.everything:
+        return snap
+    return {**snap, "members": [], "instances": scope.keep(snap["instances"])}
 
 
 @router.get("/cluster/members/{name}/resources")

@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from mcui.api.deps import COOKIE, AdminDep, LXDDep, ServicesDep, SessionDep, StoreDep
+from mcui.api.deps import COOKIE, AdminDep, LXDDep, ScopeDep, ServicesDep, SessionDep, StoreDep
 from mcui.api.instances import ProjectName
 from mcui.auth.store import AuthError, ProjectRole, Role, Session, User
 from mcui.lxd.projects import NoSuchProject, is_restricted
@@ -177,6 +177,25 @@ async def delete_user(username: str, session: AdminDep, store: StoreDep) -> None
 
 @router.get("/audit")
 async def audit(
-    _: AdminDep, store: StoreDep, limit: int = 100, before: int | None = None
+    session: SessionDep,
+    scope: ScopeDep,
+    store: StoreDep,
+    limit: int = 100,
+    before: int | None = None,
 ) -> list[dict[str, Any]]:
-    return store.audit_entries(limit=max(1, min(limit, 1000)), before_id=before)
+    """Cluster admins see everything; global viewers nothing, as before Phase 6; project
+    users only changes to their projects' objects (targets are ``project/...``), never user
+    or login entries."""
+    limit = max(1, min(limit, 1000))
+    if session.user.role == "viewer":
+        raise HTTPException(status_code=403, detail="admin role required")
+    if scope.everything:
+        return store.audit_entries(limit=limit, before_id=before)
+    mine = [
+        e
+        for e in store.audit_entries(limit=5000, before_id=before)
+        if not e["action"].startswith(("user.", "auth."))
+        and str(e["target"] or "").split("/", 1)[0] in (scope.projects or ())
+        and "/" in str(e["target"] or "")
+    ]
+    return mine[:limit]

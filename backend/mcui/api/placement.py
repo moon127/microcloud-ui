@@ -43,7 +43,10 @@ def _group(name: str) -> str:
 
 
 @router.get("")
-async def list_groups(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+async def list_groups(
+    scope: ScopeDep, lxd: LXDDep, project: str = "default"
+) -> list[dict[str, Any]]:
+    scope.require(project)
     data = await lxd.get("/1.0/placement-groups", recursion=1, project=project)
     return list(data or [])
 

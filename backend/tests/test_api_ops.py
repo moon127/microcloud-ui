@@ -217,16 +217,18 @@ def test_events_refused(app, headers, login_first, code):
     assert e.value.code == code
 
 
-def test_events_refuse_project_users_until_6b(app, services):
-    """Websockets authenticate on their own, so the project-user lockout must hold there
-    too: otherwise a project user would see every project's events (D81)."""
+def test_events_for_a_project_user(app, services, monkeypatch):
+    """A project user's event stream carries only their projects' events (D81)."""
     services.store.add_user("pat", "patpw", "project")
-    with (
-        ws_client(app, "pat").websocket_connect("/api/events", headers=ORIGIN) as ws,
-        pytest.raises(WebSocketDisconnect) as e,
-    ):
-        ws.receive_text()
-    assert e.value.code == 4403 and "aren't enabled yet" in e.value.reason
+    services.store.set_grant("pat", "web", "viewer")
+    up = FakeUpstream(['{"project":"other","n":1}', '{"project":"web","n":2}'])
+
+    async def fake_ws(path, params=None, **kw):
+        return up
+
+    monkeypatch.setattr(services.lxd, "websocket", fake_ws)
+    with ws_client(app, "pat").websocket_connect("/api/events", headers=ORIGIN) as ws:
+        assert ws.receive_text() == '{"project":"web","n":2}'
 
 
 def test_events_upstream_error(app, services, monkeypatch):

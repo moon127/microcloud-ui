@@ -518,8 +518,29 @@ each route in the code):
   Project users stay locked out (HTTP and websockets) until 6b filters lists, metrics,
   operations, the audit log and the streams. Existing users are cluster roles, so nothing
   changed for them.
-- **6b, filtering:** lists, metrics, operations, the audit log and the event stream
-  filtered on the server. Fixture tests per area with a project user.
+- ✅ **6b, filtering** (2026-11-13). For a project user:
+  - **Single-project lists** (images, profiles, networks, volumes, ACLs, placement
+    groups) answer 404 for another project.
+  - **Cross-project lists** are filtered: instances, projects, network allocations,
+    operations, and a shared network's DHCP leases. Another project's operation is
+    "not found", checked before any wait.
+  - **The host's own interfaces** (`networks?target=`) need a cluster role.
+  - **Metrics:** `series` and network traffic are filtered, and `top` keeps their rows.
+    `query` must match one of their projects, because a sum across series would mix
+    projects. The live snapshot keeps their instances and no member rows.
+  - **The audit log:** only changes to their projects' objects, never user or login
+    entries. Global viewers still can't read it, as before Phase 6.
+  - **The event stream:** only their projects' events.
+  - **Console streams:** only their owner attaches. Starting one needs operate, so
+    attaching no longer needs the admin role.
+
+  Tested in `tests/test_policy.py` with a project user against data from other projects.
+  A deliberately broken filter fails those tests. **Project users can now sign in.**
+
+  Note on shared resources: LXD answers queries on a project without its own networks,
+  profiles or images with `default`'s, so the agreed sharing needs no special case. A
+  project without its own storage volumes would likewise show `default`'s custom volumes,
+  so projects for users should keep `features.storage.volumes=true`, LXD's default.
 - **6c, the UI:**
   - a Users page (cluster admins): users, global role, project grants, and the
     restricted-project rule

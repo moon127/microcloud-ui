@@ -18,6 +18,7 @@ from mcui.api.audited import audited
 from mcui.api.deps import InBodyDep, LXDDep, ProjectManageDep, ProjectReadDep, ScopeDep, StoreDep
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName
+from mcui.auth.policy import Scope
 from mcui.lxd import clustered, operations
 from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import members, server_info
@@ -81,19 +82,22 @@ async def network_members(
 
 @router.get("/networks/{project}/{name}/leases")
 async def network_leases(
-    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, session: ProjectReadDep, lxd: LXDDep
 ) -> list[dict[str, Any]]:
+    """A shared network's leases name other projects' instances: kept to the user's own."""
     data = await lxd.get(f"{_net(name)}/leases", project=project)
-    return list(data or [])
+    return Scope.of(session.user).keep(list(data or []))
 
 
 @router.get("/network-allocations")
 async def network_allocations(
-    _: ScopeDep, lxd: LXDDep, project: str | None = None
+    scope: ScopeDep, lxd: LXDDep, project: str | None = None
 ) -> list[dict[str, Any]]:
+    if project:
+        scope.require(project)
     params = {"project": project} if project else {"all-projects": "true"}
     data = await lxd.get("/1.0/network-allocations", **params)
-    return list(data or [])
+    return scope.keep(list(data or []))
 
 
 class NetworkBody(BaseModel):

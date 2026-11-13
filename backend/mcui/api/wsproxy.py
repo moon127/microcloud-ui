@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 from collections import deque
 from collections.abc import Callable, Coroutine
 from typing import Any
@@ -15,6 +16,7 @@ from websockets.asyncio.client import ClientConnection
 from websockets.exceptions import ConnectionClosed
 
 from mcui.api.deps import COOKIE
+from mcui.auth.policy import Scope
 from mcui.auth.store import Session
 from mcui.services import Services
 
@@ -59,14 +61,25 @@ async def authenticate(
     if session is None:
         await ws.close(code=UNAUTHORIZED, reason="not logged in")
         return None
-    if session.user.role == "project" and not ws.app.state.project_access:
-        # as for HTTP routes (deps.current_session): locked out until 6b filters the streams
-        await ws.close(code=POLICY, reason="project users aren't enabled yet")
-        return None
     if admin and not session.user.is_admin:
         await ws.close(code=POLICY, reason="admin role required")
         return None
     return session
+
+
+class ProjectEvents:
+    """For a project user: keep only events from their projects (D81). Anything that
+    isn't a JSON event naming one of them is dropped."""
+
+    def __init__(self, scope: Scope, then: Callable[[str | bytes], bool]) -> None:
+        self.scope, self.then = scope, then
+
+    def __call__(self, msg: str | bytes) -> bool:
+        try:
+            project = json.loads(msg).get("project")
+        except (ValueError, AttributeError):
+            return False
+        return isinstance(project, str) and self.scope.sees(project) and self.then(msg)
 
 
 class Dedupe:

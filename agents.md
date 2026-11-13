@@ -244,6 +244,13 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 6b done 2026-11-13 (D81):**
+  - **Filtering:** lists, operations, metrics, audit and events are filtered for project
+    users; streams are owner-only.
+  - **The lockout is lifted:** project users can sign in.
+  - **Audit:** global viewers still can't read it, as before; that's for the owner to
+    review.
+  - **Next, 6c:** the UI.
 - **Phase 6a done 2026-11-13 (D81):**
   - **Users:** project users and grants (store migration, API, CLI).
   - **Enforcement:** a declared policy on every route, checked by a test.

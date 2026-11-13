@@ -218,11 +218,13 @@ async def create_instance(body: NewInstance, ctx: CtxCreateDep) -> dict[str, Any
 
 
 @router.get("")
-async def list_instances(_: ScopeDep, index: IndexDep, fresh: bool = False) -> list[dict[str, Any]]:
+async def list_instances(
+    scope: ScopeDep, index: IndexDep, fresh: bool = False
+) -> list[dict[str, Any]]:
     """``fresh``: skip the short cache (progress views, e.g. during an evacuation)."""
     if fresh:
         index.invalidate()
-    return [i.as_dict() for i in await index.get()]
+    return scope.keep([i.as_dict() for i in await index.get()])
 
 
 @router.get("/{project}/{name}")

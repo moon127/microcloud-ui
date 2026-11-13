@@ -82,7 +82,8 @@ def _acl(name: str) -> str:
 
 
 @router.get("/network-acls")
-async def list_acls(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+async def list_acls(scope: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+    scope.require(project)
     data = await lxd.get("/1.0/network-acls", recursion=1, project=project)
     return list(data or [])
 

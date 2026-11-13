@@ -9,7 +9,8 @@ from pydantic import BaseModel
 
 from mcui.api.audited import audited
 from mcui.api.deps import AdminDep, ClusterReadDep, LXDDep, ScopeDep, StoreDep
-from mcui.api.wsproxy import UPSTREAM, Dedupe, authenticate, relay
+from mcui.api.wsproxy import UPSTREAM, Dedupe, ProjectEvents, authenticate, relay
+from mcui.auth.policy import Scope
 from mcui.lxd import operations
 from mcui.lxd.client import LXDError
 from mcui.lxd.server import members
@@ -19,16 +20,19 @@ router = APIRouter(prefix="/api")
 
 
 @router.get("/operations")
-async def list_operations(_: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
-    return await operations.list_all(lxd)
+async def list_operations(scope: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
+    return scope.keep(await operations.list_all(lxd))
 
 
 @router.get("/operations/{op_id}")
-async def get_operation(op_id: str, _: ScopeDep, lxd: LXDDep, wait: int = 0) -> dict[str, Any]:
-    """With ``wait`` > 0, block up to that many seconds (max 30) for completion."""
+async def get_operation(op_id: str, scope: ScopeDep, lxd: LXDDep, wait: int = 0) -> dict[str, Any]:
+    """With ``wait`` > 0, block up to that many seconds (max 30) for completion. Another
+    project's operation is "not found", checked before any wait."""
+    op = await operations.get(lxd, op_id)
+    scope.require(str(op.get("project") or ""))
     if wait > 0:
         return await operations.wait(lxd, op_id, wait)
-    return await operations.get(lxd, op_id)
+    return op
 
 
 @router.delete("/operations/{op_id}", status_code=204)
@@ -121,8 +125,8 @@ async def restore(
 
 
 @router.get("/projects")
-async def list_projects(_: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
-    data = await lxd.get("/1.0/projects", recursion=1)
+async def list_projects(scope: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
+    data = scope.keep(list(await lxd.get("/1.0/projects", recursion=1) or []), key="name")
     return [
         {
             "name": p["name"],
@@ -137,8 +141,10 @@ async def list_projects(_: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
 @router.websocket("/events")
 async def events(ws: WebSocket) -> None:
     """Relay LXD operation and lifecycle events from all projects to the browser."""
-    if await authenticate(ws) is None:
+    session = await authenticate(ws)
+    if session is None:
         return
+    scope = Scope.of(session.user)
     services: Services = ws.app.state.services
     if services.lxd is None:
         await ws.close(code=UPSTREAM, reason="LXD is not configured")
@@ -150,7 +156,9 @@ async def events(ws: WebSocket) -> None:
     except LXDError as e:
         await ws.close(code=UPSTREAM, reason=str(e)[:120])
         return
-    await relay(ws, upstream, read_client=False, keep=Dedupe())
+    dedupe = Dedupe()
+    keep = dedupe if scope.everything else ProjectEvents(scope, dedupe)
+    await relay(ws, upstream, read_client=False, keep=keep)
 
 
 # the event stream is filtered to the user's projects (D81, Phase 6b)
