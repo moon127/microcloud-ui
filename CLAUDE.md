@@ -60,7 +60,7 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
 - **Phase 5 (MicroCloud 3.4 LTS support, `docs/PLAN.md`)** is done (2026-11-13); the test
   cloud runs 3.4 (MicroOVN 26.03 `flow-restore-wait` gotcha: `docs/DEPLOY.md`). **Phase 6**
   (users and project access, D81) is done and released (0.2.0). **Phase 7** (backups,
-  project moves, ISO upload, restriction keys; D83) is agreed and under way, towards 0.3.0.
+  project moves, ISO upload, restriction keys; D83) is done, towards release 0.3.0.
   **Phase 8** (metric-store evaluation, alerts, export, quota history) waits for the
   owner's go-ahead. Don't start it unprompted.
 

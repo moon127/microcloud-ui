@@ -651,7 +651,7 @@ turned out to need.
 - ✅ 2026-11-13 **7e, restrictions (PJ-2, the part needed now):** the project page edits the
   `restricted.*` keys as a form, snapshots and backups first, so a cluster admin can allow
   them. USERS.md corrected: operator snapshots and backups need them allowed.
-- **7f:** README, USERS.md, LIVE-TESTS.md, screenshots; then release 0.3.0.
+- ✅ 2026-11-13 **7f:** README, USERS.md, LIVE-TESTS.md, screenshots; then release 0.3.0.
 
 *Found in 7a (live, LXD 6.10.1):* importing a backup into any project with `limits.*` or
 `restricted` is refused: LXD counts the backup's own `volatile.*` keys as low-level options.

@@ -69,11 +69,17 @@ describe("demo cluster", () => {
       "/api/networks/default/default/load-balancers",
       "/api/networks/default/default/load-balancer-pools",
       "/api/networks/default/default/load-balancer-pools/front/state",
+      // Phase 7
+      "/api/instances/web/db-primary/backups",
+      "/api/projects/web",
+      "/api/volumes?project=default",
     ]) {
       expect(get(path), path).toBeDefined();
     }
     expect(get("/api/nope")).toBeUndefined();
     expect(get("/api/instances/web/nope")).toBeUndefined();
+    expect(get("/api/instances/web/nope/backups")).toBeUndefined();
+    expect(get("/api/projects/nope")).toBeUndefined();
     expect(answer("POST", new URL("http://demo/api/instances"))).toEqual({});
     const all = JSON.stringify([
       HOSTS_VIEW,

@@ -131,6 +131,22 @@ users there: admin, operator, viewer.
 
 Done on the test cloud 2026-11-13 (P1–P6, 44 API checks and the UI as each user).
 
+## Backups, moves and ISOs (Phase 7, D83): in a real browser
+
+The session checked all of these through the API on the test cloud (2026-11-13); what's
+left is the browser itself: file pickers, upload progress and downloads.
+
+| # | Steps | Expect |
+|---|---|---|
+| B1 | An instance's **Backups** tab: make a backup, then **Download** it | The toast finishes; the file is named `<instance>-<backup>.tar.gz` (or `.zst`, `.xz`) |
+| B2 | **Instances → Import backup** with that file, a new name, an unrestricted project without limits | The toast counts the upload up, then the instance appears |
+| B3 | The same into a restricted project | The dialog warns first; LXD refuses it (`volatile.*` keys) |
+| B4 | **Move** the imported instance (stopped) to the restricted project | It moves; its page opens in the new project |
+| B5 | A volume's **Backups** section, then **Volumes → Import backup** | Same as B1–B2, for a volume |
+| B6 | **Volumes → Upload ISO** with a real installer ISO (a GB or more) | Progress in the toast; the volume lists as `iso` with its size |
+| B7 | **Create instance**: VM, **Boot from an ISO** that one, **No image**, then start it and open the graphical console | The installer boots |
+| B8 | A project's **Restrictions**: allow container low-level options | The page warns that it reaches the host; set it back |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/

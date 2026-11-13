@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { createVolume, fetchMembers, fetchStoragePools, fetchVolumes, volumeTarget, type NewVolume, type PoolDriver } from "../../api";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
+import { formatBytes } from "../../format";
 import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import { volumePath } from "./paths";
@@ -75,7 +76,8 @@ export default function VolumesPage() {
                   </td>
                   <td>{v.pool}</td>
                   <td>{v.content_type}</td>
-                  <td>{v.config.size || "–"}</td>
+                  {/* an ISO's size is in bytes */}
+                  <td>{/^\d+$/.test(v.config.size ?? "") ? formatBytes(Number(v.config.size)) : v.config.size || "–"}</td>
                   <td>{volumeTarget(v) ?? "–"}</td>
                   <td className="num">{(v.used_by ?? []).length}</td>
                   <td>{v.description}</td>

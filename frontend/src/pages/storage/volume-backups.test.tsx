@@ -142,6 +142,14 @@ describe("Volumes → Import backup", () => {
 });
 
 describe("ISOs (Phase 7d)", () => {
+  it("lists an ISO's size in bytes readably", async () => {
+    vi.spyOn(api, "fetchVolumes").mockResolvedValue([
+      { name: "inst", pool: "remote", type: "custom", content_type: "iso", description: "", config: { size: "3268411392" }, location: "none", used_by: [] },
+    ]);
+    open("/storage/volumes");
+    expect((await screen.findByRole("link", { name: "inst" })).closest("tr")).toHaveTextContent("3.0 GiB");
+  });
+
   it("names a volume after the file", () => {
     expect(isoName("ubuntu-26.04-live-server-amd64.iso")).toBe("ubuntu-26.04-live-server-amd64");
     expect(isoName("My Installer (v2).ISO")).toBe("My-Installer--v2-");

@@ -246,6 +246,11 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 7 done 2026-11-13 (D83):** 7f added the README lines, LIVE-TESTS B1–B8 (the
+  browser side: pickers, upload progress, downloads, a real installer ISO), and demo
+  screenshots `backups.png`, `volumes.png` (an ISO's byte size now shows as GiB) and
+  `restrictions.png`; the demo's `web` project is restricted with snapshots and backups
+  allowed. Next: release 0.3.0 when the owner says.
 - **Phase 7e done 2026-11-13 (D83):** the project page has a Restrictions form for the
   common `restricted.*` keys (empty = LXD's default, shown; "reaches the host" choices
   marked and warned about). Create project allows snapshots and backups when Restricted is

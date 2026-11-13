@@ -4,7 +4,7 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** Phases 0–6 are done, and production packaging (the bundle and
+**Status:** Phases 0–7 are done, and production packaging (the bundle and
 container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; MicroCloud
 2.x (LXD 5.21) is still supported. It covers:
 - **Connectivity and metrics:** live metrics, history and graphs, a Hosts view (optional
@@ -16,9 +16,11 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   multi-volume snapshots and the rest of LXD 6 (Phase 5).
 - **Users:** local sign-in with cluster roles and users limited to LXD projects, plus an
   audit log (Phase 6, [`docs/USERS.md`](docs/USERS.md)).
+- **Backups, moves and ISOs:** instance and volume backups (make, download, import), moving
+  instances between projects, ISO upload to install VMs from, and a project's restrictions
+  as a form (Phase 7).
 
-Next in the plan: backups, moving instances between projects and ISO upload (Phase 7),
-then a metric store evaluation, alerts and export (Phase 8). Owner live
+Next in the plan: a metric store evaluation, alerts and export (Phase 8). Owner live
 checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See
 [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md), [`docs/PLAN.md`](docs/PLAN.md) and the
 design log in [`agents.md`](agents.md).
@@ -72,6 +74,9 @@ More: [instances](docs/screenshots/instances.png) ·
 [OVN](docs/screenshots/ovn.png) ·
 [users and project grants](docs/screenshots/users.png) ·
 [audit log](docs/screenshots/audit.png) ·
+[backups](docs/screenshots/backups.png) ·
+[volumes with an ISO](docs/screenshots/volumes.png) ·
+[project restrictions](docs/screenshots/restrictions.png) ·
 a project user's [Overview](docs/screenshots/project-user.png) and
 [instance page](docs/screenshots/project-user-instance.png) (an operator: only their projects,
 no cluster pages, no rename or delete)

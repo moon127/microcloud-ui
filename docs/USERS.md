@@ -84,6 +84,8 @@ refuses both by default, even from the app, until `restricted.snapshots=allow` a
 project's page under **Restrictions**. **Create project** allows both when Restricted is
 ticked, unless you untick it.
 
+![A project's restrictions](screenshots/restrictions.png)
+
 **The Restrictions form** on a project's page sets LXD's `restricted.*` keys; "default"
 leaves a key unset, which means LXD's default. Choices marked "reaches the host" (low-level
 options, privileged containers, host disks, unix, USB, PCI and GPU devices, nesting) undo

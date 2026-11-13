@@ -5,6 +5,7 @@
 // on MicroCloud 2.x (LXD 5.21) the same pages appear without them.
 import type {
   AuditEntry,
+  Backup,
   CephState,
   Host,
   ImageRegistry,
@@ -38,6 +39,7 @@ import type {
   StoragePool,
   TopResult,
   User,
+  Volume,
 } from "../src/api.ts";
 
 export const NOW = Date.UTC(2026, 10, 11, 14, 0, 0) / 1000;
@@ -155,7 +157,18 @@ export const MEMBERS: Member[] = HOSTS.map((name, i) => ({
 
 export const PROJECTS: Project[] = [
   { name: "default", description: "Default LXD project", config: { "features.images": "true", "features.profiles": "true" }, used_by: [] },
-  { name: "web", description: "Production web stack", config: { "features.networks": "true", "limits.cpu": "32" }, used_by: [] },
+  {
+    name: "web",
+    description: "Production web stack",
+    config: {
+      "features.networks": "true",
+      "limits.cpu": "32",
+      restricted: "true",
+      "restricted.snapshots": "allow",
+      "restricted.backups": "allow",
+    },
+    used_by: [],
+  },
   { name: "lab", description: "Experiments", config: { "limits.instances": "10" }, used_by: [] },
 ];
 
@@ -196,6 +209,19 @@ export function instanceFull(project: string, name: string): InstanceFull | unde
     ],
   };
 }
+
+/** Backups of every instance (Phase 7a): a weekly one kept for a month, and one before an upgrade. */
+export const BACKUPS: Backup[] = [
+  { name: "weekly-2026-11-09", created_at: "2026-11-09T03:00:00Z", expires_at: "2026-12-07T03:00:00Z", optimized_storage: true },
+  { name: "before-upgrade", created_at: "2026-11-06T16:20:00Z", expires_at: "0001-01-01T00:00:00Z", instance_only: true },
+];
+
+/** Custom volumes, an installer ISO among them (Phase 7d). */
+export const VOLUMES: Volume[] = [
+  { name: "grafana-data", pool: "remote", type: "custom", content_type: "filesystem", description: "Grafana and Loki data", config: { size: "40GiB" }, location: "none", used_by: ["/1.0/instances/monitoring"] },
+  { name: "ubuntu-26.04-live-server-amd64", pool: "remote", type: "custom", content_type: "iso", description: "", config: { size: "3268411392" }, location: "none", used_by: [] },
+  { name: "scratch", pool: "local", type: "custom", content_type: "block", description: "Build cache", config: { size: "20GiB" }, location: "node-2", used_by: [] },
+];
 
 export const RESOURCES: Resources = {
   cpu: { total: 16, architecture: "x86_64", sockets: [{ name: "AMD EPYC 4344P 8-Core Processor", vendor: "AuthenticAMD" }] },
@@ -800,7 +826,7 @@ export function answer(method: string, url: URL): unknown {
     "/api/ovn": OVN,
     "/api/operations": [],
     "/api/warnings": [],
-    "/api/volumes": [],
+    "/api/volumes": VOLUMES,
     "/api/network-acls": [],
     "/api/network-allocations": [],
     "/api/image-registries": REGISTRIES,
@@ -828,6 +854,10 @@ export function answer(method: string, url: URL): unknown {
   if (p.startsWith("/api/images/remote/")) return REMOTE_IMAGES;
   let m = /^\/api\/cluster\/members\/[^/]+\/resources$/.exec(p);
   if (m) return RESOURCES;
+  m = /^\/api\/instances\/([^/]+)\/([^/]+)\/backups$/.exec(p);
+  if (m) return instanceFull(decodeURIComponent(m[1]), decodeURIComponent(m[2])) ? BACKUPS : undefined;
+  m = /^\/api\/projects\/([^/]+)$/.exec(p);
+  if (m) return PROJECTS.find((x) => x.name === decodeURIComponent(m![1]) && mine(x.name));
   m = /^\/api\/instances\/([^/]+)\/([^/]+)$/.exec(p);
   if (m) return instanceFull(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
   return undefined;

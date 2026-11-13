@@ -45,6 +45,10 @@ export const PAGES: {
   { file: "placement-groups.png", path: "/placement-groups", wait: "infra-spread" },
   { file: "load-balancers.png", path: "/networks/default/default", wait: "198.51.100.10", full: true },
   // users and project access (D81)
+  // Phase 7: backups, ISOs, restrictions
+  { file: "backups.png", path: "/instances/web/db-primary?tab=backups", wait: "weekly-2026-11-09" },
+  { file: "volumes.png", path: "/storage/volumes", wait: "ubuntu-26.04-live-server-amd64" },
+  { file: "restrictions.png", path: "/projects/web", wait: "Restrictions", full: true },
   { file: "users.png", path: "/users", wait: "ops-oncall" },
   { file: "audit.png", path: "/audit", wait: "before-upgrade" },
   // what a project user sees: ops-oncall, operator in web and lab
