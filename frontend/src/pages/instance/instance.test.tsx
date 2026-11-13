@@ -469,6 +469,7 @@ describe("instances list", () => {
     fireEvent.click(bar.getByRole("button", { name: "Stop" }));
     expect(state).toHaveBeenCalledWith("default", "a", "stop");
     expect(bar.getByText("0 selected")).toBeInTheDocument();
+    expect(await screen.findByText("✓ Stop a")).toBeInTheDocument(); // one instance: named
 
     fireEvent.click(screen.getByLabelText("Select all"));
     expect(bar.getByText("3 selected")).toBeInTheDocument();
@@ -482,6 +483,9 @@ describe("instances list", () => {
       ["default", "b", false],
       ["mcui-test", "t", true],
     ]);
+    // one toast for the three, not one each
+    expect(await screen.findByText("✓ Delete 3 instances")).toBeInTheDocument();
+    expect(screen.queryByText(/Delete a\b/)).toBeNull();
     fireEvent.click(screen.getByLabelText("Select a"));
     fireEvent.click(bar.getByRole("button", { name: "Delete" }));
     expect(screen.getByRole("dialog", { name: "Delete 1 instance?" })).toBeInTheDocument();

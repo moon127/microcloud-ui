@@ -19,7 +19,7 @@ const BULK: { action: StateAction; label: string }[] = [
 
 export default function InstancesPage() {
   const { user } = useSession();
-  const { run, version } = useActions();
+  const { runAll, version } = useActions();
   const { project } = useProject();
   const { data, error } = useApi(`instances:${version}`, fetchInstances, 30_000);
   const [text, setText] = useState("");
@@ -52,8 +52,11 @@ export default function InstancesPage() {
       else n.add(k);
       return n;
     });
+  // one call per instance (LXD's bulk call can't pick instances: it acts on a whole project),
+  // under one toast that counts them off
   const bulk = (label: string, fn: (i: Instance) => Promise<Started>) => {
-    for (const i of chosen) void run(`${label} ${i.name}`, () => fn(i));
+    const items = chosen.map((i) => ({ name: i.name, start: () => fn(i) }));
+    void runAll(items.length === 1 ? `${label} ${chosen[0].name}` : `${label} ${items.length} instances`, items);
     setSelected(new Set());
   };
 

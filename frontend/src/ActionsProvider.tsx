@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
-import { ActionsContext, type RunOptions } from "./actions";
+import { ActionsContext, type Item, type RunOptions } from "./actions";
 import { waitOperation, type Operation, type Started } from "./api";
 
 export interface Toast {
@@ -51,7 +51,37 @@ export default function ActionsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const value = useMemo(() => ({ run, version }), [run, version]);
+  const runAll = useCallback(async (label: string, items: Item[]) => {
+    const id = next.current++;
+    const total = items.length;
+    let finished = 0;
+    const failed: string[] = [];
+    setToasts((ts) => [...ts, { id, label, state: "running", message: `0 of ${total} done` }]);
+    await Promise.all(
+      items.map(async (item) => {
+        try {
+          const st = await item.start();
+          const op = st?.operation ? await finish(st.operation) : null;
+          if (op && op.status !== "Success") throw new Error(op.err || op.status);
+        } catch (e) {
+          failed.push(`${item.name} (${e instanceof Error ? e.message : String(e)})`);
+        } finally {
+          finished += 1;
+          update(id, { message: `${finished} of ${total} done` });
+          setVersion((v) => v + 1); // lists refresh as each one lands
+        }
+      }),
+    );
+    update(
+      id,
+      failed.length
+        ? { state: "failed", message: `${failed.length} of ${total} failed: ${failed.sort().join("; ")}` }
+        : { state: "done", message: undefined },
+    );
+    return failed.length === 0;
+  }, []);
+
+  const value = useMemo(() => ({ run, runAll, version }), [run, runAll, version]);
   return (
     <ActionsContext.Provider value={value}>
       {children}

@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useActions, type RunOptions } from "./actions";
 import ActionsProvider from "./ActionsProvider";
@@ -46,7 +47,65 @@ function Runner({
   );
 }
 
+function AllRunner({ items }: { items: { name: string; start: () => Promise<api.Started | void> }[] }) {
+  const { runAll, version } = useActions();
+  const [result, setResult] = useState<string>("");
+  return (
+    <>
+      <button type="button" onClick={() => void runAll("Stop 3 instances", items).then((ok) => setResult(String(ok)))}>
+        all
+      </button>
+      <p>version={version}</p>
+      <p>result={result}</p>
+    </>
+  );
+}
+
 describe("ActionsProvider", () => {
+  it("runs several changes under one toast that counts them off and names failures", async () => {
+    let finishB: (op: api.Operation) => void = () => {};
+    vi.spyOn(api, "waitOperation").mockImplementation((id) =>
+      id === "b" ? new Promise((r) => (finishB = r)) : Promise.resolve(op("Failure", { id, err: "disk full" })),
+    );
+    render(
+      <ActionsProvider>
+        <AllRunner
+          items={[
+            { name: "a", start: () => Promise.resolve({ operation: null, metadata: null }) },
+            { name: "b", start: () => Promise.resolve({ operation: op("Running", { id: "b" }), metadata: null }) },
+            { name: "c", start: () => Promise.resolve({ operation: op("Running", { id: "c" }), metadata: null }) },
+          ]}
+        />
+      </ActionsProvider>,
+    );
+    fireEvent.click(screen.getByText("all"));
+    // one toast for all three, counting: a is done at once, c fails, b is still going
+    expect(await screen.findByText("⏳ Stop 3 instances: 2 of 3 done")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(1);
+    await act(async () => finishB(op("Success", { id: "b" })));
+    expect(await screen.findByText("✗ Stop 3 instances: 1 of 3 failed: c (disk full)")).toBeInTheDocument();
+    expect(screen.getByText("result=false")).toBeInTheDocument();
+    expect(screen.getByText("version=3")).toBeInTheDocument(); // a refresh as each lands
+  });
+
+  it("a bulk run that all succeeds; a request that's refused", async () => {
+    const { rerender } = render(
+      <ActionsProvider>
+        <AllRunner items={[{ name: "a", start: () => Promise.resolve() }]} />
+      </ActionsProvider>,
+    );
+    fireEvent.click(screen.getByText("all"));
+    expect(await screen.findByText("✓ Stop 3 instances")).toBeInTheDocument();
+    expect(screen.getByText("result=true")).toBeInTheDocument();
+    rerender(
+      <ActionsProvider>
+        <AllRunner items={[{ name: "x", start: () => Promise.reject(new api.ApiError(403, "admin role required")) }, { name: "y", start: () => Promise.reject("nope") }]} />
+      </ActionsProvider>,
+    );
+    fireEvent.click(screen.getByText("all"));
+    expect(await screen.findByText("✗ Stop 3 instances: 2 of 2 failed: x (admin role required); y (nope)")).toBeInTheDocument();
+  });
+
   it("follows an operation until it succeeds", async () => {
     const wait = vi
       .spyOn(api, "waitOperation")
