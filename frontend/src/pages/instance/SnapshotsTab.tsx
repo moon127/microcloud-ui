@@ -3,6 +3,7 @@ import {
   copyInstance,
   createSnapshot,
   deleteSnapshot,
+  fetchProject,
   fetchServer,
   patchInstanceConfig,
   publishInstance,
@@ -15,7 +16,7 @@ import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { useApi } from "../../useApi";
 import { NameDialog } from "./Actions";
-import { useAccess } from "../../access";
+import { restrictionBlocks, useAccess } from "../../access";
 
 type Pending = { kind: "restore" | "delete" | "rename" | "clone" | "publish"; snap: Snapshot } | null;
 
@@ -36,6 +37,8 @@ export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
   const { run } = useActions();
   const admin = access.can(inst.project, "operate"); // snapshots
   const manage = access.can(inst.project, "manage"); // a new instance or an image from one
+  const proj = useApi(`project:${inst.project}`, () => fetchProject(inst.project));
+  const blocked = restrictionBlocks(proj.data?.config, "snapshots");
   const [pending, setPending] = useState<Pending>(null);
   const [name, setName] = useState(defaultName);
   const [expires, setExpires] = useState("");
@@ -108,6 +111,12 @@ export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
       {admin && (
         <>
           <h2>Take a snapshot</h2>
+          {blocked && (
+            <p role="note">
+              Project {project} is restricted and doesn&apos;t allow snapshots: LXD will refuse this. A cluster admin can
+              allow them on the project page (Restrictions → Snapshots).
+            </p>
+          )}
           <div className="form-row">
             <label className="field">
               Name

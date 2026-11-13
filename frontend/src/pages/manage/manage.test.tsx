@@ -319,9 +319,25 @@ describe("projects", () => {
         "features.networks": "true",
         "features.networks.zones": "false",
         restricted: "true",
+        "restricted.snapshots": "allow",
+        "restricted.backups": "allow",
       },
     });
     expect(await screen.findByRole("heading", { name: "Project new" })).toBeInTheDocument();
+  });
+
+  it("a restricted project can keep LXD's block on snapshots and backups", async () => {
+    vi.spyOn(api, "fetchProjects").mockResolvedValue([]);
+    const create = vi.spyOn(api, "createProject").mockResolvedValue(ok);
+    routes("/projects");
+    fireEvent.click(await screen.findByRole("button", { name: "Create project" }));
+    fireEvent.change(dialog().getByLabelText("Name"), { target: { value: "tight" } });
+    expect(dialog().queryByLabelText(/Allow snapshots and backups/)).toBeNull();
+    fireEvent.click(dialog().getByLabelText("Restricted"));
+    fireEvent.click(dialog().getByLabelText(/Allow snapshots and backups/));
+    fireEvent.click(dialog().getByRole("button", { name: "Create" }));
+    expect(create.mock.calls[0][1].config).not.toHaveProperty("restricted.snapshots");
+    expect(create.mock.calls[0][1].config.restricted).toBe("true");
   });
 
   it("list states", async () => {
@@ -367,6 +383,38 @@ describe("projects", () => {
     fireEvent.click(dialog().getByRole("button", { name: "Delete" }));
     expect(del).toHaveBeenCalledWith("lab2");
     expect(await screen.findByRole("heading", { name: "Projects" })).toBeInTheDocument();
+  });
+
+  it("edits the restriction keys as a form, and warns about routes to the host (Phase 7e)", async () => {
+    vi.spyOn(api, "fetchProject").mockResolvedValue(project({ config: { "limits.cpu": "2" } }));
+    const upd = vi.spyOn(api, "updateProject").mockResolvedValue(ok);
+    routes("/projects/lab");
+    const box = await screen.findByLabelText(/^Restricted: LXD keeps/);
+    expect(screen.queryByLabelText("Snapshots")).toBeNull();
+    fireEvent.click(box);
+    expect(screen.getByLabelText("Snapshots")).toHaveValue("");
+    expect(within(screen.getByLabelText("Snapshots")).getByRole("option", { name: "default (block)" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Snapshots"), { target: { value: "allow" } });
+    fireEvent.change(screen.getByLabelText("Backups"), { target: { value: "allow" } });
+    expect(screen.queryByRole("alert")).toBeNull();
+    const low = screen.getByLabelText(/Container low-level options/);
+    expect(within(low).getByRole("option", { name: "allow (reaches the host)" })).toBeInTheDocument();
+    fireEvent.change(low, { target: { value: "allow" } });
+    expect(screen.getByRole("alert")).toHaveTextContent(/Allowed here: Container low-level options.*reach the host/);
+    fireEvent.change(low, { target: { value: "" } }); // back to LXD's default: the key goes
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect((screen.getByLabelText(/Config/) as HTMLTextAreaElement).value).toContain("restricted.backups: allow");
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(upd).toHaveBeenCalledWith("lab", {
+      description: "Lab",
+      config: { "limits.cpu": "2", restricted: "true", "restricted.snapshots": "allow", "restricted.backups": "allow" },
+    });
+    fireEvent.click(screen.getByLabelText(/^Restricted: LXD keeps/));
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    expect(upd).toHaveBeenLastCalledWith("lab", {
+      description: "Lab",
+      config: { "limits.cpu": "2", "restricted.snapshots": "allow", "restricted.backups": "allow" },
+    });
   });
 
   it("protects default; failures stay; dialogs cancel; viewers read-only; errors", async () => {

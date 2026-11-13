@@ -84,6 +84,8 @@ function CreateProject({ onClose }: { onClose: () => void }) {
   const [description, setDescription] = useState("");
   const [features, setFeatures] = useState(() => Object.fromEntries(FEATURES.map((f) => [f.key, f.on])));
   const [restricted, setRestricted] = useState(false);
+  // LXD's restricted default blocks both, which leaves operators little to do (D83)
+  const [keep, setKeep] = useState(true);
   return (
     <Confirm
       title="Create project"
@@ -96,6 +98,7 @@ function CreateProject({ onClose }: { onClose: () => void }) {
         const config = {
           ...Object.fromEntries(Object.entries(features).map(([k, v]) => [k, String(v)])),
           ...(restricted ? { restricted: "true" } : {}),
+          ...(restricted && keep ? { "restricted.snapshots": "allow", "restricted.backups": "allow" } : {}),
         };
         void run(`Create project ${n}`, () => createProject(n, { description, config })).then(
           (ok) => ok && navigate(`/projects/${encodeURIComponent(n)}`),
@@ -128,6 +131,12 @@ function CreateProject({ onClose }: { onClose: () => void }) {
         LXD then refuses privileged instances, host disks and similar inside it. Project users can only be operators or
         admins of a restricted project (docs/USERS.md).
       </p>
+      {restricted && (
+        <label>
+          <input type="checkbox" checked={keep} onChange={(e) => setKeep(e.target.checked)} /> Allow snapshots and backups
+          (a restricted project blocks both unless allowed)
+        </label>
+      )}
     </Confirm>
   );
 }

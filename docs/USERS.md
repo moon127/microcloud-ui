@@ -80,8 +80,15 @@ lxc project create web -c restricted=true -c features.storage.volumes=true
 **Allow snapshots and backups if operators should make them.** A restricted project
 refuses both by default, even from the app, until `restricted.snapshots=allow` and
 `restricted.backups=allow` are set. Checked on LXD 6.10 on 2026-11-13. Set them with
-`lxc project set web restricted.snapshots=allow restricted.backups=allow`, or as keys in
-the project's configuration. Phase 7 adds these keys to the project page.
+`lxc project set web restricted.snapshots=allow restricted.backups=allow`, or on the
+project's page under **Restrictions**. **Create project** allows both when Restricted is
+ticked, unless you untick it.
+
+**The Restrictions form** on a project's page sets LXD's `restricted.*` keys; "default"
+leaves a key unset, which means LXD's default. Choices marked "reaches the host" (low-level
+options, privileged containers, host disks, unix, USB, PCI and GPU devices, nesting) undo
+what operator and admin grants rely on, and the page says so. Other keys (networks, disk
+paths, idmaps) are in the YAML editor.
 
 **Importing a backup into a restricted project doesn't work** on LXD 6.10.1 (checked
 2026-11-13). LXD counts the backup's own `volatile.*` keys as low-level options and

@@ -8,6 +8,7 @@ import YamlEditor from "../../YamlEditor";
 import { NameDialog } from "../instance/Actions";
 import { asConfig } from "../instance/state";
 import { useAccess } from "../../access";
+import Restrictions from "./Restrictions";
 
 export default function ProjectPage() {
   const { name = "" } = useParams();
@@ -64,6 +65,7 @@ export default function ProjectPage() {
               <input value={description} onChange={(e) => setDescription(e.target.value)} />
             </label>
           </fieldset>
+          <Restrictions config={config} onChange={setConfig} disabled={!admin} />
           <YamlEditor
             label="Config: features and limits (YAML)"
             value={config}

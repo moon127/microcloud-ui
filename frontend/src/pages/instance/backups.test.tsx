@@ -129,6 +129,18 @@ describe("BackupsTab", () => {
     expect(screen.queryByRole("button", { name: "Make backup" })).toBeNull();
   });
 
+  it("the snapshots tab warns too", async () => {
+    vi.spyOn(api, "fetchProject").mockResolvedValue(project({ restricted: "true", "restricted.backups": "allow" }));
+    vi.spyOn(api, "fetchInstance").mockResolvedValue(inst);
+    renderAt(
+      <Routes>
+        <Route path="/instances/:project/:name" element={<InstancePage />} />
+      </Routes>,
+      { url: "/instances/web/c1?tab=snapshots" },
+    );
+    expect(await screen.findByText(/doesn't allow snapshots/)).toBeInTheDocument();
+  });
+
   it("a viewer only sees the list", async () => {
     vi.spyOn(api, "fetchBackups").mockResolvedValue(BACKUPS);
     open(session({ user: { username: "v", role: "project", grants: { web: "viewer" } } }));

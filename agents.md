@@ -246,6 +246,12 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 7e done 2026-11-13 (D83):** the project page has a Restrictions form for the
+  common `restricted.*` keys (empty = LXD's default, shown; "reaches the host" choices
+  marked and warned about). Create project allows snapshots and backups when Restricted is
+  ticked (opt-out). The snapshots tab says when the project blocks snapshots. Fixtures
+  only: it saves through the existing project update. Next: 7c live, then 7f (docs,
+  screenshots) and 0.3.0.
 - **Phase 7c built 2026-11-13 (D83), not yet live:** the Move dialog offers "To project"
   (projects the user can manage; the server checks manage in both, with the second checked
   through `Ctx.check_project`), sends LXD `migration: true, live: false, project,

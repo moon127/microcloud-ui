@@ -648,7 +648,7 @@ turned out to need.
   streamed, with progress); ISO volumes marked in the list. Attach one to a VM as a CD
   (`disk` device with `source` the volume, `boot.priority`) from the VM's configuration and
   from the create wizard.
-- **7e, restrictions (PJ-2, the part needed now):** the project page edits the
+- ✅ 2026-11-13 **7e, restrictions (PJ-2, the part needed now):** the project page edits the
   `restricted.*` keys as a form, snapshots and backups first, so a cluster admin can allow
   them. USERS.md corrected: operator snapshots and backups need them allowed.
 - **7f:** README, USERS.md, LIVE-TESTS.md, screenshots; then release 0.3.0.
