@@ -238,6 +238,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.1.7 released 2026-11-13:** evacuation warnings and progress (D75), the C2a findings
+  and the mixed-CPU advice. `main` is now 0.1.8.dev0.
 - **Evacuation warnings and progress 2026-11-13 (D75):** after the C2a test (LXD let a second
   member of three be evacuated, and two restores failed on mixed CPUs). Fixture-tested;
   the owner checks it live (`docs/LIVE-TESTS.md` C2b).
