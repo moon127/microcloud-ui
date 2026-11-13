@@ -260,8 +260,9 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   choice. All verified through the app against the 6.10 VM.
 - **0.1.3 released 2026-11-12** (run 43283773241): CephFS pools on LXD 6.8+, the Ceph page without
   Tentacle perf counters, `mcui check` release/security warnings. `main` is now 0.1.4.dev0. The
-  MicroCloud 3.4 VM `mcui-test-mc34` is kept for Phase 5 work (owner, 2026-11-12); `mcui-test` limits
-  stay raised (1 VM, 4 CPU, 8 GiB, 50 GiB) until it's deleted, originals: 0 VMs, 2 CPU, 1 GiB, 6 GiB.
+  MicroCloud 3.4 VM `mcui-test-mc34` was kept for Phase 5 work (owner, 2026-11-12) and deleted
+  on 2026-11-13 with its image, once the test cloud itself ran 3.4; `mcui-test` limits are back
+  to 0 VMs, 2 CPU, 1 GiB, 6 GiB disk, 3 instances.
 - **Phase 5.1, MicroCloud 3.4 VM 2026-11-12 (D74):** the app works against LXD 6.10 nearly
   unchanged (reads and background-operation writes verified); CephFS pool create fixed
   (`cephfs.path`); Ceph page hides OSD used/size and per-op latency without perf counters;
