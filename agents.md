@@ -237,6 +237,10 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.1.6 released 2026-11-13:** documentation only. The README and DEPLOY say MicroCloud
+  2.x and 3.4 are both fully supported and list what 2.x doesn't show; the screenshots
+  come from a 3.4 demo cluster (D59 amended), with placement groups and load balancers
+  added. The bundles carry the updated DEPLOY.md. `main` is now 0.1.7.dev0.
 - **0.1.5 released 2026-11-13** (run 43396165721): checked live on the test cloud after its
   upgrade to MicroCloud 3.4 (placement, registries, load balancers, multi-volume snapshots,
   child operations, evacuate/restore), the evacuation "auto" fix, OVN DHCP ranges. A first tag
