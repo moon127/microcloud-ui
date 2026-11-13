@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { deleteAcl, fetchAcl, renameAcl, updateAcl, type AclBody, type AclRule } from "../../api";
 import { useActions } from "../../actions";
@@ -25,9 +25,13 @@ export default function AclPage() {
   const admin = user.role === "admin";
   const a = acl.data;
 
-  useEffect(() => {
+  // take the loaded values into the form as they arrive, during render rather than in an
+  // effect, so the form never shows a render's worth of stale values
+  const [shown, setShown] = useState<unknown>(null);
+  if (a !== shown) {
+    setShown(a);
     if (a) setDraft({ description: a.description, ingress: full(a.ingress), egress: full(a.egress), config: a.config ?? {} });
-  }, [a]);
+  }
 
   return (
     <>

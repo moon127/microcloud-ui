@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { useSession } from "./session";
 
 export interface LxdEvent {
@@ -13,11 +13,10 @@ const RECONNECT_MS = 5000;
 
 /** Call ``onEvent`` for every LXD operation/lifecycle event (via /api/events). */
 export function useEvents(onEvent: (e: LxdEvent) => void): void {
-  const handler = useRef(onEvent);
-  handler.current = onEvent;
+  // the latest callbacks, without reconnecting when they change
+  const handle = useEffectEvent(onEvent);
   const { onExpired } = useSession();
-  const expired = useRef(onExpired);
-  expired.current = onExpired;
+  const expire = useEffectEvent(() => onExpired());
 
   useEffect(() => {
     let ws: WebSocket | null = null;
@@ -29,7 +28,7 @@ export function useEvents(onEvent: (e: LxdEvent) => void): void {
       ws = new WebSocket(`${proto}//${window.location.host}/api/events`);
       ws.onmessage = (m) => {
         try {
-          handler.current(JSON.parse(String(m.data)) as LxdEvent);
+          handle(JSON.parse(String(m.data)) as LxdEvent);
         } catch {
           // ignore malformed frames
         }
@@ -37,7 +36,7 @@ export function useEvents(onEvent: (e: LxdEvent) => void): void {
       ws.onclose = (e) => {
         if (stopped) return;
         if (e.code === 4401) {
-          expired.current();
+          expire();
           return;
         }
         timer = setTimeout(connect, RECONNECT_MS);

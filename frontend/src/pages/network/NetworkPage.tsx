@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   deleteNetwork,
@@ -46,9 +46,13 @@ export default function NetworkPage() {
   const [problem, setProblem] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
+  // take the loaded values into the form as they arrive, during render rather than in an
+  // effect, so the form never shows a render's worth of stale values
+  const [shown, setShown] = useState<unknown>(null);
+  if (n !== shown) {
+    setShown(n);
     if (n) setDraft({ description: n.description, config: n.config });
-  }, [n]);
+  }
 
   return (
     <>

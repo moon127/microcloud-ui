@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   attachVolume,
@@ -58,9 +58,13 @@ export default function VolumePage() {
   const admin = user.role === "admin";
   const v = vol.data;
 
-  useEffect(() => {
+  // take the loaded values into the form as they arrive, during render rather than in an
+  // effect, so the form never shows a render's worth of stale values
+  const [shown, setShown] = useState<unknown>(null);
+  if (v !== shown) {
+    setShown(v);
     if (v) setDraft({ description: v.description, config: v.config });
-  }, [v]);
+  }
 
   const other = draft ? Object.fromEntries(Object.entries(draft.config).filter(([k]) => !FORM_KEYS.some((f) => f.key === k))) : {};
   const setKey = (k: string, val: string) =>

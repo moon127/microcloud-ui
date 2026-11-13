@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { deletePool, fetchPool, fetchPoolMembers, updatePool, type PoolDriver, type PoolMember } from "../../api";
 import { useActions } from "../../actions";
@@ -35,9 +35,13 @@ export default function PoolPage() {
   const admin = user.role === "admin";
   const p = pool.data;
 
-  useEffect(() => {
+  // take the loaded values into the form as they arrive, during render rather than in an
+  // effect, so the form never shows a render's worth of stale values
+  const [shown, setShown] = useState<unknown>(null);
+  if (p !== shown) {
+    setShown(p);
     if (p) setDraft({ description: p.description, config: p.config });
-  }, [p]);
+  }
 
   return (
     <>

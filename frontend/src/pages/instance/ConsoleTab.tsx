@@ -44,7 +44,7 @@ export default function ConsoleTab({ inst }: { inst: InstanceFull }) {
         {mode === "console" && (
           <TerminalView label="Text console" start={(size) => startConsole(project, name, { type: "console", ...size })} />
         )}
-        {mode === "vga" && <VgaView inst={inst} />}
+        {mode === "vga" && <VgaView key={`${inst.project}/${inst.name}`} inst={inst} />}
       </Suspense>
       {mode === "log" && <ConsoleLog inst={inst} />}
     </>

@@ -11,10 +11,14 @@ export default function VgaView({ inst }: { inst: InstanceFull }) {
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
 
-  useEffect(() => {
-    let closed = false;
+  const reconnect = () => {
     setStatus("connecting");
     setError(null);
+    setAttempt((a) => a + 1);
+  };
+
+  useEffect(() => {
+    let closed = false;
     const fail = (e: unknown) => {
       if (closed) return;
       setStatus("failed");
@@ -49,7 +53,7 @@ export default function VgaView({ inst }: { inst: InstanceFull }) {
         <button type="button" disabled={status !== "connected"} onClick={() => conn.current && sendCtrlAltDel(conn.current)}>
           Send Ctrl+Alt+Del
         </button>
-        <button type="button" onClick={() => setAttempt((a) => a + 1)}>
+        <button type="button" onClick={reconnect}>
           Reconnect
         </button>
         <button

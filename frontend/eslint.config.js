@@ -18,12 +18,8 @@ export default tseslint.config(
       'react-refresh': reactRefresh,
     },
     rules: {
-      // the two classic hooks rules. Plugin v7's recommended set adds the React Compiler
-      // rules (set-state-in-effect, refs, ...), which flag 12 places, mostly edit pages
-      // loading server data into their form in an effect: a refactor of its own
-      // (docs/PLAN.md), not part of the ESLint 10 upgrade
-      'react-hooks/rules-of-hooks': 'error',
-      'react-hooks/exhaustive-deps': 'warn',
+      // includes the React Compiler rules (set-state-in-effect, refs, ...)
+      ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

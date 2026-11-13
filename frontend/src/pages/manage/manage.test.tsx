@@ -339,8 +339,8 @@ describe("projects", () => {
     const del = vi.spyOn(api, "deleteProject").mockResolvedValue(ok);
     routes("/projects/lab");
     expect(await screen.findByText(/Used by 1 objects/)).toBeInTheDocument();
-    // the form takes the loaded values in an effect after that render; edit only after it,
-    // or a slow run types first and the effect overwrites the edit (seen once under coverage)
+    // edit only once the form holds the loaded values (it once took them an effect later,
+    // and a slow run typed first and lost the edit; now they arrive in the same render)
     await waitFor(() => expect(screen.getByLabelText("Description")).toHaveValue("Lab"));
     fireEvent.change(screen.getByLabelText("Description"), { target: { value: "Lab 2" } });
     fireEvent.change(screen.getByLabelText(/Config/), { target: { value: "a: {b: 1}" } });

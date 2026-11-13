@@ -431,8 +431,15 @@ on ingest, query latency, disk use and ops burden; implement the chosen
 adapter. Alerts (MO-13), export (MO-15), project quota
 history (MO-10).
 
-*Follow-up: React Compiler lint rules.* `eslint-plugin-react-hooks` 7 recommends rules from
-the React Compiler, left off in the ESLint 10 upgrade (2026-11-13), which flag 12 places:
+*✅ Done 2026-11-13: React Compiler lint rules.* `eslint-plugin-react-hooks` 7's recommended
+rules are on. They flagged 12 places, now rewritten:
+- The edit pages and the YAML editor take loaded values into their form during render
+  (React's "adjusting state when a prop changes"), not in an effect.
+- `events.ts` and the terminal use `useEffectEvent` for their latest callbacks.
+- The consoles reset their status in the Reconnect handler, and the graphical console is
+  keyed on the instance.
+
+The original note:
 - **`set-state-in-effect` (9):** seven edit pages (profile, project, ACL, network, pool,
   volume) copy server data into their form state in an effect, and so do the YAML editor
   and the console views. That pattern also caused a timing-dependent test. The fix is to

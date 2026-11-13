@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import { createProfile, deleteProfile, fetchProfile, renameProfile, updateProfile } from "../../api";
 import { useActions } from "../../actions";
@@ -28,9 +28,13 @@ export default function ProfilePage() {
   const admin = user.role === "admin";
   const p = profile.data;
 
-  useEffect(() => {
+  // take the loaded values into the form as they arrive, during render rather than in an
+  // effect, so the form never shows a render's worth of stale values
+  const [shown, setShown] = useState<unknown>(null);
+  if (p !== shown) {
+    setShown(p);
     if (p) setDraft({ description: p.description, config: p.config, devices: p.devices });
-  }, [p]);
+  }
 
   const base = `/profiles/${encodeURIComponent(project)}`;
   return (

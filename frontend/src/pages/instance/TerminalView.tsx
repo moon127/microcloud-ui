@@ -1,7 +1,7 @@
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { streamUrl, type StreamStart } from "../../api";
 
 interface Props {
@@ -18,8 +18,13 @@ export default function TerminalView({ start, label }: Props) {
   const [status, setStatus] = useState<Status>("connecting");
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
-  const startRef = useRef(start);
-  startRef.current = start;
+  // the latest ``start``, without reconnecting when the parent re-renders
+  const begin = useEffectEvent(start);
+  const reconnect = () => {
+    setStatus("connecting");
+    setError(null);
+    setAttempt((a) => a + 1);
+  };
 
   useEffect(() => {
     const el = box.current!;
@@ -31,11 +36,8 @@ export default function TerminalView({ start, label }: Props) {
     let ws: WebSocket | null = null;
     let closed = false;
     const encoder = new TextEncoder();
-    setStatus("connecting");
-    setError(null);
 
-    startRef
-      .current({ cols: term.cols, rows: term.rows })
+    begin({ cols: term.cols, rows: term.rows })
       .then((s) => {
         if (closed) return;
         ws = new WebSocket(streamUrl(s.id));
@@ -80,7 +82,7 @@ export default function TerminalView({ start, label }: Props) {
         {status === "ended" && "Session ended."}
         {status === "failed" && `Could not start: ${error}`}{" "}
         {(status === "ended" || status === "failed") && (
-          <button type="button" onClick={() => setAttempt((a) => a + 1)}>
+          <button type="button" onClick={reconnect}>
             Reconnect
           </button>
         )}

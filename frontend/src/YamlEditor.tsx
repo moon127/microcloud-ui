@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { parse, stringify } from "yaml";
 
 interface Props {
@@ -14,8 +14,11 @@ export default function YamlEditor({ label, value, onChange, rows = 18, readOnly
   const [text, setText] = useState(() => stringify(value));
   const [error, setError] = useState<string | null>(null);
 
-  // follow external changes (e.g. the form tab edited the same object)
-  useEffect(() => {
+  // follow external changes (e.g. the form tab edited the same object), during render so
+  // the text never lags a render behind; keep the user's own formatting when it's the same
+  const [shown, setShown] = useState(value);
+  if (value !== shown) {
+    setShown(value);
     setText((t) => {
       try {
         return JSON.stringify(parse(t)) === JSON.stringify(value) ? t : stringify(value);
@@ -23,7 +26,7 @@ export default function YamlEditor({ label, value, onChange, rows = 18, readOnly
         return stringify(value);
       }
     });
-  }, [value]);
+  }
 
   return (
     <label className="yaml">
