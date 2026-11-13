@@ -102,3 +102,67 @@ def test_open_creates_file(tmp_path):
     s.add_user("a", "b", "admin")
     s.close()
     assert (tmp_path / "nested" / "mcui.db").is_file()
+
+
+def test_project_grants(store):
+    """A "project" user has no global role; access comes only from its grants (D81)."""
+    store.add_user("pat", "pw", "project")
+    store.set_grant("pat", "web", "operator")
+    store.set_grant("pat", "lab", "viewer")
+    store.set_grant("pat", "web", "admin")  # replaces
+    u = store.get_user("pat")
+    assert (u.role, u.is_admin, u.grants) == ("project", False, {"lab": "viewer", "web": "admin"})
+    assert store.authenticate("pat", "pw").grants == u.grants
+    session = store.create_session(u, 60)
+    assert store.get_session(session.token).user.grants == u.grants
+    assert [x.grants for x in store.list_users() if x.username == "pat"] == [u.grants]
+    store.remove_grant("pat", "lab")
+    assert store.get_user("pat").grants == {"web": "admin"}
+    store.delete_user("pat")  # grants go with the user
+    assert store.db.execute("SELECT COUNT(*) FROM grants").fetchone()[0] == 0
+
+
+@pytest.mark.parametrize(
+    "call,msg",
+    [
+        (lambda s: s.set_grant("pat", "web", "owner"), "project role must be"),
+        (lambda s: s.set_grant("pat", "", "viewer"), "project is required"),
+        (lambda s: s.set_grant("nobody", "web", "viewer"), "no such user"),
+        (lambda s: s.remove_grant("pat", "web"), "has no grant"),
+    ],
+)
+def test_grant_errors(store, call, msg):
+    store.add_user("pat", "pw", "project")
+    with pytest.raises(AuthError, match=msg):
+        call(store)
+
+
+def test_migrates_a_database_from_before_project_users(tmp_path):
+    """Before D81 users.role allowed only admin/viewer; the table is rebuilt, keeping users
+    and their sessions."""
+    import sqlite3
+
+    path = tmp_path / "mcui.db"
+    old = sqlite3.connect(path)
+    old.executescript(
+        """
+        CREATE TABLE users (id INTEGER PRIMARY KEY, username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL CHECK (role IN ('admin', 'viewer')), created_at REAL NOT NULL);
+        CREATE TABLE sessions (token_hash TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            csrf TEXT NOT NULL, created_at REAL NOT NULL, expires_at REAL NOT NULL);
+        INSERT INTO users VALUES (1, 'alice', 'x', 'admin', 0);
+        INSERT INTO sessions VALUES ('h', 1, 'c', 0, 9e12);
+        """
+    )
+    old.close()
+    store = Store(path, hasher=PasswordHasher(time_cost=1, memory_cost=8, parallelism=1))
+    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 1
+    assert store.get_user("alice").role == "admin"
+    assert store.db.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 1
+    store.add_user("pat", "pw", "project")  # the new role is accepted
+    assert store.db.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+    store.close()
+    again = Store(path)  # opening again doesn't migrate twice
+    assert [u.username for u in again.list_users()] == ["alice", "pat"]

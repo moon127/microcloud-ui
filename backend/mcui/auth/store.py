@@ -1,4 +1,4 @@
-"""SQLite-backed users, sessions and audit log (AU-1/2/3, D13)."""
+"""SQLite-backed users, project grants, sessions and audit log (AU-1/2/3, D13, D81)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import secrets
 import sqlite3
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal, cast, get_args
 
@@ -18,16 +18,25 @@ from argon2.exceptions import InvalidHashError, VerificationError
 
 from mcui.files import private_db
 
-Role = Literal["admin", "viewer"]
+# global roles; "project" has none: access only through its project grants (D81)
+Role = Literal["admin", "viewer", "project"]
 ROLES: tuple[str, ...] = get_args(Role)
+ProjectRole = Literal["viewer", "operator", "admin"]
+PROJECT_ROLES: tuple[str, ...] = get_args(ProjectRole)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY,
     username TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('admin', 'viewer')),
+    role TEXT NOT NULL CHECK (role IN ('admin', 'viewer', 'project')),
     created_at REAL NOT NULL
+);
+CREATE TABLE IF NOT EXISTS grants (
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    project TEXT NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('viewer', 'operator', 'admin')),
+    PRIMARY KEY (user_id, project)
 );
 CREATE TABLE IF NOT EXISTS sessions (
     token_hash TEXT PRIMARY KEY,
@@ -48,6 +57,27 @@ CREATE TABLE IF NOT EXISTS audit (
 );
 CREATE INDEX IF NOT EXISTS audit_ts ON audit(ts);
 """
+SCHEMA_VERSION = 1
+
+# 0 -> 1 (D81): the users.role CHECK gains 'project'. SQLite can't alter a CHECK, so the
+# table is rebuilt; sessions reference it, so foreign keys are off meanwhile.
+MIGRATE_1 = """
+PRAGMA foreign_keys = OFF;
+BEGIN;
+CREATE TABLE users_new (
+    id INTEGER PRIMARY KEY,
+    username TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('admin', 'viewer', 'project')),
+    created_at REAL NOT NULL
+);
+INSERT INTO users_new SELECT id, username, password_hash, role, created_at FROM users;
+DROP TABLE users;
+ALTER TABLE users_new RENAME TO users;
+PRAGMA user_version = 1;
+COMMIT;
+PRAGMA foreign_keys = ON;
+"""
 
 
 class AuthError(Exception):
@@ -59,6 +89,8 @@ class User:
     id: int
     username: str
     role: Role
+    # project -> role; only used when ``role`` is "project"
+    grants: dict[str, ProjectRole] = field(default_factory=dict)
 
     @property
     def is_admin(self) -> bool:
@@ -92,10 +124,20 @@ class Store:
         self.db.execute("PRAGMA foreign_keys = ON")
         if path != ":memory:":
             self.db.execute("PRAGMA journal_mode = WAL")
-        self.db.executescript(SCHEMA)
+        self._migrate()
         self.hasher = hasher or PasswordHasher()
         self.clock = clock
         self._dummy_hash = self.hasher.hash(secrets.token_hex(8))
+
+    def _migrate(self) -> None:
+        version = self.db.execute("PRAGMA user_version").fetchone()[0]
+        fresh = not self.db.execute(
+            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'users'"
+        ).fetchone()
+        if version < 1 and not fresh:
+            self.db.executescript(MIGRATE_1)
+        self.db.executescript(SCHEMA)
+        self.db.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
     @classmethod
     def open(cls, data_dir: Path) -> Store:
@@ -119,15 +161,24 @@ class Store:
             raise AuthError(f"user {username!r} already exists") from e
         return User(cast(int, cur.lastrowid), username, cast(Role, role))
 
+    def _user(self, row: sqlite3.Row) -> User:
+        grants = {
+            g["project"]: g["role"]
+            for g in self.db.execute(
+                "SELECT project, role FROM grants WHERE user_id = ? ORDER BY project", (row["id"],)
+            )
+        }
+        return User(row["id"], row["username"], row["role"], grants)
+
     def get_user(self, username: str) -> User | None:
         row = self.db.execute(
             "SELECT id, username, role FROM users WHERE username = ?", (username,)
         ).fetchone()
-        return User(row["id"], row["username"], row["role"]) if row else None
+        return self._user(row) if row else None
 
     def list_users(self) -> list[User]:
         rows = self.db.execute("SELECT id, username, role FROM users ORDER BY username")
-        return [User(r["id"], r["username"], r["role"]) for r in rows]
+        return [self._user(r) for r in rows.fetchall()]
 
     def set_password(self, username: str, password: str) -> None:
         if not password:
@@ -148,6 +199,30 @@ class Store:
         cur = self.db.execute("UPDATE users SET role = ? WHERE username = ?", (role, username))
         if cur.rowcount == 0:
             raise AuthError(f"no such user {username!r}")
+
+    def set_grant(self, username: str, project: str, role: str) -> None:
+        """Give ``username`` ``role`` in ``project`` (replacing any it had there)."""
+        if role not in PROJECT_ROLES:
+            raise AuthError(f"project role must be one of {', '.join(PROJECT_ROLES)}")
+        if not project:
+            raise AuthError("project is required")
+        user = self.get_user(username)
+        if user is None:
+            raise AuthError(f"no such user {username!r}")
+        self.db.execute(
+            "INSERT INTO grants (user_id, project, role) VALUES (?,?,?) "
+            "ON CONFLICT (user_id, project) DO UPDATE SET role = excluded.role",
+            (user.id, project, role),
+        )
+
+    def remove_grant(self, username: str, project: str) -> None:
+        cur = self.db.execute(
+            "DELETE FROM grants WHERE project = ? "
+            "AND user_id = (SELECT id FROM users WHERE username = ?)",
+            (project, username),
+        )
+        if cur.rowcount == 0:
+            raise AuthError(f"{username!r} has no grant on {project!r}")
 
     def delete_user(self, username: str) -> None:
         cur = self.db.execute("DELETE FROM users WHERE username = ?", (username,))
@@ -176,7 +251,7 @@ class Store:
                 "UPDATE users SET password_hash = ? WHERE id = ?",
                 (self.hasher.hash(password), row["id"]),
             )
-        return User(row["id"], row["username"], row["role"])
+        return self._user(row)
 
     # --- sessions ----------------------------------------------------------
 
@@ -201,8 +276,7 @@ class Store:
         ).fetchone()
         if row is None:
             return None
-        user = User(row["id"], row["username"], row["role"])
-        return Session(token, row["csrf"], user, row["expires_at"])
+        return Session(token, row["csrf"], self._user(row), row["expires_at"])
 
     def delete_session(self, token: str) -> None:
         self.db.execute("DELETE FROM sessions WHERE token_hash = ?", (_hash_token(token),))

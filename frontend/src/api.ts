@@ -4,11 +4,15 @@ export interface Health {
   lxd_configured?: boolean;
 }
 
-export type Role = "admin" | "viewer";
+/** Global role; "project": none, access only through ``grants`` (D81). */
+export type Role = "admin" | "viewer" | "project";
+export type ProjectRole = "viewer" | "operator" | "admin";
 
 export interface User {
   username: string;
   role: Role;
+  /** project -> role, for "project" users */
+  grants?: Record<string, ProjectRole>;
 }
 
 export interface Me {

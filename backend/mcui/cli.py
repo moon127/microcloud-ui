@@ -49,7 +49,12 @@ def build_parser() -> argparse.ArgumentParser:
     usub = user.add_subparsers(dest="user_command", required=True)
     add = usub.add_parser("add", help="create a user")
     add.add_argument("username")
-    add.add_argument("--role", choices=["admin", "viewer"], default="viewer")
+    add.add_argument(
+        "--role",
+        choices=["admin", "viewer", "project"],
+        default="viewer",
+        help="project: no global role, access only through grants (D81)",
+    )
     add.add_argument("--password-stdin", action="store_true", help="read password from stdin")
     pw = usub.add_parser("passwd", help="set a user's password (logs them out)")
     pw.add_argument("username")
@@ -57,6 +62,13 @@ def build_parser() -> argparse.ArgumentParser:
     usub.add_parser("list", help="list users")
     rm = usub.add_parser("delete", help="delete a user")
     rm.add_argument("username")
+    gr = usub.add_parser("grant", help="give a project user a role in an LXD project")
+    gr.add_argument("username")
+    gr.add_argument("project")
+    gr.add_argument("role", choices=["viewer", "operator", "admin"])
+    rv = usub.add_parser("revoke", help="remove a project user's grant on a project")
+    rv.add_argument("username")
+    rv.add_argument("project")
     return parser
 
 
@@ -156,21 +168,72 @@ def _read_password(args: argparse.Namespace) -> str:
     return first
 
 
+def _grant(args: argparse.Namespace) -> int:
+    """A grant above viewer needs a restricted project, as through the API (D81)."""
+    from mcui.auth.store import AuthError, Store
+    from mcui.lxd.projects import NoSuchProject, is_restricted
+
+    async def fn(settings: Settings, api: LXDClient, metrics: LXDClient) -> int:
+        try:
+            restricted = await is_restricted(api, args.project)
+        except NoSuchProject:
+            print(f"mcui: no project {args.project!r}", file=sys.stderr)
+            return 1
+        if args.role != "viewer" and not restricted:
+            print(
+                f"mcui: project {args.project!r} isn't restricted (restricted=true), so only a "
+                "viewer grant is allowed",
+                file=sys.stderr,
+            )
+            return 1
+        store = Store.open(settings.server.data_dir)
+        try:
+            user = store.get_user(args.username)
+            if user is not None and user.role != "project":
+                print(f"mcui: {args.username} has the global {user.role} role", file=sys.stderr)
+                return 1
+            store.set_grant(args.username, args.project, args.role)
+            store.audit(
+                None,
+                "user.grant",
+                args.username,
+                detail={"project": args.project, "role": args.role, "via": "cli"},
+            )
+        except AuthError as e:
+            print(f"mcui: {e}", file=sys.stderr)
+            return 1
+        finally:
+            store.close()
+        print(f"{args.username} is {args.role} in {args.project}")
+        return 0
+
+    return _with_clients(args, fn)
+
+
 def _user(args: argparse.Namespace) -> int:
     from mcui.auth.store import AuthError, Store
 
+    if args.user_command == "grant":
+        return _grant(args)
     store = Store.open(_settings(args).server.data_dir)
     try:
         cmd = args.user_command
         if cmd == "list":
             for u in store.list_users():
-                print(f"{u.username}\t{u.role}")
+                grants = ", ".join(f"{p}:{r}" for p, r in u.grants.items())
+                print(f"{u.username}\t{u.role}" + (f"\t{grants}" if grants else ""))
         elif cmd == "add":
             store.add_user(args.username, _read_password(args), args.role)
             store.audit(
                 None, "user.create", args.username, detail={"role": args.role, "via": "cli"}
             )
             print(f"created {args.role} {args.username}")
+        elif cmd == "revoke":
+            store.remove_grant(args.username, args.project)
+            store.audit(
+                None, "user.revoke", args.username, detail={"project": args.project, "via": "cli"}
+            )
+            print(f"removed {args.username}'s grant on {args.project}")
         elif cmd == "passwd":
             store.set_password(args.username, _read_password(args))
             store.audit(None, "user.update", args.username, detail={"password": True, "via": "cli"})

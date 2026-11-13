@@ -8,7 +8,7 @@ import respx
 import mcui.config
 from mcui import __version__, cli
 from mcui.auth.store import Store
-from tests.conftest import EP1, fixture_json, fixture_text, lxd_ok
+from tests.conftest import EP1, fixture_json, fixture_text, lxd_err, lxd_ok
 
 
 def test_version(capsys):
@@ -182,6 +182,40 @@ def test_user_commands(no_lxd_config, tmp_path, capsys, monkeypatch):
     actions = [e["action"] for e in store.audit_entries()]
     store.close()
     assert actions == ["user.delete", "user.update", "user.create"]
+
+
+@respx.mock
+def test_grant_and_revoke(config, tmp_path, capsys, monkeypatch):
+    """Project users through the CLI; above viewer only on restricted projects (D81)."""
+    respx.get(f"{EP1}/1.0/projects/web").mock(
+        return_value=lxd_ok({"name": "web", "config": {"restricted": "true"}})
+    )
+    respx.get(f"{EP1}/1.0/projects/open").mock(return_value=lxd_ok({"name": "open", "config": {}}))
+    respx.get(f"{EP1}/1.0/projects/gone").mock(return_value=lxd_err("not found", 404))
+    c = ["-c", str(config), "user"]
+    monkeypatch.setattr("sys.stdin", io.StringIO("pw\n"))
+    assert cli.main([*c, "add", "pat", "--role", "project", "--password-stdin"]) == 0
+    assert cli.main([*c, "grant", "pat", "web", "operator"]) == 0
+    assert cli.main([*c, "grant", "pat", "open", "viewer"]) == 0
+    assert cli.main([*c, "grant", "pat", "open", "admin"]) == 1
+    assert "isn't restricted" in capsys.readouterr().err
+    assert cli.main([*c, "grant", "pat", "gone", "viewer"]) == 1
+    assert "no project 'gone'" in capsys.readouterr().err
+    assert cli.main([*c, "grant", "nobody", "web", "viewer"]) == 1
+    assert "no such user" in capsys.readouterr().err
+    monkeypatch.setattr("sys.stdin", io.StringIO("pw\n"))
+    assert cli.main([*c, "add", "ann", "--role", "admin", "--password-stdin"]) == 0
+    assert cli.main([*c, "grant", "ann", "web", "viewer"]) == 1
+    assert "global admin role" in capsys.readouterr().err
+    assert cli.main([*c, "list"]) == 0
+    assert "pat\tproject\topen:viewer, web:operator" in capsys.readouterr().out
+    assert cli.main([*c, "revoke", "pat", "open"]) == 0
+    assert cli.main([*c, "revoke", "pat", "open"]) == 1
+    store = Store.open(tmp_path / "data")
+    assert store.get_user("pat").grants == {"web": "operator"}
+    actions = [e["action"] for e in store.audit_entries()]
+    store.close()
+    assert actions.count("user.grant") == 2 and "user.revoke" in actions
 
 
 def test_password_mismatch(no_lxd_config, monkeypatch):

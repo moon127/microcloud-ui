@@ -44,12 +44,15 @@ async def login(c: httpx.AsyncClient, user: str, pw: str) -> str:
 async def test_login_me_logout(app, services):
     async with client(app) as c:
         r = await c.post("/api/auth/login", json={"username": "admin", "password": "adminpw"})
-        assert r.json()["user"] == {"username": "admin", "role": "admin"}
+        assert r.json()["user"] == {"username": "admin", "role": "admin", "grants": {}}
         cookie = r.headers["set-cookie"]
         assert "HttpOnly" in cookie and "SameSite=strict" in cookie and "Secure" not in cookie
         csrf = r.json()["csrf"]
         me = await c.get("/api/auth/me")
-        assert me.json() == {"user": {"username": "admin", "role": "admin"}, "csrf": csrf}
+        assert me.json() == {
+            "user": {"username": "admin", "role": "admin", "grants": {}},
+            "csrf": csrf,
+        }
         assert (await c.post("/api/auth/logout")).status_code == 403  # no CSRF header
         r = await c.post("/api/auth/logout", headers={CSRF_HEADER: csrf})
         assert r.status_code == 204
@@ -97,11 +100,15 @@ async def test_user_management(app, services):
     async with client(app) as c:
         h = {CSRF_HEADER: await login(c, "admin", "adminpw")}
         r = await c.post("/api/users", json={"username": "carol", "password": "pw"}, headers=h)
-        assert r.status_code == 201 and r.json() == {"username": "carol", "role": "viewer"}
+        assert r.status_code == 201 and r.json() == {
+            "username": "carol",
+            "role": "viewer",
+            "grants": {},
+        }
         dup = await c.post("/api/users", json={"username": "carol", "password": "pw"}, headers=h)
         assert dup.status_code == 409
         r = await c.patch("/api/users/carol", json={"role": "admin", "password": "new"}, headers=h)
-        assert r.json() == {"username": "carol", "role": "admin"}
+        assert r.json() == {"username": "carol", "role": "admin", "grants": {}}
         assert services.store.authenticate("carol", "new") is not None
         r = await c.patch("/api/users/carol", json={"role": "admin"}, headers=h)
         assert r.status_code == 200  # no-op change
@@ -112,6 +119,57 @@ async def test_user_management(app, services):
         audit = (await c.get("/api/audit", params={"limit": 2})).json()
     assert [e["action"] for e in audit] == ["user.delete", "user.update"]
     assert audit[1]["detail"] is None and audit[1]["target"] == "carol"  # the no-op update
+
+
+@respx.mock
+async def test_project_grants(app, services):
+    """Project users and their grants (D81). Operator and admin only on restricted projects:
+    LXD then refuses the routes to the host even to our admin certificate."""
+    respx.get(f"{EP1}/1.0/projects/web").mock(
+        return_value=lxd_ok({"name": "web", "config": {"restricted": "true"}})
+    )
+    respx.get(f"{EP1}/1.0/projects/open").mock(return_value=lxd_ok({"name": "open", "config": {}}))
+    respx.get(f"{EP1}/1.0/projects/gone").mock(return_value=lxd_err("Project not found", 404))
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "admin", "adminpw")}
+        r = await c.post(
+            "/api/users", json={"username": "pat", "password": "pw", "role": "project"}, headers=h
+        )
+        assert r.json() == {"username": "pat", "role": "project", "grants": {}}
+        put = lambda u, p, role: c.put(f"/api/users/{u}/grants/{p}", json={"role": role}, headers=h)  # noqa: E731
+        r = await put("pat", "web", "operator")
+        assert r.status_code == 200 and r.json()["grants"] == {"web": "operator"}
+        r = await put("pat", "open", "admin")
+        assert r.status_code == 409 and "isn't restricted" in r.text
+        r = await put("pat", "open", "viewer")  # a viewer grant is fine anywhere
+        assert r.json()["grants"] == {"open": "viewer", "web": "operator"}
+        assert (await put("pat", "gone", "admin")).status_code == 404
+        assert (await put("viewer", "web", "viewer")).status_code == 409  # has a global role
+        assert (await put("nobody", "web", "viewer")).status_code == 404
+        assert (await put("pat", "web", "owner")).status_code == 422
+        assert (await put("pat", "../x", "viewer")).status_code in (404, 422)
+        r = await c.delete("/api/users/pat/grants/open", headers=h)
+        assert r.json()["grants"] == {"web": "operator"}
+        assert (await c.delete("/api/users/pat/grants/open", headers=h)).status_code == 404
+        users = {u["username"]: u for u in (await c.get("/api/users")).json()}
+        assert users["pat"]["grants"] == {"web": "operator"}
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "viewer", "viewerpw")}
+        r = await c.put("/api/users/pat/grants/web", json={"role": "admin"}, headers=h)
+        assert r.status_code == 403
+    actions = [e["action"] for e in services.store.audit_entries(limit=10)]
+    assert "user.grant" in actions and "user.revoke" in actions
+
+
+async def test_project_users_locked_out_until_enforced(app, services):
+    """Until every route checks project grants (Phase 6a), a project user can't sign in to
+    anything: otherwise they'd see all a viewer sees."""
+    services.store.add_user("pat", "patpw", "project")
+    async with client(app) as c:
+        await login(c, "pat", "patpw")
+        r = await c.get("/api/auth/me")
+        assert r.status_code == 403 and "aren't enabled yet" in r.text
+        assert (await c.get("/api/instances")).status_code == 403
 
 
 async def test_last_admin_protected(app):

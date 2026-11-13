@@ -1,4 +1,4 @@
-"""Login, logout, current user (AU-1) and user management (AU-2)."""
+"""Login, logout, current user (AU-1) and user management with project grants (AU-2, D81)."""
 
 from __future__ import annotations
 
@@ -7,8 +7,10 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
-from mcui.api.deps import COOKIE, AdminDep, ServicesDep, SessionDep, StoreDep
-from mcui.auth.store import AuthError, Role, Session, User
+from mcui.api.deps import COOKIE, AdminDep, LXDDep, ServicesDep, SessionDep, StoreDep
+from mcui.api.instances import ProjectName
+from mcui.auth.store import AuthError, ProjectRole, Role, Session, User
+from mcui.lxd.projects import NoSuchProject, is_restricted
 
 router = APIRouter(prefix="/api")
 
@@ -27,8 +29,12 @@ class UserChange(BaseModel):
     password: str | None = Field(default=None, min_length=1, max_length=1024)
 
 
+class Grant(BaseModel):
+    role: ProjectRole
+
+
 def _user(u: User) -> dict[str, Any]:
-    return {"username": u.username, "role": u.role}
+    return {"username": u.username, "role": u.role, "grants": u.grants}
 
 
 def _me(s: Session) -> dict[str, Any]:
@@ -110,6 +116,54 @@ async def change_user(
         store.set_password(username, body.password)
         changed["password"] = True
     store.audit(session.user.username, "user.update", username, detail=changed)
+    return _user(_existing(store, username))
+
+
+@router.put("/users/{username}/grants/{project}")
+async def set_grant(
+    username: str,
+    project: ProjectName,
+    body: Grant,
+    session: AdminDep,
+    store: StoreDep,
+    lxd: LXDDep,
+) -> dict[str, Any]:
+    user = _existing(store, username)
+    if user.role != "project":
+        raise HTTPException(
+            status_code=409,
+            detail=f"{username} has the global {user.role} role; grants are for project users",
+        )
+    try:
+        restricted = await is_restricted(lxd, project)
+    except NoSuchProject as e:
+        raise HTTPException(status_code=404, detail=f"no project {project!r}") from e
+    if body.role != "viewer" and not restricted:
+        raise HTTPException(
+            status_code=409,
+            detail=f"project {project!r} isn't restricted (restricted=true), so only a viewer "
+            "grant is allowed: without it a project operator or admin could reach the host",
+        )
+    store.set_grant(username, project, body.role)
+    store.audit(
+        session.user.username,
+        "user.grant",
+        username,
+        detail={"project": project, "role": body.role},
+    )
+    return _user(_existing(store, username))
+
+
+@router.delete("/users/{username}/grants/{project}")
+async def remove_grant(
+    username: str, project: ProjectName, session: AdminDep, store: StoreDep
+) -> dict[str, Any]:
+    _existing(store, username)
+    try:
+        store.remove_grant(username, project)
+    except AuthError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    store.audit(session.user.username, "user.revoke", username, detail={"project": project})
     return _user(_existing(store, username))
 
 
