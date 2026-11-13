@@ -354,12 +354,25 @@ build once didn't start the module, microceph#874, fixed by #896 on 2026-09-24) 
 missing, `ceph config set mgr mgr/prometheus/exclude_perf_counters false` (owner's call,
 as D23) and document it in `docs/CEPH-METRICS.md`. The Ceph page hides the latency views
 with that hint when the counters are missing.
+**Closed 2026-11-13:** on the test cloud the D23 setting (`false`, set on Squid) survived
+the upgrade and the mgr restarts, so Tentacle 20.2.1 exports the OSD used/size and per-op
+latency series with no change (`recorded-6.10-cluster/ceph_mgr.txt`). Nothing to do for
+Tentacle; the longer-term risk is a watch item in Phase 6.
 
 **Phase 6: Metric store evaluation** (was Phase 5; MO-14): benchmark SQLite against
 Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
 on ingest, query latency, disk use and ops burden; implement the chosen
 adapter. Alerts (MO-13), export (MO-15), project quota
 history (MO-10).
+
+*Watch item: Ceph daemon perf counters.* Upstream Ceph has moved OSD perf counters to the
+separate `ceph-exporter` daemon; the mgr's `exclude_perf_counters=false` is the
+compatibility route and may be removed in a release after Tentacle. MicroCeph runs no
+`ceph-exporter` today (microceph#552 unmerged). If both stay true when a new MicroCeph
+track lands, OSD used/size and per-op latency (MO-7a) need another source: scrape
+`ceph-exporter` if MicroCeph ships it, or read `ceph osd df` / `ceph osd perf` through the
+mgr's REST API (needs a Ceph key). Check each new MicroCeph track's release notes and the
+recorded mgr scrape; nothing to build until then.
 
 **Phase 7: Remaining parity** (was Phase 6). Backups (IN-13, ST-4), project moves and
 restrictions (IN-6, PJ-2), ISO upload (IM-3), sriov, peers, zones, ACL logs
