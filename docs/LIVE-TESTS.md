@@ -43,8 +43,15 @@ minutes, each down for a few seconds, and the member's OVN gateway moved off it.
 the first time: a VM with `migration.stateful=true`, live-migrated out without trouble,
 failed to live-migrate back ("Failed restoring checkpoint"). LXD stopped it and left the
 member evacuated. With that VM stopped, a second Restore moved everything back; a stopped
-instance comes back stopped. **Stop live-migrating VMs before a Restore** until that's
-understood. C2a not run yet.
+instance comes back stopped.
+
+The cause was the members' CPUs. Members 1 and 2 have a Xeon D-1518 (Broadwell); member 3
+has a Xeon D-2123IT (Skylake, with AVX-512). QEMU on member 2 refused the VM's state
+("Failed to set XSAVE: Invalid argument" in its `qemu.log`), because a VM that has run on
+the newer CPU can't resume on the older one. Live migration works only onto the newer one.
+
+On a cluster with mixed CPUs, set `cluster.evacuate=migrate` on stateful VMs. They then
+restart rather than live-migrate when a member is evacuated and restored. C2a not run yet.
 | C3 | Warnings → Acknowledge / Reopen / Delete a harmless warning (e.g. the cgroup network priority one) | Status changes; deleted warnings come back if the condition persists |
 | C4 | Projects → **Create** a throwaway project, edit its description/limits, **Rename** it, **Delete** it | Each step works; renaming/deleting a non-empty project shows LXD's refusal |
 | C5 | Operations page while an image downloads | Running operation listed with Cancel; cancelling stops it |

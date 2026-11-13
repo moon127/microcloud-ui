@@ -255,8 +255,14 @@ fixtures, so record a full set **before** the upgrade (5.0).
       live-migrated out fine, failed to live-migrate back ("Failed restoring checkpoint").
       LXD stopped it and left the member evacuated.
     - With the VM stopped, a second restore moved everything back. The VM stayed stopped,
-      as LXD doesn't start a stopped instance it moves. A CPU difference between members
-      is the first suspect. `docs/LIVE-TESTS.md` C1/C2 has the note.
+      as LXD doesn't start a stopped instance it moves.
+    - The cause is mixed CPUs. Members 1 and 2 are Xeon D-1518 (Broadwell); member 3 is
+      Xeon D-2123IT (Skylake, AVX-512). QEMU logged "Failed to set XSAVE: Invalid
+      argument". The workaround is `cluster.evacuate=migrate` on stateful VMs
+      (`docs/LIVE-TESTS.md` C1/C2).
+    - Possible later feature: warn in the evacuate dialog when stateful VMs would
+      live-migrate between members with different CPU models. The members' resources
+      already give the models.
 
   Not checked live yet: the quorum refusal (C2a, owner only).
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
