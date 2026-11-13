@@ -423,9 +423,112 @@ with that hint when the counters are missing.
 **Closed 2026-11-13:** on the test cloud the D23 setting (`false`, set on Squid) survived
 the upgrade and the mgr restarts, so Tentacle 20.2.1 exports the OSD used/size and per-op
 latency series with no change (`recorded-6.10-cluster/ceph_mgr.txt`). Nothing to do for
-Tentacle; the longer-term risk is a watch item in Phase 6.
+Tentacle; the longer-term risk is a watch item in Phase 7.
 
-**Phase 6: Metric store evaluation** (was Phase 5; MO-14): benchmark SQLite against
+**Phase 6: Users and project access.** *Proposed 2026-11-13 (D81), for the owner to review;
+nothing built yet.* App users who see and change only the LXD projects they're granted,
+while the app keeps one admin connection to LXD. OIDC, groups and LXD-side identities
+stay later (Phase 8, AU-4/AC-1/AC-2).
+
+*Verified first (2026-11-13, in `mcui-test`, admin certificate):*
+- **LXD enforces a project's `restricted=true` against our admin certificate**, at
+  creation and at edit. Refused were: a privileged container; a disk from a host path; a
+  `unix-char` device; `raw.lxc`; nesting; adding a host-path disk to an existing instance;
+  and making a profile in use privileged. A plain container was created as the control.
+- So inside a restricted project, LXD itself closes the routes to the host, whatever the
+  app sends. The app only has to guard the project's own settings, which hold
+  `restricted`.
+
+*Model:*
+- **Global roles,** as today: **cluster admin** (everything) and **cluster viewer** (read
+  everything). Existing `admin` and `viewer` users become these, so nothing changes for
+  them.
+- **Project grants:** a user without a global role gets grants of (project, role):
+
+  | Project role | Can |
+  |---|---|
+  | **viewer** | see the project's instances, volumes, networks, profiles, images and placement groups; their graphs; its operations and audit entries |
+  | **operator** | viewer, plus start, stop, restart, freeze; consoles and exec; files; instance and volume snapshots |
+  | **admin** | operator, plus create, edit, rename, move within the project, copy and delete instances; the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
+
+- **Operator and admin grants only on `restricted=true` projects.** The grant form
+  refuses others and explains why. Each request re-checks the project is still restricted,
+  in case someone unset it with `lxc`, and turns a project grant into read-only meanwhile.
+  Viewer grants work on any project.
+
+*Defaults for the five open questions (owner to mark up):*
+1. **The cluster view for project users:**
+   - Hidden: Ceph, OVN, Warnings, the member pages, cluster-wide Operations, Storage
+     pools, and the Projects admin.
+   - The Overview shows only their instances, plus total cluster capacity (CPU, memory,
+     disk), but no other project's names or figures. The Hosts table is hidden.
+2. **Shared resources:** a project without its own networks, profiles or images uses
+   `default`'s. Project users can see those by name and pick them in the create wizard,
+   as far as the project's `restricted.networks.access` and similar keys allow, but can't
+   edit them. They also see storage pools by name and free space, to choose a pool, but
+   not the pool pages.
+3. **Users are managed by cluster admins only.** A project admin can see who has access
+   to the project, but not change it. Delegation can come later.
+4. **No leaks of other projects' names:**
+   - lists, operations, the audit log, metrics (`series`, `query`, `top`, `live`,
+     `network-traffic`) and the live event stream are filtered on the server by the
+     project label
+   - a request for anything outside the user's projects answers 404, not 403, so it
+     doesn't reveal what exists
+5. **Phasing** (6a–6e below): the model and enforcement first, with a test over every
+   route, then the screens.
+
+*Enforcement design:*
+- One authorization check in the backend: `authorize(session, project, action)`, with
+  actions `read`, `operate` and `manage`, plus `cluster-read` and `cluster-admin`.
+- Every route declares its policy. **A test lists all 135 routes and fails if any has no
+  policy declared**, so a new route can't ship unchecked. The default is deny.
+- **Project-scoped routes** take the project from the path (`/api/instances/{project}/…`)
+  or the body, and check it.
+- **List routes** filter on the server, never in the browser. Today the project picker
+  filters in the browser (D44); that stays as a view, but the server decides what's
+  returned.
+- **Websockets:** `/api/events` drops events for other projects. Consoles and exec
+  (`/api/streams`) check `operate` when the stream is started.
+
+*Route classification* (135 routes in all, grouped by area; the exact policy is declared on
+each route in the code):
+
+| Area | Policy |
+|---|---|
+| Instances, files, consoles/exec, logs, snapshots, publish | project: read / operate / manage per action |
+| Volumes, profiles, images, placement groups, ACLs, forwards, load balancers | project: read / manage |
+| Networks (`/networks/{project}/…`), leases, state | project: read / manage; shared `default` networks read-only |
+| Lists: instances, volumes, profiles, images, networks, allocations, operations | filtered to the user's projects |
+| Metrics: series, query, top, live, network traffic, names, status | filtered by project label; host and Ceph series are cluster-read |
+| Cluster: members, resources, hosts, server, storage pools, Ceph, OVN, warnings, evacuate/restore, registries | cluster-read / cluster-admin; pool names and free space are visible for the create wizard |
+| Projects | list: own projects; create, edit, rename, delete: cluster-admin |
+| Users, audit, auth | users: cluster-admin; audit: filtered; auth: any session |
+
+*Steps:*
+- **6a, the model:** grants in the user store and migration of the existing users; the
+  `authorize` check; every route's policy declared; the every-route test. No UI change
+  yet: everyone is still a cluster role.
+- **6b, filtering:** lists, metrics, operations, the audit log and the event stream
+  filtered on the server. Fixture tests per area with a project user.
+- **6c, the UI:**
+  - a Users page (cluster admins): users, global role, project grants, and the
+    restricted-project rule
+  - navigation and pages for project users: hidden cluster pages, a project picker
+    limited to their projects, and controls shown by role
+- **6d, live checks:** two `mcui-test-*` projects (restricted), a project admin and
+  an operator; check each refusal through the API and the UI, including the routes to the
+  host and the event stream.
+- **6e, docs:** `docs/CONFIGURATION.md` (users and grants), the README, the requirements
+  (AU-2 extended, a new AU-5), and `docs/LIVE-TESTS.md`.
+
+*Out of scope for Phase 6:*
+- OIDC and other identity providers, and groups (AU-4).
+- LXD-side identities per project (AC-2): option B in the discussion, a possible
+  hardening step later behind the same grants.
+- Delegated user management, and per-user API tokens.
+
+**Phase 7: Metric store evaluation** (was Phase 6, before that 5; MO-14): benchmark SQLite against
 Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
 on ingest, query latency, disk use and ops burden; implement the chosen
 adapter. Alerts (MO-13), export (MO-15), project quota
@@ -458,12 +561,12 @@ track lands, OSD used/size and per-op latency (MO-7a) need another source: scrap
 mgr's REST API (needs a Ceph key). Check each new MicroCeph track's release notes and the
 recorded mgr scrape; nothing to build until then.
 
-**Phase 7: Remaining parity** (was Phase 6). Backups (IN-13, ST-4), project moves and
+**Phase 8: Remaining parity** (was Phase 7, before that 6). Backups (IN-13, ST-4), project moves and
 restrictions (IN-6, PJ-2), ISO upload (IM-3), sriov, peers, zones, ACL logs
 (NW-3/4/6/7), cluster groups and config (CL-4/5). Login options evaluation (AU-4), with
 identities (AC-1) once the auth model is agreed. OVN load balancers moved to Phase 5b.
 
-**Phase 8: Packaging** (was Phase 7). Wheel + systemd unit, OCI image, docs for running
+**Phase 9: Packaging** (was Phase 8, before that 7). Wheel + systemd unit, OCI image, docs for running
 on the MicroCloud itself as an LXD instance (NF-6).
 - 8a (was 7a) ✅ 2026-11-12 (brought forward): Ubuntu + systemd. `make bundle` (wheel with the SPA
   plus dependency wheels, offline), `deploy/install.sh` (install/upgrade/rollback/uninstall),

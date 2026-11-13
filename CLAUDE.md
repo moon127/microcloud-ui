@@ -56,8 +56,9 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
   - The snap store works inside such VMs, but the owner said **no rockcraft/chisel for now**.
 - **Phase 5 (MicroCloud 3.4 LTS support, `docs/PLAN.md`)** is done (2026-11-13); the test
   cloud runs 3.4 (MicroOVN 26.03 `flow-restore-wait` gotcha: `docs/DEPLOY.md`). **Phase 6**
-  (metric-store evaluation, alerts, export, quota history) waits for the owner's go-ahead.
-  Don't start either unprompted.
+  (users and project access, D81) is proposed in `docs/PLAN.md`, for the owner's review.
+  **Phase 7** (metric-store evaluation, alerts, export, quota history) waits for the
+  owner's go-ahead. Don't start either unprompted.
 
 ## Environment (owner's Mac)
 
