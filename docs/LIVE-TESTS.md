@@ -54,6 +54,10 @@ the newer CPU can't resume on the older one. Live migration works only onto the 
 On a cluster with mixed CPUs, set `cluster.evacuate=migrate` on stateful VMs. They then
 restart rather than live-migrate when a member is evacuated and restored.
 
+C2b, the dialog part, passed on 2026-11-13: evacuating member 3 named its stateful VMs
+and the CPU models, and the warning went away with *migrate (cold)*. The progress line
+hasn't been seen during a real evacuation yet.
+
 C2a on LXD 6.10 (2026-11-13, members 1 then 2):
 - **LXD didn't refuse the second evacuation.** Evacuating member 1 demoted it from database
   voter, which left two voters. LXD's check (`checkEvacuationQuorum`) takes a majority of
