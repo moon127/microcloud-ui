@@ -242,6 +242,15 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
 - **Bulk actions under one toast 2026-11-13 (D78).**
+- **Frontend upgrades 2026-11-13:**
+  - TypeScript 6.0, not 7: `typescript-eslint` supports TypeScript below 6.1 only. The app
+    now targets ES2022.
+  - Vite 8.3.5, Vitest 5.0.5, ESLint 10 and React Router 8.5.1. Each was the newest
+    release at least two weeks old.
+  - The React Hooks plugin 7's compiler rules are off: they flag 12 places, a follow-up in
+    the plan.
+  - A new test keeps `THIRD_PARTY_NOTICES.md` in step with the pinned runtime packages.
+  - The only audit finding left is a moderate `minimatch` advisory, in lint tooling only.
 - **0.1.9 released 2026-11-13:** Ubuntu 22.04 dropped (D77); four bundles. `main` is now
   0.1.10.dev0.
 - **Ubuntu 22.04 dropped 2026-11-13 (D77):** Python 3.12 minimum, four bundles, CI on 3.12
