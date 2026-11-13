@@ -1,0 +1,40 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "addresses": [
+      {
+        "address": "192.0.2.38",
+        "family": "inet",
+        "netmask": "24",
+        "scope": "link"
+      },
+      {
+        "address": "2001:db8::29",
+        "family": "inet6",
+        "netmask": "64",
+        "scope": "link"
+      }
+    ],
+    "bond": null,
+    "bridge": null,
+    "counters": {
+      "bytes_received": 0,
+      "bytes_sent": 0,
+      "packets_received": 0,
+      "packets_sent": 0
+    },
+    "hwaddr": "00:16:3e:00:00:48",
+    "mtu": 1442,
+    "ovn": {
+      "chassis": "gw-ips-microcloud-1"
+    },
+    "state": "up",
+    "type": "broadcast",
+    "vlan": null
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

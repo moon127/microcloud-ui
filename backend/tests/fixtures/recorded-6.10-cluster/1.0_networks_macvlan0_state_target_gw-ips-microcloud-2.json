@@ -1,0 +1,25 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "addresses": [],
+    "bond": null,
+    "bridge": null,
+    "counters": {
+      "bytes_received": 0,
+      "bytes_sent": 0,
+      "packets_received": 0,
+      "packets_sent": 0
+    },
+    "hwaddr": "00:16:3e:00:00:45",
+    "mtu": 1500,
+    "ovn": null,
+    "state": "up",
+    "type": "broadcast",
+    "vlan": null
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

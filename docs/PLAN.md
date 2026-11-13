@@ -213,6 +213,12 @@ fixtures, so record a full set **before** the upgrade (5.0).
   - LXD 6.10 lists a known issue: during MicroCeph upgrades, don't rotate keys until
     LXD's Ceph client supports the new key type.
   - snapd 2.75 or later on every member.
+- **Upgraded 2026-11-12** to LXD 6.10.1, MicroCeph Tentacle 20.2.1, MicroOVN 26.03 and
+  MicroCloud 3.4.1 on Ubuntu 26.04. After the reboots OVS stayed in `flow-restore-wait` on
+  every member (no OVN traffic at all) until the owner cleared it (`docs/DEPLOY.md`).
+- ✅ **Recorded the cluster on 6.10** (2026-11-13): `backend/tests/fixtures/recorded-6.10-cluster/`
+  (64 files), the same cluster as `recorded-5.21`. The Ceph perf-counter setting (D23)
+  survived the upgrade, so the Tentacle hint isn't needed there.
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
   "verify the current code still works"; anything that fails feeds 5a.
 

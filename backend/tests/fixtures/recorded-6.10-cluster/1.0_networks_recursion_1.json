@@ -1,0 +1,321 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "bgp.peers.unifi.address": "192.0.2.29",
+        "bgp.peers.unifi.asn": "65001",
+        "dns.nameservers": "192.0.2.30",
+        "ipv4.gateway": "192.0.2.30/24",
+        "ipv4.ovn.ranges": "192.0.2.31-192.0.2.32",
+        "ipv4.routes": "192.0.2.33/16,192.0.2.34/16",
+        "volatile.last_state.created": "false"
+      },
+      "description": "",
+      "locations": [
+        "gw-ips-microcloud-3",
+        "gw-ips-microcloud-2",
+        "gw-ips-microcloud-1"
+      ],
+      "managed": true,
+      "name": "UPLINK",
+      "project": "default",
+      "status": "Created",
+      "type": "physical",
+      "used_by": [
+        "/1.0/networks/default",
+        "/1.0/networks/routed",
+        "/1.0/networks/legacy-infra"
+      ]
+    },
+    {
+      "config": {
+        "bridge.mtu": "1442",
+        "ipv4.address": "192.0.2.35/24",
+        "ipv4.nat": "true",
+        "ipv6.address": "2001:db8::28/64",
+        "ipv6.nat": "true",
+        "network": "UPLINK",
+        "volatile.network.ipv4.address": "192.0.2.31"
+      },
+      "description": "",
+      "locations": [
+        "gw-ips-microcloud-1",
+        "gw-ips-microcloud-3",
+        "gw-ips-microcloud-2"
+      ],
+      "managed": true,
+      "name": "default",
+      "project": "default",
+      "status": "Created",
+      "type": "ovn",
+      "used_by": [
+        "/1.0/profiles/default"
+      ]
+    },
+    {
+      "config": {
+        "bridge.mtu": "1442",
+        "ipv4.address": "192.0.2.36/24",
+        "ipv4.dhcp": "true",
+        "network": "UPLINK",
+        "volatile.network.ipv4.address": "192.0.2.37"
+      },
+      "description": "",
+      "locations": [
+        "gw-ips-microcloud-1",
+        "gw-ips-microcloud-3",
+        "gw-ips-microcloud-2"
+      ],
+      "managed": true,
+      "name": "legacy-infra",
+      "project": "default",
+      "status": "Created",
+      "type": "ovn",
+      "used_by": [
+        "/1.0/profiles/legacy",
+        "/1.0/instances/ubuntu-mirror-urc",
+        "/1.0/instances/mcui-test-mc34?project=mcui-test",
+        "/1.0/instances/CosmosCloud",
+        "/1.0/instances/nginx-proxy-manager",
+        "/1.0/instances/route-reflector-1-as211437",
+        "/1.0/instances/runtipi",
+        "/1.0/instances/dns-legacy",
+        "/1.0/instances/minecraft",
+        "/1.0/instances/mirrors",
+        "/1.0/instances/podman-1",
+        "/1.0/instances/releases-mirror",
+        "/1.0/instances/test-routing"
+      ]
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": [
+        "gw-ips-microcloud-1",
+        "gw-ips-microcloud-3",
+        "gw-ips-microcloud-2"
+      ],
+      "managed": true,
+      "name": "macvlan0",
+      "project": "default",
+      "status": "Created",
+      "type": "macvlan",
+      "used_by": [
+        "/1.0/instances/dns-legacy",
+        "/1.0/instances/ubuntu-mirror-urc",
+        "/1.0/instances/minecraft",
+        "/1.0/instances/nginx-proxy-manager",
+        "/1.0/instances/podman-1",
+        "/1.0/instances/releases-mirror"
+      ]
+    },
+    {
+      "config": {
+        "bridge.mtu": "1442",
+        "ipv4.address": "192.0.2.38/24",
+        "ipv6.address": "2001:db8::29/64",
+        "ipv6.nat": "true",
+        "network": "UPLINK",
+        "volatile.network.ipv4.address": "192.0.2.39"
+      },
+      "description": "",
+      "locations": [
+        "gw-ips-microcloud-1",
+        "gw-ips-microcloud-3",
+        "gw-ips-microcloud-2"
+      ],
+      "managed": true,
+      "name": "routed",
+      "project": "default",
+      "status": "Created",
+      "type": "ovn",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "lo",
+      "project": "default",
+      "status": "",
+      "type": "loopback",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "eno1",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "eno2",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "eno3",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "eno4",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "eno5",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "eno6",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "eno7",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "eno8",
+      "project": "default",
+      "status": "",
+      "type": "physical",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "bond-core",
+      "project": "default",
+      "status": "",
+      "type": "bond",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "bond-core.2001",
+      "project": "default",
+      "status": "",
+      "type": "vlan",
+      "used_by": [
+        "/1.0/networks/UPLINK"
+      ]
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "bond-core.2000",
+      "project": "default",
+      "status": "",
+      "type": "vlan",
+      "used_by": [
+        "/1.0/networks/macvlan0"
+      ]
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "ovs-system",
+      "project": "default",
+      "status": "",
+      "type": "unknown",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "lxdovn1",
+      "project": "default",
+      "status": "",
+      "type": "bridge",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "genev_sys_6081",
+      "project": "default",
+      "status": "",
+      "type": "unknown",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "locations": null,
+      "managed": false,
+      "name": "br-int",
+      "project": "default",
+      "status": "",
+      "type": "bridge",
+      "used_by": []
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

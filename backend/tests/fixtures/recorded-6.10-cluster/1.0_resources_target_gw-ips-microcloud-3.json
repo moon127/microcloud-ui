@@ -1,0 +1,2197 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "cpu": {
+      "architecture": "x86_64",
+      "sockets": [
+        {
+          "cache": [
+            {
+              "level": 1,
+              "size": 32768,
+              "type": "Data"
+            },
+            {
+              "level": 1,
+              "size": 32768,
+              "type": "Instruction"
+            },
+            {
+              "level": 2,
+              "size": 1048576,
+              "type": "Unified"
+            },
+            {
+              "level": 3,
+              "size": 8650752,
+              "type": "Unified"
+            }
+          ],
+          "cores": [
+            {
+              "core": 0,
+              "die": 0,
+              "frequency": 1000,
+              "threads": [
+                {
+                  "id": 0,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                },
+                {
+                  "id": 4,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 1
+                }
+              ]
+            },
+            {
+              "core": 2,
+              "die": 0,
+              "frequency": 1000,
+              "threads": [
+                {
+                  "id": 1,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                },
+                {
+                  "id": 5,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 1
+                }
+              ]
+            },
+            {
+              "core": 3,
+              "die": 0,
+              "frequency": 1000,
+              "threads": [
+                {
+                  "id": 2,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                },
+                {
+                  "id": 6,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 1
+                }
+              ]
+            },
+            {
+              "core": 4,
+              "die": 0,
+              "frequency": 1000,
+              "threads": [
+                {
+                  "id": 3,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 0
+                },
+                {
+                  "id": 7,
+                  "isolated": false,
+                  "numa_node": 0,
+                  "online": true,
+                  "thread": 1
+                }
+              ]
+            }
+          ],
+          "frequency": 1000,
+          "frequency_minimum": 1000,
+          "frequency_turbo": 3000,
+          "name": "Intel(R) Xeon(R) D-2123IT CPU @ 2.20GHz",
+          "socket": 0,
+          "vendor": "GenuineIntel"
+        }
+      ],
+      "total": 8
+    },
+    "gpu": {
+      "cards": [
+        {
+          "driver": "ast",
+          "driver_version": "7.0.0-43-generic",
+          "drm": {
+            "card_device": "226:0",
+            "card_name": "card0",
+            "control_device": "226:0",
+            "control_name": "controlD64",
+            "id": 0
+          },
+          "numa_node": 0,
+          "pci_address": "0000:03:00.0",
+          "product": "ASPEED Graphics Family",
+          "product_id": "2000",
+          "vendor": "ASPEED Technology, Inc.",
+          "vendor_id": "1a03"
+        }
+      ],
+      "total": 1
+    },
+    "memory": {
+      "hugepages_size": 2097152,
+      "hugepages_total": 0,
+      "hugepages_used": 0,
+      "nodes": [
+        {
+          "hugepages_total": 0,
+          "hugepages_used": 0,
+          "numa_node": 0,
+          "total": 68719476736,
+          "used": 28800303104
+        }
+      ],
+      "total": 68719476736,
+      "used": 13775675392
+    },
+    "network": {
+      "cards": [
+        {
+          "driver": "igb",
+          "driver_version": "7.0.0-43-generic",
+          "firmware_version": "1.63, 0x800009fa",
+          "numa_node": 0,
+          "pci_address": "0000:65:00.0",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:33",
+              "auto_negotiation": true,
+              "id": "eno1",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 7,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "igb",
+          "driver_version": "7.0.0-43-generic",
+          "firmware_version": "1.63, 0x800009fa",
+          "numa_node": 0,
+          "pci_address": "0000:65:00.1",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:34",
+              "auto_negotiation": true,
+              "id": "eno2",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 7,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "igb",
+          "driver_version": "7.0.0-43-generic",
+          "firmware_version": "1.63, 0x800009fa",
+          "numa_node": 0,
+          "pci_address": "0000:65:00.2",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:35",
+              "auto_negotiation": true,
+              "id": "eno3",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 7,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "igb",
+          "driver_version": "7.0.0-43-generic",
+          "firmware_version": "1.63, 0x800009fa",
+          "numa_node": 0,
+          "pci_address": "0000:65:00.3",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:36",
+              "auto_negotiation": true,
+              "id": "eno4",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "twisted pair",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10baseT/Half",
+                "10baseT/Full",
+                "100baseT/Half",
+                "100baseT/Full",
+                "1000baseT/Full"
+              ],
+              "supported_ports": [
+                "twisted pair"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 7,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "i40e",
+          "driver_version": "7.0.0-43-generic",
+          "firmware_version": "3.33 0x80001006 1.1747.0",
+          "numa_node": 0,
+          "pci_address": "0000:b5:00.0",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:37",
+              "auto_negotiation": false,
+              "id": "eno5np0",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "other",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "1000baseT/Full",
+                "10000baseT/Full",
+                "1000baseKX/Full",
+                "10000baseKR/Full"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "Ethernet Connection X722 for 10GBASE-T",
+          "product_id": "37d2",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 32,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "i40e",
+          "driver_version": "7.0.0-43-generic",
+          "firmware_version": "3.33 0x80001006 1.1747.0",
+          "numa_node": 0,
+          "pci_address": "0000:b5:00.1",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:38",
+              "auto_negotiation": false,
+              "id": "eno6np1",
+              "link_detected": false,
+              "port": 0,
+              "port_type": "other",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "1000baseT/Full",
+                "10000baseT/Full",
+                "1000baseKX/Full",
+                "10000baseKR/Full"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "Ethernet Connection X722 for 10GBASE-T",
+          "product_id": "37d2",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 32,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "i40e",
+          "driver_version": "7.0.0-43-generic",
+          "firmware_version": "3.33 0x80001006 1.1747.0",
+          "numa_node": 0,
+          "pci_address": "0000:b5:00.2",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:39",
+              "auto_negotiation": false,
+              "id": "eno7np2",
+              "link_detected": true,
+              "link_duplex": "full",
+              "link_speed": 10000,
+              "port": 0,
+              "port_type": "direct attach",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10000baseT/Full"
+              ],
+              "supported_ports": [
+                "fibre"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "Ethernet Connection X722 for 10GbE SFP+",
+          "product_id": "37d0",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 32,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        },
+        {
+          "driver": "i40e",
+          "driver_version": "7.0.0-43-generic",
+          "firmware_version": "3.33 0x80001006 1.1747.0",
+          "numa_node": 0,
+          "pci_address": "0000:b5:00.3",
+          "ports": [
+            {
+              "address": "00:16:3e:00:00:3a",
+              "auto_negotiation": false,
+              "id": "eno8np3",
+              "link_detected": true,
+              "link_duplex": "full",
+              "link_speed": 10000,
+              "port": 0,
+              "port_type": "direct attach",
+              "protocol": "ethernet",
+              "supported_modes": [
+                "10000baseT/Full"
+              ],
+              "supported_ports": [
+                "fibre"
+              ],
+              "transceiver_type": "internal"
+            }
+          ],
+          "product": "Ethernet Connection X722 for 10GbE SFP+",
+          "product_id": "37d0",
+          "sriov": {
+            "current_vfs": 0,
+            "maximum_vfs": 32,
+            "vfs": null
+          },
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086"
+        }
+      ],
+      "total": 8
+    },
+    "pci": {
+      "devices": [
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 12,
+          "numa_node": 0,
+          "pci_address": "0000:00:00.0",
+          "product": "Sky Lake-E DMI3 Registers",
+          "product_id": "2020",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 13,
+          "numa_node": 0,
+          "pci_address": "0000:00:04.0",
+          "product": "Sky Lake-E CBDMA Registers",
+          "product_id": "2021",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 14,
+          "numa_node": 0,
+          "pci_address": "0000:00:04.1",
+          "product": "Sky Lake-E CBDMA Registers",
+          "product_id": "2021",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 15,
+          "numa_node": 0,
+          "pci_address": "0000:00:04.2",
+          "product": "Sky Lake-E CBDMA Registers",
+          "product_id": "2021",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 16,
+          "numa_node": 0,
+          "pci_address": "0000:00:04.3",
+          "product": "Sky Lake-E CBDMA Registers",
+          "product_id": "2021",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 17,
+          "numa_node": 0,
+          "pci_address": "0000:00:04.4",
+          "product": "Sky Lake-E CBDMA Registers",
+          "product_id": "2021",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 18,
+          "numa_node": 0,
+          "pci_address": "0000:00:04.5",
+          "product": "Sky Lake-E CBDMA Registers",
+          "product_id": "2021",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 19,
+          "numa_node": 0,
+          "pci_address": "0000:00:04.6",
+          "product": "Sky Lake-E CBDMA Registers",
+          "product_id": "2021",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ioatdma",
+          "driver_version": "5.00",
+          "iommu_group": 20,
+          "numa_node": 0,
+          "pci_address": "0000:00:04.7",
+          "product": "Sky Lake-E CBDMA Registers",
+          "product_id": "2021",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 21,
+          "numa_node": 0,
+          "pci_address": "0000:00:05.0",
+          "product": "Sky Lake-E MM/Vt-d Configuration Registers",
+          "product_id": "2024",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 22,
+          "numa_node": 0,
+          "pci_address": "0000:00:05.2",
+          "product": "Sky Lake-E RAS",
+          "product_id": "2025",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 23,
+          "numa_node": 0,
+          "pci_address": "0000:00:05.4",
+          "product": "Sky Lake-E IOAPIC",
+          "product_id": "2026",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 24,
+          "numa_node": 0,
+          "pci_address": "0000:00:08.0",
+          "product": "Sky Lake-E Ubox Registers",
+          "product_id": "2014",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 25,
+          "numa_node": 0,
+          "pci_address": "0000:00:08.1",
+          "product": "Sky Lake-E Ubox Registers",
+          "product_id": "2015",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 26,
+          "numa_node": 0,
+          "pci_address": "0000:00:08.2",
+          "product": "Sky Lake-E Ubox Registers",
+          "product_id": "2016",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 27,
+          "numa_node": 0,
+          "pci_address": "0000:00:11.0",
+          "product": "C620 Series Chipset Family MROM 0",
+          "product_id": "a1ec",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "ahci",
+          "driver_version": "3.0",
+          "iommu_group": 27,
+          "numa_node": 0,
+          "pci_address": "0000:00:11.5",
+          "product": "C620 Series Chipset Family SSATA Controller [AHCI mode]",
+          "product_id": "a1d2",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "xhci_hcd",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 28,
+          "numa_node": 0,
+          "pci_address": "0000:00:14.0",
+          "product": "C620 Series Chipset Family USB 3.0 xHCI Controller",
+          "product_id": "a1af",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "intel_pch_thermal",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 28,
+          "numa_node": 0,
+          "pci_address": "0000:00:14.2",
+          "product": "C620 Series Chipset Family Thermal Subsystem",
+          "product_id": "a1b1",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 29,
+          "numa_node": 0,
+          "pci_address": "0000:00:16.0",
+          "product": "C620 Series Chipset Family MEI Controller #1",
+          "product_id": "a1ba",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 29,
+          "numa_node": 0,
+          "pci_address": "0000:00:16.1",
+          "product": "C620 Series Chipset Family MEI Controller #2",
+          "product_id": "a1bb",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 29,
+          "numa_node": 0,
+          "pci_address": "0000:00:16.4",
+          "product": "C620 Series Chipset Family MEI Controller #3",
+          "product_id": "a1be",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 30,
+          "numa_node": 0,
+          "pci_address": "0000:00:1c.0",
+          "product": "C620 Series Chipset Family PCI Express Root Port #1",
+          "product_id": "a190",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 31,
+          "numa_node": 0,
+          "pci_address": "0000:00:1c.4",
+          "product": "C620 Series Chipset Family PCI Express Root Port #5",
+          "product_id": "a194",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 32,
+          "numa_node": 0,
+          "pci_address": "0000:00:1d.0",
+          "product": "C620 Series Chipset Family PCI Express Root Port #9",
+          "product_id": "a198",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 33,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.0",
+          "product": "",
+          "product_id": "a1c8",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 33,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.2",
+          "product": "C620 Series Chipset Family Power Management Controller",
+          "product_id": "a1a1",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "i801_smbus",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 33,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.4",
+          "product": "C620 Series Chipset Family SMBus",
+          "product_id": "a1a3",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "intel-spi",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 33,
+          "numa_node": 0,
+          "pci_address": "0000:00:1f.5",
+          "product": "C620 Series Chipset Family SPI Controller",
+          "product_id": "a1a4",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 34,
+          "numa_node": 0,
+          "pci_address": "0000:02:00.0",
+          "product": "AST1150 PCI-to-PCI Bridge",
+          "product_id": "1150",
+          "vendor": "ASPEED Technology, Inc.",
+          "vendor_id": "1a03",
+          "vpd": {}
+        },
+        {
+          "driver": "ast",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 34,
+          "numa_node": 0,
+          "pci_address": "0000:03:00.0",
+          "product": "ASPEED Graphics Family",
+          "product_id": "2000",
+          "vendor": "ASPEED Technology, Inc.",
+          "vendor_id": "1a03",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 35,
+          "numa_node": 0,
+          "pci_address": "0000:16:05.0",
+          "product": "Sky Lake-E VT-d",
+          "product_id": "2034",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 36,
+          "numa_node": 0,
+          "pci_address": "0000:16:05.2",
+          "product": "Sky Lake-E RAS Configuration Registers",
+          "product_id": "2035",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 37,
+          "numa_node": 0,
+          "pci_address": "0000:16:05.4",
+          "product": "Sky Lake-E IOxAPIC Configuration Registers",
+          "product_id": "2036",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:16:08.0",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:16:08.1",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:16:08.2",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:16:08.3",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:16:08.4",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:16:08.5",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:16:08.6",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 38,
+          "numa_node": 0,
+          "pci_address": "0000:16:08.7",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 39,
+          "numa_node": 0,
+          "pci_address": "0000:16:09.0",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 39,
+          "numa_node": 0,
+          "pci_address": "0000:16:09.1",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 39,
+          "numa_node": 0,
+          "pci_address": "0000:16:09.2",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 39,
+          "numa_node": 0,
+          "pci_address": "0000:16:09.3",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 39,
+          "numa_node": 0,
+          "pci_address": "0000:16:09.4",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 39,
+          "numa_node": 0,
+          "pci_address": "0000:16:09.5",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 39,
+          "numa_node": 0,
+          "pci_address": "0000:16:09.6",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 39,
+          "numa_node": 0,
+          "pci_address": "0000:16:09.7",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 40,
+          "numa_node": 0,
+          "pci_address": "0000:16:0a.0",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 40,
+          "numa_node": 0,
+          "pci_address": "0000:16:0a.1",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 41,
+          "numa_node": 0,
+          "pci_address": "0000:16:0e.0",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 41,
+          "numa_node": 0,
+          "pci_address": "0000:16:0e.1",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 41,
+          "numa_node": 0,
+          "pci_address": "0000:16:0e.2",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 41,
+          "numa_node": 0,
+          "pci_address": "0000:16:0e.3",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 41,
+          "numa_node": 0,
+          "pci_address": "0000:16:0e.4",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 41,
+          "numa_node": 0,
+          "pci_address": "0000:16:0e.5",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 41,
+          "numa_node": 0,
+          "pci_address": "0000:16:0e.6",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 41,
+          "numa_node": 0,
+          "pci_address": "0000:16:0e.7",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 42,
+          "numa_node": 0,
+          "pci_address": "0000:16:0f.0",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 42,
+          "numa_node": 0,
+          "pci_address": "0000:16:0f.1",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 42,
+          "numa_node": 0,
+          "pci_address": "0000:16:0f.2",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 42,
+          "numa_node": 0,
+          "pci_address": "0000:16:0f.3",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 42,
+          "numa_node": 0,
+          "pci_address": "0000:16:0f.4",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 42,
+          "numa_node": 0,
+          "pci_address": "0000:16:0f.5",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 42,
+          "numa_node": 0,
+          "pci_address": "0000:16:0f.6",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 42,
+          "numa_node": 0,
+          "pci_address": "0000:16:0f.7",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 43,
+          "numa_node": 0,
+          "pci_address": "0000:16:10.0",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 43,
+          "numa_node": 0,
+          "pci_address": "0000:16:10.1",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "208e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 44,
+          "numa_node": 0,
+          "pci_address": "0000:16:1d.0",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "2054",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 44,
+          "numa_node": 0,
+          "pci_address": "0000:16:1d.1",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "2055",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 44,
+          "numa_node": 0,
+          "pci_address": "0000:16:1d.2",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "2056",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 44,
+          "numa_node": 0,
+          "pci_address": "0000:16:1d.3",
+          "product": "Sky Lake-E CHA Registers",
+          "product_id": "2057",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 45,
+          "numa_node": 0,
+          "pci_address": "0000:16:1e.0",
+          "product": "Sky Lake-E PCU Registers",
+          "product_id": "2080",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 45,
+          "numa_node": 0,
+          "pci_address": "0000:16:1e.1",
+          "product": "Sky Lake-E PCU Registers",
+          "product_id": "2081",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 45,
+          "numa_node": 0,
+          "pci_address": "0000:16:1e.2",
+          "product": "Sky Lake-E PCU Registers",
+          "product_id": "2082",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 45,
+          "numa_node": 0,
+          "pci_address": "0000:16:1e.3",
+          "product": "Sky Lake-E PCU Registers",
+          "product_id": "2083",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 45,
+          "numa_node": 0,
+          "pci_address": "0000:16:1e.4",
+          "product": "Sky Lake-E PCU Registers",
+          "product_id": "2084",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 45,
+          "numa_node": 0,
+          "pci_address": "0000:16:1e.5",
+          "product": "Sky Lake-E PCU Registers",
+          "product_id": "2085",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 45,
+          "numa_node": 0,
+          "pci_address": "0000:16:1e.6",
+          "product": "Sky Lake-E PCU Registers",
+          "product_id": "2086",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 7,
+          "numa_node": 0,
+          "pci_address": "0000:64:03.0",
+          "product": "Sky Lake-E PCI Express Root Port D",
+          "product_id": "2033",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 46,
+          "numa_node": 0,
+          "pci_address": "0000:64:05.0",
+          "product": "Sky Lake-E VT-d",
+          "product_id": "2034",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 47,
+          "numa_node": 0,
+          "pci_address": "0000:64:05.2",
+          "product": "Sky Lake-E RAS Configuration Registers",
+          "product_id": "2035",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 48,
+          "numa_node": 0,
+          "pci_address": "0000:64:05.4",
+          "product": "Sky Lake-E IOxAPIC Configuration Registers",
+          "product_id": "2036",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 49,
+          "numa_node": 0,
+          "pci_address": "0000:64:08.0",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2066",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 50,
+          "numa_node": 0,
+          "pci_address": "0000:64:09.0",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2066",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 51,
+          "numa_node": 0,
+          "pci_address": "0000:64:0a.0",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2040",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 52,
+          "numa_node": 0,
+          "pci_address": "0000:64:0a.1",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2041",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 53,
+          "numa_node": 0,
+          "pci_address": "0000:64:0a.2",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2042",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 54,
+          "numa_node": 0,
+          "pci_address": "0000:64:0a.3",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2043",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 55,
+          "numa_node": 0,
+          "pci_address": "0000:64:0a.4",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2044",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 56,
+          "numa_node": 0,
+          "pci_address": "0000:64:0a.5",
+          "product": "Sky Lake-E LM Channel 1",
+          "product_id": "2045",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 57,
+          "numa_node": 0,
+          "pci_address": "0000:64:0a.6",
+          "product": "Sky Lake-E LMS Channel 1",
+          "product_id": "2046",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 58,
+          "numa_node": 0,
+          "pci_address": "0000:64:0a.7",
+          "product": "Sky Lake-E LMDP Channel 1",
+          "product_id": "2047",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 59,
+          "numa_node": 0,
+          "pci_address": "0000:64:0b.0",
+          "product": "Sky Lake-E DECS Channel 2",
+          "product_id": "2048",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 60,
+          "numa_node": 0,
+          "pci_address": "0000:64:0b.1",
+          "product": "Sky Lake-E LM Channel 2",
+          "product_id": "2049",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 61,
+          "numa_node": 0,
+          "pci_address": "0000:64:0b.2",
+          "product": "Sky Lake-E LMS Channel 2",
+          "product_id": "204a",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 62,
+          "numa_node": 0,
+          "pci_address": "0000:64:0b.3",
+          "product": "Sky Lake-E LMDP Channel 2",
+          "product_id": "204b",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 63,
+          "numa_node": 0,
+          "pci_address": "0000:64:0c.0",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2040",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 64,
+          "numa_node": 0,
+          "pci_address": "0000:64:0c.1",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2041",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 65,
+          "numa_node": 0,
+          "pci_address": "0000:64:0c.2",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2042",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 66,
+          "numa_node": 0,
+          "pci_address": "0000:64:0c.3",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2043",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 67,
+          "numa_node": 0,
+          "pci_address": "0000:64:0c.4",
+          "product": "Sky Lake-E Integrated Memory Controller",
+          "product_id": "2044",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 68,
+          "numa_node": 0,
+          "pci_address": "0000:64:0c.5",
+          "product": "Sky Lake-E LM Channel 1",
+          "product_id": "2045",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 69,
+          "numa_node": 0,
+          "pci_address": "0000:64:0c.6",
+          "product": "Sky Lake-E LMS Channel 1",
+          "product_id": "2046",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 70,
+          "numa_node": 0,
+          "pci_address": "0000:64:0c.7",
+          "product": "Sky Lake-E LMDP Channel 1",
+          "product_id": "2047",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 71,
+          "numa_node": 0,
+          "pci_address": "0000:64:0d.0",
+          "product": "Sky Lake-E DECS Channel 2",
+          "product_id": "2048",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 72,
+          "numa_node": 0,
+          "pci_address": "0000:64:0d.1",
+          "product": "Sky Lake-E LM Channel 2",
+          "product_id": "2049",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 73,
+          "numa_node": 0,
+          "pci_address": "0000:64:0d.2",
+          "product": "Sky Lake-E LMS Channel 2",
+          "product_id": "204a",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 74,
+          "numa_node": 0,
+          "pci_address": "0000:64:0d.3",
+          "product": "Sky Lake-E LMDP Channel 2",
+          "product_id": "204b",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 8,
+          "numa_node": 0,
+          "pci_address": "0000:65:00.0",
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 9,
+          "numa_node": 0,
+          "pci_address": "0000:65:00.1",
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 10,
+          "numa_node": 0,
+          "pci_address": "0000:65:00.2",
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "igb",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 11,
+          "numa_node": 0,
+          "pci_address": "0000:65:00.3",
+          "product": "I350 Gigabit Network Connection",
+          "product_id": "1521",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 0,
+          "numa_node": 0,
+          "pci_address": "0000:b2:00.0",
+          "product": "Sky Lake-E PCI Express Root Port A",
+          "product_id": "2030",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 75,
+          "numa_node": 0,
+          "pci_address": "0000:b2:05.0",
+          "product": "Sky Lake-E VT-d",
+          "product_id": "2034",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 76,
+          "numa_node": 0,
+          "pci_address": "0000:b2:05.2",
+          "product": "Sky Lake-E RAS Configuration Registers",
+          "product_id": "2035",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 77,
+          "numa_node": 0,
+          "pci_address": "0000:b2:05.4",
+          "product": "Sky Lake-E IOxAPIC Configuration Registers",
+          "product_id": "2036",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 78,
+          "numa_node": 0,
+          "pci_address": "0000:b2:12.0",
+          "product": "Sky Lake-E M3KTI Registers",
+          "product_id": "204c",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 79,
+          "numa_node": 0,
+          "pci_address": "0000:b2:12.1",
+          "product": "Sky Lake-E M3KTI Registers",
+          "product_id": "204d",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "skx_uncore",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 79,
+          "numa_node": 0,
+          "pci_address": "0000:b2:12.2",
+          "product": "Sky Lake-E M3KTI Registers",
+          "product_id": "204e",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 80,
+          "numa_node": 0,
+          "pci_address": "0000:b2:15.0",
+          "product": "Sky Lake-E M2PCI Registers",
+          "product_id": "2018",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 81,
+          "numa_node": 0,
+          "pci_address": "0000:b2:16.0",
+          "product": "Sky Lake-E M2PCI Registers",
+          "product_id": "2018",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 81,
+          "numa_node": 0,
+          "pci_address": "0000:b2:16.4",
+          "product": "Sky Lake-E M2PCI Registers",
+          "product_id": "2018",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "",
+          "driver_version": "",
+          "iommu_group": 82,
+          "numa_node": 0,
+          "pci_address": "0000:b2:17.0",
+          "product": "Sky Lake-E M2PCI Registers",
+          "product_id": "2018",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 1,
+          "numa_node": 0,
+          "pci_address": "0000:b3:00.0",
+          "product": "C62x chipset series PCIe x16/x8 Upstream Port",
+          "product_id": "37c0",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "pcieport",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 2,
+          "numa_node": 0,
+          "pci_address": "0000:b4:03.0",
+          "product": "C62x chipset series PCIe Virtual Switch Port 3",
+          "product_id": "37c5",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {}
+        },
+        {
+          "driver": "i40e",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 3,
+          "numa_node": 0,
+          "pci_address": "0000:b5:00.0",
+          "product": "Ethernet Connection X722 for 10GBASE-T",
+          "product_id": "37d2",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {
+            "product_name": "Example VPD"
+          }
+        },
+        {
+          "driver": "i40e",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 4,
+          "numa_node": 0,
+          "pci_address": "0000:b5:00.1",
+          "product": "Ethernet Connection X722 for 10GBASE-T",
+          "product_id": "37d2",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {
+            "product_name": "Example VPD"
+          }
+        },
+        {
+          "driver": "i40e",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 5,
+          "numa_node": 0,
+          "pci_address": "0000:b5:00.2",
+          "product": "Ethernet Connection X722 for 10GbE SFP+",
+          "product_id": "37d0",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {
+            "product_name": "Example VPD"
+          }
+        },
+        {
+          "driver": "i40e",
+          "driver_version": "7.0.0-43-generic",
+          "iommu_group": 6,
+          "numa_node": 0,
+          "pci_address": "0000:b5:00.3",
+          "product": "Ethernet Connection X722 for 10GbE SFP+",
+          "product_id": "37d0",
+          "vendor": "Intel Corporation",
+          "vendor_id": "8086",
+          "vpd": {
+            "product_name": "Example VPD"
+          }
+        }
+      ],
+      "total": 132
+    },
+    "storage": {
+      "disks": [
+        {
+          "block_size": 4096,
+          "device": "8:0",
+          "device_fs_uuid": "4e5a377e-e45b-48e8-93e0-0856cb88b934",
+          "device_id": "wwn-0x55cd2e414e304efc",
+          "device_path": "pci-0000:00:11.5-ata-1.0",
+          "firmware_version": "0111",
+          "id": "sda",
+          "model": "INTEL SSDSC2KB24",
+          "mounted": false,
+          "numa_node": 0,
+          "partitions": [],
+          "read_only": false,
+          "removable": false,
+          "rpm": 0,
+          "serial": "SCRUBBED",
+          "size": 240057409536,
+          "type": "scsi"
+        },
+        {
+          "block_size": 512,
+          "device": "8:16",
+          "device_fs_uuid": "",
+          "device_id": "wwn-0x5001b444a553dbed",
+          "device_path": "pci-0000:00:11.5-ata-6.0",
+          "firmware_version": "6100",
+          "id": "sdb",
+          "model": "WD Blue SA510 M.",
+          "mounted": true,
+          "numa_node": 0,
+          "partitions": [
+            {
+              "device": "8:17",
+              "device_fs_uuid": "5A78-A878",
+              "id": "sdb1",
+              "mounted": true,
+              "partition": 1,
+              "read_only": false,
+              "size": 1127219200
+            },
+            {
+              "device": "8:18",
+              "device_fs_uuid": "932c8f4a-6625-4ccc-90ee-cdc9a9659ac2",
+              "id": "sdb2",
+              "mounted": true,
+              "partition": 2,
+              "read_only": false,
+              "size": 2147483648
+            },
+            {
+              "device": "8:19",
+              "device_fs_uuid": "b7df4b98-78c8-43e6-8b2c-f5d125948d1c",
+              "id": "sdb3",
+              "mounted": false,
+              "partition": 3,
+              "read_only": false,
+              "size": 996927340544
+            }
+          ],
+          "read_only": false,
+          "removable": false,
+          "rpm": 0,
+          "serial": "SCRUBBED",
+          "size": 1000204886016,
+          "type": "scsi"
+        }
+      ],
+      "total": 5
+    },
+    "system": {
+      "chassis": {
+        "serial": "SCRUBBED",
+        "type": "Unknown",
+        "vendor": "Supermicro",
+        "version": "0123456789"
+      },
+      "family": "To be filled by O.E.M.",
+      "firmware": {
+        "date": "12/08/2022",
+        "vendor": "American Megatrends Inc.",
+        "version": "1.9"
+      },
+      "motherboard": {
+        "product": "X11SDV-4C-TP8F",
+        "serial": "SCRUBBED",
+        "vendor": "Supermicro",
+        "version": "1.10"
+      },
+      "product": "Super Server",
+      "serial": "SCRUBBED",
+      "sku": "To be filled by O.E.M.",
+      "type": "physical",
+      "uuid": "SCRUBBED",
+      "vendor": "Supermicro",
+      "version": "0123456789"
+    },
+    "usb": {
+      "devices": [
+        {
+          "bus_address": 1,
+          "device_address": 4,
+          "interfaces": [
+            {
+              "class": "Human Interface Device",
+              "class_id": 3,
+              "driver": "usbhid",
+              "driver_version": "7.0.0-43-generic",
+              "number": 0,
+              "subclass": "Boot Interface Subclass",
+              "subclass_id": 1
+            },
+            {
+              "class": "Human Interface Device",
+              "class_id": 3,
+              "driver": "usbhid",
+              "driver_version": "7.0.0-43-generic",
+              "number": 1,
+              "subclass": "Boot Interface Subclass",
+              "subclass_id": 1
+            }
+          ],
+          "product": "Virtual mouse/keyboard device",
+          "product_id": "2419",
+          "serial": "",
+          "speed": 1.5,
+          "vendor": "ATEN International Co., Ltd",
+          "vendor_id": "0557"
+        }
+      ],
+      "total": 1
+    }
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

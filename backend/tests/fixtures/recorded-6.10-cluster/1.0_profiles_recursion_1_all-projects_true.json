@@ -1,0 +1,79 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {},
+      "description": "Default LXD profile",
+      "devices": {
+        "eth0": {
+          "name": "eth0",
+          "network": "default",
+          "type": "nic"
+        },
+        "root": {
+          "path": "/",
+          "pool": "remote",
+          "type": "disk"
+        }
+      },
+      "name": "default",
+      "project": "default",
+      "used_by": []
+    },
+    {
+      "config": {},
+      "description": "",
+      "devices": {
+        "eth0": {
+          "network": "legacy-infra",
+          "type": "nic"
+        },
+        "root": {
+          "path": "/",
+          "pool": "remote",
+          "type": "disk"
+        }
+      },
+      "name": "legacy",
+      "project": "default",
+      "used_by": [
+        "/1.0/instances/dns-legacy",
+        "/1.0/instances/runtipi",
+        "/1.0/instances/route-reflector-1-as211437",
+        "/1.0/instances/test-routing",
+        "/1.0/instances/CosmosCloud",
+        "/1.0/instances/mirrors",
+        "/1.0/instances/nginx-proxy-manager",
+        "/1.0/instances/ubuntu-mirror-urc",
+        "/1.0/instances/releases-mirror",
+        "/1.0/instances/podman-1",
+        "/1.0/instances/minecraft"
+      ]
+    },
+    {
+      "config": {
+        "limits.cpu": "1",
+        "limits.memory": "256MiB"
+      },
+      "description": "mcui-test default: no NIC, small limits",
+      "devices": {
+        "root": {
+          "path": "/",
+          "pool": "remote",
+          "size": "2GiB",
+          "type": "disk"
+        }
+      },
+      "name": "default",
+      "project": "mcui-test",
+      "used_by": [
+        "/1.0/instances/mcui-test-mc34?project=mcui-test"
+      ]
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

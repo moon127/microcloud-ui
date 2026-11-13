@@ -88,7 +88,8 @@ MicroCeph Tentacle 20.2.1 in a test VM:
 
 Without them, the Ceph page hides OSD used/size and the per-op latency graphs and shows
 these two commands. The setting is kept in Ceph's configuration database, so a cluster
-that had it on Squid (step 2) should keep it through the upgrade; check with
+that had it on Squid (step 2) keeps it through the upgrade (seen on the test cloud,
+2026-11-13: the series were there with no change); check with
 `sudo microceph.ceph config get mgr mgr/prometheus/exclude_perf_counters`. Changing it
 needs the mgr daemon restarted (`sudo snap restart microceph.mgr`): disabling and
 re-enabling the module wasn't enough in the test.

@@ -9,8 +9,8 @@ from mcui.metrics.prom import parse
 
 FIXTURES = Path(__file__).parent / "fixtures"
 # the first recording (2026-11-05) and the full LXD 5.21 baseline taken before the
-# MicroCloud 3.4 upgrade (2026-11-12, Phase 5.0)
-SETS = ("recorded", "recorded-5.21", "recorded-6.10")
+# MicroCloud 3.4 upgrade (2026-11-12, Phase 5.0), the 3.4 VM and the cluster after it
+SETS = ("recorded", "recorded-5.21", "recorded-6.10", "recorded-6.10-cluster")
 RECORDED = sorted(p for d in SETS for p in (FIXTURES / d).glob("metrics_*.txt"))
 
 

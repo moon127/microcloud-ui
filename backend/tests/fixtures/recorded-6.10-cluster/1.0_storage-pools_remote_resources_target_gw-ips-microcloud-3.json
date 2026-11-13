@@ -1,0 +1,18 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "inodes": {
+      "total": 0,
+      "used": 0
+    },
+    "space": {
+      "total": 334696101932,
+      "used": 276075178028
+    }
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

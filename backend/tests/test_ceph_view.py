@@ -219,6 +219,7 @@ RECORDED = Path(__file__).parent / "fixtures"
         ("recorded-5.21/ceph_mgr.txt", True),  # Squid exports OSD perf counters
         ("recorded-6.10/ceph_mgr_tentacle_defaults.txt", False),  # Tentacle leaves them out
         ("recorded-6.10/ceph_mgr.txt", True),  # exclude_perf_counters false + mgr restart
+        ("recorded-6.10-cluster/ceph_mgr.txt", True),  # D23 setting kept through the upgrade
     ],
 )
 def test_perf_counters_on_real_scrapes(fixture, expected):

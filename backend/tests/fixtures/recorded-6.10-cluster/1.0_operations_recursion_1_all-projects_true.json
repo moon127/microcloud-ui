@@ -1,0 +1,60 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "success": [
+      {
+        "child_count": 0,
+        "class": "task",
+        "created_at": "2026-11-13T07:50:27.656234879Z",
+        "description": "Synchronizing operations",
+        "err": "",
+        "err_code": 0,
+        "id": "01a1d3e2-f048-737f-94b0-9f49f563729e",
+        "location": "gw-ips-microcloud-1",
+        "may_cancel": true,
+        "metadata": {},
+        "resources": {},
+        "status": "Success",
+        "status_code": 200,
+        "updated_at": "2026-11-13T07:50:27.690288395Z"
+      },
+      {
+        "child_count": 0,
+        "class": "task",
+        "created_at": "2026-11-13T07:50:36.903453524Z",
+        "description": "Synchronizing operations",
+        "err": "",
+        "err_code": 0,
+        "id": "01a1d3e3-1467-76d9-8aee-8e6ee04286c3",
+        "location": "gw-ips-microcloud-2",
+        "may_cancel": true,
+        "metadata": {},
+        "resources": {},
+        "status": "Success",
+        "status_code": 200,
+        "updated_at": "2026-11-13T07:50:36.949903448Z"
+      },
+      {
+        "child_count": 0,
+        "class": "task",
+        "created_at": "2026-11-13T07:50:51.365624724Z",
+        "description": "Synchronizing operations",
+        "err": "",
+        "err_code": 0,
+        "id": "01a1d3e3-4ce5-796f-95b9-7e6206051ce2",
+        "location": "gw-ips-microcloud-3",
+        "may_cancel": true,
+        "metadata": {},
+        "resources": {},
+        "status": "Success",
+        "status_code": 200,
+        "updated_at": "2026-11-13T07:50:51.400735444Z"
+      }
+    ]
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

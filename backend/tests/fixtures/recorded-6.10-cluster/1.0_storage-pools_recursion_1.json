@@ -1,0 +1,89 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "config": {
+        "ceph.cluster_name": "ceph",
+        "ceph.osd.pg_num": "32",
+        "ceph.osd.pool_name": "lxd_remote",
+        "ceph.osd.pool_size": "3",
+        "ceph.rbd.du": "false",
+        "ceph.rbd.features": "layering,striping,exclusive-lock,object-map,fast-diff,deep-flatten",
+        "ceph.user.name": "admin",
+        "volatile.pool.pristine": "true",
+        "volume.size": "20GB"
+      },
+      "description": "Distributed storage on Ceph",
+      "driver": "ceph",
+      "locations": [
+        "gw-ips-microcloud-2",
+        "gw-ips-microcloud-1",
+        "gw-ips-microcloud-3"
+      ],
+      "name": "remote",
+      "status": "Created",
+      "used_by": [
+        "/1.0/images/000000000000000000000000000000000000000000000000000000000000000e",
+        "/1.0/images/000000000000000000000000000000000000000000000000000000000000000f",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000003",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000009",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000010",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000011",
+        "/1.0/images/000000000000000000000000000000000000000000000000000000000000000a",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000012?project=mcui-test",
+        "/1.0/images/000000000000000000000000000000000000000000000000000000000000000b",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000007",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000008",
+        "/1.0/images/000000000000000000000000000000000000000000000000000000000000000d?project=mcui-test",
+        "/1.0/images/000000000000000000000000000000000000000000000000000000000000000c",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000013?project=mcui-test",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000004",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000006",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000014",
+        "/1.0/images/0000000000000000000000000000000000000000000000000000000000000015?project=mcui-test",
+        "/1.0/instances/CosmosCloud",
+        "/1.0/instances/dns-legacy",
+        "/1.0/instances/mcui-test-mc34?project=mcui-test",
+        "/1.0/instances/minecraft",
+        "/1.0/instances/mirrors",
+        "/1.0/instances/nginx-proxy-manager",
+        "/1.0/instances/podman-1",
+        "/1.0/instances/releases-mirror",
+        "/1.0/instances/route-reflector-1-as211437",
+        "/1.0/instances/runtipi",
+        "/1.0/instances/test-routing",
+        "/1.0/instances/ubuntu-mirror-urc",
+        "/1.0/profiles/default",
+        "/1.0/profiles/default?project=mcui-test",
+        "/1.0/profiles/legacy"
+      ]
+    },
+    {
+      "config": {
+        "cephfs.cluster_name": "ceph",
+        "cephfs.create_missing": "true",
+        "cephfs.data_pool": "lxd_cephfs_data",
+        "cephfs.meta_pool": "lxd_cephfs_meta",
+        "cephfs.osd_pg_num": "32",
+        "cephfs.osd_pool_size": "3",
+        "cephfs.path": "lxd_cephfs",
+        "cephfs.user.name": "admin"
+      },
+      "description": "Distributed file-system storage using CephFS",
+      "driver": "cephfs",
+      "locations": [
+        "gw-ips-microcloud-3",
+        "gw-ips-microcloud-2",
+        "gw-ips-microcloud-1"
+      ],
+      "name": "remote-fs",
+      "status": "Created",
+      "used_by": []
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

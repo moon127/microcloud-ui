@@ -1,0 +1,28 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": {
+    "addresses": [],
+    "bond": null,
+    "bridge": null,
+    "counters": {
+      "bytes_received": 2728286,
+      "bytes_sent": 4170,
+      "packets_received": 57400,
+      "packets_sent": 95
+    },
+    "hwaddr": "00:16:3e:00:00:43",
+    "mtu": 1500,
+    "ovn": null,
+    "state": "up",
+    "type": "broadcast",
+    "vlan": {
+      "lower_device": "bond-core",
+      "vid": 2001
+    }
+  },
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

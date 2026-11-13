@@ -1,0 +1,61 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "architecture": "x86_64",
+      "config": {},
+      "database": true,
+      "description": "",
+      "failure_domain": "default",
+      "groups": [
+        "default"
+      ],
+      "message": "Fully operational",
+      "roles": [
+        "database-leader"
+      ],
+      "server_name": "gw-ips-microcloud-1",
+      "status": "Online",
+      "url": "https://192.0.2.2:8443"
+    },
+    {
+      "architecture": "x86_64",
+      "config": {},
+      "database": true,
+      "description": "",
+      "failure_domain": "default",
+      "groups": [
+        "default"
+      ],
+      "message": "Fully operational",
+      "roles": [
+        "database-voter"
+      ],
+      "server_name": "gw-ips-microcloud-3",
+      "status": "Online",
+      "url": "https://192.0.2.3:8443"
+    },
+    {
+      "architecture": "x86_64",
+      "config": {},
+      "database": true,
+      "description": "",
+      "failure_domain": "default",
+      "groups": [
+        "default"
+      ],
+      "message": "Fully operational",
+      "roles": [
+        "database-voter"
+      ],
+      "server_name": "gw-ips-microcloud-2",
+      "status": "Online",
+      "url": "https://192.0.2.4:8443"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}

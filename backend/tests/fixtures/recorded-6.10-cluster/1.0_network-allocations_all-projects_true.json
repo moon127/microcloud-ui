@@ -1,0 +1,162 @@
+{
+  "error": "",
+  "error_code": 0,
+  "metadata": [
+    {
+      "addresses": "192.0.2.35/24",
+      "hwaddr": "",
+      "nat": true,
+      "network": "default",
+      "type": "network",
+      "used_by": "/1.0/networks/default"
+    },
+    {
+      "addresses": "2001:db8::28/64",
+      "hwaddr": "",
+      "nat": true,
+      "network": "default",
+      "type": "network",
+      "used_by": "/1.0/networks/default"
+    },
+    {
+      "addresses": "192.0.2.36/24",
+      "hwaddr": "",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "network",
+      "used_by": "/1.0/networks/legacy-infra"
+    },
+    {
+      "addresses": "192.0.2.7/32",
+      "hwaddr": "00:16:3e:00:00:01",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/CosmosCloud"
+    },
+    {
+      "addresses": "192.0.2.10/32",
+      "hwaddr": "00:16:3e:00:00:09",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/minecraft"
+    },
+    {
+      "addresses": "192.0.2.16/32",
+      "hwaddr": "00:16:3e:00:00:10",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/releases-mirror"
+    },
+    {
+      "addresses": "192.0.2.22/32",
+      "hwaddr": "00:16:3e:00:00:14",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/runtipi"
+    },
+    {
+      "addresses": "192.0.2.23/32",
+      "hwaddr": "00:16:3e:00:00:20",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/test-routing"
+    },
+    {
+      "addresses": "192.0.2.8/32",
+      "hwaddr": "00:16:3e:00:00:07",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/dns-legacy"
+    },
+    {
+      "addresses": "192.0.2.40/32",
+      "hwaddr": "00:16:3e:00:00:0b",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/mirrors"
+    },
+    {
+      "addresses": "192.0.2.12/32",
+      "hwaddr": "00:16:3e:00:00:0c",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/nginx-proxy-manager"
+    },
+    {
+      "addresses": "192.0.2.14/32",
+      "hwaddr": "00:16:3e:00:00:0e",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/podman-1"
+    },
+    {
+      "addresses": "192.0.2.18/32",
+      "hwaddr": "00:16:3e:00:00:12",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/route-reflector-1-as211437"
+    },
+    {
+      "addresses": "192.0.2.25/32",
+      "hwaddr": "00:16:3e:00:00:22",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/ubuntu-mirror-urc"
+    },
+    {
+      "addresses": "192.0.2.27/32",
+      "hwaddr": "00:16:3e:00:00:24",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "instance",
+      "used_by": "/1.0/instances/mcui-test-mc34?project=mcui-test"
+    },
+    {
+      "addresses": "192.0.2.41/32",
+      "hwaddr": "",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "network-forward",
+      "used_by": "/1.0/networks/legacy-infra/forwards/192.0.2.41"
+    },
+    {
+      "addresses": "192.0.2.42/32",
+      "hwaddr": "",
+      "nat": false,
+      "network": "legacy-infra",
+      "type": "network-forward",
+      "used_by": "/1.0/networks/legacy-infra/forwards/192.0.2.42"
+    },
+    {
+      "addresses": "192.0.2.38/24",
+      "hwaddr": "",
+      "nat": false,
+      "network": "routed",
+      "type": "network",
+      "used_by": "/1.0/networks/routed"
+    },
+    {
+      "addresses": "2001:db8::29/64",
+      "hwaddr": "",
+      "nat": true,
+      "network": "routed",
+      "type": "network",
+      "used_by": "/1.0/networks/routed"
+    }
+  ],
+  "operation": "",
+  "status": "Success",
+  "status_code": 200,
+  "type": "sync"
+}
