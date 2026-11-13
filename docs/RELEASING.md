@@ -73,6 +73,32 @@ from the package settings when they pile up (GHCR storage is free for public pac
 
 To follow edge on a host, see docs/DEPLOY.md §9.1.
 
+## Security updates
+
+Five things watch for known vulnerabilities (D76):
+
+| What | Where | When | What happens |
+|---|---|---|---|
+| **Dependabot alerts** | repository settings | as advisories appear | listed on the Security tab; GitHub emails the owner |
+| **Dependabot security updates** | repository settings | as advisories appear | a pull request with the fix (npm lockfile; pip where a fixed version exists) |
+| **Dependabot version updates** | `.github/dependabot.yml` | weekly | one grouped pull request each for npm, pip and GitHub Actions |
+| **`make audit`** in CI | `ci.yml` job `audit` | every push, and before every release | fails on any known vulnerability in the backend's runtime dependencies (`pip-audit`), or a high or critical one in the frontend packages that ship (`npm audit`) |
+| **Weekly scan** | `security.yml` | Mondays, or **Actions → Security → Run workflow** | the same audits, plus build tools (high and up). Trivy scans the published `:latest` image for fixable high or critical CVEs, reports them on the Security tab, and opens one issue labelled `rebuild-needed` |
+
+`pip-audit` has no severity data, so any known vulnerability in a runtime dependency fails
+CI. If one has no fix yet and doesn't affect us, add `--ignore-vuln <ID>` to the
+Makefile's `pip-audit` line with a comment saying why, and remove it once a fix lands.
+
+**When the `rebuild-needed` issue appears**, cut a patch release (Steps above). The
+bundles and the image install current versions of the Python packages (the backend
+pins only minimums) and the image is built on a fresh `ubuntu:26.04`, so a rebuild picks
+up the fixes. The next weekly scan closes the issue once `:latest` is clean; run the
+workflow by hand to close it sooner. A fix in an npm package arrives as a Dependabot pull
+request first: merge it, then release.
+
+Hosts running the bundle take Ubuntu's own security updates through `apt` as usual. Only
+the app's virtualenv comes from the bundle.
+
 ## Dry run
 
 **Actions → Release → Run workflow** on `main` runs CI and builds the image (both

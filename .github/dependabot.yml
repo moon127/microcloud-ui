@@ -1,0 +1,27 @@
+# Weekly dependency updates, one grouped pull request per ecosystem (D76). Security fixes
+# come sooner, from Dependabot security updates (enabled in the repository settings).
+# The Containerfile's base images aren't listed: their CVEs are caught by the weekly image
+# scan (security.yml), and tag bumps (node 22 → 24) are a deliberate choice.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+    groups:
+      frontend:
+        patterns: ["*"]
+  - package-ecosystem: pip
+    directory: /backend
+    schedule:
+      interval: weekly
+    groups:
+      backend:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

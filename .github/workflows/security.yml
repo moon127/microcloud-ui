@@ -1,0 +1,72 @@
+name: Security
+# Weekly, or by hand (D76): known vulnerabilities in the dependencies, and fixable ones in
+# the published image. Fixable image CVEs open (or update) one "Rebuild needed" issue,
+# closed again when a scan comes back clean; the fix is a patch release.
+on:
+  schedule:
+    - cron: "17 6 * * 1"  # Mondays 06:17 UTC
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:  # fails the run (and GitHub emails) if anything high or critical turns up
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: make install audit
+      - name: Build tools too (they don't ship, so CI doesn't block on them)
+        run: cd frontend && npm audit --audit-level=high
+  image:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      security-events: write
+    env:
+      IMAGE: ghcr.io/moon127/microcloud-ui:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan the latest release image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          format: json
+          output: trivy.json
+      - name: The same, for the Security tab
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          format: sarif
+          output: trivy.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy.sarif
+          category: image
+      - name: Open, update or close the "Rebuild needed" issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          body=$(python3 scripts/image_cves.py trivy.json "$IMAGE")
+          gh label create rebuild-needed --color d93f0b \
+            --description "Fixable vulnerabilities in the published image" 2>/dev/null || true
+          open=$(gh issue list --label rebuild-needed --state open --json number -q '.[0].number')
+          if [ -n "$body" ] && [ -n "$open" ]; then
+            gh issue edit "$open" --body "$body"
+          elif [ -n "$body" ]; then
+            gh issue create --title "Rebuild needed: fixable vulnerabilities in the image" \
+              --label rebuild-needed --body "$body"
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "The latest scan found no fixable HIGH or CRITICAL vulnerabilities."
+          fi

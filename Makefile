@@ -5,7 +5,7 @@ BIN    := $(abspath $(VENV))/bin
 FE     := frontend
 
 .PHONY: help venv install install-backend install-frontend test test-backend test-frontend \
-        lint lint-backend lint-frontend lint-shell format build bundle image image-save screenshots dev-backend dev-frontend serve hooks clean
+        lint lint-backend lint-frontend lint-shell audit format build bundle image image-save screenshots dev-backend dev-frontend serve hooks clean
 
 help:            ## list targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed 's/:.*##/\t/'
@@ -40,6 +40,10 @@ lint-frontend:
 
 lint-shell:
 	$(BIN)/shellcheck deploy/install.sh deploy/mcui-cli deploy/container/entrypoint.sh scripts/bundle.sh scripts/pre-commit scripts/commit-msg
+
+audit:           ## known vulnerabilities: backend runtime deps (pip-audit), frontend shipped packages (npm, high+)
+	$(BIN)/pip-audit --progress-spinner off backend/
+	cd $(FE) && npm audit --omit=dev --audit-level=high
 
 format:          ## auto-format backend
 	cd backend && $(BIN)/ruff format . && $(BIN)/ruff check --fix .
