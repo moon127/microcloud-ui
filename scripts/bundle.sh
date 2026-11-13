@@ -3,7 +3,7 @@
 #   dist/mcui-<version>-py<PYVER>-<ARCH>.tar.gz
 # holding the mcui wheel (with the built SPA inside), wheels for every dependency
 # for the target Python and CPU, and deploy/ (install.sh, unit, example config).
-# Usage: scripts/bundle.sh   (env: PYVER=3.12 for 24.04, 3.10 for 22.04; ARCH=x86_64|aarch64)
+# Usage: scripts/bundle.sh   (env: PYVER=3.12 for 24.04, 3.14 for 26.04; ARCH=x86_64|aarch64)
 set -euo pipefail
 
 PYVER=${PYVER:-3.12}
@@ -28,15 +28,13 @@ whl=("$out"/wheels/mcui-*.whl)
 "$BIN/python" -c "import sys, zipfile; n = zipfile.ZipFile(sys.argv[1]).namelist(); \
 assert 'mcui/static/index.html' in n, 'SPA missing from the wheel'" "${whl[0]}"
 
-# binary wheels for the target (Ubuntu 22.04+ glibc is manylinux_2_35 or newer)
+# binary wheels for the target (Ubuntu 24.04+ glibc is manylinux_2_39 or newer)
 platforms=()
 for p in manylinux_2_28 manylinux_2_17 manylinux2014; do platforms+=(--platform "${p}_$ARCH"); done
-# pip judges markers by the Python running it, not --python-version: name the
-# backports the target needs (backend/pyproject.toml) explicitly
-extra=()
-case "$PYVER" in 3.10) extra+=("tomli>=2.0") ;; esac
+# pip judges markers by the Python running it, not --python-version; there are no
+# Python-version-limited dependencies since 3.12 became the minimum (D77)
 "$BIN/pip" download --quiet --dest "$out/wheels" --only-binary=:all: \
-    --implementation cp --python-version "$PYVER" "${platforms[@]}" "${whl[0]}" ${extra[@]+"${extra[@]}"}
+    --implementation cp --python-version "$PYVER" "${platforms[@]}" "${whl[0]}"
 
 cp deploy/install.sh deploy/mcui.service deploy/mcui-cli deploy/config.example.toml "$out/"
 cp docs/DEPLOY.md "$out/README.md"

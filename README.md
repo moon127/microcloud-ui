@@ -64,7 +64,7 @@ image registries are the tabs in [create instance](docs/screenshots/create-insta
 
 ## Development setup
 
-Requires **Python 3.10+**, **Node 20+** (22 recommended) and `make`.
+Requires **Python 3.12+**, **Node 20+** (22 recommended) and `make`.
 On macOS: `brew install python@3.12 node` (the bundled `python3` may be too old).
 
 ```bash

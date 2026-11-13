@@ -16,7 +16,7 @@ mcui reads `https://<member address>:9100/metrics` from each host every 15 s.
 Each member's address comes from its LXD cluster address. History keeps only
 what the graphs use, as listed in decision D58 in `agents.md`.
 
-## Install (Ubuntu 22.04/24.04)
+## Install (Ubuntu 24.04/26.04)
 
 Install it from apt, not the snap store:
 

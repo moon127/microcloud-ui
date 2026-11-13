@@ -146,7 +146,7 @@ operations with progress and cancel.
 
 | ID | Requirement |
 |---|---|
-| NF-1 | Python ≥ 3.10 backend; tested on 3.10 and 3.12 |
+| NF-1 | Python ≥ 3.12 backend (Ubuntu 24.04 and 26.04); tested on 3.12 and 3.14 (3.10 and 22.04 dropped 2026-11-13, D77) |
 | NF-2 | ≥ 90% line+branch coverage for backend and frontend; tests in the same commit as features |
 | NF-3 | Always verify LXD's TLS certificate (pinned `server.crt`, optional `server_name`); never disable verification |
 | NF-4 | Scale target: up to 10 members, 1,000 instances, 15s scrape, < 1 GB SQLite/year at default rollups |

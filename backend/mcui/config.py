@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import stat
-import sys
+import tomllib
 from pathlib import Path
 from typing import Annotated, Any, Literal
 from urllib.parse import urlsplit
@@ -15,11 +15,6 @@ from pydantic_settings import (
     PydanticBaseSettingsSource,
     SettingsConfigDict,
 )
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:  # pragma: no cover - exercised on Python 3.10 in CI
-    import tomli as tomllib  # type: ignore[import-not-found,unused-ignore]
 
 CONFIG_ENV = "MCUI_CONFIG"
 # used when neither a path nor $MCUI_CONFIG is given and it exists (development, D71);

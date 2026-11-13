@@ -12,7 +12,8 @@ There are two supported ways to run it. Both use the same config file and the sa
 | HTTPS | built in (self-signed or your own certificate), or a reverse proxy (§10) | the same |
 | Tested on | Ubuntu 26.04 and 24.04 VMs | Ubuntu 26.04 VM: Podman 5.7 Quadlet; Ubuntu 24.04 VM: Podman 4.9 Quadlet, Docker 29 Compose |
 
-The bundle installs microcloud-ui as a systemd service on Ubuntu 26.04, 24.04 or 22.04. It is an
+The bundle installs microcloud-ui as a systemd service on Ubuntu 26.04 or 24.04 (22.04 was
+dropped in 0.1.9; use the container image there). It is an
 **offline bundle**: one tarball with the program, the web UI and every Python
 dependency. The target machine needs only `python3`, `python3-venv` and `openssl`
 from Ubuntu, and never contacts PyPI. Design notes: D63 (bundle) and D64 (containers) in
@@ -93,16 +94,15 @@ DHCP, gateways and external traffic back.
 
 ## 2. Build the bundle (on your dev machine)
 
-Each GitHub Release has six bundles attached: Ubuntu 26.04 (py3.14), 24.04 (py3.12) and
-22.04 (py3.10), each for x86_64 and aarch64 (docs/RELEASING.md). Pick the one whose
-Python matches the server's `python3`. The pre-release **edge** has the same six, built from the
+Each GitHub Release has four bundles attached: Ubuntu 26.04 (py3.14) and 24.04 (py3.12),
+each for x86_64 and aarch64 (docs/RELEASING.md). Pick the one whose
+Python matches the server's `python3`. The pre-release **edge** has the same four, built from the
 tip of `main` (version `X.Y.Z.devN`). Download one, or build your own:
 
 ```bash
 make install          # once: venv + npm packages
 make bundle           # Ubuntu 24.04 on x86_64
 # make bundle PYVER=3.14            # Ubuntu 26.04
-# make bundle PYVER=3.10            # Ubuntu 22.04
 # make bundle ARCH=aarch64          # ARM servers
 ```
 
@@ -273,7 +273,7 @@ Or run `sudo systemctl stop mcui`, copy the files, then start it again.
 
 | Symptom | Cause |
 |---|---|
-| `this bundle is for Python 3.12 but python3 is 3.14` | Built for another Ubuntu (here 24.04, installing on 26.04). Use the bundle with the server's Python: py3.14 for 26.04, py3.12 for 24.04, py3.10 for 22.04 |
+| `this bundle is for Python 3.12 but python3 is 3.14` | Built for another Ubuntu (here 24.04, installing on 26.04). Use the bundle with the server's Python: py3.14 for 26.04, py3.12 for 24.04 (22.04 isn't supported) |
 | Service stopped, journal says `config error: … chmod 600` | A key is readable by group or other, or not owned by `mcui` |
 | Browser: certificate warning | The self-signed `ui.crt`. Trust it or install your own (§5) |
 | Sign-in does nothing | You're on plain HTTP. Use `https://` (or the proxy's HTTPS) |

@@ -20,8 +20,8 @@ Pushing a tag `vX.Y.Z` runs:
    `ubuntu-24.04` (amd64) and `ubuntu-24.04-arm` (arm64; free for public repositories),
    each pushed by digest. A merge job then tags both as one image,
    **`ghcr.io/moon127/microcloud-ui`**, with `X.Y.Z`, `X.Y` and `latest`.
-3. **The offline bundles** are built for Ubuntu 26.04 (py3.14), 24.04 (py3.12) and 22.04
-   (py3.10), x86_64 and aarch64: six in all.
+3. **The offline bundles** are built for Ubuntu 26.04 (py3.14) and 24.04 (py3.12), x86_64
+   and aarch64: four in all (22.04 dropped in 0.1.9, D77).
 4. **The GitHub Release** is created with the bundles attached. Its notes list the
    commits since the previous release (`scripts/build_version.py changes`), leaving out
    the version bumps ("Release X.Y.Z", "Back to development"), then a compare link.

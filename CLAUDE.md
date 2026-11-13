@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 microcloud-ui: a web UI with built-in metrics for Canonical MicroCloud (LXD, MicroCeph,
-MicroOVN). Backend FastAPI (Python ≥3.10), frontend React 19 + TS + Vite + uPlot.
+MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPlot.
 
 ## Read first
 

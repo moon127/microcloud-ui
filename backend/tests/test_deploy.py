@@ -1,15 +1,10 @@
 """The production files in deploy/ agree with the code and with each other (D63)."""
 
 import re
-import sys
+import tomllib
 from pathlib import Path
 
 from mcui.config import Settings
-
-if sys.version_info >= (3, 11):
-    import tomllib
-else:  # pragma: no cover
-    import tomli as tomllib
 
 DEPLOY = Path(__file__).resolve().parents[2] / "deploy"
 
@@ -88,12 +83,10 @@ def test_container_files_agree():
         assert f"!{path}" in ignore
 
 
-def test_bundle_names_the_backports():
-    """pip download judges markers by the running Python, so bundle.sh names each backport
-    the oldest supported target (3.10) needs (D67)."""
+def test_no_backports():
+    """pip download judges markers by the running Python, not the bundle's target, so a
+    dependency limited to older Pythons would be missing from the bundle. None are needed
+    since 3.12 became the minimum (D77); adding one means naming it in bundle.sh."""
     project = tomllib.loads((DEPLOY.parent / "backend/pyproject.toml").read_text())["project"]
-    backports = [d.split(";")[0] for d in project["dependencies"] if "python_version <" in d]
-    assert backports
-    bundle = (DEPLOY.parent / "scripts/bundle.sh").read_text()
-    for dep in backports:
-        assert f'3.10) extra+=("{dep}")' in bundle
+    assert project["requires-python"].startswith(">=3.12")
+    assert not [d for d in project["dependencies"] if "python_version" in d]

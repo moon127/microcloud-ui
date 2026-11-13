@@ -8,7 +8,7 @@ description = "Web UI and metrics for Canonical MicroCloud (LXD, MicroCeph, Micr
 readme = "README.md"
 license = "MIT"
 authors = [{ name = "Gareth Woolridge", email = "gareth@woolridge.org.uk" }]
-requires-python = ">=3.10"
+requires-python = ">=3.12"  # Ubuntu 24.04 and 26.04 (D77)
 dynamic = ["version"]
 dependencies = [
   "fastapi>=0.110",
@@ -17,7 +17,6 @@ dependencies = [
   "pydantic-settings>=2.2",
   "argon2-cffi>=23.1",
   "websockets>=13",
-  "tomli>=2.0; python_version < '3.11'",
 ]
 
 [project.optional-dependencies]
@@ -62,15 +61,18 @@ skip_covered = true
 
 [tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "S", "ASYNC"]
+# ASYNC109 (py311+) suggests asyncio.timeout over a `timeout` parameter; ours are httpx
+# request timeouts and how long LXD holds an operation wait, not asyncio deadlines
+ignore = ["ASYNC109"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 strict = true
 packages = ["mcui"]

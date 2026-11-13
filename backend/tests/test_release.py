@@ -214,9 +214,9 @@ def test_publishing():
 def test_ubuntu_lts_releases():
     """Bundles for each supported LTS's Python; the image on the newest LTS (D72)."""
     ci, jobs = workflow("ci.yml"), workflow("release.yml")["jobs"]
-    assert ci["jobs"]["backend"]["strategy"]["matrix"]["python"] == ["3.10", "3.12", "3.14"]
+    assert ci["jobs"]["backend"]["strategy"]["matrix"]["python"] == ["3.12", "3.14"]
     loop = [s["run"] for s in jobs["bundle"]["steps"] if "make bundle" in s.get("run", "")]
-    assert loop and "for pyver in 3.14 3.12 3.10; do" in loop[0]
+    assert loop and "for pyver in 3.14 3.12; do" in loop[0]
     image = (ROOT / "deploy/container/Containerfile").read_text()
     assert image.count("FROM docker.io/library/ubuntu:26.04") == 2
 
