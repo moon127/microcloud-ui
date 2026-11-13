@@ -230,5 +230,23 @@ def test_perf_counters_on_real_scrapes(fixture, expected):
     assert all(("size" in o) is expected for o in s["osds"])
 
 
+@pytest.mark.parametrize(
+    ("fixture", "expected"),
+    [
+        # Tentacle exports the cluster's own ratios (0.85/0.95 as float32)
+        ("recorded-6.10-cluster/ceph_mgr.txt", {"nearfull": 0.85, "full": 0.95, "default": False}),
+        # Squid doesn't: Ceph's defaults, marked as such
+        ("recorded-5.21/ceph_mgr.txt", {"nearfull": 0.85, "full": 0.95, "default": True}),
+    ],
+)
+def test_full_ratios_on_real_scrapes(fixture, expected):
+    assert summarize(parse((RECORDED / fixture).read_text()))["full_ratios"] == expected
+
+
+def test_full_ratios_set_by_the_cluster():
+    exp = parse("ceph_osd_nearfull_ratio 0.75\nceph_osd_full_ratio 0.9\n")
+    assert summarize(exp)["full_ratios"] == {"nearfull": 0.75, "full": 0.9, "default": False}
+
+
 def test_perf_counters_without_osds():
     assert summarize(parse("ceph_health_status 0\n"))["perf_counters"] is True

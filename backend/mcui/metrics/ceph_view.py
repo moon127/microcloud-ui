@@ -54,12 +54,30 @@ def summarize(exp: Exposition) -> dict[str, Any]:
         "mgrs": mgrs,
         "osds": _osds(exp),
         "perf_counters": _perf_counters(exp),
+        "full_ratios": _full_ratios(exp),
         "pgs": _pgs(exp),
         "capacity": {
             "total": _one(exp, "ceph_cluster_total_bytes"),
             "used_raw": _one(exp, "ceph_cluster_total_used_raw_bytes"),
         },
         "pools": _pools(exp),
+    }
+
+
+# Ceph's defaults (mon_osd_nearfull_ratio, mon_osd_full_ratio), for mgrs that don't export
+# the cluster's own: Squid doesn't, Tentacle does
+DEFAULT_NEARFULL, DEFAULT_FULL = 0.85, 0.95
+
+
+def _full_ratios(exp: Exposition) -> dict[str, Any]:
+    """When an OSD counts as nearly full and full (Ceph raises OSD_NEARFULL and stops
+    writes at OSD_FULL); ``default`` when the mgr doesn't say and Ceph's defaults apply."""
+    nearfull = _one(exp, "ceph_osd_nearfull_ratio")
+    full = _one(exp, "ceph_osd_full_ratio")
+    return {
+        "nearfull": round(nearfull, 4) if nearfull is not None else DEFAULT_NEARFULL,
+        "full": round(full, 4) if full is not None else DEFAULT_FULL,
+        "default": nearfull is None or full is None,
     }
 
 

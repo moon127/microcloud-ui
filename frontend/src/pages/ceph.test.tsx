@@ -92,6 +92,10 @@ describe("CephPage", () => {
     expect(osd1).toHaveTextContent("up, in");
     expect(osd1).toHaveTextContent("2.0 ms");
     expect(osd1).toHaveTextContent("12 ms");
+    expect(osd1).toHaveTextContent("50.0%");
+    expect(within(osd1).queryByRole("alert")).toBeNull(); // below nearfull
+    // no ratios from this backend: Ceph's defaults, said so
+    expect(screen.getByText(/Nearfull at 85.0%, full at 95.0% \(Ceph's defaults/)).toBeInTheDocument();
     const osd2 = screen.getByText("osd.2").closest("tr")!;
     expect(osd2).toHaveTextContent("elsewhere");
     expect(within(osd2).getByRole("alert")).toHaveTextContent("down");
@@ -111,6 +115,27 @@ describe("CephPage", () => {
     const lat = plots.filter((p) => p.opts.series[1]?.label === "osd.1");
     expect(lat.map((p) => p.data[1])).toContainEqual([5]);
     expect(lat.map((p) => p.data[1])).toContainEqual([2]); // read: 0.1 / 50 s
+  });
+
+  it("flags OSDs past the cluster's nearfull and full ratios", async () => {
+    const osd = (id: number, used: number): api.CephOsd => ({ id, up: true, in: true, size: 100, used });
+    vi.spyOn(api, "fetchCeph").mockResolvedValue({
+      ...state,
+      // as Ceph Tentacle exports them, here lowered by the cluster's admin
+      full_ratios: { nearfull: 0.75, full: 0.9, default: false },
+      osds: [osd(1, 60), osd(2, 80), osd(3, 93)],
+    });
+    renderAt(<CephPage />);
+    expect(await screen.findByText(/Nearfull at 75.0%, full at 90.0% \(this cluster's settings\)/)).toBeInTheDocument();
+    const row = (id: number) => screen.getByText(`osd.${id}`).closest("tr")!;
+    expect(within(row(1)).queryByRole("alert")).toBeNull();
+    expect(within(row(2)).getByRole("alert")).toHaveTextContent("80.0% nearfull");
+    expect(within(row(3)).getByRole("alert")).toHaveTextContent("93.0% full");
+    // the meter: amber from nearfull, red from full
+    const meter = within(row(2)).getByRole("meter", { name: "osd.2 used" });
+    expect(meter).toHaveAttribute("low", "75");
+    expect(meter).toHaveAttribute("high", "90");
+    expect(meter).toHaveAttribute("optimum", "0");
   });
 
   it("hides OSD size and per-op latency when the mgr leaves out perf counters (Tentacle)", async () => {

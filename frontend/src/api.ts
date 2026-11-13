@@ -1111,6 +1111,8 @@ export interface CephState {
   osds?: CephOsd[];
   /** false: the mgr leaves out OSD perf counters (Ceph Tentacle's default) */
   perf_counters?: boolean;
+  /** when an OSD is nearly full / full (fractions); ``default``: Ceph's, as the mgr doesn't say */
+  full_ratios?: { nearfull: number; full: number; default: boolean };
   pgs?: { total: number; states: Record<string, number> };
   capacity?: { total: number | null; used_raw: number | null };
   pools?: CephPool[];

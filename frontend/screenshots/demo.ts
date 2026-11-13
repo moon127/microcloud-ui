@@ -491,6 +491,7 @@ export const CEPH: CephState = {
   scraped_at: NOW,
   health: { status: "HEALTH_OK", checks: [] },
   version: "20.2.1 tentacle",
+  full_ratios: { nearfull: 0.85, full: 0.95, default: false }, // Tentacle exports them
   mons: HOSTS.map((name) => ({ name, in_quorum: true })),
   mgrs: HOSTS.map((name, i) => ({ name: `${name}.mgr`, active: i === 1 })),
   osds: OSDS.map((id) => ({

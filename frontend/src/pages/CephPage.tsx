@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { fetchCeph, fetchMembers, fetchRbdTop, type CephState, type RbdMetric, type RbdRow } from "../api";
 import MetricPanel from "../chart/MetricPanel";
 import { ratioSeries } from "../chart/panel";
-import { formatBytes, formatNumber, formatRate } from "../format";
+import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
 import { MemberLink } from "../links";
 import { instancePath } from "../paths";
 import { useRange } from "../range";
@@ -14,6 +14,20 @@ import { volumePath } from "./storage/paths";
 const perSecond = (v: number) => `${formatNumber(v)}/s`;
 const ms = (v: number) => `${v.toFixed(v < 10 ? 1 : 0)} ms`;
 const pct = (used: number, total: number) => (total ? (used / total) * 100 : 0);
+// Ceph's defaults, for a summary from before the backend reported the cluster's own
+const RATIOS = { nearfull: 0.85, full: 0.95, default: true };
+
+/** An OSD's % used, flagged once it passes the cluster's nearfull or full ratio. */
+function OsdUsed({ percent, nearfull, full }: { percent: number; nearfull: number; full: number }) {
+  const state = percent >= full * 100 ? "full" : percent >= nearfull * 100 ? "nearfull" : "";
+  return state ? (
+    <strong role="alert">
+      {formatPercent(percent)} {state}
+    </strong>
+  ) : (
+    <>{formatPercent(percent)}</>
+  );
+}
 const count = (v: number) => Math.round(v).toLocaleString("en");
 
 export default function CephPage() {
@@ -57,6 +71,7 @@ function Now({ s }: { s: CephState }) {
   const up = osds.filter((o) => o.up).length;
   const inn = osds.filter((o) => o.in).length;
   const cap = s.capacity ?? { total: null, used_raw: null };
+  const ratios = s.full_ratios ?? RATIOS;
   const states = Object.entries(s.pgs?.states ?? {});
   const health = s.health?.status ?? "UNKNOWN";
   return (
@@ -108,7 +123,15 @@ function Now({ s }: { s: CephState }) {
         </dl>
       </div>
       <h2>OSDs</h2>
-      {s.perf_counters === false && <PerfCountersHint />}
+      {s.perf_counters === false ? (
+        <PerfCountersHint />
+      ) : (
+        <p className="muted">
+          Nearfull at {formatPercent(ratios.nearfull * 100)}, full at {formatPercent(ratios.full * 100)} (
+          {ratios.default ? "Ceph's defaults; this Ceph doesn't report its own" : "this cluster's settings"}). Ceph warns
+          when an OSD passes nearfull and stops writes to the cluster once one is full.
+        </p>
+      )}
       <div className="scroll">
         <table>
           <thead>
@@ -122,6 +145,7 @@ function Now({ s }: { s: CephState }) {
                 <>
                   <th className="num">Used</th>
                   <th className="num">Size</th>
+                  <th className="num">% used</th>
                   <th />
                 </>
               )}
@@ -143,7 +167,23 @@ function Now({ s }: { s: CephState }) {
                   <>
                     <td className="num">{o.used != null ? formatBytes(o.used) : "–"}</td>
                     <td className="num">{o.size != null ? formatBytes(o.size) : "–"}</td>
-                    <td>{o.size ? <meter min={0} max={100} high={80} value={pct(o.used ?? 0, o.size)} aria-label={`osd.${o.id} used`} /> : null}</td>
+                    <td className="num">
+                      {o.size ? <OsdUsed percent={pct(o.used ?? 0, o.size)} nearfull={ratios.nearfull} full={ratios.full} /> : "–"}
+                    </td>
+                    <td>
+                      {o.size ? (
+                        // amber from nearfull, red from full
+                        <meter
+                          min={0}
+                          max={100}
+                          low={ratios.nearfull * 100}
+                          high={ratios.full * 100}
+                          optimum={0}
+                          value={pct(o.used ?? 0, o.size)}
+                          aria-label={`osd.${o.id} used`}
+                        />
+                      ) : null}
+                    </td>
                   </>
                 )}
                 <td className="num">{o.apply_latency_ms != null ? ms(o.apply_latency_ms) : "–"}</td>
