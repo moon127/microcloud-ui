@@ -8,10 +8,10 @@ import TimeChart from "../chart/TimeChart";
 import { formatRate } from "../format";
 import { useRange } from "../range";
 import RangePicker from "../RangePicker";
-import { useProject } from "../project";
-import { useSession } from "../session";
+import { useCurrentProject } from "../project";
 import { networkPath } from "./network/paths";
 import { useApi } from "../useApi";
+import { useAccess } from "../access";
 
 const label = (suffix: string) => (s: Series) => ({ label: `${s.labels.network} ${suffix}`, points: s.points });
 
@@ -75,9 +75,9 @@ function summary(n: Network): string {
 }
 
 function NetworkList() {
-  const { user } = useSession();
+  const access = useAccess();
   const { version } = useActions();
-  const project = useProject().project || "default";
+  const project = useCurrentProject();
   const nets = useApi(`networks:${project}:${version}`, () => fetchNetworks(project), 60_000);
   const members = useApi("members", fetchMembers);
   const [member, setMember] = useState("");
@@ -89,7 +89,7 @@ function NetworkList() {
     <>
       <h2>LXD networks in {project}</h2>
       <p className="actions">
-        {user.role === "admin" && (
+        {access.can(project, "manage") && (
           <Link className="button primary" to="/networks/new">
             Create network
           </Link>

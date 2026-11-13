@@ -2,8 +2,8 @@ import { useState } from "react";
 import { cancelOperation, fetchOperations, operationProgress, type Operation } from "../api";
 import { useActions } from "../actions";
 import { useEvents } from "../events";
-import { useSession } from "../session";
 import { useApi } from "../useApi";
+import { useAccess } from "../access";
 
 /** The objects an operation works on: ``resources`` (LXD 5.x), else its ``entity_url`` (LXD 6.7+). */
 function objects(op: Operation): string {
@@ -15,7 +15,7 @@ function objects(op: Operation): string {
 }
 
 export default function OperationsPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const [tick, setTick] = useState(0);
   useEvents((e) => e.type === "operation" && setTick((t) => t + 1));
@@ -59,7 +59,7 @@ export default function OperationsPage() {
                   <td>{op.project ?? ""}</td>
                   <td>{op.location ?? ""}</td>
                   <td>
-                    {user.role === "admin" && op.may_cancel && op.status === "Running" && (
+                    {access.clusterAdmin && op.may_cancel && op.status === "Running" && (
                       <button type="button" onClick={() => void run(`Cancel ${op.description}`, () => cancelOperation(op.id))}>
                         Cancel
                       </button>

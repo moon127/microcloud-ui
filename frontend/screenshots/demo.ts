@@ -36,6 +36,7 @@ import type {
   Series,
   StoragePool,
   TopResult,
+  User,
 } from "../src/api.ts";
 
 export const NOW = Date.UTC(2026, 10, 11, 14, 0, 0) / 1000;
@@ -296,6 +297,15 @@ export const REGISTRIES: ImageRegistry[] = [
   registry("ubuntu", "https://cloud-images.ubuntu.com/releases", "Ubuntu releases"),
   registry("ubuntu-minimal", "https://cloud-images.ubuntu.com/minimal/releases", "Ubuntu minimal releases"),
   registry("lab-mirror", "https://mirror.example.org/images", "Team mirror", false),
+];
+
+// users: cluster roles, and project users with grants (D81)
+export const USERS: User[] = [
+  { username: "admin", role: "admin", grants: {} },
+  { username: "auditor", role: "viewer", grants: {} },
+  { username: "dana", role: "project", grants: { web: "admin" } },
+  { username: "ops-oncall", role: "project", grants: { web: "operator", lab: "operator" } },
+  { username: "student", role: "project", grants: { lab: "viewer" } },
 ];
 
 // placement groups (LXD 6.6+): keep the default project's services on separate hosts
@@ -764,6 +774,7 @@ export function answer(method: string, url: URL): unknown {
     "/api/network-acls": [],
     "/api/network-allocations": [],
     "/api/image-registries": REGISTRIES,
+    "/api/users": USERS,
     "/api/placement-groups": PLACEMENT,
     "/api/networks/default/default": NETWORK_DETAIL,
     "/api/networks/default/default/state": NETWORK_STATE,

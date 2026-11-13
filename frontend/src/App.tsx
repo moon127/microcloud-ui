@@ -13,6 +13,7 @@ import ProfilesPage from "./pages/manage/ProfilesPage";
 import PlacementGroupsPage from "./pages/manage/PlacementGroupsPage";
 import ProjectPage from "./pages/manage/ProjectPage";
 import ProjectsPage from "./pages/manage/ProjectsPage";
+import UsersPage from "./pages/manage/UsersPage";
 import InstancesPage from "./pages/InstancesPage";
 import MemberPage from "./pages/MemberPage";
 import AclPage from "./pages/network/AclPage";
@@ -53,6 +54,7 @@ export function AppRoutes() {
         <Route path="profiles/:project/:name" element={<ProfilePage />} />
         <Route path="images" element={<ImagesPage />} />
         <Route path="projects" element={<ProjectsPage />} />
+        <Route path="users" element={<UsersPage />} />
         <Route path="projects/:name" element={<ProjectPage />} />
         <Route path="storage" element={<StoragePage />} />
         <Route path="storage/pools/new" element={<CreatePoolPage />} />

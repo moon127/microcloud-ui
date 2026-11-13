@@ -16,7 +16,6 @@ import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { formatBytes, formatNumber } from "../../format";
 import { MemberLink, UsedBy } from "../../links";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import MemberConfig from "../../MemberConfig";
 import YamlEditor from "../../YamlEditor";
@@ -24,6 +23,7 @@ import { asConfig } from "../instance/state";
 import Forwards from "./Forwards";
 import LoadBalancers from "./LoadBalancers";
 import { aclPath } from "./paths";
+import { useAccess } from "../../access";
 
 interface Draft {
   description: string;
@@ -34,13 +34,13 @@ export default function NetworkPage() {
   const { project = "default", name = "" } = useParams();
   const [params] = useSearchParams();
   const member = params.get("member") ?? undefined; // unmanaged interfaces belong to one member
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const net = useApi(`network:${project}/${name}:${member}:${version}`, () => fetchNetwork(project, name, member));
   const n = net.data;
   const managed = !!n?.managed;
-  const admin = user.role === "admin" && managed;
+  const admin = access.can(project, "manage") && managed;
   const features = useApi("server", fetchServer).data?.features ?? {};
   const [draft, setDraft] = useState<Draft | null>(null);
   const [problem, setProblem] = useState<string | null>(null);

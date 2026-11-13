@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { updateInstance, type InstanceFull, type InstanceUpdate } from "../../api";
 import { useActions } from "../../actions";
-import { useSession } from "../../session";
 import YamlEditor from "../../YamlEditor";
 import { asConfig, asDevices } from "./state";
+import { useAccess } from "../../access";
 
 function draftOf(inst: InstanceFull): InstanceUpdate {
   return {
@@ -29,11 +29,11 @@ const BOOL_KEYS: { key: string; label: string }[] = [
 ];
 
 export default function ConfigTab({ inst }: { inst: InstanceFull }) {
-  const { user } = useSession();
+  const access = useAccess();
   const { run } = useActions();
   const [draft, setDraft] = useState(() => draftOf(inst));
   const [problem, setProblem] = useState<string | null>(null);
-  const readOnly = user.role !== "admin";
+  const readOnly = !access.can(inst.project, "manage");
   const changed = JSON.stringify(draft) !== JSON.stringify(draftOf(inst));
 
   const setKey = (key: string, value: string) =>

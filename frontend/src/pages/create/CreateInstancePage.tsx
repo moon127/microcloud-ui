@@ -15,18 +15,21 @@ import {
 } from "../../api";
 import { useActions } from "../../actions";
 import { instancePath } from "../../paths";
-import { useProject } from "../../project";
-import { useSession } from "../../session";
+import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import ImagePicker from "./ImagePicker";
 import { buildRequest, emptyForm, problems, type CreateForm, type ExtraDisk, type Nic } from "./request";
+import { manageable, useAccess } from "../../access";
 
 export default function CreateInstancePage() {
-  const { user } = useSession();
-  const { project: current } = useProject();
+  const access = useAccess();
+  const current = useCurrentProject();
   const { run } = useActions();
   const navigate = useNavigate();
-  const [f, setF] = useState<CreateForm>(() => emptyForm(current || "default"));
+  // a project user creates where they're a project admin
+  const [f, setF] = useState<CreateForm>(() =>
+    emptyForm(access.can(current, "manage") ? current : (manageable(access.user)[0] ?? current)),
+  );
   const [tried, setTried] = useState(false);
   // the running create: its latest operation, or why it failed
   const [creating, setCreating] = useState<Progress | null>(null);
@@ -41,7 +44,7 @@ export default function CreateInstancePage() {
   );
   const networks = useApi(`networks:${f.project}`, () => fetchNetworks(f.project));
 
-  if (user.role !== "admin") return <p role="alert">Creating instances needs the admin role.</p>;
+  if (!access.canManageSomewhere()) return <p role="alert">Creating instances needs the admin role in a project.</p>;
 
   const set = <K extends keyof CreateForm>(k: K, v: CreateForm[K]) => setF((x) => ({ ...x, [k]: v }));
   const busy = !!creating && !creating.error;
@@ -80,7 +83,7 @@ export default function CreateInstancePage() {
           <label className="field">
             Project
             <select value={f.project} onChange={(e) => set("project", e.target.value)}>
-              {(projects.data ?? [{ name: f.project }]).map((p) => (
+              {(projects.data ?? [{ name: f.project }]).filter((p) => access.can(p.name, "manage")).map((p) => (
                 <option key={p.name}>{p.name}</option>
               ))}
             </select>

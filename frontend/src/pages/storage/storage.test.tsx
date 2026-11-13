@@ -173,7 +173,7 @@ describe("CreatePoolPage", () => {
 
   it("needs the admin role", () => {
     routes("/storage/pools/new", viewer());
-    expect(screen.getByRole("alert")).toHaveTextContent("needs the admin role");
+    expect(screen.getByRole("alert")).toHaveTextContent("needs the cluster admin role");
   });
 });
 

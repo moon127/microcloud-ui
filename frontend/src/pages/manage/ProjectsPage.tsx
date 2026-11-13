@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router";
 import { createProject, fetchProjects } from "../../api";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
+import { useAccess } from "../../access";
 
 const FEATURES = [
   { key: "features.images", label: "Own images", on: true },
@@ -16,7 +16,7 @@ const FEATURES = [
 ];
 
 export default function ProjectsPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { version } = useActions();
   const { data, error } = useApi(`projects:${version}`, fetchProjects);
   const [creating, setCreating] = useState(false);
@@ -24,7 +24,7 @@ export default function ProjectsPage() {
   return (
     <>
       <h1>Projects</h1>
-      {user.role === "admin" && (
+      {access.clusterAdmin && (
         <p>
           <button type="button" className="primary" onClick={() => setCreating(true)}>
             Create project

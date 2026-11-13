@@ -5,8 +5,8 @@ import { useActions } from "../actions";
 import Confirm from "../Confirm";
 import { InstanceLink, MemberLink } from "../links";
 import { useProject } from "../project";
-import { useSession } from "../session";
 import { useApi } from "../useApi";
+import { useAccess } from "../access";
 
 const key = (i: Instance) => `${i.project}/${i.name}`;
 const uniq = (xs: string[]) => Array.from(new Set(xs.filter(Boolean))).sort();
@@ -18,7 +18,7 @@ const BULK: { action: StateAction; label: string }[] = [
 ];
 
 export default function InstancesPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { runAll, version } = useActions();
   const { project } = useProject();
   const { data, error } = useApi(`instances:${version}`, fetchInstances, 30_000);
@@ -29,7 +29,7 @@ export default function InstancesPage() {
   const [profile, setProfile] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const admin = user.role === "admin";
+  const admin = access.canManageSomewhere(project || undefined);
 
   const all = useMemo(() => (data ?? []).filter((i) => !project || i.project === project), [data, project]);
   const rows = useMemo(() => {

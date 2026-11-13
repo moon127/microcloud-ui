@@ -16,10 +16,10 @@ import {
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { formatBytes } from "../../format";
-import { useProject } from "../../project";
-import { useSession } from "../../session";
+import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import { NameDialog } from "../instance/Actions";
+import { useAccess } from "../../access";
 
 type Dialog =
   | { kind: "alias" | "edit" | "delete"; image: LocalImage }
@@ -30,13 +30,13 @@ type Dialog =
 const date = (s: string) => (s && !s.startsWith("0001") ? new Date(s).toLocaleDateString() : "–");
 
 export default function ImagesPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
-  const project = useProject().project || "default";
+  const project = useCurrentProject();
   const { data, error } = useApi(`images:${project}:${version}`, () => fetchLocalImages(project));
   const [dialog, setDialog] = useState<Dialog>(null);
   const file = useRef<HTMLInputElement>(null);
-  const admin = user.role === "admin";
+  const admin = access.can(project, "manage");
   const close = () => setDialog(null);
   const short = (i: LocalImage) => i.aliases[0] ?? i.fingerprint.slice(0, 12);
 
@@ -174,7 +174,7 @@ export default function ImagesPage() {
           }}
         />
       )}
-      <Registries admin={user.role === "admin"} />
+      <Registries admin={access.clusterAdmin} />
     </>
   );
 }

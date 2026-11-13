@@ -4,11 +4,11 @@ import { createProfile, deleteProfile, fetchProfile, renameProfile, updateProfil
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { UsedBy } from "../../links";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import YamlEditor from "../../YamlEditor";
 import { NameDialog } from "../instance/Actions";
 import { asConfig, asDevices } from "../instance/state";
+import { useAccess } from "../../access";
 
 interface Draft {
   description: string;
@@ -18,14 +18,14 @@ interface Draft {
 
 export default function ProfilePage() {
   const { project = "default", name = "" } = useParams();
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const profile = useApi(`profile:${project}/${name}:${version}`, () => fetchProfile(project, name));
   const [draft, setDraft] = useState<Draft | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [dialog, setDialog] = useState<"rename" | "copy" | "delete" | null>(null);
-  const admin = user.role === "admin";
+  const admin = access.can(project, "manage");
   const p = profile.data;
 
   // take the loaded values into the form as they arrive, during render rather than in an

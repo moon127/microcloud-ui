@@ -19,7 +19,6 @@ import {
 } from "../api";
 import { useActions } from "../actions";
 import Confirm from "../Confirm";
-import { useSession } from "../session";
 import MetricPanel from "../chart/MetricPanel";
 import { cpuModeSeries, nonZero, usedPercentSeries, type PanelQuery } from "../chart/panel";
 import { add, subtract } from "../chart/series";
@@ -29,6 +28,7 @@ import { evacuationRisks, membersOut, mixedCpus, restoreRisks, votersLeft } from
 import { useRange } from "../range";
 import RangePicker from "../RangePicker";
 import { useApi } from "../useApi";
+import { useAccess } from "../access";
 
 const fixed = (label: string) => () => label;
 const perSecond = (v: number) => `${formatNumber(v)}/s`;
@@ -366,7 +366,7 @@ function Progress({ name, label, op }: { name: string; label: string; op: Operat
 }
 
 function MemberActions({ name }: { name: string }) {
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const members = useApi(`members:${version}`, fetchMembers);
   const server = useApi("server", fetchServer);
@@ -381,7 +381,7 @@ function MemberActions({ name }: { name: string }) {
   // LXD 6.9+ refuses an evacuation that would cost the database its quorum, unless forced
   const canForce = !!server.data?.features.evacuation_force;
   if (!member) return null;
-  const admin = user.role === "admin";
+  const admin = access.clusterAdmin;
   const follow = (label: string, start: Parameters<typeof run>[1], onError?: (message: string) => void) => {
     setProgress({ label, op: null });
     void run(label, start, { onProgress: (op) => setProgress({ label, op }), onError }).finally(() => setProgress(null));

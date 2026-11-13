@@ -541,11 +541,23 @@ each route in the code):
   profiles or images with `default`'s, so the agreed sharing needs no special case. A
   project without its own storage volumes would likewise show `default`'s custom volumes,
   so projects for users should keep `features.storage.volumes=true`, LXD's default.
-- **6c, the UI:**
-  - a Users page (cluster admins): users, global role, project grants, and the
-    restricted-project rule
-  - navigation and pages for project users: hidden cluster pages, a project picker
-    limited to their projects, and controls shown by role
+- ✅ **6c, the UI** (2026-11-13):
+  - **`frontend/src/access.ts`** mirrors the server's rules. Every former
+    `role === "admin"` check is now the right question: operate or manage in the object's
+    project, or cluster admin.
+  - **A Users page** (cluster admins) to create, edit and delete users and to grant
+    projects. It warns before an operator or admin grant on an unrestricted project.
+  - **Navigation:** Storage, Ceph and Warnings only for global roles; Users only for
+    cluster admins.
+  - **The project picker** lists only the user's projects (the server filters it), and
+    pages needing one project fall back to the user's first (`useCurrentProject`).
+  - **An instance's Files and Console tabs** need operate. Its rename, copy, move,
+    publish and delete need manage. The Overview shows no hosts or members to project
+    users.
+  - **The create wizards** offer only projects where the user is admin.
+
+  Tested with fixtures (a project user's navigation, instance page and Overview; the Users
+  page; the access rules), and the Users page was checked visually from the demo cluster.
 - **6d, live checks:** two `mcui-test-*` projects (restricted), a project admin and
   an operator; check each refusal through the API and the UI, including the routes to the
   host and the event stream.

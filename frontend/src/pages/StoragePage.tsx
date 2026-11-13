@@ -6,9 +6,9 @@ import { poolSeries } from "../chart/panel";
 import { formatBytes } from "../format";
 import { useRange } from "../range";
 import RangePicker from "../RangePicker";
-import { useSession } from "../session";
 import { useApi } from "../useApi";
 import { poolPath } from "./storage/paths";
+import { useAccess } from "../access";
 
 export default function StoragePage() {
   const range = useRange();
@@ -49,14 +49,14 @@ export default function StoragePage() {
 
 
 function PoolList() {
-  const { user } = useSession();
+  const access = useAccess();
   const { version } = useActions();
   const { data, error } = useApi(`pools:${version}`, fetchStoragePools, 60_000);
   return (
     <>
       <h2>LXD storage pools</h2>
       <p className="actions">
-        {user.role === "admin" && (
+        {access.clusterAdmin && (
           <Link className="button primary" to="/storage/pools/new">
             Create pool
           </Link>

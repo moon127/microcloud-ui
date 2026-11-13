@@ -4,25 +4,25 @@ import { deleteAcl, fetchAcl, renameAcl, updateAcl, type AclBody, type AclRule }
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { UsedBy } from "../../links";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import { NameDialog } from "../instance/Actions";
 import { aclPath } from "./paths";
 import { emptyRule } from "./request";
 import RulesEditor from "./RulesEditor";
+import { useAccess } from "../../access";
 
 // LXD leaves empty fields out of a rule
 const full = (rules: AclRule[] | null): AclRule[] => (rules ?? []).map((r) => ({ ...emptyRule(), ...r }));
 
 export default function AclPage() {
   const { project = "default", name = "" } = useParams();
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const acl = useApi(`acl:${project}/${name}:${version}`, () => fetchAcl(project, name));
   const [draft, setDraft] = useState<AclBody | null>(null);
   const [dialog, setDialog] = useState<"rename" | "delete" | null>(null);
-  const admin = user.role === "admin";
+  const admin = access.can(project, "manage");
   const a = acl.data;
 
   // take the loaded values into the form as they arrive, during render rather than in an

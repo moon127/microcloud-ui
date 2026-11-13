@@ -14,8 +14,8 @@ import {
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { useApi } from "../../useApi";
-import { useSession } from "../../session";
 import { NameDialog } from "./Actions";
+import { useAccess } from "../../access";
 
 type Pending = { kind: "restore" | "delete" | "rename" | "clone" | "publish"; snap: Snapshot } | null;
 
@@ -32,9 +32,10 @@ const SCHEDULE = [
 ];
 
 export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
-  const { user } = useSession();
+  const access = useAccess();
   const { run } = useActions();
-  const admin = user.role === "admin";
+  const admin = access.can(inst.project, "operate"); // snapshots
+  const manage = access.can(inst.project, "manage"); // a new instance or an image from one
   const [pending, setPending] = useState<Pending>(null);
   const [name, setName] = useState(defaultName);
   const [expires, setExpires] = useState("");
@@ -82,12 +83,16 @@ export default function SnapshotsTab({ inst }: { inst: InstanceFull }) {
                       <button type="button" onClick={() => setPending({ kind: "rename", snap: s })}>
                         Rename
                       </button>
-                      <button type="button" onClick={() => setPending({ kind: "clone", snap: s })}>
-                        New instance
-                      </button>
-                      <button type="button" onClick={() => setPending({ kind: "publish", snap: s })}>
-                        Publish
-                      </button>
+                      {manage && (
+                        <>
+                          <button type="button" onClick={() => setPending({ kind: "clone", snap: s })}>
+                            New instance
+                          </button>
+                          <button type="button" onClick={() => setPending({ kind: "publish", snap: s })}>
+                            Publish
+                          </button>
+                        </>
+                      )}
                       <button type="button" className="danger" onClick={() => setPending({ kind: "delete", snap: s })}>
                         Delete
                       </button>

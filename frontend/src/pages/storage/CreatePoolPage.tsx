@@ -3,12 +3,12 @@ import { useNavigate } from "react-router";
 import { stringify } from "yaml";
 import { createPool, fetchMembers, fetchServer } from "../../api";
 import { useActions } from "../../actions";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import YamlEditor from "../../YamlEditor";
 import { asConfig } from "../instance/state";
 import { poolPath } from "./paths";
 import { buildPool, DRIVERS, emptyPool, FIELDS, LOCAL, poolProblems, SHARED, type PoolForm } from "./request";
+import { useAccess } from "../../access";
 
 const SOURCE_HINT: Record<string, string> = {
   dir: "Directory (blank: inside LXD's own directory)",
@@ -18,7 +18,7 @@ const SOURCE_HINT: Record<string, string> = {
 };
 
 export default function CreatePoolPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { run } = useActions();
   const navigate = useNavigate();
   const [f, setF] = useState<PoolForm>(emptyPool);
@@ -29,7 +29,7 @@ export default function CreatePoolPage() {
   const server = useApi("server", fetchServer);
   const names = (members.data ?? []).map((m) => m.name);
 
-  if (user.role !== "admin") return <p role="alert">Creating storage pools needs the admin role.</p>;
+  if (!access.clusterAdmin) return <p role="alert">Creating storage pools needs the cluster admin role.</p>;
 
   const set = <K extends keyof PoolForm>(k: K, v: PoolForm[K]) => setF((x) => ({ ...x, [k]: v }));
   const setOwn = (m: string, patch: Partial<{ source: string; size: string }>) =>

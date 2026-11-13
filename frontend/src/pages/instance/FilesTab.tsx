@@ -11,9 +11,9 @@ import {
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { formatBytes } from "../../format";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import { NameDialog } from "./Actions";
+import { useAccess } from "../../access";
 
 const join = (dir: string, name: string) => (dir === "/" ? `/${name}` : `${dir}/${name}`);
 
@@ -23,9 +23,9 @@ function crumbs(path: string): { label: string; path: string }[] {
 }
 
 export default function FilesTab({ inst }: { inst: InstanceFull }) {
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
-  const admin = user.role === "admin";
+  const admin = access.can(inst.project, "operate");
   const { project, name } = inst;
   const [path, setPath] = useState("/root");
   const [typed, setTyped] = useState(path);

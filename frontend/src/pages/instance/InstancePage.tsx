@@ -10,6 +10,7 @@ import FilesTab from "./FilesTab";
 import Graphs from "./Graphs";
 import LogsTab from "./LogsTab";
 import SnapshotsTab from "./SnapshotsTab";
+import { useAccess } from "../../access";
 
 const TABS = [
   { id: "overview", label: "Overview" },
@@ -24,7 +25,10 @@ export default function InstancePage() {
   const { project = "default", name = "" } = useParams();
   const [params, setParams] = useSearchParams();
   const { version } = useActions();
-  const tab = TABS.find((t) => t.id === params.get("tab"))?.id ?? "overview";
+  const access = useAccess();
+  // files and consoles can expose secrets: they need the operate right (D81)
+  const tabs = TABS.filter((t) => (t.id !== "console" && t.id !== "files") || access.can(project, "operate"));
+  const tab = tabs.find((t) => t.id === params.get("tab"))?.id ?? "overview";
   const info = useApi(`instance:${project}/${name}:${version}`, () => fetchInstance(project, name));
   const inst = info.data;
 
@@ -48,7 +52,7 @@ export default function InstancePage() {
       {info.error && <p role="alert">{info.error}</p>}
       {inst && <Actions inst={inst} />}
       <nav className="tabs" aria-label="Instance sections">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.id}
             type="button"

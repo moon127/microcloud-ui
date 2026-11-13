@@ -19,6 +19,7 @@ import { useSession } from "../session";
 import { useApi } from "../useApi";
 import { InstanceLink } from "../links";
 import HostsSection from "./Hosts";
+import { useAccess } from "../access";
 
 const DEFAULT_INTERVAL_S = 15;
 
@@ -28,6 +29,7 @@ function message(e: unknown): string {
 
 export default function Overview() {
   const { onExpired } = useSession();
+  const access = useAccess();
   const [server, setServer] = useState<ServerInfo | null>(null);
   const [live, setLive] = useState<LiveMetrics | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -103,12 +105,17 @@ export default function Overview() {
         )}
       </section>
 
-      <HostsSection />
+      {/* hosts and members are cluster-wide: not for project users (D81) */}
+      {access.cluster && (
+        <>
+          <HostsSection />
 
-      <section aria-label="Members">
-        <h2>Members</h2>
-        {live ? <MembersTable members={live.members} /> : <p role="status">Loading metrics…</p>}
-      </section>
+          <section aria-label="Members">
+            <h2>Members</h2>
+            {live ? <MembersTable members={live.members} /> : <p role="status">Loading metrics…</p>}
+          </section>
+        </>
+      )}
 
       <TopSection />
 

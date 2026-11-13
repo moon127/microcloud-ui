@@ -3,16 +3,16 @@ import { Link, useNavigate } from "react-router";
 import { createVolume, fetchMembers, fetchStoragePools, fetchVolumes, volumeTarget, type NewVolume, type PoolDriver } from "../../api";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
-import { useProject } from "../../project";
-import { useSession } from "../../session";
+import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import { volumePath } from "./paths";
 import { LOCAL } from "./request";
+import { useAccess } from "../../access";
 
 export default function VolumesPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { version } = useActions();
-  const project = useProject().project || "default";
+  const project = useCurrentProject();
   const { data, error } = useApi(`volumes:${project}:${version}`, () => fetchVolumes(project), 60_000);
   const [pool, setPool] = useState("");
   const [creating, setCreating] = useState(false);
@@ -22,7 +22,7 @@ export default function VolumesPage() {
     <>
       <h1>Custom volumes in {project}</h1>
       <p className="actions">
-        {user.role === "admin" && (
+        {access.can(project, "manage") && (
           <button type="button" className="primary" onClick={() => setCreating(true)}>
             Create volume
           </button>

@@ -36,6 +36,8 @@ export const PAGES: { file: string; path: string; wait?: string; full?: boolean;
   // LXD 6 (MicroCloud 3.4) only
   { file: "placement-groups.png", path: "/placement-groups", wait: "infra-spread" },
   { file: "load-balancers.png", path: "/networks/default/default", wait: "198.51.100.10", full: true },
+  // users and project access (D81)
+  { file: "users.png", path: "/users", wait: "ops-oncall" },
 ];
 
 async function main() {

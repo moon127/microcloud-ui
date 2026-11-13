@@ -15,9 +15,9 @@ import {
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { instancePath } from "../../paths";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import { stateActions } from "./state";
+import { useAccess } from "../../access";
 
 type Dialog = "delete" | "rename" | "copy" | "move" | "publish" | null;
 
@@ -30,12 +30,13 @@ const LABEL: Record<StateAction, string> = {
 };
 
 export default function Actions({ inst }: { inst: InstanceFull }) {
-  const { user } = useSession();
+  const access = useAccess();
   const { run } = useActions();
   const navigate = useNavigate();
   const [dialog, setDialog] = useState<Dialog>(null);
-  if (user.role !== "admin") return null;
   const { project, name } = inst;
+  if (!access.can(project, "operate")) return null;
+  const manage = access.can(project, "manage"); // rename, copy, move, publish, delete
   const close = () => setDialog(null);
 
   return (
@@ -50,21 +51,25 @@ export default function Actions({ inst }: { inst: InstanceFull }) {
           Force stop
         </button>
       )}
-      <button type="button" onClick={() => setDialog("rename")}>
-        Rename
-      </button>
-      <button type="button" onClick={() => setDialog("copy")}>
-        Copy
-      </button>
-      <button type="button" onClick={() => setDialog("move")}>
-        Move
-      </button>
-      <button type="button" onClick={() => setDialog("publish")}>
-        Publish image
-      </button>
-      <button type="button" className="danger" onClick={() => setDialog("delete")}>
-        Delete
-      </button>
+      {manage && (
+        <>
+          <button type="button" onClick={() => setDialog("rename")}>
+            Rename
+          </button>
+          <button type="button" onClick={() => setDialog("copy")}>
+            Copy
+          </button>
+          <button type="button" onClick={() => setDialog("move")}>
+            Move
+          </button>
+          <button type="button" onClick={() => setDialog("publish")}>
+            Publish image
+          </button>
+          <button type="button" className="danger" onClick={() => setDialog("delete")}>
+            Delete
+          </button>
+        </>
+      )}
 
       {dialog === "delete" && (
         <Confirm

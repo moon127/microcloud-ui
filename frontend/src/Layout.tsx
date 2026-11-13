@@ -4,22 +4,26 @@ import { useProject } from "./project";
 import { applyTheme, THEMES, useThemeChoice, type Theme } from "./theme";
 import { useSession } from "./session";
 import { useApi } from "./useApi";
+import { useAccess } from "./access";
 
-const NAV = [
+// who sees each page: everyone, a global role ("cluster"), or a cluster admin (D81)
+const NAV: { to: string; label: string; end?: boolean; who?: "cluster" | "admin" }[] = [
   { to: "/", label: "Overview", end: true },
   { to: "/instances", label: "Instances" },
   { to: "/profiles", label: "Profiles" },
   { to: "/images", label: "Images" },
   { to: "/projects", label: "Projects" },
-  { to: "/storage", label: "Storage" },
-  { to: "/ceph", label: "Ceph" },
+  { to: "/storage", label: "Storage", who: "cluster" },
+  { to: "/ceph", label: "Ceph", who: "cluster" },
   { to: "/networks", label: "Networks" },
   { to: "/operations", label: "Operations" },
-  { to: "/warnings", label: "Warnings" },
+  { to: "/warnings", label: "Warnings", who: "cluster" },
+  { to: "/users", label: "Users", who: "admin" },
 ];
 
 export default function Layout() {
   const { user, onLogout } = useSession();
+  const access = useAccess();
   const { project, setProject } = useProject();
   const projects = useApi("projects", fetchProjects, 300_000);
   return (
@@ -27,7 +31,7 @@ export default function Layout() {
       <header className="topbar">
         <strong>microcloud-ui</strong>
         <nav aria-label="Main">
-          {NAV.map((n) => (
+          {NAV.filter((n) => !n.who || (n.who === "cluster" ? access.cluster : access.clusterAdmin)).map((n) => (
             <NavLink key={n.to} to={n.to} end={n.end}>
               {n.label}
             </NavLink>

@@ -10,11 +10,11 @@ import { MemberLink, UsedBy } from "../../links";
 import MemberConfig from "../../MemberConfig";
 import { useRange } from "../../range";
 import RangePicker from "../../RangePicker";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import YamlEditor from "../../YamlEditor";
 import { asConfig } from "../instance/state";
 import { LOCAL } from "./request";
+import { useAccess } from "../../access";
 
 interface Draft {
   description: string;
@@ -23,7 +23,7 @@ interface Draft {
 
 export default function PoolPage() {
   const { name = "" } = useParams();
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const range = useRange();
@@ -32,7 +32,7 @@ export default function PoolPage() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const admin = user.role === "admin";
+  const admin = access.clusterAdmin;
   const p = pool.data;
 
   // take the loaded values into the form as they arrive, during render rather than in an

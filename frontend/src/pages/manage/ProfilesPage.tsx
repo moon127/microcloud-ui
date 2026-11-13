@@ -2,23 +2,23 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { createProfile, fetchProfiles } from "../../api";
 import { useActions } from "../../actions";
-import { useProject } from "../../project";
-import { useSession } from "../../session";
+import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import { NameDialog } from "../instance/Actions";
+import { useAccess } from "../../access";
 
 export default function ProfilesPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
-  const project = useProject().project || "default";
+  const project = useCurrentProject();
   const { data, error } = useApi(`profiles:${project}:${version}`, () => fetchProfiles(project));
   const [creating, setCreating] = useState(false);
 
   return (
     <>
       <h1>Profiles in {project}</h1>
-      {user.role === "admin" && (
+      {access.can(project, "manage") && (
         <p>
           <button type="button" className="primary" onClick={() => setCreating(true)}>
             Create profile

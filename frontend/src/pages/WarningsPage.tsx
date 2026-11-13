@@ -2,15 +2,15 @@ import { useState } from "react";
 import { deleteWarning, fetchWarnings, setWarningStatus, type LxdWarning } from "../api";
 import { useActions } from "../actions";
 import Confirm from "../Confirm";
-import { useSession } from "../session";
 import { useApi } from "../useApi";
+import { useAccess } from "../access";
 
 export default function WarningsPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const { data, error } = useApi(`warnings:${version}`, fetchWarnings, 60_000);
   const [deleting, setDeleting] = useState<LxdWarning | null>(null);
-  const admin = user.role === "admin";
+  const admin = access.clusterAdmin;
 
   return (
     <>

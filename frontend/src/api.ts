@@ -15,6 +15,19 @@ export interface User {
   grants?: Record<string, ProjectRole>;
 }
 
+// --- users and project grants (cluster admins; AU-2, D81) -------------------------------
+export const fetchUsers = () => api<User[]>("/api/users");
+const userPath = (u: string) => `/api/users/${encodeURIComponent(u)}`;
+export const createUser = (username: string, password: string, role: Role) =>
+  send<User>("POST", "/api/users", { username, password, role });
+export const updateUser = (username: string, change: { role?: Role; password?: string }) =>
+  send<User>("PATCH", userPath(username), change);
+export const deleteUser = (username: string) => send<void>("DELETE", userPath(username));
+export const setGrant = (username: string, project: string, role: ProjectRole) =>
+  send<User>("PUT", `${userPath(username)}/grants/${encodeURIComponent(project)}`, { role });
+export const removeGrant = (username: string, project: string) =>
+  send<User>("DELETE", `${userPath(username)}/grants/${encodeURIComponent(project)}`);
+
 export interface Me {
   user: User;
   csrf: string;

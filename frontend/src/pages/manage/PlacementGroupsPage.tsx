@@ -12,9 +12,9 @@ import {
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { instancePath } from "../../paths";
-import { useProject } from "../../project";
-import { useSession } from "../../session";
+import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
+import { useAccess } from "../../access";
 
 const POLICIES = {
   spread: "spread: one instance per member where possible",
@@ -29,9 +29,9 @@ type Editing = { name: string; body: PlacementGroupBody; isNew: boolean };
 
 /** Placement groups (LXD 6.6+, Phase 5b). Instances join one through ``placement.group``. */
 export default function PlacementGroupsPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
-  const project = useProject().project || "default";
+  const project = useCurrentProject();
   const server = useApi("server", fetchServer);
   const supported = !!server.data?.features.placement_groups;
   const { data, error } = useApi(`placement-groups:${project}:${version}:${supported}`, () =>
@@ -39,7 +39,7 @@ export default function PlacementGroupsPage() {
   );
   const [editing, setEditing] = useState<Editing | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
-  const admin = user.role === "admin";
+  const admin = access.can(project, "manage");
 
   if (server.data && !supported) {
     return (

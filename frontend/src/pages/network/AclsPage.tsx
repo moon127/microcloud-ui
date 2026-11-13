@@ -2,17 +2,17 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { createAcl, fetchAcls } from "../../api";
 import { useActions } from "../../actions";
-import { useProject } from "../../project";
-import { useSession } from "../../session";
+import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import { NameDialog } from "../instance/Actions";
 import { aclPath } from "./paths";
+import { useAccess } from "../../access";
 
 export default function AclsPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
-  const project = useProject().project || "default";
+  const project = useCurrentProject();
   const { data, error } = useApi(`acls:${project}:${version}`, () => fetchAcls(project));
   const [creating, setCreating] = useState(false);
   return (
@@ -22,7 +22,7 @@ export default function AclsPage() {
         Attach an ACL to a network on the network's page, or to an OVN NIC with its <code>security.acls</code> key.{" "}
         <Link to="/networks">Networks</Link>
       </p>
-      {user.role === "admin" && (
+      {access.can(project, "manage") && (
         <p>
           <button type="button" className="primary" onClick={() => setCreating(true)}>
             Create ACL

@@ -3,13 +3,13 @@ import { useNavigate } from "react-router";
 import { stringify } from "yaml";
 import { createNetwork, fetchMembers, fetchNetworks, fetchServer, type NetworkType } from "../../api";
 import { useActions } from "../../actions";
-import { useProject } from "../../project";
-import { useSession } from "../../session";
+import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import YamlEditor from "../../YamlEditor";
 import { asConfig } from "../instance/state";
 import { networkPath } from "./paths";
 import { buildNetwork, emptyNetwork, fieldsFor, MEMBER_KEY, networkProblems, type NetworkForm } from "./request";
+import { useAccess } from "../../access";
 
 const TYPES: { type: NetworkType; label: string; note: string }[] = [
   { type: "bridge", label: "Bridge", note: "A Linux bridge on each member, with LXD's DHCP/DNS and NAT" },
@@ -19,11 +19,11 @@ const TYPES: { type: NetworkType; label: string; note: string }[] = [
 ];
 
 export default function CreateNetworkPage() {
-  const { user } = useSession();
+  const access = useAccess();
   const { run } = useActions();
   const navigate = useNavigate();
-  const { project: current } = useProject();
-  const [f, setF] = useState<NetworkForm>(() => emptyNetwork(current || "default"));
+  const current = useCurrentProject();
+  const [f, setF] = useState<NetworkForm>(() => emptyNetwork(current));
   const [tried, setTried] = useState(false);
   const [extraProblem, setExtraProblem] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export default function CreateNetworkPage() {
   );
   const features = useApi("server", fetchServer).data?.features ?? {};
 
-  if (user.role !== "admin") return <p role="alert">Creating networks needs the admin role.</p>;
+  if (!access.can(f.project, "manage")) return <p role="alert">Creating networks needs the admin role in {f.project}.</p>;
 
   const set = <K extends keyof NetworkForm>(k: K, v: NetworkForm[K]) => setF((x) => ({ ...x, [k]: v }));
   const setField = (k: string, v: string) => set("fields", { ...f.fields, [k]: v });

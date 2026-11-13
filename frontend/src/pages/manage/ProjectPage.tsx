@@ -3,15 +3,15 @@ import { useNavigate, useParams } from "react-router";
 import { deleteProject, fetchProject, renameProject, updateProject } from "../../api";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
-import { useSession } from "../../session";
 import { useApi } from "../../useApi";
 import YamlEditor from "../../YamlEditor";
 import { NameDialog } from "../instance/Actions";
 import { asConfig } from "../instance/state";
+import { useAccess } from "../../access";
 
 export default function ProjectPage() {
   const { name = "" } = useParams();
-  const { user } = useSession();
+  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const proj = useApi(`project:${name}:${version}`, () => fetchProject(name));
@@ -19,7 +19,7 @@ export default function ProjectPage() {
   const [config, setConfig] = useState<Record<string, string>>({});
   const [problem, setProblem] = useState<string | null>(null);
   const [dialog, setDialog] = useState<"rename" | "delete" | null>(null);
-  const admin = user.role === "admin";
+  const admin = access.clusterAdmin;
   const p = proj.data;
   const isDefault = name === "default";
 
