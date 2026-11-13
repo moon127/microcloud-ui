@@ -171,9 +171,10 @@ Live tests (D41): everything inside a throwaway LXD in a `mcui-test` VM, which a
 Renumbered 2026-11-12 (D73): MicroCloud 3.4 LTS support became Phase 5, so the earlier
 Phases 5, 6 and 7 are now 6, 7 and 8. Decisions D58 and D63–D65 keep the old numbers.
 
-**Phase 5: MicroCloud 3.4 LTS. Agreed 2026-11-12; starts after the owner's cluster
-upgrade.** Make the app fully support MicroCloud 3.4 LTS while still working with
-MicroCloud 2.1 LTS, which the test cloud runs today.
+**Phase 5: MicroCloud 3.4 LTS. ✅ Done 2026-11-13** (agreed 2026-11-12). The app fully
+supports MicroCloud 3.4 LTS and still works with MicroCloud 2.x. Checked live on the
+upgraded test cloud. The last compatibility items were checked against its recording
+(`recorded-6.10-cluster`) and needed no code changes.
 
 *What changes underneath* (release notes read 2026-11-12):
 
@@ -312,7 +313,9 @@ LTS releases and checked live on 3.4.
   forwards, load balancers, peers, zones, and profile PUT/PATCH; project delete followed
   in 6.7. The backend (`operations.start`) and the frontend (`actions.ts`) already follow
   operations, so this is mainly checking every form waits for the result and shows its
-  errors.
+  errors. ✅ Checked 2026-11-13: every change call in the frontend goes through `run` or
+  `runAll` (including the member page's `follow` and the Instances page's `bulk`), which
+  follow the operation to its end and report its error.
 - ✅ **Operation targets:** an operation's `resources` is now empty; the target is in
   `entity_url` (and `original_entity_url` after a rename). The operations page, toasts
   and audit log should use it. Show child operations (`recursion=2`, `child_count`).
@@ -323,28 +326,34 @@ LTS releases and checked live on 3.4.
     wizard's "Secure boot" off sends `boot.mode=uefi-nosecureboot` there
     (`instance_boot_mode`), `security.secureboot=false` on 5.21. VM disks use virtiofs
     instead of 9p (nothing in the UI sets 9p).
-  - Gone: `cluster.healing_threshold`, `nvidia.*`, `maas.*` and `fan.type=ipip`.
-  - The `event-hub` member role becomes `control-plane`.
+  - ✅ Gone: `cluster.healing_threshold`, `nvidia.*`, `maas.*` and `fan.type=ipip`; nothing
+    in the app sets them (checked 2026-11-13).
+  - ✅ The `event-hub` member role becomes `control-plane`: roles are shown as LXD gives
+    them, and only the evacuation warning reads them (it looks for `database*`).
 - ✅ **Evacuate and restore:** LXD 6.9 refuses to evacuate a member when that would break
   the database quorum, unless forced (`clustering_evacuation_force`). Restore conflicts
   with a running evacuation. Show the refusal and offer "force" with a warning
   (fixture-tested; the owner runs it, D41).
-- **Metrics:** check that `/1.0/metrics` names still match (none are renamed in the
-  release notes). Memory "available" now counts reclaimable slab (6.9), so check the
-  memory figures.
+- ✅ **Metrics** (checked on `recorded-6.10-cluster`, 2026-11-13):
+  - Every `/1.0/metrics` name the app uses is still exported. 6.10 adds
+    `lxd_memory_SReclaimable_bytes` and `lxd_replicators`; none were removed.
+  - Instance memory used is total minus available. Since 6.9 "available" counts
+    reclaimable slab, so "used" is slightly lower and closer to what `free` shows.
+    Sensible on the cluster, so no change.
 - **Ceph Tentacle:** the mgr Prometheus module no longer exports daemon perf counters by
   default; `ceph-exporter` does. So the OSD apply/commit and per-op latency graphs
   (MO-7a) go blank unless `mgr/prometheus/exclude_perf_counters` is set to false (one
   `ceph config set`, owner's call; MicroCeph runs no `ceph-exporter`, see below). Hide
   those views with a hint when the counters are missing.
-  Check the RBD image stats and the remaining metric names on the live cluster;
-  `docs/CEPH-METRICS.md` follows.
+  ✅ Checked on the live cluster (2026-11-13): the eight `ceph_rbd_*` series are as on
+  Squid. Every one of its 41 RBD images maps to its LXD owner (17 instances, 23 image
+  volumes, 1 other). Tentacle adds `ceph_rbd_image_metadata`, which isn't needed.
 - ✅ **`mcui check`:** each member's LXD version and LTS track, a warning for mixed
   versions and for releases missing the October 2026 TLS fix (5.21.8 today).
 - ✅ **Ceph page without perf counters** (5.1): hides OSD used/size and per-op latency with
   the fix.
-- **Hosts on Ubuntu 26.04** (if the owner upgrades them): node_exporter from 26.04 and
-  `docs/HOST-METRICS.md`.
+- ✅ **Hosts on Ubuntu 26.04:** node_exporter 1.10.2 from 26.04 fills the same 17 host
+  fields as 1.7.0 on 24.04, and exports all 26 `node_*` metrics the app uses.
 
 **5b What LXD 6 adds** (each behind its `api_extensions` flag). The owner chose
 (2026-11-12) placement groups, image registries, OVN load balancers, child operations

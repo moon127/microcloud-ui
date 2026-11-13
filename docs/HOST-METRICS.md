@@ -18,6 +18,8 @@ what the graphs use, as listed in decision D58 in `agents.md`.
 
 ## Install (Ubuntu 24.04/26.04)
 
+Checked with node_exporter 1.7.0 (24.04) and 1.10.2 (26.04): the app reads the same metrics from both.
+
 Install it from apt, not the snap store:
 
 ```bash

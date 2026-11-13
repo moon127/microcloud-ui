@@ -242,6 +242,10 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 5 done 2026-11-13:** the last compatibility items checked against the cluster
+  recording: metric names and memory, removed settings and the `control-plane` role,
+  node_exporter on 26.04, Ceph RBD stats, and every change following its operation. None
+  needed a code change.
 - **0.1.10 released 2026-11-13:** bulk actions under one toast (D78), OSD % used against
   nearfull/full (D79), the frontend upgrades. `main` is now 0.1.11.dev0.
 - **Bulk actions under one toast 2026-11-13 (D78)**; owner-tested on the edge build.
