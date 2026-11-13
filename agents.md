@@ -248,6 +248,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.3.1 released 2026-11-13** (run 43505336327): Ceph <-> local storage moves (D85).
+  `main` is now 0.3.2.dev0.
 - **Ceph <-> local storage moves, 2026-11-13 (D85):** proven on a throwaway cluster (VMs
   `mcui-test-lc`/`-lc2`: LXD 6.10.1 clustered, MicroCeph squid with loop OSDs, ZFS `local`
   and Ceph `remote` pools; `mcui-test` limits raised for the run and restored; VMs and the
