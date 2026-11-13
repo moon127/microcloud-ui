@@ -97,7 +97,17 @@ refuses them in any project with `restricted` or `limits.*` set. Only
 restricted project: it also lets the project's users set `raw.lxc` and similar, which
 reach the host. LXD still refused a backup edited to be privileged, with low-level
 options allowed (CVE-2026-34178, fixed in 6.8, was a bypass of exactly that check). The
-import dialog warns when a project is affected. Volume backups aren't affected: they
+import dialog warns when a project is affected.
+
+**The way round:** a cluster admin imports the backup into an unrestricted project without
+`limits.*` (one kept for the purpose, for example), then moves the instance into the
+restricted project (**Move** → To project, with it stopped). The move checks the target's
+restrictions without the `volatile.*` keys, and still refuses a privileged instance.
+Checked on LXD 6.10.1 on 2026-11-13.
+
+**Moving between projects:** a project admin can move a stopped instance to another
+project where they're also an admin. Its snapshots go with it only if the target allows
+snapshots; otherwise leave them behind, which deletes them with the original. Volume backups aren't affected: they
 import into a restricted project.
 
 Keep **own storage volumes** (`features.storage.volumes=true`, LXD's default for new

@@ -74,7 +74,8 @@ export default function ImportBackup({ project: initial, onClose }: { project: s
           {project} has limits or restrictions, so LXD will probably refuse the import: it counts the backup&apos;s own{" "}
           <code>volatile.*</code> keys as low-level options. It works with{" "}
           <code>restricted.containers.lowlevel=allow</code>, which is harmless in an unrestricted project but in a
-          restricted one also lets its users set <code>raw.lxc</code> and reach the host.
+          restricted one also lets its users set <code>raw.lxc</code> and reach the host. Instead, import into an
+          unrestricted project without limits and move the instance across (stopped); LXD still checks it there.
         </p>
       )}
       {problem && <p role="alert">{problem}</p>}

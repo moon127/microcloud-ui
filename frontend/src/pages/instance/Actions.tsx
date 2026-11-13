@@ -217,6 +217,7 @@ function MoveDialog({ inst, onClose }: { inst: InstanceFull; onClose: () => void
       onCancel={onClose}
       onConfirm={() => {
         if (!target && !pool && !project) return;
+        if (project && running) return; // LXD refuses it, with a message about pools
         onClose();
         const opts = {
           target: target || undefined,

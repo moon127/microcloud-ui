@@ -641,7 +641,7 @@ turned out to need.
   pool. When the project is restricted without `restricted.backups=allow`, say so instead of
   offering Create.
 - ✅ 2026-11-13 **7b, volume backups (ST-4):** the same on the volume page; import as a new volume.
-- 🟡 2026-11-13 built, live check pending **7c, moving instances between projects (IN-6):** the Move dialog gets a target project
+- ✅ 2026-11-13 **7c, moving instances between projects (IN-6):** the Move dialog gets a target project
   (with LXD's `instance_project_move`), offered only where the user can manage. Live: the
   owner's second project, plus the restriction checks above.
 - ✅ 2026-11-13 **7d, ISO upload (IM-3):** Storage → Volumes → Upload ISO (project, pool, name, file;
@@ -656,8 +656,9 @@ turned out to need.
 *Found in 7a (live, LXD 6.10.1):* importing a backup into any project with `limits.*` or
 `restricted` is refused: LXD counts the backup's own `volatile.*` keys as low-level options.
 `restricted.containers.lowlevel=allow` lets it through, but on a restricted project that
-also opens `raw.lxc`. A crafted privileged backup was still refused. 7c checks whether a
-move into a restricted project works, as the way round.
+also opens `raw.lxc`. A crafted privileged backup was still refused. 7c found the way round
+(live): import into an unrestricted project without limits, then move the instance into the
+restricted one; a privileged instance is refused on the move.
 
 *Watch:* backups live on the member that holds the instance, under its
 `storage.backups_volume` (unset on the test cloud, so the member's root disk). Large backups

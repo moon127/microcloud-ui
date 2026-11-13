@@ -176,7 +176,7 @@ describe("instance actions", () => {
     expect(move).toHaveBeenCalledWith("default", "c1", { target: undefined, pool: "remote", live: false });
   });
 
-  it("moves to another project it can manage, stopped, and follows it there", async () => {
+  it("offers the projects it can manage, and won't move a running instance", async () => {
     vi.spyOn(api, "fetchProjects").mockResolvedValue([
       { name: "default", description: "", config: {}, used_by: [] },
       { name: "web", description: "", config: { restricted: "true" }, used_by: [] },
@@ -192,6 +192,21 @@ describe("instance actions", () => {
     fireEvent.change(to, { target: { value: "web" } });
     expect(dialog().getByRole("alert")).toHaveTextContent("Stop c1 first");
     expect(dialog().queryByText(/moved cold/)).toBeNull();
+    fireEvent.click(dialog().getByLabelText(/Leave its 2 snapshots behind/));
+    fireEvent.click(dialog().getByRole("button", { name: "Move" }));
+    expect(move).not.toHaveBeenCalled(); // running: not sent
+  });
+
+  it("moves a stopped instance to another project and follows it there", async () => {
+    vi.spyOn(api, "fetchProjects").mockResolvedValue([
+      { name: "default", description: "", config: {}, used_by: [] },
+      { name: "web", description: "", config: { restricted: "true" }, used_by: [] },
+    ]);
+    const move = vi.spyOn(api, "moveInstance").mockResolvedValue(ok);
+    open(full({ status: "Stopped" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Move" }));
+    fireEvent.change(await dialog().findByLabelText("To project"), { target: { value: "web" } });
+    expect(dialog().queryByRole("alert")).toBeNull();
     fireEvent.click(dialog().getByLabelText(/Leave its 2 snapshots behind/));
     fireEvent.click(dialog().getByRole("button", { name: "Move" }));
     expect(move).toHaveBeenCalledWith("default", "c1", { target: undefined, pool: undefined, project: "web", instance_only: true });

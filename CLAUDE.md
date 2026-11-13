@@ -42,7 +42,9 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
   screenshots. Use 192.0.2.x, 198.51.100.x and 2001:db8::. Screenshots come only from the
   invented demo cluster (`make screenshots`, D59). Recorded fixtures are scrubbed (D26).
 - **Live cluster limits (D41):**
-  - Anything that changes the real cluster happens only in LXD project **`mcui-test`**.
+  - Anything that changes the real cluster happens only in LXD project **`mcui-test`**,
+    or in **`mcui-test-2`** (created 2026-11-13 with the owner's consent, for moves between
+    projects; restricted, same limits). Restore either's config after changing it.
   - Outside it, the agreed exceptions are `mcui-test-*` ACLs, network forwards and a bridge
     network, and (2026-11-13) OVN load balancers and pools for tests on one of the owner's
     OVN networks, e.g. `legacy-infra`; delete them after the run.
