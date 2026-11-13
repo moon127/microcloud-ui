@@ -337,8 +337,9 @@ function EvacuationWarnings({ name, members, instances, cpus, mode }: {
           {Object.entries(cpus)
             .map(([m, c]) => `${m}: ${c}`)
             .join("; ")}
-          ), and a VM moved to a newer CPU can&apos;t live-migrate back, so the restore would fail. Choose
-          &quot;migrate (cold)&quot;, or set <code>cluster.evacuate=migrate</code> on them.
+          ). A running VM can only live-migrate to a CPU at least as new as the one it started on, so a move to an
+          older CPU fails, now or when the member is restored. Choose &quot;migrate (cold)&quot;, or set{" "}
+          <code>cluster.evacuate=migrate</code> on them.
         </p>
       )}
     </>

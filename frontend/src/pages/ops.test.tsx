@@ -270,6 +270,8 @@ describe("member evacuate and restore", () => {
     expect(out).toHaveTextContent("every instance would run on m3, and the database would rest on 1 online voter");
     const cpus = await within(dlg).findByText(/These VMs would live-migrate: cos\./);
     expect(cpus).toHaveTextContent("m3: Xeon D-2123IT");
+    // both directions: out of the newer CPU now, or back to an older one at restore
+    expect(cpus).toHaveTextContent("a move to an older CPU fails, now or when the member is restored");
     // a cold move avoids it
     fireEvent.change(within(dlg).getByLabelText("Mode"), { target: { value: "migrate" } });
     expect(within(dlg).queryByText(/would live-migrate/)).toBeNull();
