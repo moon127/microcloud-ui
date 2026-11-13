@@ -244,6 +244,10 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 6d done 2026-11-13 (D81):** live on the test cloud (`mcui-test` restricted for
+  the run, `default` as the other project, read-only). Found that LXD's operations and
+  allocations name their project only in URLs (`mcui/lxd/entities.py`). Next: 6e docs,
+  then 0.2.0.
 - **Phase 6c done 2026-11-13 (D81):** the UI follows the user's rights (`access.ts`), with
   a Users page and navigation and pages by role. Next: 6d live checks on the cluster,
   which the owner asked for.

@@ -88,6 +88,9 @@ describe("an instance by the user's right in its project", () => {
     expect(bar.getByRole("button", { name: "Stop" })).toBeInTheDocument();
     expect(bar.queryByRole("button", { name: "Delete" })).toBeNull();
     expect(bar.queryByRole("button", { name: "Rename" })).toBeNull();
+    // member pages are cluster-wide: the member is named, not linked
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("on m1");
+    expect(screen.queryByRole("link", { name: "m1" })).toBeNull();
   });
 
   it("project admins get everything; a viewer grant gets nothing", async () => {
@@ -107,13 +110,14 @@ describe("an instance by the user's right in its project", () => {
 describe("the Overview for a project user", () => {
   it("has no hosts or members, which are cluster-wide", async () => {
     vi.spyOn(api, "fetchServer").mockResolvedValue({
-      version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "", features: {},
+      version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "https://192.0.2.1:8443", features: {},
     });
     vi.spyOn(api, "fetchLiveMetrics").mockResolvedValue({ scraped_at: 1, interval_seconds: 15, members: [], instances: [] });
     const hosts = vi.spyOn(api, "fetchHosts");
     vi.spyOn(api, "fetchTop").mockReturnValue(new Promise(() => {}));
     renderAt(<Overview />, { s: pat });
     expect(await screen.findByText(/LXD 6.10.1/)).toBeInTheDocument();
+    expect(screen.getByText(/LXD 6.10.1/)).not.toHaveTextContent("via");
     expect(screen.queryByRole("heading", { name: "Members" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Hosts" })).toBeNull();
     expect(hosts).not.toHaveBeenCalled();

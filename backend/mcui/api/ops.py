@@ -13,6 +13,7 @@ from mcui.api.wsproxy import UPSTREAM, Dedupe, ProjectEvents, authenticate, rela
 from mcui.auth.policy import Scope
 from mcui.lxd import operations
 from mcui.lxd.client import LXDError
+from mcui.lxd.entities import operation_project
 from mcui.lxd.server import members
 from mcui.services import Services
 
@@ -21,7 +22,10 @@ router = APIRouter(prefix="/api")
 
 @router.get("/operations")
 async def list_operations(scope: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
-    return scope.keep(await operations.list_all(lxd))
+    ops = await operations.list_all(lxd)
+    if scope.everything:
+        return ops
+    return [op for op in ops if scope.sees(operation_project(op) or "")]
 
 
 @router.get("/operations/{op_id}")
@@ -29,7 +33,7 @@ async def get_operation(op_id: str, scope: ScopeDep, lxd: LXDDep, wait: int = 0)
     """With ``wait`` > 0, block up to that many seconds (max 30) for completion. Another
     project's operation is "not found", checked before any wait."""
     op = await operations.get(lxd, op_id)
-    scope.require(str(op.get("project") or ""))
+    scope.require(operation_project(op) or "")
     if wait > 0:
         return await operations.wait(lxd, op_id, wait)
     return op

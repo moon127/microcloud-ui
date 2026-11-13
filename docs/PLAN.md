@@ -558,9 +558,33 @@ each route in the code):
 
   Tested with fixtures (a project user's navigation, instance page and Overview; the Users
   page; the access rules), and the Users page was checked visually from the demo cluster.
-- **6d, live checks:** two `mcui-test-*` projects (restricted), a project admin and
-  an operator; check each refusal through the API and the UI, including the routes to the
-  host and the event stream.
+- ✅ **6d, live checks** (2026-11-13, on the test cloud, owner's go-ahead):
+  - **Setup:** `mcui-test` made restricted for the run, with a scratch app and its own
+    user store: a project admin, an operator and a viewer of `mcui-test`.
+  - **The "other project":** the owner's `default`, which has real instances. It was only
+    read, or sent writes that had to be refused.
+  - **44 API checks passed:**
+    - the admin creates while LXD refuses a privileged container and a host-path disk
+    - the operator starts and stops but can't delete or create
+    - the viewer reads only
+    - `default`'s instance is "not found" to all three, for reads and writes
+    - lists, operations, allocations, metrics, audit and the cluster pages are as
+      designed
+  - **The event stream:** the operator got only `mcui-test` events, all of their own
+    work; the admin also saw LXD's internal "Synchronizing operations", which belong to
+    no project.
+  - **The UI in Chrome as each user:** navigation, picker, instance tabs and actions as
+    designed, with no refused request on any page.
+  - **Found and fixed:**
+    - LXD's operations and network allocations have **no `project` field**. The project
+      comes from the object URL: `metadata.entity_url` on 6.x, `resources` on 5.21,
+      `used_by` for allocations. See `mcui/lxd/entities.py`. The fixtures had assumed the
+      field, so the tests now use the real shapes.
+    - Member names are no longer links for project users.
+    - The Overview no longer shows them LXD's endpoint.
+  - **Cleanup:** the test container deleted and `mcui-test` restored exactly.
+
+  Steps to repeat: `docs/LIVE-TESTS.md` P1–P6.
 - **6e, docs:** `docs/CONFIGURATION.md` (users and grants), the README, the requirements
   (AU-2 extended, a new AU-5), and `docs/LIVE-TESTS.md`.
 

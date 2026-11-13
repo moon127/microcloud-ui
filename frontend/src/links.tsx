@@ -1,11 +1,14 @@
 import { Link } from "react-router";
 import { instancePath } from "./paths";
+import { useAccess } from "./access";
 
 export function InstanceLink({ project, name }: { project: string; name: string }) {
   return <Link to={instancePath(project, name)}>{project === "default" ? name : `${project}/${name}`}</Link>;
 }
 
 export function MemberLink({ name }: { name: string }) {
+  // member pages are cluster-wide: a project user gets the name only (D81)
+  if (!useAccess().cluster) return <>{name}</>;
   return <Link to={`/members/${encodeURIComponent(name)}`}>{name}</Link>;
 }
 

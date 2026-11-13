@@ -115,6 +115,22 @@ C2a on LXD 6.10 (2026-11-13, members 1 then 2):
 | H3 | A member page | “Host (node_exporter)” graphs (CPU by mode, memory with cache/swap/ARC, filesystems, disk I/O and busy, pressure); without it, a note and LXD's memory graph |
 | H4 | Load a host (`stress-ng --cpu 4 --timeout 60` in a sandbox container) | Host CPU rises within ~30 s and the CPU graph shows it as user time |
 
+## Project users (Phase 6, D81)
+
+Set `restricted=true` on a test project first (and restore it after); grant three project
+users there: admin, operator, viewer.
+
+| # | Steps | Expect |
+|---|---|---|
+| P1 | `mcui user grant <user> default admin` | Refused: `default` isn't restricted |
+| P2 | As the project admin: create a container; then one with `security.privileged=true`, or a disk from `/` | The first is created; LXD refuses the others |
+| P3 | As the operator: start, stop, then delete or create | Start and stop work; delete and create are refused (403) |
+| P4 | As each user: open another project's instance, or try to start it | "Not found" (404) |
+| P5 | As each user: the Instances, Operations and Overview pages, and the project picker | Only the granted project; no Storage, Ceph, Warnings or Users in the menu; Console and Files only for operator and admin |
+| P6 | Open the event stream as the operator and start their instance | Only that project's events |
+
+Done on the test cloud 2026-11-13 (P1–P6, 44 API checks and the UI as each user).
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/

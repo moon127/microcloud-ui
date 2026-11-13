@@ -200,9 +200,14 @@ async def test_lists_are_filtered(scoped):
     respx.get(f"{EP1}/1.0/projects", params={"recursion": "1"}).mock(
         return_value=lxd_ok([{"name": p} for p in ("default", "web", "lab", "other")])
     )
+    # as on LXD 6.10: no project field; the object's URL names it (no ?project= is default)
     respx.get(f"{EP1}/1.0/network-allocations", params={"all-projects": "true"}).mock(
         return_value=lxd_ok(
-            [{"address": "10.0.0.2", "project": "web"}, {"address": "10.0.0.9", "project": "other"}]
+            [
+                {"addresses": "10.0.0.2/32", "used_by": "/1.0/instances/a?project=web"},
+                {"addresses": "10.0.0.9/32", "used_by": "/1.0/instances/x?project=other"},
+                {"addresses": "10.0.0.1/24", "used_by": "/1.0/networks/shared"},
+            ]
         )
     )
     respx.get(f"{EP1}/1.0/networks/shared/leases", params={"project": "web"}).mock(
@@ -228,7 +233,7 @@ async def test_lists_are_filtered(scoped):
         assert r.status_code == 403  # the host's own interfaces
         assert [p["name"] for p in (await c.get("/api/projects")).json()] == ["web", "lab"]
         allocs = (await c.get("/api/network-allocations")).json()
-        assert [a["project"] for a in allocs] == ["web"]
+        assert [a["used_by"] for a in allocs] == ["/1.0/instances/a?project=web"]
         assert (
             await c.get("/api/network-allocations", params={"project": "other"})
         ).status_code == 404
@@ -238,21 +243,32 @@ async def test_lists_are_filtered(scoped):
 
 @respx.mock
 async def test_operations_are_filtered(scoped):
+    # as LXD reports them: no project field. LXD 6 names the object in
+    # metadata.entity_url, 5.21 in resources; cluster-wide ones name none
     ops = {
         "running": [
-            {"id": "w", "project": "web", "created_at": "2"},
-            {"id": "o", "project": "other", "created_at": "1"},
-            {"id": "c", "project": "", "created_at": "0"},  # cluster-wide (an evacuation)
+            {
+                "id": "w",
+                "created_at": "3",
+                "metadata": {"entity_url": "/1.0/instances/a?project=web"},
+            },
+            {
+                "id": "b",
+                "created_at": "2",
+                "resources": {"instances": ["/1.0/instances/b?project=lab"]},
+            },
+            {"id": "o", "created_at": "1", "metadata": {"entity_url": "/1.0/projects/other"}},
+            {"id": "c", "created_at": "0", "metadata": {}, "resources": {}},
         ]
     }
     respx.get(f"{EP1}/1.0/operations", params={"recursion": "2", "all-projects": "true"}).mock(
         return_value=lxd_ok(ops)
     )
     respx.get(f"{EP1}/1.0/operations/w").mock(return_value=lxd_ok(ops["running"][0]))
-    respx.get(f"{EP1}/1.0/operations/o").mock(return_value=lxd_ok(ops["running"][1]))
+    respx.get(f"{EP1}/1.0/operations/o").mock(return_value=lxd_ok(ops["running"][2]))
     async with client(scoped) as c:
         await login(c, "pat", "patpw")
-        assert [o["id"] for o in (await c.get("/api/operations")).json()] == ["w"]
+        assert [o["id"] for o in (await c.get("/api/operations")).json()] == ["w", "b"]
         assert (await c.get("/api/operations/w")).json()["id"] == "w"
         assert (await c.get("/api/operations/o")).status_code == 404
         assert (await c.get("/api/operations/o", params={"wait": 5})).status_code == 404
@@ -343,3 +359,15 @@ def test_events_keep_the_users_projects():
     assert not keep('{"type":"lifecycle","project":"other"}')
     assert not keep('{"type":"operation"}')  # no project: cluster-wide
     assert not keep(b"\x01") and not keep("[1]")
+
+
+def test_project_from_lxd_urls():
+    from mcui.lxd.entities import operation_project, url_project
+
+    assert url_project("/1.0/instances/c1?project=web") == "web"
+    assert url_project("/1.0/instances/c1") == "default"
+    assert url_project("/1.0/projects/web") == "web"
+    assert url_project("/1.0/storage-pools/remote/volumes/custom/v?project=lab&target=m1") == "lab"
+    assert operation_project({"metadata": {"entity_url": "/1.0/projects/web"}}) == "web"
+    assert operation_project({"resources": {"containers": ["/1.0/instances/x"]}}) == "default"
+    assert operation_project({"metadata": None, "resources": None}) is None

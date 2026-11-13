@@ -88,7 +88,8 @@ export default function Overview() {
       <section aria-label="Server">
         {server ? (
           <p>
-            LXD {server.version} · {server.clustered ? "cluster" : "standalone"} · via {server.endpoint}
+            LXD {server.version} · {server.clustered ? "cluster" : "standalone"}
+            {access.cluster && <> · via {server.endpoint}</>}
             {Object.entries(server.features).some(([, on]) => !on) && (
               <>
                 {" "}

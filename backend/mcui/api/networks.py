@@ -21,6 +21,7 @@ from mcui.api.manage import ObjName
 from mcui.auth.policy import Scope
 from mcui.lxd import clustered, operations
 from mcui.lxd.client import LXDClient, LXDError
+from mcui.lxd.entities import url_project
 from mcui.lxd.server import members, server_info
 from mcui.lxd.volatile import keep_volatile
 
@@ -97,7 +98,11 @@ async def network_allocations(
         scope.require(project)
     params = {"project": project} if project else {"all-projects": "true"}
     data = await lxd.get("/1.0/network-allocations", **params)
-    return scope.keep(list(data or []))
+    found = list(data or [])
+    if scope.everything:
+        return found
+    # allocations name their object by URL, not by a project field
+    return [a for a in found if scope.sees(url_project(str(a.get("used_by", ""))))]
 
 
 class NetworkBody(BaseModel):
