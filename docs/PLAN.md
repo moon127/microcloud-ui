@@ -422,6 +422,17 @@ on ingest, query latency, disk use and ops burden; implement the chosen
 adapter. Alerts (MO-13), export (MO-15), project quota
 history (MO-10).
 
+*Follow-up: React Compiler lint rules.* `eslint-plugin-react-hooks` 7 recommends rules from
+the React Compiler, left off in the ESLint 10 upgrade (2026-11-13), which flag 12 places:
+- **`set-state-in-effect` (9):** seven edit pages (profile, project, ACL, network, pool,
+  volume) copy server data into their form state in an effect, and so do the YAML editor
+  and the console views. That pattern also caused a timing-dependent test. The fix is to
+  key the form on the loaded object, or derive state during render.
+- **`refs` (3):** `events.ts` and the terminal view read or write a ref during render.
+
+Turn the rules on once those are rewritten. **TypeScript 7** waits for `typescript-eslint`
+to support it (only below 6.1 in November 2026).
+
 *Watch item: Ceph daemon perf counters.* Upstream Ceph has moved OSD perf counters to the
 separate `ceph-exporter` daemon; the mgr's `exclude_perf_counters=false` is the
 compatibility route and may be removed in a release after Tentacle. MicroCeph runs no
