@@ -245,7 +245,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - **React Compiler lint rules on 2026-11-13:** the 12 places rewritten (edit pages and the
   YAML editor take loaded values during render; `useEffectEvent` in `events.ts` and the
   terminal; the consoles reset on Reconnect). This also removes the cause of the
-  project-page test race.
+  project-page test race. Owner tested the edit pages and consoles locally; no release
+  yet (waits for the next feature).
 - **Phase 5 done 2026-11-13:** the last compatibility items checked against the cluster
   recording: metric names and memory, removed settings and the `control-plane` role,
   node_exporter on 26.04, Ceph RBD stats, and every change following its operation. None
