@@ -240,6 +240,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.1.9 released 2026-11-13:** Ubuntu 22.04 dropped (D77); four bundles. `main` is now
+  0.1.10.dev0.
 - **Ubuntu 22.04 dropped 2026-11-13 (D77):** Python 3.12 minimum, four bundles, CI on 3.12
   and 3.14. Also fixed a timing race in the project-page test (the form loads its values in
   an effect after the first render).
