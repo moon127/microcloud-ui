@@ -105,6 +105,10 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
 - **Tarballs made on macOS** need `COPYFILE_DISABLE=1 tar --no-xattrs --no-mac-metadata
   --no-fflags`. Otherwise GNU tar prints a warning for every file.
 - **After a backend change, the owner's running server needs a restart** before they see it.
+- **npm 10 (Node 22) fails to add or change Vitest 5** ("Cannot read properties of null
+  (reading 'edgesOut')", an npm bug with its optional peer dependencies). Do that one
+  install with `--legacy-peer-deps`, then check `rm -rf node_modules && npm ci` works
+  without it, as CI does.
 
 ## Owner preferences
 
