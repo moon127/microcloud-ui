@@ -49,7 +49,7 @@ Browsers reach it on **8843** (HTTPS) by default. The history grows to roughly
 | LXD | 5.21 LTS (supported to June 2029) | 6.10 LTS (supported to June 2031) |
 | Ceph | MicroCeph Squid (19.2) | MicroCeph Tentacle (20.2) |
 | OVN | MicroOVN 24.03 | MicroOVN 26.03 |
-| Tested | live, on the test cloud | in a 3.4 VM; the test cloud moves next (Phase 5) |
+| Tested | live, on the test cloud | in a 3.4 VM; test cloud upgraded 2026-11-12, live checks under way (Phase 5) |
 
 The app reads each server's API extensions and shows only what it supports. On LXD 6.x
 you also get placement groups, image registries in the image picker (6.10), OVN
@@ -61,6 +61,22 @@ TLS security fix (update to 5.21.9 or 6.10.1).
 On **Ceph Tentacle** the mgr leaves out OSD performance counters by default, so the Ceph
 page hides OSD used/size and per-operation latency until they're turned on
 ([CEPH-METRICS.md](CEPH-METRICS.md#ceph-tentacle-microcloud-34-lts)).
+
+On **MicroOVN 26.03**, a member that reboots (for example during `do-release-upgrade`) can
+come back with OVS stuck in `flow-restore-wait`. ovn-controller is meant to clear it and
+sometimes doesn't. OVS then forwards nothing: instances on OVN networks get no DHCP
+address, can't ping their gateway even with a static IP, and no chassis claims the
+gateway ports. The OVN page shows each network as having "no active gateway chassis"
+(`ovn-sbctl: no row "" in table Chassis`). Check and clear it on each member:
+
+```
+sudo microovn.ovs-vsctl get open . other_config:flow-restore-wait   # "true" = stuck
+sudo snap restart microovn.chassis                                  # try this first
+sudo microovn.ovs-vsctl set open . other_config:flow-restore-wait=false
+```
+
+Seen on the test cloud after its 26.04 upgrade; clearing it on all three members brought
+DHCP, gateways and external traffic back.
 
 ## 2. Build the bundle (on your dev machine)
 

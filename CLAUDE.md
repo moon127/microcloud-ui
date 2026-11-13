@@ -50,8 +50,8 @@ MicroOVN). Backend FastAPI (Python ≥3.10), frontend React 19 + TS + Vite + uPl
   - Delete the VM **and** any image it pulled into the project.
   - Never copy LXD keys into a VM unless the owner asks.
   - The snap store works inside such VMs, but the owner said **no rockcraft/chisel for now**.
-- **Phase 5 (MicroCloud 3.4 LTS support, `docs/PLAN.md`)** is agreed and starts after
-  the owner has upgraded the test cloud. **Phase 6**
+- **Phase 5 (MicroCloud 3.4 LTS support, `docs/PLAN.md`)** is agreed; the test cloud was
+  upgraded to 3.4 on 2026-11-12 (MicroOVN 26.03 `flow-restore-wait` gotcha: `docs/DEPLOY.md`). **Phase 6**
   (metric-store evaluation, alerts, export, quota history) waits for the owner's go-ahead.
   Don't start either unprompted.
 

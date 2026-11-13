@@ -69,6 +69,7 @@ change with its LXD operation id.
 | # | Steps | Expect |
 |---|---|---|
 | O1 | Networks → OVN overview in a real browser | Uplink card with the router-address meter; OVN network table; links to networks, members and ACLs |
+| O2 | After rebooting a member on MicroOVN 26.03: `sudo microovn.ovs-vsctl get open . other_config:flow-restore-wait` | Not `"true"`; if it is, clear it as in `docs/DEPLOY.md` (Supported releases). OVN overview shows an active gateway chassis per network, no error |
 
 ## Hosts (Phase 4g)
 
