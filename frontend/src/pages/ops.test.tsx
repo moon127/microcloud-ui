@@ -188,6 +188,8 @@ describe("member evacuate and restore", () => {
     expect(screen.getByText(/roles: database/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Evacuate" }));
     const dlg = screen.getByRole("dialog", { name: "Evacuate m1?" });
+    // "auto" is only an instance's cluster.evacuate value; LXD refuses it as a mode
+    expect(within(dlg).queryByRole("option", { name: /^auto/ })).toBeNull();
     fireEvent.change(within(dlg).getByLabelText("Mode"), { target: { value: "live-migrate" } });
     fireEvent.click(within(dlg).getByRole("button", { name: "Evacuate" }));
     expect(ev).toHaveBeenCalledWith("m1", "live-migrate");

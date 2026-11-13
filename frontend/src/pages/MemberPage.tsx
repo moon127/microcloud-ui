@@ -287,8 +287,7 @@ function Hardware({ r }: { r: Resources }) {
 }
 
 const MODES: { value: EvacuationMode | ""; label: string }[] = [
-  { value: "", label: "Default (per instance cluster.evacuate setting)" },
-  { value: "auto", label: "auto: migrate where possible, else stop" },
+  { value: "", label: "Default: each instance's cluster.evacuate (auto: migrate where possible, else stop)" },
   { value: "migrate", label: "migrate (cold)" },
   { value: "live-migrate", label: "live-migrate (VMs)" },
   { value: "stop", label: "stop instances, don't move them" },

@@ -114,6 +114,9 @@ async def test_evacuate_restore(app, services):
         assert route.calls.last.request.content == b'{"action":"restore"}'
         r = await c.post("/api/cluster/members/nope/restore", json={}, headers=h)
         assert r.status_code == 404
+        # LXD refuses "auto" as an evacuation mode (seen live on 6.10), so it's never sent
+        r = await c.post("/api/cluster/members/m2/evacuate", json={"mode": "auto"}, headers=h)
+        assert r.status_code == 422
     assert actions(services)[:3] == [
         ("member.restore", "m2", True, "op1"),
         ("member.evacuate", "m2", True, "op1"),

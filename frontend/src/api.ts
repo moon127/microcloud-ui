@@ -431,7 +431,7 @@ export const setWarningStatus = (uuid: string, status: "new" | "acknowledged") =
   send<Started>("PUT", `/api/warnings/${encodeURIComponent(uuid)}`, { status });
 export const deleteWarning = (uuid: string) => send<void>("DELETE", `/api/warnings/${encodeURIComponent(uuid)}`);
 
-export type EvacuationMode = "auto" | "migrate" | "live-migrate" | "stop";
+export type EvacuationMode = "migrate" | "live-migrate" | "stop";
 export const evacuateMember = (name: string, mode?: EvacuationMode, force = false) =>
   send<Started>("POST", `/api/cluster/members/${encodeURIComponent(name)}/evacuate`, {
     ...(mode ? { mode } : {}),

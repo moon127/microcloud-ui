@@ -242,7 +242,14 @@ fixtures, so record a full set **before** the upgrade (5.0).
       project default"). The pool form now labels the field with the network's project.
       Pools with health checks remain verified on the 6.10 VM only.
 
-  Not checked live yet: the forced evacuation (owner only).
+  - **Evacuation** (owner, member 2): LXD 6.10 refused our "auto" mode ("Invalid
+    evacuation mode") after it had already marked the member evacuated and demoted it from
+    voter; no instance moved, and Restore put it back. "auto" is only an instance's
+    `cluster.evacuate` value; the evacuate call takes stop, migrate or live-migrate. The
+    dialog no longer offers it, and the API refuses it.
+
+  Not checked live yet: an evacuation and restore with the fixed dialog, and the
+  quorum refusal (owner only).
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
   "verify the current code still works"; anything that fails feeds 5a.
 

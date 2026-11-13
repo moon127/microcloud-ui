@@ -77,7 +77,9 @@ async def delete_warning(uuid: str, session: AdminDep, store: StoreDep, lxd: LXD
 
 
 class Evacuation(BaseModel):
-    mode: Literal["auto", "migrate", "live-migrate", "stop"] | None = None
+    # LXD takes stop, migrate or live-migrate here; "auto" is only an instance's
+    # cluster.evacuate value (LXD 6.10 refuses it, after marking the member evacuated)
+    mode: Literal["migrate", "live-migrate", "stop"] | None = None
     # LXD 6.9+ (clustering_evacuation_force): evacuate even if the database loses quorum
     force: bool = False
 
