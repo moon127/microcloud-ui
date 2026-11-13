@@ -247,6 +247,9 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.3.0 released 2026-11-13** (run 43499891665): Phase 7 (backups, moves between
+  projects, ISO upload, restrictions form) and Phase 10a (OVN peers, volume copy/move).
+  `main` is now 0.3.1.dev0.
 - **Phase 10a done 2026-11-13 (D84): volume copy and move.** The volume page has Copy… (pool,
   project, member on a local pool, without snapshots) and Move… (pool, project and new name
   at once; opens it there). Manage in both projects. Found live on LXD 6.10: a copy into a
