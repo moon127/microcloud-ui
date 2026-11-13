@@ -371,3 +371,30 @@ def test_project_from_lxd_urls():
     assert operation_project({"metadata": {"entity_url": "/1.0/projects/web"}}) == "web"
     assert operation_project({"resources": {"containers": ["/1.0/instances/x"]}}) == "default"
     assert operation_project({"metadata": None, "resources": None}) is None
+
+
+@respx.mock
+async def test_a_project_move_needs_manage_in_both(tmp_path):
+    """Phase 7c (D83): pat is admin in web and lab, operator in ops, nothing in other."""
+    store = fast_store()
+    store.add_user("pat", "patpw", "project")
+    for project, role in (("web", "admin"), ("lab", "admin"), ("ops", "operator")):
+        store.set_grant("pat", project, role)
+    settings = Settings(server={"data_dir": str(tmp_path), "secure_cookies": False})
+    app = create_app(
+        services=build_services(settings, store=store, clients=lxd_pair()), static_dir=None
+    )
+    for p in ("web", "lab", "ops"):
+        respx.get(f"{EP1}/1.0/projects/{p}").mock(
+            return_value=lxd_ok({"config": {"restricted": "true"}})
+        )
+    move = respx.post(f"{INST}/c1").mock(return_value=async_resp())
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "pat", "patpw")}
+        url = "/api/instances/web/c1/move"
+        r = await c.post(url, json={"project": "other"}, headers=h)
+        assert r.status_code == 404 and not move.called
+        r = await c.post(url, json={"project": "ops"}, headers=h)
+        assert r.status_code == 403 and "manage right in ops" in r.text and not move.called
+        assert (await c.post(url, json={"project": "lab"}, headers=h)).status_code == 200
+        assert move.called

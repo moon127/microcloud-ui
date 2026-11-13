@@ -303,7 +303,11 @@ export const patchInstanceConfig = (project: string, name: string, config: Recor
   send<Started>("PATCH", `${inst(project, name)}/config`, { config });
 export const renameInstance = (project: string, name: string, to: string) =>
   send<Started>("POST", `${inst(project, name)}/rename`, { name: to });
-export const moveInstance = (project: string, name: string, opts: { target?: string; pool?: string; live?: boolean }) =>
+export const moveInstance = (
+  project: string,
+  name: string,
+  opts: { target?: string; pool?: string; project?: string; live?: boolean; instance_only?: boolean },
+) =>
   send<Started>("POST", `${inst(project, name)}/move`, opts);
 export const copyInstance = (
   project: string,

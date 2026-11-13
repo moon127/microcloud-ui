@@ -641,7 +641,7 @@ turned out to need.
   pool. When the project is restricted without `restricted.backups=allow`, say so instead of
   offering Create.
 - ✅ 2026-11-13 **7b, volume backups (ST-4):** the same on the volume page; import as a new volume.
-- **7c, moving instances between projects (IN-6):** the Move dialog gets a target project
+- 🟡 2026-11-13 built, live check pending **7c, moving instances between projects (IN-6):** the Move dialog gets a target project
   (with LXD's `instance_project_move`), offered only where the user can manage. Live: the
   owner's second project, plus the restriction checks above.
 - ✅ 2026-11-13 **7d, ISO upload (IM-3):** Storage → Volumes → Upload ISO (project, pool, name, file;

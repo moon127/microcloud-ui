@@ -176,6 +176,36 @@ describe("instance actions", () => {
     expect(move).toHaveBeenCalledWith("default", "c1", { target: undefined, pool: "remote", live: false });
   });
 
+  it("moves to another project it can manage, stopped, and follows it there", async () => {
+    vi.spyOn(api, "fetchProjects").mockResolvedValue([
+      { name: "default", description: "", config: {}, used_by: [] },
+      { name: "web", description: "", config: { restricted: "true" }, used_by: [] },
+      { name: "lab", description: "", config: {}, used_by: [] },
+    ]);
+    const move = vi.spyOn(api, "moveInstance").mockResolvedValue(ok);
+    // admin in default and web, viewer in lab
+    const s = session({ user: { username: "p", role: "project", grants: { default: "admin", web: "admin", lab: "viewer" } } });
+    open(full(), { s });
+    fireEvent.click(await screen.findByRole("button", { name: "Move" }));
+    const to = await dialog().findByLabelText("To project");
+    expect(within(to).getAllByRole("option").map((o) => o.textContent)).toEqual(["(stay in default)", "web (restricted)"]);
+    fireEvent.change(to, { target: { value: "web" } });
+    expect(dialog().getByRole("alert")).toHaveTextContent("Stop c1 first");
+    expect(dialog().queryByText(/moved cold/)).toBeNull();
+    fireEvent.click(dialog().getByLabelText(/Leave its 2 snapshots behind/));
+    fireEvent.click(dialog().getByRole("button", { name: "Move" }));
+    expect(move).toHaveBeenCalledWith("default", "c1", { target: undefined, pool: undefined, project: "web", instance_only: true });
+    await waitFor(() => expect(api.fetchInstance).toHaveBeenLastCalledWith("web", "c1")); // its new page
+  });
+
+  it("offers no project when there's none to manage", async () => {
+    vi.spyOn(api, "fetchProjects").mockResolvedValue([{ name: "default", description: "", config: {}, used_by: [] }]);
+    open(full({ status: "Stopped", snapshots: [] }));
+    fireEvent.click(await screen.findByRole("button", { name: "Move" }));
+    await dialog().findByRole("option", { name: "m2" });
+    expect(dialog().queryByLabelText("To project")).toBeNull();
+  });
+
   it("publishes with or without an alias", async () => {
     const pub = vi.spyOn(api, "publishInstance").mockResolvedValue(ok);
     open(full({ status: "Stopped" }));

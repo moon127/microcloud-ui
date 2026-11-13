@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Awaitable
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Response
+from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 from pydantic import BaseModel, Field
 
 from mcui.api.audited import audited
@@ -66,7 +66,7 @@ class Ctx:
 
     async def check_project(self, project: str) -> None:
         if self.in_body is None:  # pragma: no cover - a route wiring error
-            raise RuntimeError("check_project needs CtxCreateDep")
+            raise RuntimeError("check_project needs CtxCreateDep or CtxManageDep")
         await self.in_body.check(project)
 
     async def audit(
@@ -117,9 +117,14 @@ async def get_ctx_operate(
 
 
 async def get_ctx_manage(
-    session: ProjectManageDep, store: StoreDep, lxd: LXDDep, index: IndexDep
+    request: Request,
+    session: ProjectManageDep,
+    store: StoreDep,
+    lxd: LXDDep,
+    index: IndexDep,
 ) -> Ctx:
-    return Ctx(session, store, lxd, index)
+    # check_project: a second project the change reaches (a move to another project)
+    return Ctx(session, store, lxd, index, InBody(request, session, lxd))
 
 
 async def get_ctx_create(in_body: InBodyDep, store: StoreDep, lxd: LXDDep, index: IndexDep) -> Ctx:
@@ -387,18 +392,31 @@ async def rename(
 class Move(BaseModel):
     target: str | None = Field(default=None, description="cluster member")
     pool: str | None = Field(default=None, description="storage pool for the root disk")
+    project: str | None = Field(
+        default=None, pattern=NAME, max_length=63, description="another project (IN-6, 7c)"
+    )
     live: bool = False
+    instance_only: bool = False  # a project move: leave the snapshots behind
 
 
 @router.post("/{project}/{name}/move")
 async def move(
     project: ProjectName, name: InstName, body: Move, ctx: CtxManageDep
 ) -> dict[str, Any]:
-    if not body.target and not body.pool:
-        raise HTTPException(status_code=400, detail="give a target member or a pool")
+    """Move to another member, pool or project. A project move needs manage in both
+    projects (D83); LXD checks the target's restrictions and limits, and moves a stopped
+    instance (``live`` false), with its snapshots unless ``instance_only``."""
+    other = body.project if body.project and body.project != project else None
+    if not body.target and not body.pool and not other:
+        raise HTTPException(status_code=400, detail="give a target member, a pool or a project")
+    if other:
+        await ctx.check_project(other)
     payload: dict[str, Any] = {"name": name, "migration": True, "live": body.live}
     if body.pool:
         payload["pool"] = body.pool
+    if other:
+        payload["project"] = other
+        payload["instance_only"] = body.instance_only
     return await ctx.change(
         "instance.move",
         project,

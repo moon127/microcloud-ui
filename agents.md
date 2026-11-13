@@ -246,6 +246,14 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 7c built 2026-11-13 (D83), not yet live:** the Move dialog offers "To project"
+  (projects the user can manage; the server checks manage in both, with the second checked
+  through `Ctx.check_project`), sends LXD `migration: true, live: false, project,
+  instance_only`, says to stop the instance first, offers leaving snapshots behind, and opens
+  the instance's new page. Read from LXD's `instance_post.go`: LXD checks the target
+  project's restrictions with `AllowInstanceCreation`, which drops `volatile.*` keys, so a
+  move may be the way into a restricted project that 7a's import isn't. Live check waits for
+  the owner's second project (`mcui-test-2`).
 - **Phase 7d done 2026-11-13 (D83):** ISO upload (IM-3): Volumes → Upload ISO (streamed,
   named after the file unless given a name; the dialog shared with backup import), ISO
   volumes attach to VMs only, as a CD booted first unless unticked (`boot_priority` on the

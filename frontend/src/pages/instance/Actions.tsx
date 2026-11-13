@@ -5,6 +5,7 @@ import {
   copyInstance,
   deleteInstance,
   fetchMembers,
+  fetchProjects,
   fetchStoragePools,
   moveInstance,
   publishInstance,
@@ -193,28 +194,72 @@ function CopyDialog({ inst, onClose }: { inst: InstanceFull; onClose: () => void
 }
 
 function MoveDialog({ inst, onClose }: { inst: InstanceFull; onClose: () => void }) {
+  const access = useAccess();
   const { run } = useActions();
+  const navigate = useNavigate();
   const members = useApi("members", fetchMembers);
   const pools = useApi("pools", fetchStoragePools);
+  const projects = useApi("projects", fetchProjects);
   const [target, setTarget] = useState("");
   const [pool, setPool] = useState("");
+  const [project, setProject] = useState("");
   const [live, setLive] = useState(false);
+  const [leaveSnapshots, setLeaveSnapshots] = useState(false);
   const vm = inst.type === "virtual-machine";
+  // a project move needs manage in both (D83); LXD moves it stopped
+  const others = (projects.data ?? []).filter((p) => p.name !== inst.project && access.can(p.name, "manage"));
+  const running = inst.status !== "Stopped";
+  const snaps = (inst.snapshots ?? []).length;
   return (
     <Confirm
       title={`Move ${inst.name}`}
       confirmLabel="Move"
       onCancel={onClose}
       onConfirm={() => {
-        if (!target && !pool) return;
+        if (!target && !pool && !project) return;
         onClose();
-        void run(`Move ${inst.name}`, () =>
-          moveInstance(inst.project, inst.name, { target: target || undefined, pool: pool || undefined, live }),
+        const opts = {
+          target: target || undefined,
+          pool: pool || undefined,
+          ...(project ? { project, instance_only: leaveSnapshots } : { live }),
+        };
+        void run(`Move ${inst.name}${project ? ` to ${project}` : ""}`, () => moveInstance(inst.project, inst.name, opts)).then(
+          (ok) => ok && project && navigate(instancePath(project, inst.name)),
         );
       }}
     >
-      {inst.status === "Running" && !live && (
+      {running && !live && !project && (
         <p className="muted">Running instances are moved cold: stop it first{vm ? ", or use live migration" : ""}.</p>
+      )}
+      {others.length > 0 && (
+        <label className="field">
+          To project
+          <select value={project} onChange={(e) => setProject(e.target.value)}>
+            <option value="">(stay in {inst.project})</option>
+            {others.map((p) => (
+              <option key={p.name} value={p.name}>
+                {p.name}
+                {p.config.restricted === "true" ? " (restricted)" : ""}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {project && (
+        <>
+          {running && <p role="alert">Stop {inst.name} first: LXD moves an instance to another project stopped.</p>}
+          <p className="muted">
+            LXD applies {project}&apos;s limits and restrictions to it. Its volumes stay where they are, and its profiles
+            and networks must exist in {project} too.
+          </p>
+          {snaps > 0 && (
+            <label>
+              <input type="checkbox" checked={leaveSnapshots} onChange={(e) => setLeaveSnapshots(e.target.checked)} /> Leave
+              its {snaps} snapshot{snaps === 1 ? "" : "s"} behind (deleted with the original; a restricted project needs{" "}
+              <code>restricted.snapshots=allow</code> to take them)
+            </label>
+          )}
+        </>
       )}
       <label className="field">
         To member
@@ -240,7 +285,7 @@ function MoveDialog({ inst, onClose }: { inst: InstanceFull; onClose: () => void
           ))}
         </select>
       </label>
-      {vm && (
+      {vm && !project && (
         <label>
           <input type="checkbox" checked={live} onChange={(e) => setLive(e.target.checked)} /> Live migration
         </label>

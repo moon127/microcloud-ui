@@ -183,6 +183,20 @@ async def test_rename_move_copy(app, services):
         assert params(post) == {"project": "p"}
         r = await c.post("/api/instances/p/c1/move", json={}, headers=h)
         assert r.status_code == 400
+        # to another project (Phase 7c)
+        await c.post("/api/instances/p/c1/move", json={"project": "lab"}, headers=h)
+        assert body(post) == {
+            "name": "c1",
+            "migration": True,
+            "live": False,
+            "project": "lab",
+            "instance_only": False,
+        }
+        assert params(post) == {"project": "p"}
+        r = await c.post("/api/instances/p/c1/move", json={"project": "p"}, headers=h)
+        assert r.status_code == 400  # its own project: nothing to move
+        r = await c.post("/api/instances/p/c1/move", json={"project": "../x"}, headers=h)
+        assert r.status_code == 422
         await c.post(
             "/api/instances/p/c1/copy",
             json={"name": "c3", "snapshot": "s1", "target": "m3", "start": True},
