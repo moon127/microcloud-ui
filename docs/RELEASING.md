@@ -81,7 +81,7 @@ Five things watch for known vulnerabilities (D76):
 |---|---|---|---|
 | **Dependabot alerts** | repository settings | as advisories appear | listed on the Security tab; GitHub emails the owner |
 | **Dependabot security updates** | repository settings | as advisories appear | a pull request with the fix (npm lockfile; pip where a fixed version exists) |
-| **Dependabot version updates** | `.github/dependabot.yml` | weekly | one grouped pull request each for npm, pip and GitHub Actions |
+| **Dependabot version updates** | `.github/dependabot.yml` | weekly | one grouped pull request each for npm, pip and GitHub Actions; minor and patch versions only (a major upgrade is planned work) |
 | **`make audit`** in CI | `ci.yml` job `audit` | every push, and before every release | fails on any known vulnerability in the backend's runtime dependencies (`pip-audit`), or a high or critical one in the frontend packages that ship (`npm audit`) |
 | **Weekly scan** | `security.yml` | Mondays, or **Actions → Security → Run workflow** | the same audits, plus build tools (high and up). Trivy scans the published `:latest` image for fixable high or critical CVEs, reports them on the Security tab, and opens one issue labelled `rebuild-needed` |
 

@@ -106,3 +106,12 @@ def test_dependabot():
         ("github-actions", "/"),
     }
     assert all(u["schedule"]["interval"] == "weekly" and u["groups"] for u in cfg["updates"])
+    # majors are planned upgrades; security updates (repository setting) still bring them
+    major = {"dependency-name": "*", "update-types": ["version-update:semver-major"]}
+    assert all(u["ignore"] == [major] for u in cfg["updates"])
+
+
+def test_image_drops_pip():
+    """Only needed to install; the image shouldn't carry python3-venv's copy."""
+    containerfile = (ROOT / "deploy/container/Containerfile").read_text()
+    assert "/opt/mcui/bin/python -m pip uninstall --yes --quiet pip" in containerfile

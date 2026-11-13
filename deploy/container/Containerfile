@@ -18,9 +18,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 COPY backend/ /src/backend/
 COPY --from=spa /src/frontend/dist/ /src/backend/mcui/static/
+# pip is only needed to install: removed afterwards, so the image doesn't carry (and
+# vulnerability scans don't flag) the copy python3-venv bundles (D76)
 RUN python3 -m venv /opt/mcui \
     && /opt/mcui/bin/pip install --no-cache-dir --quiet /src/backend \
-    && /opt/mcui/bin/python -c "import importlib.resources as r; assert (r.files('mcui') / 'static/index.html').is_file()"
+    && /opt/mcui/bin/python -c "import importlib.resources as r; assert (r.files('mcui') / 'static/index.html').is_file()" \
+    && /opt/mcui/bin/python -m pip uninstall --yes --quiet pip
 
 # --- 3. runtime ----------------------------------------------------------------
 FROM docker.io/library/ubuntu:26.04

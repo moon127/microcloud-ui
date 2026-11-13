@@ -1,5 +1,7 @@
-# Weekly dependency updates, one grouped pull request per ecosystem (D76). Security fixes
-# come sooner, from Dependabot security updates (enabled in the repository settings).
+# Weekly dependency updates, one grouped pull request per ecosystem (D76), minor and patch
+# versions only: a major upgrade (React Router, TypeScript, Vite...) is planned work, not a
+# weekly merge. Security fixes still come, majors included, from Dependabot security updates
+# (enabled in the repository settings), and every advisory shows on the Security tab.
 # The Containerfile's base images aren't listed: their CVEs are caught by the weekly image
 # scan (security.yml), and tag bumps (node 22 → 24) are a deliberate choice.
 version: 2
@@ -8,6 +10,9 @@ updates:
     directory: /frontend
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       frontend:
         patterns: ["*"]
@@ -15,6 +20,9 @@ updates:
     directory: /backend
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       backend:
         patterns: ["*"]
@@ -22,6 +30,9 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       actions:
         patterns: ["*"]
