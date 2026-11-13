@@ -47,6 +47,8 @@ describe("OperationsPage", () => {
     fireEvent.click(within(row).getByRole("button", { name: "Cancel" }));
     expect(cancel).toHaveBeenCalledWith("op1");
     expect(await screen.findByText(/✓ Cancel Starting instance/)).toBeInTheDocument();
+    // the finished action reloads the list once more; let that land before counting
+    await act(async () => {});
     const before = list.mock.calls.length;
     act(() => FakeSocket.all[0].emit('{"type":"operation"}'));
     act(() => FakeSocket.all[0].emit('{"type":"lifecycle"}'));
