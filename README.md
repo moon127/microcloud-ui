@@ -18,7 +18,7 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   audit log (Phase 6, [`docs/USERS.md`](docs/USERS.md)).
 - **Backups, moves and ISOs:** instance and volume backups (make, download, import), moving
   instances between projects, ISO upload to install VMs from, and a project's restrictions
-  as a form (Phase 7).
+  as a form (Phase 7); OVN network peers and copying or moving volumes (Phase 10a).
 
 Next in the plan: a metric store evaluation, alerts and export (Phase 8). Owner live
 checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See

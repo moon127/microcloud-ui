@@ -213,3 +213,67 @@ describe("ISOs (Phase 7d)", () => {
     expect(dialog().getByRole("alert")).toHaveTextContent("There is no VM in this project to attach it to");
   });
 });
+
+describe("copy and move (Phase 10a)", () => {
+  beforeEach(() => {
+    vi.spyOn(api, "fetchVolumeSnapshots").mockResolvedValue([]);
+    vi.spyOn(api, "fetchVolumeBackups").mockResolvedValue([]);
+    vi.spyOn(api, "fetchProjects").mockResolvedValue([
+      { name: "web", description: "", config: {}, used_by: [] },
+      { name: "lab", description: "", config: {}, used_by: [] },
+    ]);
+  });
+
+  it("copies to another project's local pool on a chosen member, without snapshots", async () => {
+    vi.spyOn(api, "fetchVolume").mockResolvedValue({ ...detail, location: "none", pool: "remote" });
+    const copy = vi.spyOn(api, "copyVolume").mockResolvedValue(ok);
+    open("/storage/volumes/web/remote/data");
+    fireEvent.click(await screen.findByRole("button", { name: "Copy…" }));
+    expect(dialog().getByLabelText("Name")).toHaveValue("data-copy");
+    await waitFor(() => expect(within(dialog().getByLabelText("Pool")).getAllByRole("option")).toHaveLength(2));
+    expect(dialog().queryByLabelText("Member")).toBeNull(); // remote: no member
+    fireEvent.change(dialog().getByLabelText("Pool"), { target: { value: "local" } });
+    await waitFor(() => expect(dialog().getByLabelText("Project")).toHaveTextContent("lab"));
+    fireEvent.change(dialog().getByLabelText("Project"), { target: { value: "lab" } });
+    expect(dialog().getByText(/applies lab's limits/)).toBeInTheDocument();
+    fireEvent.change(dialog().getByLabelText("Member"), { target: { value: "m2" } });
+    fireEvent.click(dialog().getByLabelText(/Leave out its snapshots/));
+    fireEvent.click(dialog().getByRole("button", { name: "Copy" }));
+    expect(copy).toHaveBeenCalledWith(
+      "web",
+      "remote",
+      "data",
+      { name: "data-copy", pool: "local", volume_only: true, project: "lab", target: "m2" },
+      undefined,
+    );
+  });
+
+  it("moves to another pool and opens it there; refuses a no-op and a bad name", async () => {
+    vi.spyOn(api, "fetchVolume").mockResolvedValue({ ...detail, used_by: [] });
+    const move = vi.spyOn(api, "moveVolume").mockResolvedValue(ok);
+    open("/storage/volumes/web/local/data?member=m1");
+    fireEvent.click(await screen.findByRole("button", { name: "Move…" }));
+    await waitFor(() => expect(within(dialog().getByLabelText("Pool")).getAllByRole("option")).toHaveLength(2));
+    expect(dialog().queryByLabelText(/Leave out/)).toBeNull();
+    fireEvent.click(dialog().getByRole("button", { name: "Move" }));
+    expect(dialog().getByRole("alert")).toHaveTextContent("Choose another pool, project or name.");
+    fireEvent.change(dialog().getByLabelText("Name"), { target: { value: "-x" } });
+    fireEvent.click(dialog().getByRole("button", { name: "Move" }));
+    expect(dialog().getByRole("alert")).toHaveTextContent(/Names start/);
+    fireEvent.change(dialog().getByLabelText("Name"), { target: { value: "data2" } });
+    fireEvent.change(dialog().getByLabelText("Pool"), { target: { value: "remote" } });
+    fireEvent.click(dialog().getByRole("button", { name: "Move" }));
+    expect(move).toHaveBeenCalledWith("web", "local", "data", { name: "data2", pool: "remote" }, "m1");
+    await waitFor(() => expect(api.fetchVolume).toHaveBeenLastCalledWith("web", "remote", "data2", undefined));
+  });
+
+  it("says the instances using it follow it", async () => {
+    vi.spyOn(api, "fetchVolume").mockResolvedValue({ ...detail, used_by: ["/1.0/instances/c1?project=web"] });
+    vi.spyOn(api, "fetchInstance").mockReturnValue(new Promise(() => {}));
+    open("/storage/volumes/web/local/data?member=m1");
+    fireEvent.click(await screen.findByRole("button", { name: "Move…" }));
+    expect(dialog().getByText(/points their devices at its new place/)).toBeInTheDocument();
+    fireEvent.click(dialog().getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+});

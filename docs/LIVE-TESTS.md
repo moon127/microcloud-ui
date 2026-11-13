@@ -131,7 +131,7 @@ users there: admin, operator, viewer.
 
 Done on the test cloud 2026-11-13 (P1–P6, 44 API checks and the UI as each user).
 
-## Backups, moves and ISOs (Phase 7, D83): in a real browser
+## Backups, moves, ISOs, peers (Phases 7 and 10a): in a real browser
 
 The session checked all of these through the API on the test cloud (2026-11-13); what's
 left is the browser itself: file pickers, upload progress and downloads.
@@ -146,6 +146,8 @@ left is the browser itself: file pickers, upload progress and downloads.
 | B6 | **Volumes → Upload ISO** with a real installer ISO (a GB or more) | Progress in the toast; the volume lists as `iso` with its size |
 | B7 | **Create instance**: VM, **Boot from an ISO** that one, **No image**, then start it and open the graphical console | The installer boots |
 | B8 | A project's **Restrictions**: allow container low-level options | The page warns that it reaches the host; set it back |
+| B9 | An OVN network's **Peers** → Add peer, peering back | Both sides show Created; instances on the two networks reach each other |
+| B10 | A volume's **Copy…** to the other pool, then **Move…** to another project | The copy lists in its pool; the moved volume's page opens in the new project |
 
 ## Already verified live by the session (for reference)
 

@@ -253,3 +253,66 @@ async def test_detach_errors(app, services):
         )
         assert r.json()["operation"] == {"id": "op9"}
     assert audit(services, 3)[2][2] is False
+
+
+# --- copy and move (Phase 10a, D84; shapes as seen live on LXD 6.10) ---------------
+
+
+@respx.mock
+async def test_copy(app, services):
+    respx.get(VOL).mock(
+        return_value=lxd_ok({"name": "v1", "content_type": "block", "config": {"size": "1GiB"}})
+    )
+    create = respx.post(f"{POOLS}/remote/volumes/custom").mock(return_value=lxd_ok(None))
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "viewer", "viewerpw")}
+        url = "/api/volumes/p/local/v1/copy"
+        r = await c.post(url, json={"name": "v2", "pool": "remote"}, headers=h)
+        assert r.status_code == 403
+        h = await admin(c)
+        new = {"name": "v2", "pool": "remote", "project": "q", "target": "m2", "volume_only": True}
+        r = await c.post(url, params={"target": "m1"}, json=new, headers=h)
+        assert r.status_code == 200, r.text
+        assert body(create) == {
+            "name": "v2",
+            "type": "custom",
+            "content_type": "block",
+            "config": {"size": "1GiB"},
+            "source": {
+                "type": "copy",
+                "name": "v1",
+                "pool": "local",
+                "project": "p",
+                "volume_only": True,
+                "location": "m1",
+            },
+        }
+        assert params(create) == {"project": "q", "target": "m2"}
+        assert audit(services)[0][:2] == ("volume.copy", "p/local/v1")
+        assert audit(services)[0][3] == {"to": "q/remote/v2"}
+    # no size (an unlimited project's volume): none sent; same project by default
+    respx.get(VOL).mock(return_value=lxd_ok({"name": "v1", "config": {}}))
+    async with client(app) as c:
+        h = await admin(c)
+        url = "/api/volumes/p/local/v1/copy"
+        await c.post(url, json={"name": "v3", "pool": "remote"}, headers=h)
+        assert body(create)["config"] == {} and body(create)["content_type"] == "filesystem"
+        assert params(create) == {"project": "p"}
+        assert "location" not in body(create)["source"]
+
+
+@respx.mock
+async def test_move(app, services):
+    move = respx.post(VOL).mock(return_value=lxd_ok(None))
+    async with client(app) as c:
+        h = await admin(c)
+        url = "/api/volumes/p/local/v1/move"
+        await c.post(url, json={"project": "q"}, headers=h)
+        assert body(move) == {"name": "v1", "pool": "local", "project": "q"}  # pool named anyway
+        assert params(move) == {"project": "p"}
+        await c.post(url, params={"target": "m1"}, json={"pool": "remote", "name": "v9"}, headers=h)
+        assert body(move) == {"name": "v9", "pool": "remote"}
+        assert params(move) == {"project": "p", "target": "m1"}
+        assert audit(services)[0][3] == {"to": "p/remote/v9"}
+        assert (await c.post(url, json={"project": "p"}, headers=h)).status_code == 400
+        assert (await c.post(url, json={}, headers=h)).status_code == 400

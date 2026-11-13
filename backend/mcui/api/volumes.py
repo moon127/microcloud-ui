@@ -242,6 +242,105 @@ async def rename_volume(
     )
 
 
+class CopyVolume(BaseModel):
+    name: str = Field(pattern=NAME, max_length=63)
+    pool: str = Field(pattern=NAME, max_length=63)
+    project: str | None = Field(default=None, pattern=NAME, max_length=63)
+    # the member for the copy, on a local pool
+    target: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9.-]*$", max_length=253)
+    volume_only: bool = False  # leave the snapshots out
+
+
+@router.post("/{project}/{pool}/{name}/copy")
+async def copy_volume(
+    project: ProjectName,
+    pool: ObjName,
+    name: ObjName,
+    body: CopyVolume,
+    guard: InBodyDep,
+    store: StoreDep,
+    lxd: LXDDep,
+    target: MemberName = None,
+) -> dict[str, Any]:
+    """Copy to a pool, member or project (ST-4, Phase 10a). Manage in both projects (D84).
+    The copy takes the source's content type and size: LXD wants a size in a project with
+    ``limits.disk`` (seen live on 6.10)."""
+    dest = body.project or project
+    await guard.check(project)
+    await guard.check(dest)
+    src = await lxd.get(_vol(pool, name), **_params(project, target))
+    size = (src.get("config") or {}).get("size")
+    source: dict[str, Any] = {
+        "type": "copy",
+        "name": name,
+        "pool": pool,
+        "project": project,
+        "volume_only": body.volume_only,
+        **({"location": target} if target else {}),
+    }
+    payload = {
+        "name": body.name,
+        "type": "custom",
+        "content_type": src.get("content_type", "filesystem"),
+        "config": {"size": size} if size else {},
+        "source": source,
+    }
+    return await _change(
+        guard.session,
+        store,
+        lxd,
+        "volume.copy",
+        f"{project}/{pool}/{name}",
+        "POST",
+        _vol(body.pool),
+        _params(dest, body.target),
+        json=payload,
+        detail={"to": f"{dest}/{body.pool}/{body.name}"},
+    )
+
+
+class MoveVolume(BaseModel):
+    name: str | None = Field(default=None, pattern=NAME, max_length=63)
+    pool: str | None = Field(default=None, pattern=NAME, max_length=63)
+    project: str | None = Field(default=None, pattern=NAME, max_length=63)
+
+
+@router.post("/{project}/{pool}/{name}/move")
+async def move_volume(
+    project: ProjectName,
+    pool: ObjName,
+    name: ObjName,
+    body: MoveVolume,
+    guard: InBodyDep,
+    store: StoreDep,
+    lxd: LXDDep,
+    target: MemberName = None,
+) -> dict[str, Any]:
+    """Move to another pool or project, renaming it on the way if asked. LXD wants the pool
+    named even when it stays. An attached volume moves too, even in use: LXD 6.10 repoints
+    the instances' devices (both seen live)."""
+    dest = body.project or project
+    if dest == project and not body.pool and not body.name:
+        raise HTTPException(status_code=400, detail="give a pool, a project or a new name")
+    await guard.check(project)
+    await guard.check(dest)
+    payload: dict[str, Any] = {"name": body.name or name, "pool": body.pool or pool}
+    if dest != project:
+        payload["project"] = dest
+    return await _change(
+        guard.session,
+        store,
+        lxd,
+        "volume.move",
+        f"{project}/{pool}/{name}",
+        "POST",
+        _vol(pool, name),
+        _params(project, target),
+        json=payload,
+        detail={"to": f"{dest}/{payload['pool']}/{payload['name']}"},
+    )
+
+
 @router.delete("/{project}/{pool}/{name}")
 async def delete_volume(
     project: ProjectName,

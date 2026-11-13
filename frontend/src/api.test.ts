@@ -475,3 +475,16 @@ describe("network peers (Phase 10a)", () => {
     ]);
   });
 });
+
+describe("volume copy and move (Phase 10a)", () => {
+  it("send the right method, URL and body", async () => {
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    await api.copyVolume("p", "local", "v1", { name: "v2", pool: "remote", volume_only: false }, "m1");
+    await api.moveVolume("p", "remote", "v1", { project: "q" });
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/volumes/p/local/v1/copy?target=m1", "POST", '{"name":"v2","pool":"remote","volume_only":false}'],
+      ["/api/volumes/p/remote/v1/move", "POST", '{"project":"q"}'],
+    ]);
+  });
+});

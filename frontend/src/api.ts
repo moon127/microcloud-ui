@@ -1198,6 +1198,22 @@ export const deleteVolumeSnapshot = (project: string, pool: string, name: string
 const vbackups = (project: string, pool: string, name: string) => `${vol(project, pool, name)}/backups`;
 const vbackup = (project: string, pool: string, name: string, backup: string) =>
   `${vbackups(project, pool, name)}/${encodeURIComponent(backup)}`;
+/** Copy a custom volume to a pool, member (``target``, local pools) or project (Phase 10a). */
+export const copyVolume = (
+  project: string,
+  pool: string,
+  name: string,
+  body: { name: string; pool: string; project?: string; target?: string; volume_only: boolean },
+  srcTarget?: string,
+) => send<Started>("POST", `${vol(project, pool, name)}/copy${tq(srcTarget)}`, body);
+/** Move a (detached) custom volume to another pool or project, maybe renaming it. */
+export const moveVolume = (
+  project: string,
+  pool: string,
+  name: string,
+  body: { name?: string; pool?: string; project?: string },
+  srcTarget?: string,
+) => send<Started>("POST", `${vol(project, pool, name)}/move${tq(srcTarget)}`, body);
 export const fetchVolumeBackups = (project: string, pool: string, name: string, target?: string) =>
   api<Backup[]>(`${vbackups(project, pool, name)}${tq(target)}`);
 export const createVolumeBackup = (project: string, pool: string, name: string, body: NewBackup, target?: string) =>

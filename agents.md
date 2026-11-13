@@ -247,6 +247,14 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 10a done 2026-11-13 (D84): volume copy and move.** The volume page has Copy… (pool,
+  project, member on a local pool, without snapshots) and Move… (pool, project and new name
+  at once; opens it there). Manage in both projects. Found live on LXD 6.10: a copy into a
+  project with `limits.disk` needs a `size` (the app passes the source's); a move needs
+  `pool` even when it stays; an attached volume moves even with its container running, LXD
+  repointing the device. Live through the app across `mcui-test`/`mcui-test-2` and
+  ceph/cephfs (6 checks) plus the attached cases by API; all cleaned up. Next: release
+  0.3.0 when the owner says.
 - **Phase 10a: peers done 2026-11-13 (D84).** An OVN network's page lists its peers (Pending
   explained), adds one (optionally peering back from the other network, if the user can
   manage it there), edits the description, deletes. Creating needs manage here and read in

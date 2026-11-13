@@ -708,7 +708,7 @@ of the remaining parity list testable on the test cloud:
 - ~~**ACL log viewer (NW-4)**~~ dropped 2026-11-13: LXD reads ACL hits from the
   `snap.microovn.chassis` journal on every member, which has none on MicroCloud (checked
   live and by the owner), so its log endpoint only errors. Revisit if MicroOVN logs them.
-- **Volume copy and move (ST-4):** copy a custom volume to another pool, member or project,
+- ✅ 2026-11-13 **Volume copy and move (ST-4):** copy a custom volume to another pool, member or project,
   and move it (rename is there already). Manage in both projects for a project change.
 - Not here: SR-IOV (no hardware), zones (needs an external DNS server to check), cluster
   groups and config (cluster-wide: fixtures plus the owner's checklist), sign-in options.

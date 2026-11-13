@@ -23,6 +23,7 @@ import {
 } from "../../api";
 import { useActions } from "../../actions";
 import Backups from "../../Backups";
+import CopyMoveVolume from "./CopyMoveVolume";
 import Confirm from "../../Confirm";
 import { formatBytes } from "../../format";
 import { InstanceLink, MemberLink, UsedBy } from "../../links";
@@ -45,7 +46,7 @@ interface Draft {
   config: Record<string, string>;
 }
 
-type Dialog = { kind: "rename" | "delete" | "attach" | "snapshot" } | { kind: "snap-rename" | "snap-delete" | "snap-restore"; snap: string };
+type Dialog = { kind: "rename" | "delete" | "attach" | "snapshot" | "copy" | "move" } | { kind: "snap-rename" | "snap-delete" | "snap-restore"; snap: string };
 
 export default function VolumePage() {
   const { project = "default", pool = "", name = "" } = useParams();
@@ -111,6 +112,12 @@ export default function VolumePage() {
               </button>
               <button type="button" onClick={() => setDialog({ kind: "rename" })}>
                 Rename
+              </button>
+              <button type="button" onClick={() => setDialog({ kind: "copy" })}>
+                Copy…
+              </button>
+              <button type="button" onClick={() => setDialog({ kind: "move" })}>
+                Move…
               </button>
               <button type="button" className="danger" onClick={() => setDialog({ kind: "delete" })}>
                 Delete
@@ -240,6 +247,9 @@ export default function VolumePage() {
             }
           />
         </>
+      )}
+      {(dialog?.kind === "copy" || dialog?.kind === "move") && v && (
+        <CopyMoveVolume kind={dialog.kind} project={project} pool={pool} v={v} target={target} onClose={close} />
       )}
       {dialog?.kind === "rename" && (
         <NameDialog
