@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../../api";
 import { renderAt, session } from "../../test/render";
+import { isoName } from "./request";
 import VolumePage from "./VolumePage";
 import VolumesPage from "./VolumesPage";
 
@@ -137,5 +138,70 @@ describe("Volumes → Import backup", () => {
     fireEvent.change(dialog().getByLabelText("Backup file"), { target: { files: [new File(["t"], "v.tar")] } });
     fireEvent.click(dialog().getByRole("button", { name: "Import" }));
     expect(dialog().getByRole("alert")).toHaveTextContent("Choose a pool.");
+  });
+});
+
+describe("ISOs (Phase 7d)", () => {
+  it("names a volume after the file", () => {
+    expect(isoName("ubuntu-26.04-live-server-amd64.iso")).toBe("ubuntu-26.04-live-server-amd64");
+    expect(isoName("My Installer (v2).ISO")).toBe("My-Installer--v2-");
+    expect(isoName("__x.iso")).toBe("x");
+    expect(isoName(`${"a".repeat(80)}.iso`)).toHaveLength(63);
+  });
+
+  it("uploads one, named after the file unless given a name", async () => {
+    vi.spyOn(api, "fetchVolumes").mockResolvedValue([]);
+    vi.spyOn(api, "fetchStoragePools").mockResolvedValue([{ name: "remote", driver: "ceph", status: "Created", description: "" }]);
+    const up = vi.spyOn(api, "uploadIso").mockResolvedValue(ok);
+    open("/storage/volumes");
+    fireEvent.click(await screen.findByRole("button", { name: "Upload ISO" }));
+    await waitFor(() => expect(dialog().getByLabelText("Pool")).toHaveValue("remote"));
+    fireEvent.click(dialog().getByRole("button", { name: "Upload" }));
+    expect(dialog().getByRole("alert")).toHaveTextContent("Choose an ISO image.");
+    fireEvent.change(dialog().getByLabelText("ISO image"), { target: { files: [new File(["CD001"], "ubuntu-26.04.iso")] } });
+    fireEvent.click(dialog().getByRole("button", { name: "Upload" }));
+    expect(up).toHaveBeenCalledWith(expect.any(File), { project: "default", pool: "remote", name: "ubuntu-26.04", target: "" }, expect.any(Function));
+    await waitFor(() => expect(screen.getByRole("list", { name: "Actions" })).toHaveTextContent("✓ Upload ubuntu-26.04.iso into remote"));
+    fireEvent.click(screen.getByRole("button", { name: "Upload ISO" }));
+    await waitFor(() => expect(dialog().getByLabelText("Pool")).toHaveValue("remote"));
+    fireEvent.change(dialog().getByLabelText("ISO image"), { target: { files: [new File(["CD001"], "!!!.iso")] } });
+    fireEvent.click(dialog().getByRole("button", { name: "Upload" }));
+    expect(dialog().getByRole("alert")).toHaveTextContent(/Names start/); // nothing usable in the file name
+    fireEvent.change(dialog().getByLabelText(/^Name/), { target: { value: "installer" } });
+    fireEvent.click(dialog().getByRole("button", { name: "Upload" }));
+    expect(up).toHaveBeenLastCalledWith(expect.any(File), expect.objectContaining({ name: "installer" }), expect.any(Function));
+  });
+
+  it("attaches one to a VM, booted first unless unticked", async () => {
+    vi.spyOn(api, "fetchVolume").mockResolvedValue({ ...detail, content_type: "iso", location: "none", pool: "remote" });
+    vi.spyOn(api, "fetchVolumeSnapshots").mockResolvedValue([]);
+    vi.spyOn(api, "fetchVolumeBackups").mockResolvedValue([]);
+    vi.spyOn(api, "fetchInstances").mockResolvedValue([
+      { name: "c1", project: "web", type: "container", status: "Running", location: "m1", description: "", profiles: [] },
+      { name: "vm1", project: "web", type: "virtual-machine", status: "Stopped", location: "m1", description: "", profiles: [] },
+    ] as unknown as api.Instance[]);
+    const attach = vi.spyOn(api, "attachVolume").mockResolvedValue(ok);
+    open("/storage/volumes/web/remote/data");
+    fireEvent.click(await screen.findByRole("button", { name: "Attach…" }));
+    const inst = dialog().getByLabelText("Instance");
+    await waitFor(() => expect(within(inst).getAllByRole("option").map((o) => o.textContent)).toEqual(["vm1 (virtual-machine, Stopped)"]));
+    expect(dialog().queryByLabelText("Mount path")).toBeNull();
+    fireEvent.click(dialog().getByRole("button", { name: "Attach" }));
+    expect(attach).toHaveBeenLastCalledWith("web", "remote", "data", { instance: "vm1", device: "data", boot_priority: 10 });
+    fireEvent.click(screen.getByRole("button", { name: "Attach…" }));
+    await waitFor(() => expect(within(dialog().getByLabelText("Instance")).getAllByRole("option")).toHaveLength(1));
+    fireEvent.click(dialog().getByLabelText(/Boot from it first/));
+    fireEvent.click(dialog().getByRole("button", { name: "Attach" }));
+    expect(attach).toHaveBeenLastCalledWith("web", "remote", "data", { instance: "vm1", device: "data" });
+  });
+
+  it("says when there's no VM to attach it to", async () => {
+    vi.spyOn(api, "fetchVolume").mockResolvedValue({ ...detail, content_type: "iso" });
+    vi.spyOn(api, "fetchVolumeSnapshots").mockResolvedValue([]);
+    vi.spyOn(api, "fetchVolumeBackups").mockResolvedValue([]);
+    open("/storage/volumes/web/local/data?member=m1");
+    fireEvent.click(await screen.findByRole("button", { name: "Attach…" }));
+    fireEvent.click(dialog().getByRole("button", { name: "Attach" }));
+    expect(dialog().getByRole("alert")).toHaveTextContent("There is no VM in this project to attach it to");
   });
 });

@@ -192,7 +192,13 @@ async def test_create_instance(app, services):
             "alias": "golden",
         }
 
+        # an empty VM, to install from an ISO (Phase 7d)
+        await c.post("/api/instances", json={"name": "e", "type": "virtual-machine"}, headers=h)
+        assert json.loads(route.calls.last.request.content)["source"] == {"type": "none"}
+        assert services.store.audit_entries(limit=1)[0]["detail"]["image"] == "(empty)"
+
         for bad, code in [
+            ({"name": "c"}, 400),  # a container needs an image
             ({"name": "c", "image": {}}, 400),
             ({"name": "c", "image": {"remote": "ubuntu"}}, 400),
             ({"name": "bad name", "image": {"alias": "x"}}, 422),

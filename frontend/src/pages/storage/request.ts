@@ -106,3 +106,12 @@ export function poolProblems(f: PoolForm): string[] {
   if (f.driver === "cephfs" && !(f.fields.source ?? "").trim()) out.push("Enter the CephFS filesystem");
   return out;
 }
+
+/** A volume name from an ISO's file name: "ubuntu-24.04.3-live-server-amd64.iso" keeps its
+ * stem; anything LXD wouldn't take becomes "-". */
+export const isoName = (file: string) =>
+  file
+    .replace(/\.iso$/i, "")
+    .replace(/[^A-Za-z0-9._-]/g, "-")
+    .replace(/^[^A-Za-z0-9]+/, "")
+    .slice(0, 63);

@@ -1,14 +1,41 @@
 import { useState } from "react";
-import { fetchMembers, fetchStoragePools, importVolumeBackup, type PoolDriver } from "../../api";
+import { fetchMembers, fetchStoragePools, importVolumeBackup, uploadIso, type PoolDriver } from "../../api";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { useApi } from "../../useApi";
-import { LOCAL } from "./request";
+import { isoName, LOCAL } from "./request";
 
 const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
-/** Volumes → Import backup: a volume backup tarball becomes a new custom volume (Phase 7b). */
-export default function ImportVolumeBackup({ project, onClose }: { project: string; onClose: () => void }) {
+const KINDS = {
+  backup: {
+    title: "Import a volume backup",
+    file: "Backup file",
+    accept: ".tar,.gz,.tgz,.zst,.xz,.bz2",
+    send: (...a: Parameters<typeof importVolumeBackup>) => importVolumeBackup(...a),
+    done: "LXD is creating the volume",
+  },
+  iso: {
+    title: "Upload an ISO",
+    file: "ISO image",
+    accept: ".iso",
+    send: (...a: Parameters<typeof uploadIso>) => uploadIso(...a),
+    done: "LXD is storing it",
+  },
+};
+
+/** Volumes → Import backup (Phase 7b) or Upload ISO (Phase 7d): a file streamed to LXD
+ * becomes a new custom volume. */
+export default function UploadVolume({
+  kind,
+  project,
+  onClose,
+}: {
+  kind: "backup" | "iso";
+  project: string;
+  onClose: () => void;
+}) {
+  const k = KINDS[kind];
   const { run } = useActions();
   const pools = useApi("pools", fetchStoragePools);
   const members = useApi("members", fetchMembers);
@@ -24,32 +51,38 @@ export default function ImportVolumeBackup({ project, onClose }: { project: stri
 
   return (
     <Confirm
-      title={`Import a volume backup into ${project}`}
-      confirmLabel="Import"
+      title={`${k.title} into ${project}`}
+      confirmLabel={kind === "iso" ? "Upload" : "Import"}
       onCancel={onClose}
       onConfirm={() => {
-        if (!file) return setProblem("Choose a backup file.");
+        if (!file) return setProblem(`Choose ${kind === "iso" ? "an ISO image" : "a backup file"}.`);
         if (!chosen) return setProblem("Choose a pool.");
-        const to = name.trim();
-        if (to && !NAME.test(to)) return setProblem("Names start with a letter or digit: letters, digits, . _ -");
+        const to = name.trim() || (kind === "iso" ? isoName(file.name) : "");
+        if ((to || kind === "iso") && !NAME.test(to)) return setProblem("Names start with a letter or digit: letters, digits, . _ -");
         onClose();
         const dest = { project, pool: chosen.name, name: to, target: local && many ? target : "" };
-        void run(`Import ${file.name} into ${chosen.name}`, async (progress) => {
-          const st = await importVolumeBackup(file, dest, (f) =>
+        void run(`${kind === "iso" ? "Upload" : "Import"} ${file.name} into ${chosen.name}`, async (progress) => {
+          const st = await k.send(file, dest, (f) =>
             progress(f < 1 ? `${Math.floor(f * 100)}% uploaded` : "uploaded; LXD is unpacking it"),
           );
-          progress("LXD is creating the volume");
+          progress(k.done);
           return st;
         });
       }}
     >
       <p className="muted">
-        A tarball made by a volume backup here or by <code>lxc storage volume export</code>. It streams to LXD, so keep
-        this tab open until the upload finishes.
+        {kind === "iso" ? (
+          <>An installer or other ISO image, stored as a custom volume to attach to VMs as a CD.</>
+        ) : (
+          <>
+            A tarball made by a volume backup here or by <code>lxc storage volume export</code>.
+          </>
+        )}{" "}
+        It streams to LXD, so keep this tab open until the upload finishes.
       </p>
       <label className="field">
-        Backup file
-        <input type="file" accept=".tar,.gz,.tgz,.zst,.xz,.bz2" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        {k.file}
+        <input type="file" accept={k.accept} onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
       </label>
       <label className="field">
         Pool
@@ -73,7 +106,7 @@ export default function ImportVolumeBackup({ project, onClose }: { project: stri
         </label>
       )}
       <label className="field">
-        Name (optional; the backup&apos;s own if empty)
+        {kind === "iso" ? "Name (optional; from the file name if empty)" : "Name (optional; the backup's own if empty)"}
         <input value={name} onChange={(e) => setName(e.target.value)} />
       </label>
       {problem && <p role="alert">{problem}</p>}

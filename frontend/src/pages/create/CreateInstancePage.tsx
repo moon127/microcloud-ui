@@ -10,6 +10,7 @@ import {
   fetchProjects,
   fetchServer,
   fetchStoragePools,
+  fetchVolumes,
   operationProgress,
   type Operation,
 } from "../../api";
@@ -43,6 +44,9 @@ export default function CreateInstancePage() {
     features.placement_groups ? fetchPlacementGroups(f.project) : Promise.resolve([]),
   );
   const networks = useApi(`networks:${f.project}`, () => fetchNetworks(f.project));
+  const vm = f.type === "virtual-machine";
+  const volumes = useApi(`volumes:${f.project}:${vm}`, () => (vm ? fetchVolumes(f.project) : Promise.resolve([])));
+  const isos = (volumes.data ?? []).filter((v) => v.content_type === "iso");
 
   if (!access.canManageSomewhere()) return <p role="alert">Creating instances needs the admin role in a project.</p>;
 
@@ -105,7 +109,29 @@ export default function CreateInstancePage() {
 
       <section aria-label="Image">
         <h2>Image</h2>
-        <ImagePicker project={f.project} type={f.type} value={f.image} onChange={(img) => set("image", img)} />
+        {!(vm && f.empty) && (
+          <ImagePicker project={f.project} type={f.type} value={f.image} onChange={(img) => set("image", img)} />
+        )}
+        {vm && (
+          <div className="form-row">
+            <label className="field">
+              Boot from an ISO
+              <select value={f.iso} onChange={(e) => set("iso", e.target.value)}>
+                <option value="">None</option>
+                {isos.map((v) => (
+                  <option key={`${v.pool}/${v.name}`} value={`${v.pool}/${v.name}`}>
+                    {v.name} ({v.pool})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <input type="checkbox" checked={f.empty} onChange={(e) => set("empty", e.target.checked)} /> No image: an empty
+              root disk, to install from the ISO
+            </label>
+            {isos.length === 0 && <span className="muted">Upload one under Storage → Volumes → Upload ISO.</span>}
+          </div>
+        )}
       </section>
 
       <section aria-label="Placement and profiles">

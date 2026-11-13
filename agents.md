@@ -246,6 +246,15 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 7d done 2026-11-13 (D83):** ISO upload (IM-3): Volumes → Upload ISO (streamed,
+  named after the file unless given a name; the dialog shared with backup import), ISO
+  volumes attach to VMs only, as a CD booted first unless unticked (`boot_priority` on the
+  attach route), and the create wizard offers "Boot from an ISO" plus an empty root disk
+  for VMs (`image` is optional for VMs: LXD source `none`). Live in `mcui-test` (restricted,
+  VM limit raised to 1 and restored): a project admin uploaded a 300 MiB ISO in 5 s with no
+  growth in the server's memory, created an empty VM booting it, an operator started it,
+  detach and re-attach worked; all deleted. Not tested: a browser upload, a real installer
+  ISO. Next: 7c (needs a second project), 7e restriction keys.
 - **Phase 7b done 2026-11-13 (D83):** custom volume backups: a Backups section on the volume
   page (the panel shared with instances, `src/Backups.tsx`) and Volumes → Import backup (pool,
   member for local pools, name). Volume snapshot buttons now follow the operate right, as the

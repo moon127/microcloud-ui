@@ -349,3 +349,50 @@ describe("CreateInstancePage", () => {
     await waitFor(() => expect(screen.getByRole("link", { name: "Create instance" })).toHaveAttribute("href", "/instances/new"));
   });
 });
+
+describe("installing a VM from an ISO (Phase 7d)", () => {
+  it("builds an empty VM with the ISO booted first", () => {
+    const vm = { ...emptyForm("lab"), name: "inst1", type: "virtual-machine" as const, empty: true, iso: "remote/ubuntu-26.04" };
+    expect(problems(vm)).toEqual([]);
+    const r = buildRequest(vm);
+    expect(r.image).toBeUndefined();
+    expect(r.devices.iso).toEqual({ type: "disk", pool: "remote", source: "ubuntu-26.04", "boot.priority": "10" });
+    expect(problems({ ...vm, iso: "" })).toEqual(["An empty VM needs an ISO to install from"]);
+    // a container ignores both
+    const c = buildRequest({ ...vm, type: "container", image: { remote: "local", alias: "a" } });
+    expect(c.image).toEqual({ remote: "local", alias: "a" });
+    expect(c.devices.iso).toBeUndefined();
+    expect(problems({ ...vm, type: "container" })).toContain("Choose an image");
+  });
+
+  it("offers the project's ISO volumes for VMs", async () => {
+    const vols = vi.spyOn(api, "fetchVolumes").mockResolvedValue([
+      { name: "ubuntu-26.04", pool: "remote", type: "custom", content_type: "iso", description: "", config: {}, location: "none", used_by: [] },
+      { name: "data", pool: "remote", type: "custom", content_type: "filesystem", description: "", config: {}, location: "none", used_by: [] },
+    ]);
+    const create = vi.spyOn(api, "createInstance").mockResolvedValue({ operation: null, metadata: null });
+    open();
+    expect(screen.queryByLabelText("Boot from an ISO")).toBeNull();
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "inst1" } });
+    fireEvent.click(screen.getByLabelText("VM"));
+    const iso = await screen.findByLabelText("Boot from an ISO");
+    await waitFor(() => expect(within(iso).getAllByRole("option")).toHaveLength(2));
+    expect(vols).toHaveBeenCalledWith("default");
+    fireEvent.click(screen.getByLabelText(/No image: an empty/));
+    expect(screen.queryByRole("button", { name: "Local images" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    expect(screen.getByRole("alert")).toHaveTextContent("An empty VM needs an ISO to install from");
+    fireEvent.change(iso, { target: { value: "remote/ubuntu-26.04" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    const body = create.mock.calls[0][0];
+    expect(body.image).toBeUndefined();
+    expect(body.devices.iso).toEqual({ type: "disk", pool: "remote", source: "ubuntu-26.04", "boot.priority": "10" });
+  });
+
+  it("points to the upload when there is no ISO", async () => {
+    vi.spyOn(api, "fetchVolumes").mockResolvedValue([]);
+    open();
+    fireEvent.click(screen.getByLabelText("VM"));
+    expect(await screen.findByText(/Upload ISO/)).toBeInTheDocument();
+  });
+});

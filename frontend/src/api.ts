@@ -659,8 +659,9 @@ export interface NewInstance {
   type: "container" | "virtual-machine";
   project: string;
   target?: string;
-  /** remote: "local", "images"/"ubuntu" (LXD 5.21) or an image registry (LXD 6.10+) */
-  image: { remote: string; alias?: string; fingerprint?: string };
+  /** remote: "local", "images"/"ubuntu" (LXD 5.21) or an image registry (LXD 6.10+);
+   * none: an empty VM (to install from an ISO) */
+  image?: { remote: string; alias?: string; fingerprint?: string };
   description: string;
   profiles: string[];
   config: Record<string, string>;
@@ -1187,7 +1188,21 @@ export const importVolumeBackup = (
   const q = new URLSearchParams(Object.entries(dest).filter((e): e is [string, string] => !!e[1]));
   return uploadWithProgress(`/api/volumes/import?${q}`, file, onProgress);
 };
-export const attachVolume = (project: string, pool: string, name: string, body: { instance: string; device: string; path?: string }) =>
+/** Upload an ISO image as a custom volume (content type iso) to attach to VMs. */
+export const uploadIso = (
+  file: Blob,
+  dest: { project: string; pool: string; name: string; target?: string },
+  onProgress?: (fraction: number) => void,
+) => {
+  const q = new URLSearchParams(Object.entries(dest).filter((e): e is [string, string] => !!e[1]));
+  return uploadWithProgress(`/api/volumes/iso?${q}`, file, onProgress);
+};
+export const attachVolume = (
+  project: string,
+  pool: string,
+  name: string,
+  body: { instance: string; device: string; path?: string; boot_priority?: number },
+) =>
   send<Started>("POST", `${vol(project, pool, name)}/attach`, body);
 export const detachVolume = (project: string, pool: string, name: string, body: { instance: string; device: string }) =>
   send<Started>("POST", `${vol(project, pool, name)}/detach`, body);

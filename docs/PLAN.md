@@ -644,7 +644,7 @@ turned out to need.
 - **7c, moving instances between projects (IN-6):** the Move dialog gets a target project
   (with LXD's `instance_project_move`), offered only where the user can manage. Live: the
   owner's second project, plus the restriction checks above.
-- **7d, ISO upload (IM-3):** Storage → Volumes → Upload ISO (project, pool, name, file;
+- ✅ 2026-11-13 **7d, ISO upload (IM-3):** Storage → Volumes → Upload ISO (project, pool, name, file;
   streamed, with progress); ISO volumes marked in the list. Attach one to a VM as a CD
   (`disk` device with `source` the volume, `boot.priority`) from the VM's configuration and
   from the create wizard.

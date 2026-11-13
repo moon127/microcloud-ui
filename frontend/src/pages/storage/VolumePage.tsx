@@ -415,12 +415,14 @@ function Attached({ project, pool, name, v, admin }: { project: string; pool: st
 function AttachDialog({ project, pool, v, onClose }: { project: string; pool: string; v: VolumeDetail; onClose: () => void }) {
   const { run } = useActions();
   const insts = useApi("instances", fetchInstances);
-  const mine = (insts.data ?? []).filter((i) => i.project === project);
+  const iso = v.content_type === "iso"; // a CD, for VMs only
+  const mine = (insts.data ?? []).filter((i) => i.project === project && (!iso || i.type === "virtual-machine"));
   const [instance, setInstance] = useState("");
   const [device, setDevice] = useState(v.name);
   const [path, setPath] = useState(`/mnt/${v.name}`);
+  const [bootFirst, setBootFirst] = useState(true);
   const [problem, setProblem] = useState<string | null>(null);
-  const block = v.content_type === "block";
+  const block = v.content_type === "block" || iso;
   return (
     <Confirm
       title={`Attach ${v.name}`}
@@ -428,12 +430,18 @@ function AttachDialog({ project, pool, v, onClose }: { project: string; pool: st
       onCancel={onClose}
       onConfirm={() => {
         const inst = instance || mine[0]?.name;
-        if (!inst) return setProblem("Choose an instance");
+        if (!inst) return setProblem(iso ? "There is no VM in this project to attach it to" : "Choose an instance");
         if (!device.trim()) return setProblem("Enter a device name");
         if (!block && !path.startsWith("/")) return setProblem("The mount path must be absolute");
         onClose();
         void run(`Attach ${v.name} to ${inst}`, () =>
-          attachVolume(project, pool, v.name, { instance: inst, device: device.trim(), ...(block ? {} : { path }) }),
+          attachVolume(project, pool, v.name, {
+            instance: inst,
+            device: device.trim(),
+            ...(block ? {} : { path }),
+            // LXD boots the highest boot.priority first; the root disk has none
+            ...(iso && bootFirst ? { boot_priority: 10 } : {}),
+          }),
         );
       }}
     >
@@ -451,7 +459,16 @@ function AttachDialog({ project, pool, v, onClose }: { project: string; pool: st
         Device name
         <input value={device} onChange={(e) => setDevice(e.target.value)} />
       </label>
-      {block ? (
+      {iso && (
+        <>
+          <p className="muted">An ISO is attached to a VM as a CD. The VM sees it after a restart.</p>
+          <label>
+            <input type="checkbox" checked={bootFirst} onChange={(e) => setBootFirst(e.target.checked)} /> Boot from it
+            first (to install from it)
+          </label>
+        </>
+      )}
+      {iso ? null : block ? (
         <p className="muted">Block volumes are attached to VMs as a disk, without a mount path.</p>
       ) : (
         <label className="field">

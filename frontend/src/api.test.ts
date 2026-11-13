@@ -447,3 +447,14 @@ describe("volume backups (Phase 7b)", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("ISO upload (Phase 7d)", () => {
+  it("posts to /api/volumes/iso", async () => {
+    vi.stubGlobal("XMLHttpRequest", FakeXhr);
+    const p = api.uploadIso(new Blob(["x"]), { project: "p", pool: "remote", name: "u" });
+    expect(FakeXhr.last.url).toBe("/api/volumes/iso?project=p&pool=remote&name=u");
+    FakeXhr.last.answer(200, "{}");
+    await expect(p).resolves.toEqual({});
+    vi.unstubAllGlobals();
+  });
+});

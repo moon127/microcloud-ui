@@ -104,3 +104,24 @@ async def test_import(app, services):
         r = await c.post(url, params={"pool": "local"}, content=b"", headers=h)
         assert r.status_code == 400
         assert (await c.post(url, content=b"t", headers=h)).status_code == 422  # no pool
+
+
+@respx.mock
+async def test_iso_upload(app, services):
+    up = respx.post(VOLS).mock(return_value=async_resp())
+    url = "/api/volumes/iso"
+    q = {"project": "p", "pool": "local", "name": "ubuntu-iso", "target": "m1"}
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "viewer", "viewerpw")}
+        assert (await c.post(url, params=q, content=b"x", headers=h)).status_code == 403
+        h = await admin(c)
+        r = await c.post(url, params=q, content=b"CD001", headers=h)
+        assert r.status_code == 200, r.text
+        req = up.calls.last.request
+        assert req.content == b"CD001" and req.headers["x-lxd-type"] == "iso"
+        assert req.headers["x-lxd-name"] == "ubuntu-iso"
+        assert dict(req.url.params) == {"project": "p", "target": "m1"}
+        assert last_audit(services)[:2] == ("volume.iso.upload", "p/local/ubuntu-iso")
+        no_name = {"project": "p", "pool": "local"}
+        assert (await c.post(url, params=no_name, content=b"x", headers=h)).status_code == 422
+        assert (await c.post(url, params=q, content=b"", headers=h)).status_code == 400

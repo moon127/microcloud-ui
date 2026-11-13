@@ -382,6 +382,8 @@ class Attach(BaseModel):
     instance: str = Field(pattern=NAME, max_length=63)
     device: str = Field(pattern=DEVICE, max_length=63)
     path: str | None = Field(default=None, pattern=r"^/", max_length=4096)
+    # an ISO: boot from it before the root disk (LXD boots the highest first)
+    boot_priority: int | None = Field(default=None, ge=0, le=100)
 
 
 class Detach(BaseModel):
@@ -399,12 +401,14 @@ async def attach(
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
-    """Filesystem volumes need a mount ``path``; block volumes are attached without one."""
+    """Filesystem volumes need a mount ``path``; block and ISO volumes are attached without
+    one, an ISO perhaps with a ``boot_priority``."""
     dev = {
         "type": "disk",
         "pool": pool,
         "source": name,
         **({"path": body.path} if body.path else {}),
+        **({"boot.priority": str(body.boot_priority)} if body.boot_priority is not None else {}),
     }
     return await _change(
         session,

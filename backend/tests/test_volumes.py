@@ -202,6 +202,17 @@ async def test_attach_detach(app, services):
             f"{url}/attach", json={"instance": "web", "device": "x", "path": "rel"}, headers=h
         )
         assert r.status_code == 422
+        # an ISO, booted first (Phase 7d)
+        iso = {"instance": "web", "device": "iso", "boot_priority": 10}
+        await c.post(f"{url}/attach", json=iso, headers=h)
+        assert body(patch)["devices"]["iso"] == {
+            "type": "disk",
+            "pool": "local",
+            "source": "v1",
+            "boot.priority": "10",
+        }
+        bad = {**iso, "boot_priority": 101}
+        assert (await c.post(f"{url}/attach", json=bad, headers=h)).status_code == 422
         r = await c.post(f"{url}/detach", json={"instance": "web", "device": "data"}, headers=h)
         assert r.status_code == 200, r.text
         sent = body(put)

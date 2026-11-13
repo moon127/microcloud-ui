@@ -1,8 +1,11 @@
-"""Custom volume backups (ST-4, Phase 7b): list, create, rename, delete, download, import.
+"""Custom volume backups (ST-4, Phase 7b) and ISO uploads (IM-3, Phase 7d).
+
+Backups: list, create, rename, delete, download, import.
 
 As for instances (``mcui.api.backups``): operate for backups and downloads, manage in the
-target project for an import (D83). Volumes on local pools live on one member, passed as
-``target`` (D55). A restricted project refuses backups unless ``restricted.backups=allow``.
+target project for an import or an ISO upload (D83). Volumes on local pools live on one
+member, passed as ``target`` (D55). A restricted project refuses backups unless
+``restricted.backups=allow``.
 """
 
 from __future__ import annotations
@@ -166,16 +169,34 @@ async def import_backup(
 ) -> dict[str, Any]:
     """Create a custom volume from a backup tarball sent as the raw request body (streamed);
     ``name`` overrides the backup's own."""
+    return await _upload(
+        request, guard, store, lxd, "volume.backup.import", project, pool, name, target
+    )
+
+
+async def _upload(
+    request: Request,
+    guard: InBodyDep,
+    store: StoreDep,
+    lxd: LXDDep,
+    action: str,
+    project: str,
+    pool: str,
+    name: str | None,
+    target: str | None,
+    extra: dict[str, str] | None = None,
+) -> dict[str, Any]:
+    """Stream the request body to LXD as a new custom volume in ``pool``."""
     await guard.check(project)
     if request.headers.get("content-length") == "0":
-        raise HTTPException(status_code=400, detail="send the backup file as the body")
-    headers = {"Content-Type": "application/octet-stream"}
+        raise HTTPException(status_code=400, detail="send the file as the body")
+    headers = {"Content-Type": "application/octet-stream", **(extra or {})}
     if name:
         headers["X-LXD-name"] = name
     st = await audited(
         guard.session,
         store,
-        "volume.backup.import",
+        action,
         f"{project}/{pool}/{name or '(from backup)'}",
         operations.start(
             lxd,
@@ -188,3 +209,30 @@ async def import_backup(
         ),
     )
     return st.as_dict()
+
+
+@router.post("/iso")
+async def upload_iso(
+    request: Request,
+    guard: InBodyDep,
+    store: StoreDep,
+    lxd: LXDDep,
+    pool: Annotated[str, Query(pattern=NAME, max_length=63)],
+    name: Annotated[str, Query(pattern=NAME, max_length=63)],
+    project: Annotated[str, Query(pattern=NAME, max_length=63)] = "default",
+    target: MemberName = None,
+) -> dict[str, Any]:
+    """An ISO image sent as the raw request body becomes a custom volume of content type
+    ``iso`` (LXD ``custom_volume_iso``), to attach to VMs as a CD."""
+    return await _upload(
+        request,
+        guard,
+        store,
+        lxd,
+        "volume.iso.upload",
+        project,
+        pool,
+        name,
+        target,
+        {"X-LXD-type": "iso"},
+    )

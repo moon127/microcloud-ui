@@ -57,7 +57,7 @@ A project user has a **grant** per project:
 |---|---|
 | **viewer** | see the project's instances, volumes, networks, profiles, images and placement groups; their graphs; its operations and audit entries |
 | **operator** | viewer, plus start, stop, restart, freeze; consoles and the terminal; files; instance and volume snapshots; instance and volume backups (make, rename, delete, download) |
-| **admin** | operator, plus create, change, rename, copy, move, publish, import (from a backup) and delete instances, import volume backups, and manage the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
+| **admin** | operator, plus create, change, rename, copy, move, publish, import (from a backup) and delete instances, import volume backups, upload ISOs and attach them, and manage the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
 
 Files, consoles and backup downloads need operator because they can expose secrets.
 

@@ -150,7 +150,7 @@ class NewInstance(BaseModel):
     type: Literal["container", "virtual-machine"] = "container"
     project: str = Field(default="default", pattern=NAME, max_length=63)
     target: str | None = Field(default=None, pattern=r"^@?[A-Za-z0-9][A-Za-z0-9._-]*$")
-    image: ImageSource
+    image: ImageSource | None = None  # none: an empty VM, e.g. to install from an ISO
     description: str = ""
     profiles: list[str] = Field(default_factory=lambda: ["default"])
     config: dict[str, str] = Field(default_factory=dict)
@@ -185,8 +185,10 @@ def image_source(img: ImageSource, registries: bool = False) -> dict[str, str]:
 @router.post("")
 async def create_instance(body: NewInstance, ctx: CtxCreateDep) -> dict[str, Any]:
     await ctx.check_project(body.project)
+    if body.image is None and body.type != "virtual-machine":
+        raise HTTPException(status_code=400, detail="a container needs an image")
     registries = False
-    if body.image.remote != "local":
+    if body.image is not None and body.image.remote != "local":
         info = await ctx.lxd.get("/1.0")
         registries = "image_registries" in (info.get("api_extensions") or [])
     payload = {
@@ -197,7 +199,7 @@ async def create_instance(body: NewInstance, ctx: CtxCreateDep) -> dict[str, Any
         "config": body.config,
         "devices": body.devices,
         "start": body.start,
-        "source": image_source(body.image, registries),
+        "source": image_source(body.image, registries) if body.image else {"type": "none"},
     }
     return await ctx.change(
         "instance.create",
@@ -208,7 +210,11 @@ async def create_instance(body: NewInstance, ctx: CtxCreateDep) -> dict[str, Any
         json=payload,
         params={"target": body.target} if body.target else None,
         detail={
-            "image": f"{body.image.remote}:{body.image.alias or body.image.fingerprint}",
+            "image": (
+                f"{body.image.remote}:{body.image.alias or body.image.fingerprint}"
+                if body.image
+                else "(empty)"
+            ),
             "type": body.type,
         },
     )

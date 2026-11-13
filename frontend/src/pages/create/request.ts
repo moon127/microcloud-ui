@@ -21,6 +21,10 @@ export interface CreateForm {
   /** LXD 6.6+: placement.group */
   placementGroup: string;
   image: NewInstance["image"] | null;
+  /** a VM with an empty root disk instead of an image, to install from ``iso`` */
+  empty: boolean;
+  /** an ISO volume ("pool/name") attached as a CD and booted first (VMs, Phase 7d) */
+  iso: string;
   description: string;
   profiles: string[];
   cpu: string;
@@ -46,6 +50,8 @@ export const emptyForm = (project: string): CreateForm => ({
   target: "",
   placementGroup: "",
   image: null,
+  empty: false,
+  iso: "",
   description: "",
   profiles: ["default"],
   cpu: "",
@@ -68,7 +74,9 @@ export const emptyForm = (project: string): CreateForm => ({
 export function problems(f: CreateForm): string[] {
   const out: string[] = [];
   if (!/^[A-Za-z][A-Za-z0-9-]{0,62}$/.test(f.name)) out.push("Name: letters, digits and dashes, starting with a letter");
-  if (!f.image) out.push("Choose an image");
+  const vm = f.type === "virtual-machine";
+  if (!f.image && !(vm && f.empty)) out.push("Choose an image");
+  if (vm && f.empty && !f.iso) out.push("An empty VM needs an ISO to install from");
   const names = [...f.nics.map((n) => n.name), ...f.disks.map((d) => d.name)];
   if (names.some((n) => !n.trim())) out.push("Every NIC and disk needs a device name");
   if (new Set(names).size !== names.length || names.includes("root")) out.push("Device names must be unique (and not 'root')");
@@ -110,12 +118,18 @@ export function buildRequest(f: CreateForm, features: Record<string, boolean> = 
   for (const d of f.disks) {
     devices[d.name] = { type: "disk", pool: d.pool, source: d.volume, path: d.path };
   }
+  const vm = f.type === "virtual-machine";
+  if (vm && f.iso) {
+    const [pool, source] = f.iso.split("/");
+    // LXD boots the highest boot.priority first; the root disk has none
+    devices.iso = { type: "disk", pool, source, "boot.priority": "10" };
+  }
   return {
     name: f.name,
     type: f.type,
     project: f.project,
     ...(f.target ? { target: f.target } : {}),
-    image: f.image ?? { remote: "local" },
+    ...(vm && f.empty ? {} : { image: f.image ?? { remote: "local" } }),
     description: f.description,
     profiles: f.profiles,
     config,
