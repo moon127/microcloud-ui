@@ -40,7 +40,8 @@ MicroOVN). Backend FastAPI (Python ≥3.10), frontend React 19 + TS + Vite + uPl
 - **Live cluster limits (D41):**
   - Anything that changes the real cluster happens only in LXD project **`mcui-test`**.
   - Outside it, the agreed exceptions are `mcui-test-*` ACLs, network forwards and a bridge
-    network.
+    network, and (2026-11-13) OVN load balancers and pools for tests on one of the owner's
+    OVN networks, e.g. `legacy-infra`; delete them after the run.
   - Never touch OVN uplinks or Ceph pools.
   - Cluster-wide actions (evacuate, restore, warnings, project create or delete) are
     fixture-tested only; the owner runs them (`docs/LIVE-TESTS.md`).

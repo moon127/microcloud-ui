@@ -233,8 +233,16 @@ fixtures, so record a full set **before** the upgrade (5.0).
     with `child_count` 4. Each child's `metadata.entity_url` names its instance, and each
     has the coordinating member as `location`, whichever member runs the instance.
 
-  Not checked live yet: OVN load balancers on a real OVN network (outside `mcui-test`;
-  the owner's call) and the forced evacuation (owner only).
+  - **OVN load balancers** (on `legacy-infra`, owner's go-ahead; two `mcui-test` containers
+    on it as backends):
+    - A load balancer with an allocated address got one from the uplink's routed range,
+      not its OVN range, and answered from the Mac, alternating between both backends.
+    - Editing it down to one backend through the app took effect at once.
+    - LXD refuses a pool whose instances are in another project ("does not exist in
+      project default"). The pool form now labels the field with the network's project.
+      Pools with health checks remain verified on the 6.10 VM only.
+
+  Not checked live yet: the forced evacuation (owner only).
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
   "verify the current code still works"; anything that fails feeds 5a.
 

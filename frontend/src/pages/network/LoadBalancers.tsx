@@ -355,6 +355,7 @@ function Pools({
       {editing && (
         <PoolDialog
           initial={editing === "new" ? null : editing}
+          project={project}
           healthChecks={healthChecks}
           onCancel={() => setEditing(null)}
           onSave={(name, body) => {
@@ -413,11 +414,13 @@ function PoolTargets({ project, network, pool, healthChecks }: { project: string
 
 function PoolDialog({
   initial,
+  project,
   healthChecks,
   onCancel,
   onSave,
 }: {
   initial: LbPool | null;
+  project: string;
   healthChecks: boolean;
   onCancel: () => void;
   onSave: (name: string, body: PoolBody) => void;
@@ -465,7 +468,7 @@ function PoolDialog({
         <input size={8} value={targetPort} onChange={(e) => setTargetPort(e.target.value)} />
       </label>
       <label className="field">
-        Instances (comma separated)
+        Instances in {project} (comma separated)
         <input value={instances} onChange={(e) => setInstances(e.target.value)} />
       </label>
       {healthChecks && (

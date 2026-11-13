@@ -121,7 +121,8 @@ describe("LoadBalancers", () => {
     fireEvent.click(dialog().getByRole("button", { name: "Save" }));
     expect(dialog().getByRole("alert")).toHaveTextContent("Enter the target port");
     fireEvent.change(dialog().getByLabelText("Target port"), { target: { value: "8080" } });
-    fireEvent.change(dialog().getByLabelText(/Instances/), { target: { value: "c3, c4" } });
+    // LXD 6.10 refuses instances from another project (checked live)
+    fireEvent.change(dialog().getByLabelText("Instances in default (comma separated)"), { target: { value: "c3, c4" } });
     fireEvent.click(dialog().getByLabelText(/Health check the targets/));
     fireEvent.change(dialog().getByLabelText(/Check every/), { target: { value: "10" } });
     fireEvent.click(dialog().getByRole("button", { name: "Save" }));
