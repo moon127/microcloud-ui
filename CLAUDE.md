@@ -23,6 +23,9 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
 
 ## Rules that must hold
 
+- **Repository rulesets (D80):** no force-push or deletion of `main`; release tags (`v*`)
+  can't be deleted or moved (the owner can bypass). A rejected push means rewritten
+  history: stop and ask, don't look for a way round.
 - **Commits:** author *and* committer `Gareth Woolridge <gareth@woolridge.org.uk>`:
   `git -c user.email=gareth@woolridge.org.uk -c user.name="Gareth Woolridge" commit …`.
   Commit on `main` when a piece of work is done and green; don't push unless asked.

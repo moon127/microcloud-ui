@@ -99,6 +99,23 @@ request first: merge it, then release.
 Hosts running the bundle take Ubuntu's own security updates through `apt` as usual. Only
 the app's virtualenv comes from the bundle.
 
+## Repository protection
+
+Only the owner can push to the repository; anyone can fork it and open a pull request
+(D80). On top of that:
+
+| Setting | What it does |
+|---|---|
+| Ruleset **"main: no force-push or deletion"** | No force-push to `main` and no deleting it, for anyone, the owner included |
+| Ruleset **"release tags: no deletion or moving"** (`v*`) | A published release tag can't be deleted or moved. The owner (admin role) can bypass, to remove a stray tag deliberately. `edge` isn't covered: it moves with every build |
+| Fork pull requests | Their workflows wait for approval, from every outside contributor, and run with a read-only token and no secrets. The release workflow ignores CI runs that didn't come from a push to this repository's `main` |
+| Private vulnerability reporting | Reports arrive on the Security tab, not as public issues (`SECURITY.md`) |
+
+Rewriting `main`'s history (as on 2026-11-12) needs the main ruleset switched off first:
+**Settings → Rules → Rulesets**, set its enforcement to *Disabled*, push, then set it back
+to *Active*. Don't turn on GitHub's "immutable releases": the edge pre-release is updated
+in place on every build.
+
 ## Dry run
 
 **Actions → Release → Run workflow** on `main` runs CI and builds the image (both
