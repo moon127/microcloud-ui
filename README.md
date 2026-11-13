@@ -54,7 +54,10 @@ More: [instances](docs/screenshots/instances.png) ·
 [storage](docs/screenshots/storage.png) ·
 [networks](docs/screenshots/networks.png) ·
 [OVN](docs/screenshots/ovn.png) ·
-[users and project grants](docs/screenshots/users.png)
+[users and project grants](docs/screenshots/users.png) ·
+a project user's [Overview](docs/screenshots/project-user.png) and
+[instance page](docs/screenshots/project-user-instance.png) (an operator: only their projects,
+no cluster pages, no rename or delete)
 
 LXD 6 / MicroCloud 3.4 only: [placement groups](docs/screenshots/placement-groups.png) ·
 [OVN load balancers with a health-checked pool](docs/screenshots/load-balancers.png) (the

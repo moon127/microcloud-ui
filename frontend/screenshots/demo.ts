@@ -467,8 +467,8 @@ export const HOSTS_VIEW: { node_exporter: boolean; hosts: Host[] } = {
   }),
 };
 
-export function top(metric: string): TopResult {
-  const on = running.slice();
+export function top(metric: string, keep: (project: string) => boolean = () => true): TopResult {
+  const on = running.filter((d) => keep(d.project));
   const value: Record<string, (d: Demo) => number> = {
     cpu: (d) => d.cpu,
     memory: used,
@@ -749,20 +749,29 @@ export function query(params: URLSearchParams): QueryResult {
 
 // --- the API --------------------------------------------------------------------------
 
+// who the screenshots are taken as: the admin, or (D81) a project user, for whom the demo
+// keeps to their projects as the real server does
+let signedIn: User = USERS[0];
+export function signIn(username: string): void {
+  signedIn = USERS.find((u) => u.username === username) ?? USERS[0];
+}
+const mine = (project: string) => signedIn.role !== "project" || project in (signedIn.grants ?? {});
+
 /** The API answer for a request, or ``undefined`` for an unknown path. */
 export function answer(method: string, url: URL): unknown {
   const p = url.pathname;
   const s = url.searchParams;
   if (method !== "GET") return {};
   const fixed: Record<string, unknown> = {
-    "/api/auth/me": { user: { username: "admin", role: "admin" }, csrf: "demo" },
+    "/api/auth/me": { user: signedIn, csrf: "demo" },
     "/api/health": { status: "ok", version: "0.1.5", lxd_configured: true },
     "/api/server": SERVER,
-    "/api/metrics/live": LIVE,
+    "/api/metrics/live":
+      signedIn.role === "project" ? { ...LIVE, members: [], instances: LIVE.instances.filter((i) => mine(i.project)) } : LIVE,
     "/api/hosts": HOSTS_VIEW,
     "/api/cluster/members": MEMBERS,
-    "/api/projects": PROJECTS,
-    "/api/instances": LIST,
+    "/api/projects": PROJECTS.filter((x) => mine(x.name)),
+    "/api/instances": LIST.filter((i) => mine(i.project)),
     "/api/storage-pools": POOLS,
     "/api/profiles": PROFILES,
     "/api/images": IMAGES,
@@ -788,7 +797,10 @@ export function answer(method: string, url: URL): unknown {
   if (p in fixed) return fixed[p];
   if (p === "/api/networks") return s.get("target") ? HOST_INTERFACES : NETWORKS;
   if (p === "/api/metrics/query") return query(s);
-  if (p === "/api/metrics/top") return top(s.get("metric") ?? "cpu");
+  if (p === "/api/metrics/top") {
+    const t = top(s.get("metric") ?? "cpu", signedIn.role === "project" ? mine : undefined);
+    return t;
+  }
   if (p === "/api/metrics/network-traffic") return traffic(Number(s.get("range") ?? 3600));
   if (p === "/api/ceph/rbd") return { metric: s.get("metric"), range: Number(s.get("range")), rows: RBD };
   if (p.startsWith("/api/images/remote/")) return REMOTE_IMAGES;

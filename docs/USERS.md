@@ -12,7 +12,7 @@ Every user has one of three roles:
 | Role | Sees | Changes |
 |---|---|---|
 | **Cluster admin** | everything | everything, including users, projects, members, storage pools and cluster settings |
-| **Cluster viewer** | everything except the audit log | nothing |
+| **Cluster viewer** | everything, including the audit log | nothing |
 | **Project user** | only the projects granted to them | according to their role in each project |
 
 A project user has a **grant** per project:
@@ -58,6 +58,12 @@ can't, for example, choose which member an instance runs on.
 
 ## What a project user sees
 
+`ops-oncall`, an operator in `web` and `lab`, on the invented demo cluster:
+
+![A project user's Overview](screenshots/project-user.png)
+
+![An operator's instance page](screenshots/project-user-instance.png)
+
 - **Menu:** Overview, Instances, Profiles, Images, Projects, Networks and Operations. No
   Storage, Ceph, Warnings or Users.
 - **Project picker:** only their projects. "All projects" means all of theirs.
@@ -69,6 +75,8 @@ can't, for example, choose which member an instance runs on.
 - **Anything else** answers "not found", so it doesn't reveal what exists.
 
 ## Managing users
+
+![The Users page](screenshots/users.png)
 
 **In the UI:** **Users** (cluster admins only): create users and choose their role; edit
 the role or reset the password (which signs them out); **Projects** to grant or remove a

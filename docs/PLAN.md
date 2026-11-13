@@ -529,7 +529,8 @@ each route in the code):
     `query` must match one of their projects, because a sum across series would mix
     projects. The live snapshot keeps their instances and no member rows.
   - **The audit log:** only changes to their projects' objects, never user or login
-    entries. Global viewers still can't read it, as before Phase 6.
+    entries. Cluster viewers read all of it (owner's call, 2026-11-13; before Phase 6
+    only admins could).
   - **The event stream:** only their projects' events.
   - **Console streams:** only their owner attaches. Starting one needs operate, so
     attaching no longer needs the admin role.

@@ -7,14 +7,22 @@ import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { chromium, type Page, type Route } from "playwright-core";
 import { preview } from "vite";
-import { NOW, answer } from "./demo.ts";
+import { NOW, answer, signIn } from "./demo.ts";
 
 const args = process.argv.slice(2);
 const LIGHT = args.includes("--light");
 const ONLY = args.find((a) => a.startsWith("--only="))?.slice(7).split(",");
 const OUT = resolve(args.find((a) => !a.startsWith("--")) ?? "../docs/screenshots");
 
-export const PAGES: { file: string; path: string; wait?: string; full?: boolean; prepare?: (p: Page) => Promise<void> }[] = [
+export const PAGES: {
+  file: string;
+  path: string;
+  wait?: string;
+  full?: boolean;
+  /** taken as this demo user (default: the admin) */
+  user?: string;
+  prepare?: (p: Page) => Promise<void>;
+}[] = [
   { file: "overview.png", path: "/?range=86400", wait: "Hosts", full: true },
   { file: "instances.png", path: "/instances", wait: "db-primary" },
   { file: "instance.png", path: "/instances/web/db-primary?range=86400", wait: "CPU (% of its CPUs)", full: true },
@@ -38,6 +46,9 @@ export const PAGES: { file: string; path: string; wait?: string; full?: boolean;
   { file: "load-balancers.png", path: "/networks/default/default", wait: "198.51.100.10", full: true },
   // users and project access (D81)
   { file: "users.png", path: "/users", wait: "ops-oncall" },
+  // what a project user sees: ops-oncall, operator in web and lab
+  { file: "project-user.png", path: "/?range=86400", wait: "web-1", full: true, user: "ops-oncall" },
+  { file: "project-user-instance.png", path: "/instances/web/web-1?range=86400", wait: "Console", user: "ops-oncall" },
 ];
 
 async function main() {
@@ -60,6 +71,7 @@ async function main() {
     });
     await mkdir(OUT, { recursive: true });
     for (const page of PAGES.filter((p) => !ONLY || ONLY.includes(p.file.replace(/\.png$/, "")))) {
+      signIn(page.user ?? "admin");
       const tab = await ctx.newPage();
       await tab.goto(base.replace(/\/$/, "") + page.path, { waitUntil: "networkidle" });
       if (page.wait) await tab.getByText(page.wait).first().waitFor();

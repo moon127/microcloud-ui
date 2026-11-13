@@ -177,18 +177,12 @@ async def delete_user(username: str, session: AdminDep, store: StoreDep) -> None
 
 @router.get("/audit")
 async def audit(
-    session: SessionDep,
-    scope: ScopeDep,
-    store: StoreDep,
-    limit: int = 100,
-    before: int | None = None,
+    scope: ScopeDep, store: StoreDep, limit: int = 100, before: int | None = None
 ) -> list[dict[str, Any]]:
-    """Cluster admins see everything; global viewers nothing, as before Phase 6; project
-    users only changes to their projects' objects (targets are ``project/...``), never user
-    or login entries."""
+    """Cluster admins and viewers see everything (a viewer reads all, owner 2026-11-13);
+    project users only changes to their projects' objects (targets are ``project/...``),
+    never user or login entries."""
     limit = max(1, min(limit, 1000))
-    if session.user.role == "viewer":
-        raise HTTPException(status_code=403, detail="admin role required")
     if scope.everything:
         return store.audit_entries(limit=limit, before_id=before)
     mine = [

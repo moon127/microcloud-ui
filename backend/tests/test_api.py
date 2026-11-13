@@ -93,7 +93,7 @@ async def test_viewer_cannot_admin(app):
             "/api/users", json={"username": "x", "password": "y"}, headers={CSRF_HEADER: csrf}
         )
         assert r.status_code == 403
-        assert (await c.get("/api/audit")).status_code == 403
+        assert (await c.get("/api/audit")).status_code == 200  # viewers read everything
 
 
 async def test_user_management(app, services):
