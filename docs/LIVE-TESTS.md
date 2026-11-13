@@ -36,7 +36,7 @@ change with its LXD operation id.
 |---|---|---|
 | C1 | Member page → **Evacuate** a member at a quiet time, mode *stop* or *migrate* | Toast follows the operation to the end; member shows *Evacuated*; instances moved/stopped as chosen |
 | C2 | Same member → **Restore** | Member *Online*; instances back |
-| C2a | LXD 6.9+: with one member evacuated, **Evacuate** a second one, then **Cancel** the force prompt | LXD refuses for quorum before moving anything; the UI shows the refusal and offers *Force evacuation* |
+| C2a | LXD 6.9+: with one member evacuated, **Evacuate** a second one, then **Cancel** the force prompt | On three members LXD 6.10 does **not** refuse (see below). Don't run this on a cluster in use |
 
 Done on LXD 6.10 (2026-11-13, member 2, Default mode): C1 moved four instances in about two
 minutes, each down for a few seconds, and the member's OVN gateway moved off it. C2 failed
@@ -51,7 +51,21 @@ has a Xeon D-2123IT (Skylake, with AVX-512). QEMU on member 2 refused the VM's s
 the newer CPU can't resume on the older one. Live migration works only onto the newer one.
 
 On a cluster with mixed CPUs, set `cluster.evacuate=migrate` on stateful VMs. They then
-restart rather than live-migrate when a member is evacuated and restored. C2a not run yet.
+restart rather than live-migrate when a member is evacuated and restored.
+
+C2a on LXD 6.10 (2026-11-13, members 1 then 2):
+- **LXD didn't refuse the second evacuation.** Evacuating member 1 demoted it from database
+  voter, which left two voters. LXD's check (`checkEvacuationQuorum`) takes a majority of
+  two as one, so it let member 2 go too. Every instance moved to member 3, which for a while
+  was the only database voter. Raft needs two of two, so this looks like an LXD bug.
+- **Restoring member 2 then failed twice** on the CPU difference above: its VMs had
+  live-migrated to member 3's newer CPU. Each failure left member 2 evacuated, with no
+  database role again.
+- **What worked:** stop the VMs, restore member 2, then restore member 1. LXD runs only
+  one evacuate or restore at a time ("An operation with this conflict reference is already
+  running").
+- **Autostart:** a stopped container with autostart set (`mirrors`) was started where
+  the evacuation moved it.
 | C3 | Warnings → Acknowledge / Reopen / Delete a harmless warning (e.g. the cgroup network priority one) | Status changes; deleted warnings come back if the condition persists |
 | C4 | Projects → **Create** a throwaway project, edit its description/limits, **Rename** it, **Delete** it | Each step works; renaming/deleting a non-empty project shows LXD's refusal |
 | C5 | Operations page while an image downloads | Running operation listed with Cancel; cancelling stops it |

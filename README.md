@@ -161,7 +161,7 @@ On LXD 6 (MicroCloud 3.4) there's more:
 - load-balancer pools with health checks
 - multi-volume snapshots on the Snapshots tab
 - child operations on the Operations page
-- a forced evacuation when LXD refuses one for quorum
+- a forced evacuation when LXD refuses one for quorum (it doesn't always: see `docs/LIVE-TESTS.md` C2a)
 - a DHCP ranges field for new OVN networks Admins can change things; viewers read only. Pick the time range (15 min to 1 year) above
 the graphs. History is collected in the background into `<data_dir>/metrics.db`.
 

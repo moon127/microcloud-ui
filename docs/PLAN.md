@@ -264,7 +264,13 @@ fixtures, so record a full set **before** the upgrade (5.0).
       live-migrate between members with different CPU models. The members' resources
       already give the models.
 
-  Not checked live yet: the quorum refusal (C2a, owner only).
+  - **The quorum refusal (C2a):** LXD 6.10 did **not** refuse evacuating a second
+    member of three. The first one's demotion left two voters, and LXD counts one of two
+    as a majority. All instances ended up on one member, and the restore failed on the
+    CPU difference until the VMs were stopped. Full account: `docs/LIVE-TESTS.md`.
+    Follow-up (5c): the evacuate dialog warns when another member is out, and when VMs
+    would live-migrate between different CPUs. The restore dialog warns about VMs that
+    can't live-migrate back. Evacuations and restores show progress.
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
   "verify the current code still works"; anything that fails feeds 5a.
 

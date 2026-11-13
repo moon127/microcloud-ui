@@ -59,6 +59,14 @@ it supports, so MicroCloud 2.x gets everything except the LXD 6 additions:
 - multi-volume snapshots
 - nested child operations
 - a forced evacuation when LXD refuses one for quorum
+
+**Evacuating members, two cautions from the test cloud** (`docs/LIVE-TESTS.md` C1, C2,
+C2a):
+- **Never evacuate a second member while one is out.** LXD 6.10 doesn't always refuse:
+  on three members it let the second go, and every instance ran on one host.
+- **On members with different CPUs, set `cluster.evacuate=migrate` on stateful VMs**
+  (`migration.stateful=true`). A VM live-migrated to a newer CPU can't come back, and the
+  restore then fails.
 - OVN DHCP ranges (6.6) `mcui check` lists
 anything hidden ("Unavailable") and warns about LXD releases missing the October 2026
 TLS security fix (update to 5.21.9 or 6.10.1).
