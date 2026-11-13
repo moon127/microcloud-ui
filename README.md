@@ -17,7 +17,8 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
 - **Users:** local sign-in with cluster roles and users limited to LXD projects, plus an
   audit log (Phase 6, [`docs/USERS.md`](docs/USERS.md)).
 
-Next in the plan: a metric store evaluation, alerts and export (Phase 7). Owner live
+Next in the plan: backups, moving instances between projects and ISO upload (Phase 7),
+then a metric store evaluation, alerts and export (Phase 8). Owner live
 checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See
 [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md), [`docs/PLAN.md`](docs/PLAN.md) and the
 design log in [`agents.md`](agents.md).

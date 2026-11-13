@@ -391,7 +391,7 @@ Not in Phase 5:
   app talks to LXD as one admin client; whether it should act with each user's or
   project's own credentials instead is a design question to settle first.
 - Forced delete, per-project images and backups volumes, GPU via CDI: small; pick up
-  in Phase 7 or when needed.
+  in Phase 10 or when needed.
 
 **5c MicroCloud itself (evaluate, then decide).** MicroCloud 3.4 has a generally available
 Cluster Manager with its own API, and an observability charm for COS/Grafana. Decide
@@ -423,12 +423,12 @@ with that hint when the counters are missing.
 **Closed 2026-11-13:** on the test cloud the D23 setting (`false`, set on Squid) survived
 the upgrade and the mgr restarts, so Tentacle 20.2.1 exports the OSD used/size and per-op
 latency series with no change (`recorded-6.10-cluster/ceph_mgr.txt`). Nothing to do for
-Tentacle; the longer-term risk is a watch item in Phase 7.
+Tentacle; the longer-term risk is a watch item in Phase 8.
 
 **Phase 6: Users and project access.** *Agreed 2026-11-13 (D81): the owner approved the plan
 and the five defaults below. It leads to release 0.2.0; `main` is 0.2.0.dev0 meanwhile.* App users who see and change only the LXD projects they're granted,
 while the app keeps one admin connection to LXD. OIDC, groups and LXD-side identities
-stay later (Phase 8, AU-4/AC-1/AC-2).
+stay later (Phase 10, AU-4/AC-1/AC-2).
 
 *Verified first (2026-11-13, in `mcui-test`, admin certificate):*
 - **LXD enforces a project's `restricted=true` against our admin certificate**, at
@@ -604,7 +604,61 @@ each route in the code):
   hardening step later behind the same grants.
 - Delegated user management, and per-user API tokens.
 
-**Phase 7: Metric store evaluation** (was Phase 6, before that 5; MO-14): benchmark SQLite against
+**Phase 7: Backups, project moves and ISO upload** (pulled forward from the parity list,
+owner 2026-11-13, D83). The parity items the owner wants first: IN-13, ST-4 (volume
+backups), IN-6 (moving instances between projects) and IM-3, plus the part of PJ-2 they
+turned out to need.
+
+*Verified first (2026-11-13, in `mcui-test`, LXD 6.10.1):*
+- **A restricted project refuses snapshots and backups by default.** LXD answered
+  "does not allow for snapshot creation" (and "backup creation") until
+  `restricted.snapshots=allow` and `restricted.backups=allow` were set. So in a default
+  restricted project, Phase 6's operator snapshot right does nothing; USERS.md didn't say so.
+- A custom volume's backup exports as a tarball and imports as a new volume under another
+  name (`X-LXD-name`), snapshots included.
+- An ISO uploads as a custom volume (`X-LXD-type: iso`, `content_type: iso`).
+- Not checked: moving an instance between projects (needs a second project, so the owner
+  creates `mcui-test-2` or runs it; D41), and whether LXD applies the target project's
+  restrictions to a move and to a backup import. 7c checks both, with a crafted
+  privileged backup.
+
+*Rights (D81's levels):*
+
+| Action | Needs |
+|---|---|
+| List backups | read |
+| Create, rename, delete, download a backup (instance or volume) | operate (a download holds the files, as the Files tab does) |
+| Import a backup as a new instance or volume | manage in the target project |
+| Upload an ISO; attach it to a VM | manage |
+| Move an instance to another project | manage in both projects |
+| Edit a project's restriction keys | cluster admin (unchanged: the project's own settings) |
+
+*Steps:*
+- **7a, instance backups (IN-13):** a Backups tab on the instance page: list (name,
+  created, expiry, instance only, optimized), create (name, expiry, instance only,
+  optimized storage, compression), rename, delete, download (streamed through the backend).
+  Import from Instances → Import backup: a tarball upload (streamed) with project, name and
+  pool. When the project is restricted without `restricted.backups=allow`, say so instead of
+  offering Create.
+- **7b, volume backups (ST-4):** the same on the volume page; import as a new volume.
+- **7c, moving instances between projects (IN-6):** the Move dialog gets a target project
+  (with LXD's `instance_project_move`), offered only where the user can manage. Live: the
+  owner's second project, plus the restriction checks above.
+- **7d, ISO upload (IM-3):** Storage → Volumes → Upload ISO (project, pool, name, file;
+  streamed, with progress); ISO volumes marked in the list. Attach one to a VM as a CD
+  (`disk` device with `source` the volume, `boot.priority`) from the VM's configuration and
+  from the create wizard.
+- **7e, restrictions (PJ-2, the part needed now):** the project page edits the
+  `restricted.*` keys as a form, snapshots and backups first, so a cluster admin can allow
+  them. USERS.md corrected: operator snapshots and backups need them allowed.
+- **7f:** README, USERS.md, LIVE-TESTS.md, screenshots; then release 0.3.0.
+
+*Watch:* backups live on the member that holds the instance, under its
+`storage.backups_volume` (unset on the test cloud, so the member's root disk). Large backups
+and ISOs stream through microcloud-ui without being held in memory, but the export and import
+both need room on that member. DEPLOY.md says so.
+
+**Phase 8: Metric store evaluation** (was Phase 7, before that 6 and 5; MO-14): benchmark SQLite against
 Prometheus, VictoriaMetrics and others (e.g. TimescaleDB, InfluxDB, ClickHouse)
 on ingest, query latency, disk use and ops burden; implement the chosen
 adapter. Alerts (MO-13), export (MO-15), project quota
@@ -637,8 +691,9 @@ track lands, OSD used/size and per-op latency (MO-7a) need another source: scrap
 mgr's REST API (needs a Ceph key). Check each new MicroCeph track's release notes and the
 recorded mgr scrape; nothing to build until then.
 
-**Phase 8: Remaining parity** (was Phase 7, before that 6). Backups (IN-13, ST-4), project moves and
-restrictions (IN-6, PJ-2), ISO upload (IM-3), sriov, peers, zones, ACL logs
+**Phase 10: Remaining parity** (was Phase 8, before that 7 and 6; after packaging, which is
+done). Backups, project moves and ISO upload moved to Phase 7 (D83). The rest of PJ-2
+(restriction keys beyond 7e), sriov, peers, zones, ACL logs
 (NW-3/4/6/7), cluster groups and config (CL-4/5). Login options evaluation (AU-4), with
 identities (AC-1) once the auth model is agreed. OVN load balancers moved to Phase 5b.
 

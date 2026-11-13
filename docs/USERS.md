@@ -77,6 +77,12 @@ ticked, or with `lxc`:
 lxc project create web -c restricted=true -c features.storage.volumes=true
 ```
 
+**Allow snapshots if operators should take them.** A restricted project refuses
+snapshots and backups by default, even from the app, until `restricted.snapshots=allow`
+(and later `restricted.backups=allow`) is set. Checked on LXD 6.10 on 2026-11-13. Set it
+with `lxc project set web restricted.snapshots=allow`, or as a key in the project's
+configuration. Phase 7 adds these keys to the project page.
+
 Keep **own storage volumes** (`features.storage.volumes=true`, LXD's default for new
 projects). LXD answers queries on a project without them with `default`'s volumes, so
 project users would see those. A project without its own networks, profiles or images
