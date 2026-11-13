@@ -239,6 +239,9 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.1.8 released 2026-11-13:** vulnerability watching (D76): `make audit` in CI and so
+  before releases, the weekly image scan, Dependabot (majors skipped), no `pip` in the image,
+  and GitHub Actions on their current majors. `main` is now 0.1.9.dev0.
 - **Vulnerability watching 2026-11-13 (D76):** Dependabot alerts and security updates on;
   `dependabot.yml`; `make audit` in CI; weekly `security.yml` with a Trivy image scan and
   a `rebuild-needed` issue. First audit clean for what ships; 7 moderate in frontend build
