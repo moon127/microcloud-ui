@@ -336,6 +336,7 @@ export interface Backup {
   created_at: string;
   expires_at?: string;
   instance_only?: boolean;
+  volume_only?: boolean;
   optimized_storage?: boolean;
 }
 
@@ -344,7 +345,9 @@ export type Compression = "gzip" | "zstd" | "xz" | "bzip2" | "none";
 export interface NewBackup {
   name: string;
   expires_at?: string;
-  instance_only: boolean;
+  /** leave out snapshots: instance_only for an instance, volume_only for a volume */
+  instance_only?: boolean;
+  volume_only?: boolean;
   optimized_storage: boolean;
   compression_algorithm?: Compression;
 }
@@ -1162,6 +1165,28 @@ export const restoreVolumeSnapshot = (project: string, pool: string, name: strin
   send<Started>("POST", `${vsnap(project, pool, name, snap)}/restore${tq(target)}`);
 export const deleteVolumeSnapshot = (project: string, pool: string, name: string, snap: string, target?: string) =>
   send<Started>("DELETE", `${vsnap(project, pool, name, snap)}${tq(target)}`);
+const vbackups = (project: string, pool: string, name: string) => `${vol(project, pool, name)}/backups`;
+const vbackup = (project: string, pool: string, name: string, backup: string) =>
+  `${vbackups(project, pool, name)}/${encodeURIComponent(backup)}`;
+export const fetchVolumeBackups = (project: string, pool: string, name: string, target?: string) =>
+  api<Backup[]>(`${vbackups(project, pool, name)}${tq(target)}`);
+export const createVolumeBackup = (project: string, pool: string, name: string, body: NewBackup, target?: string) =>
+  send<Started>("POST", `${vbackups(project, pool, name)}${tq(target)}`, body);
+export const renameVolumeBackup = (project: string, pool: string, name: string, backup: string, to: string, target?: string) =>
+  send<Started>("POST", `${vbackup(project, pool, name, backup)}/rename${tq(target)}`, { name: to });
+export const deleteVolumeBackup = (project: string, pool: string, name: string, backup: string, target?: string) =>
+  send<Started>("DELETE", `${vbackup(project, pool, name, backup)}${tq(target)}`);
+export const volumeBackupExportUrl = (project: string, pool: string, name: string, backup: string, target?: string) =>
+  `${vbackup(project, pool, name, backup)}/export${tq(target)}`;
+/** Create a custom volume from a backup tarball; ``name`` overrides the backup's. */
+export const importVolumeBackup = (
+  file: Blob,
+  dest: { project: string; pool: string; name?: string; target?: string },
+  onProgress?: (fraction: number) => void,
+) => {
+  const q = new URLSearchParams(Object.entries(dest).filter((e): e is [string, string] => !!e[1]));
+  return uploadWithProgress(`/api/volumes/import?${q}`, file, onProgress);
+};
 export const attachVolume = (project: string, pool: string, name: string, body: { instance: string; device: string; path?: string }) =>
   send<Started>("POST", `${vol(project, pool, name)}/attach`, body);
 export const detachVolume = (project: string, pool: string, name: string, body: { instance: string; device: string }) =>

@@ -640,7 +640,7 @@ turned out to need.
   Import from Instances → Import backup: a tarball upload (streamed) with project, name and
   pool. When the project is restricted without `restricted.backups=allow`, say so instead of
   offering Create.
-- **7b, volume backups (ST-4):** the same on the volume page; import as a new volume.
+- ✅ 2026-11-13 **7b, volume backups (ST-4):** the same on the volume page; import as a new volume.
 - **7c, moving instances between projects (IN-6):** the Move dialog gets a target project
   (with LXD's `instance_project_move`), offered only where the user can manage. Live: the
   owner's second project, plus the restriction checks above.

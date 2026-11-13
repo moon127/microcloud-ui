@@ -246,6 +246,13 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 7b done 2026-11-13 (D83):** custom volume backups: a Backups section on the volume
+  page (the panel shared with instances, `src/Backups.tsx`) and Volumes → Import backup (pool,
+  member for local pools, name). Volume snapshot buttons now follow the operate right, as the
+  server already did. Live in `mcui-test` through the app (13 checks): refused until
+  `restricted.backups=allow`, operator makes/downloads (zstd, named)/renames/deletes, viewer
+  only lists, a project admin imports it into the restricted project (volumes don't hit 7a's
+  `volatile.*` refusal). Next: 7d, ISO upload; 7c waits for a second project.
 - **Phase 7a done 2026-11-13 (D83):** instance backups: a Backups tab (list; make with
   expiry, compression, without snapshots, optimized; rename; delete; download streamed and
   named by its compression) and Instances → Import backup (streamed upload with progress in

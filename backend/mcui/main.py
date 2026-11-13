@@ -30,6 +30,7 @@ from mcui.api import (
     registries,
     storage,
     streams,
+    volume_backups,
     volumes,
 )
 from mcui.config import Settings, load_settings
@@ -98,6 +99,7 @@ def create_app(
     app.include_router(registries.router)
     app.include_router(storage.router)
     app.include_router(volumes.router)
+    app.include_router(volume_backups.router)
     app.include_router(ceph.router)
     app.include_router(ovn.router)
     app.include_router(hosts.router)

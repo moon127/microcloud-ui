@@ -7,6 +7,7 @@ import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import { volumePath } from "./paths";
 import { LOCAL } from "./request";
+import ImportVolumeBackup from "./UploadVolume";
 import { useAccess } from "../../access";
 
 export default function VolumesPage() {
@@ -16,6 +17,7 @@ export default function VolumesPage() {
   const { data, error } = useApi(`volumes:${project}:${version}`, () => fetchVolumes(project), 60_000);
   const [pool, setPool] = useState("");
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
   const pools = [...new Set((data ?? []).map((v) => v.pool))];
   const shown = (data ?? []).filter((v) => !pool || v.pool === pool);
   return (
@@ -23,9 +25,14 @@ export default function VolumesPage() {
       <h1>Custom volumes in {project}</h1>
       <p className="actions">
         {access.can(project, "manage") && (
-          <button type="button" className="primary" onClick={() => setCreating(true)}>
-            Create volume
-          </button>
+          <>
+            <button type="button" className="primary" onClick={() => setCreating(true)}>
+              Create volume
+            </button>
+            <button type="button" onClick={() => setImporting(true)}>
+              Import backup
+            </button>
+          </>
         )}
         <Link to="/storage">Storage pools</Link>
       </p>
@@ -76,6 +83,7 @@ export default function VolumesPage() {
         </div>
       )}
       {creating && <CreateVolumeDialog project={project} onClose={() => setCreating(false)} />}
+      {importing && <ImportVolumeBackup project={project} onClose={() => setImporting(false)} />}
     </>
   );
 }

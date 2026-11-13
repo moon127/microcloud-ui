@@ -2,21 +2,27 @@ import { useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   attachVolume,
+  createVolumeBackup,
   createVolumeSnapshot,
   deleteVolume,
+  deleteVolumeBackup,
   deleteVolumeSnapshot,
   detachVolume,
   fetchInstance,
   fetchInstances,
   fetchVolume,
+  fetchVolumeBackups,
   fetchVolumeSnapshots,
   renameVolume,
+  renameVolumeBackup,
   renameVolumeSnapshot,
   restoreVolumeSnapshot,
   updateVolume,
+  volumeBackupExportUrl,
   type VolumeDetail,
 } from "../../api";
 import { useActions } from "../../actions";
+import Backups from "../../Backups";
 import Confirm from "../../Confirm";
 import { formatBytes } from "../../format";
 import { InstanceLink, MemberLink, UsedBy } from "../../links";
@@ -56,6 +62,7 @@ export default function VolumePage() {
   const [problem, setProblem] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog | null>(null);
   const admin = access.can(project, "manage");
+  const operate = access.can(project, "operate"); // snapshots and backups
   const v = vol.data;
 
   // take the loaded values into the form as they arrive, during render rather than in an
@@ -163,7 +170,7 @@ export default function VolumePage() {
           {problem && <p role="alert">{problem}</p>}
           <Attached project={project} pool={pool} name={name} v={v} admin={admin} />
           <h2>Snapshots</h2>
-          {admin && (
+          {operate && (
             <p>
               <button type="button" onClick={() => setDialog({ kind: "snapshot" })}>
                 Create snapshot
@@ -180,7 +187,7 @@ export default function VolumePage() {
                     <th>Name</th>
                     <th>Created</th>
                     <th>Expires</th>
-                    {admin && <th />}
+                    {operate && <th />}
                   </tr>
                 </thead>
                 <tbody>
@@ -192,7 +199,7 @@ export default function VolumePage() {
                         <td>{sn}</td>
                         <td>{new Date(s.created_at).toLocaleString()}</td>
                         <td>{expires}</td>
-                        {admin && (
+                        {operate && (
                           <td className="actions">
                             <button type="button" onClick={() => setDialog({ kind: "snap-restore", snap: sn })}>
                               Restore
@@ -212,6 +219,26 @@ export default function VolumePage() {
               </table>
             </div>
           )}
+          <h2>Backups</h2>
+          <Backups
+            project={project}
+            name={name}
+            only="volume_only"
+            source={{
+              key: `volume-backups:${project}/${pool}/${name}:${target}`,
+              list: () => fetchVolumeBackups(project, pool, name, target),
+              create: (body) => createVolumeBackup(project, pool, name, body, target),
+              rename: (backup, to) => renameVolumeBackup(project, pool, name, backup, to, target),
+              remove: (backup) => deleteVolumeBackup(project, pool, name, backup, target),
+              exportUrl: (backup) => volumeBackupExportUrl(project, pool, name, backup, target),
+            }}
+            intro={
+              <>
+                A tarball of the volume (and its snapshots, unless left out) that LXD keeps on a member, under its{" "}
+                <code>storage.backups_volume</code>. Volumes → Import backup restores one as a new volume.
+              </>
+            }
+          />
         </>
       )}
       {dialog?.kind === "rename" && (

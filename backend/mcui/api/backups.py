@@ -9,6 +9,7 @@ the backend; the tarball lives on the member that holds the instance.
 
 from __future__ import annotations
 
+from collections.abc import Coroutine
 from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, HTTPException, Path, Query, Request, Response
@@ -21,6 +22,7 @@ from mcui.api.deps import InBodyDep, LXDDep, ProjectReadDep, StoreDep
 from mcui.api.files import _error
 from mcui.api.instances import NAME, CtxOperateDep, IndexDep, InstName, ProjectName, Rename
 from mcui.lxd import operations
+from mcui.lxd.client import LXDClient
 
 router = APIRouter(prefix="/api/instances")
 
@@ -111,12 +113,32 @@ async def export_backup(
     project: ProjectName, name: InstName, backup: BackupName, ctx: CtxOperateDep
 ) -> Response:
     """Stream the backup tarball; audited, since it carries the instance's files."""
-    r = await ctx.lxd.open_stream(
-        "GET", f"{_backups(name)}/{backup}/export", params={"project": project}
+    return await stream_export(
+        ctx.lxd,
+        f"{_backups(name)}/{backup}/export",
+        {"project": project},
+        f"{name}-{backup}",
+        audited(
+            ctx.session,
+            ctx.store,
+            "backup.export",
+            f"{project}/{name}",
+            _done(),
+            detail={"backup": backup},
+        ),
     )
+
+
+async def stream_export(
+    lxd: LXDClient, path: str, params: dict[str, Any], stem: str, audit: Coroutine[Any, Any, Any]
+) -> Response:
+    """Stream an LXD backup export as a download named ``stem`` plus its compression's
+    suffix; ``audit`` runs once LXD has started sending it."""
+    r = await lxd.open_stream("GET", path, params=params)
     if r.status_code != 200:
         await r.aread()
         await r.aclose()
+        audit.close()  # not awaited: nothing was exported
         raise _error(r)
     chunks = r.aiter_raw()
     head = await anext(chunks, b"")
@@ -126,15 +148,8 @@ async def export_backup(
         async for chunk in chunks:
             yield chunk
 
-    await audited(
-        ctx.session,
-        ctx.store,
-        "backup.export",
-        f"{project}/{name}",
-        _done(),
-        detail={"backup": backup},
-    )
-    headers = {"Content-Disposition": f'attachment; filename="{name}-{backup}{suffix(head)}"'}
+    await audit
+    headers = {"Content-Disposition": f'attachment; filename="{stem}{suffix(head)}"'}
     if "content-length" in r.headers:
         headers["Content-Length"] = r.headers["content-length"]
     return StreamingResponse(

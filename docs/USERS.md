@@ -56,8 +56,8 @@ A project user has a **grant** per project:
 | Project role | Can |
 |---|---|
 | **viewer** | see the project's instances, volumes, networks, profiles, images and placement groups; their graphs; its operations and audit entries |
-| **operator** | viewer, plus start, stop, restart, freeze; consoles and the terminal; files; instance and volume snapshots; instance backups (make, rename, delete, download) |
-| **admin** | operator, plus create, change, rename, copy, move, publish, import (from a backup) and delete instances, and manage the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
+| **operator** | viewer, plus start, stop, restart, freeze; consoles and the terminal; files; instance and volume snapshots; instance and volume backups (make, rename, delete, download) |
+| **admin** | operator, plus create, change, rename, copy, move, publish, import (from a backup) and delete instances, import volume backups, and manage the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
 
 Files, consoles and backup downloads need operator because they can expose secrets.
 
@@ -90,7 +90,8 @@ refuses them in any project with `restricted` or `limits.*` set. Only
 restricted project: it also lets the project's users set `raw.lxc` and similar, which
 reach the host. LXD still refused a backup edited to be privileged, with low-level
 options allowed (CVE-2026-34178, fixed in 6.8, was a bypass of exactly that check). The
-import dialog warns when a project is affected.
+import dialog warns when a project is affected. Volume backups aren't affected: they
+import into a restricted project.
 
 Keep **own storage volumes** (`features.storage.volumes=true`, LXD's default for new
 projects). LXD answers queries on a project without them with `default`'s volumes, so

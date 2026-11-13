@@ -420,3 +420,30 @@ describe("uploadWithProgress", () => {
     await expect(p).rejects.toMatchObject({ status: 0, message: "the upload was interrupted" });
   });
 });
+
+describe("volume backups (Phase 7b)", () => {
+  it("send the right method, URL and body", async () => {
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    await api.fetchVolumeBackups("p", "local", "v1", "m1");
+    await api.createVolumeBackup("p", "remote", "v1", { name: "b1", volume_only: true, optimized_storage: false });
+    await api.renameVolumeBackup("p", "local", "v1", "b 1", "b2", "m1");
+    await api.deleteVolumeBackup("p", "local", "v1", "b1", "m1");
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/volumes/p/local/v1/backups?target=m1", "GET", null],
+      ["/api/volumes/p/remote/v1/backups", "POST", '{"name":"b1","volume_only":true,"optimized_storage":false}'],
+      ["/api/volumes/p/local/v1/backups/b%201/rename?target=m1", "POST", '{"name":"b2"}'],
+      ["/api/volumes/p/local/v1/backups/b1?target=m1", "DELETE", null],
+    ]);
+    expect(api.volumeBackupExportUrl("p", "remote", "v1", "b1")).toBe("/api/volumes/p/remote/v1/backups/b1/export");
+  });
+
+  it("imports through the progress upload", async () => {
+    vi.stubGlobal("XMLHttpRequest", FakeXhr);
+    const p = api.importVolumeBackup(new Blob(["x"]), { project: "p", pool: "local", name: "", target: "m2" });
+    expect(FakeXhr.last.url).toBe("/api/volumes/import?project=p&pool=local&target=m2");
+    FakeXhr.last.answer(200, "{}");
+    await expect(p).resolves.toEqual({});
+    vi.unstubAllGlobals();
+  });
+});
