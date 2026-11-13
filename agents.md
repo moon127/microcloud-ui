@@ -245,6 +245,10 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.2.1 released 2026-11-13:** the Audit page and the security model docs (D82). The
+  README status was rewritten afterwards (it still said "Phases 1–4"). `main` is now
+  0.2.2.dev0; development is parked for the weekend while the owner exercises users and
+  projects on the cluster.
 - **Audit page and security model docs 2026-11-13 (D82).**
 - **0.2.0 released 2026-11-13:**
   - **New:** users limited to LXD projects (Phase 6, D81, `docs/USERS.md`).

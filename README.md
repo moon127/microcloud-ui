@@ -4,8 +4,23 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** Phases 1–4 built; Phase 5 (MicroCloud 3.4 LTS support) and Phase 6 (users limited to LXD projects, [`docs/USERS.md`](docs/USERS.md)) checked live on a three-member 3.4 cluster: connectivity, local auth with cluster and per-project roles, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards and a Hosts view (optional node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)). Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
-[`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
+**Status:** Phases 0–6 are done, and production packaging (the bundle and
+container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; MicroCloud
+2.x (LXD 5.21) is still supported. It covers:
+- **Connectivity and metrics:** live metrics, history and graphs, a Hosts view (optional
+  node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)), Ceph and OVN dashboards.
+- **Management:** instances (create, lifecycle, config, snapshots, terminal, consoles,
+  files), profiles, images, projects, networks (ACLs, forwards, load balancers), storage
+  pools and custom volumes, cluster members (evacuate/restore).
+- **MicroCloud 3.4 LTS:** placement groups, image registries, load-balancer pools,
+  multi-volume snapshots and the rest of LXD 6 (Phase 5).
+- **Users:** local sign-in with cluster roles and users limited to LXD projects, plus an
+  audit log (Phase 6, [`docs/USERS.md`](docs/USERS.md)).
+
+Next in the plan: a metric store evaluation, alerts and export (Phase 7). Owner live
+checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See
+[`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md), [`docs/PLAN.md`](docs/PLAN.md) and the
+design log in [`agents.md`](agents.md).
 
 **Running it for real:** an offline bundle (`make bundle`) installs on Ubuntu as a
 hardened systemd service serving HTTPS. There's also a container image
