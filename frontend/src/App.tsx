@@ -30,6 +30,7 @@ import PoolPage from "./pages/storage/PoolPage";
 import VolumePage from "./pages/storage/VolumePage";
 import VolumesPage from "./pages/storage/VolumesPage";
 import WarningsPage from "./pages/WarningsPage";
+import AuditPage from "./pages/AuditPage";
 import { ProjectProvider } from "./ProjectProvider";
 import { SessionContext } from "./session";
 import "./index.css";
@@ -70,6 +71,7 @@ export function AppRoutes() {
         <Route path="network-acls/:project/:name" element={<AclPage />} />
         <Route path="operations" element={<OperationsPage />} />
         <Route path="warnings" element={<WarningsPage />} />
+        <Route path="audit" element={<AuditPage />} />
         <Route path="*" element={<p>Page not found.</p>} />
       </Route>
     </Routes>

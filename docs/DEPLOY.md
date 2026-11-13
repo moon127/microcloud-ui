@@ -21,6 +21,13 @@ from Ubuntu, and never contacts PyPI. Design notes: D63 (bundle) and D64 (contai
 
 For development on a Mac, see the README instead.
 
+> **Before you deploy:** microcloud-ui uses **one LXD certificate with full cluster admin
+> rights** for every user and enforces its users' rights itself. That makes the machine
+> it runs on, its config, its data directory and that certificate as sensitive as LXD
+> admin access. It's also why LXD's own logs credit every change to microcloud-ui.
+> [`docs/USERS.md`](USERS.md#read-this-before-deploying-one-admin-connection-to-lxd)
+> explains what follows from it.
+
 ## 1. Where to run it
 
 Run **one** copy per cluster. It keeps its users, sessions and metric history in

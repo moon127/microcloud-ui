@@ -4,6 +4,7 @@
 // It runs MicroCloud 3.4 LTS (LXD 6.10, Ceph Tentacle), so the LXD 6 features show;
 // on MicroCloud 2.x (LXD 5.21) the same pages appear without them.
 import type {
+  AuditEntry,
   CephState,
   Host,
   ImageRegistry,
@@ -307,6 +308,26 @@ export const USERS: User[] = [
   { username: "ops-oncall", role: "project", grants: { web: "operator", lab: "operator" } },
   { username: "student", role: "project", grants: { lab: "viewer" } },
 ];
+
+// the audit log: changes through the UI and the command line, one refused by LXD
+const AUDIT: AuditEntry[] = [
+  ["dana", "instance.create", "web/web-3", true, { image: "images:ubuntu/26.04", type: "container" }, "c41e7f0a"],
+  ["ops-oncall", "instance.restart", "web/web-2", true, null, "8b2d55e1"],
+  ["ops-oncall", "snapshot.create", "lab/sandbox", true, { snapshot: "before-upgrade" }, "f02c9a71"],
+  ["admin", "user.grant", "student", true, { project: "lab", role: "viewer" }, null],
+  ["dana", "instance.update", "web/cache", false, { error: 'Invalid value "true" for config "security.privileged"' }, null],
+  ["admin", "project.create", "lab", true, { restricted: "true" }, "5e9d03bb"],
+  [null, "user.create", "ops-oncall", true, { role: "project", via: "cli" }, null],
+].map(([username, action, target, ok, detail, op], i) => ({
+  id: 40 - i,
+  ts: NOW - 600 - i * 1800,
+  username: username as string | null,
+  action: String(action),
+  target: String(target),
+  ok: Boolean(ok),
+  detail: detail as AuditEntry["detail"],
+  operation_id: op as string | null,
+}));
 
 // placement groups (LXD 6.6+): keep the default project's services on separate hosts
 const GROUPED: Record<string, string> = { "dns-1": "infra-spread", monitoring: "infra-spread", "build-runner": "runners" };
@@ -784,6 +805,7 @@ export function answer(method: string, url: URL): unknown {
     "/api/network-allocations": [],
     "/api/image-registries": REGISTRIES,
     "/api/users": USERS,
+    "/api/audit": signedIn.role === "project" ? AUDIT.filter((e) => mine(String(e.target).split("/")[0]) && e.target?.includes("/")) : AUDIT,
     "/api/placement-groups": PLACEMENT,
     "/api/networks/default/default": NETWORK_DETAIL,
     "/api/networks/default/default/state": NETWORK_STATE,

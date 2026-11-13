@@ -18,6 +18,7 @@ const NAV: { to: string; label: string; end?: boolean; who?: "cluster" | "admin"
   { to: "/networks", label: "Networks" },
   { to: "/operations", label: "Operations" },
   { to: "/warnings", label: "Warnings", who: "cluster" },
+  { to: "/audit", label: "Audit" },
   { to: "/users", label: "Users", who: "admin" },
 ];
 

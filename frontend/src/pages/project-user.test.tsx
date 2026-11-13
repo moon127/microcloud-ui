@@ -43,7 +43,7 @@ describe("navigation by role", () => {
   });
 
   it("project users see only project pages", () => {
-    expect(nav(pat)).toEqual(["Overview", "Instances", "Profiles", "Images", "Projects", "Networks", "Operations"]);
+    expect(nav(pat)).toEqual(["Overview", "Instances", "Profiles", "Images", "Projects", "Networks", "Operations", "Audit"]);
     expect(screen.getByText("pat (project)")).toBeInTheDocument();
   });
 });

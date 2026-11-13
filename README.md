@@ -55,6 +55,7 @@ More: [instances](docs/screenshots/instances.png) ·
 [networks](docs/screenshots/networks.png) ·
 [OVN](docs/screenshots/ovn.png) ·
 [users and project grants](docs/screenshots/users.png) ·
+[audit log](docs/screenshots/audit.png) ·
 a project user's [Overview](docs/screenshots/project-user.png) and
 [instance page](docs/screenshots/project-user-instance.png) (an operator: only their projects,
 no cluster pages, no rename or delete)
@@ -173,6 +174,13 @@ read everything. **Project users** see only the LXD projects granted to them, as
 operator (lifecycle, consoles, files, snapshots) or admin of each. Operator and admin need
 a restricted project, so LXD itself keeps them off the host. See
 [`docs/USERS.md`](docs/USERS.md).
+
+> **Security model:** microcloud-ui reaches LXD with one admin certificate for every user,
+> so it enforces its users' rights itself rather than LXD doing it. Its host, config and
+> certificate are as sensitive as LXD admin access, and LXD's own logs credit every change
+> to microcloud-ui (who did it is in its **Audit** log). Read
+> [Read this before deploying](docs/USERS.md#read-this-before-deploying-one-admin-connection-to-lxd)
+> first.
 
 Pick the time range (15 min to 1 year) above the graphs. History is collected in the background into `<data_dir>/metrics.db`.
 

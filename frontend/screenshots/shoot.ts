@@ -46,6 +46,7 @@ export const PAGES: {
   { file: "load-balancers.png", path: "/networks/default/default", wait: "198.51.100.10", full: true },
   // users and project access (D81)
   { file: "users.png", path: "/users", wait: "ops-oncall" },
+  { file: "audit.png", path: "/audit", wait: "before-upgrade" },
   // what a project user sees: ops-oncall, operator in web and lab
   { file: "project-user.png", path: "/?range=86400", wait: "web-1", full: true, user: "ops-oncall" },
   { file: "project-user-instance.png", path: "/instances/web/web-1?range=86400", wait: "Console", user: "ops-oncall" },

@@ -5,6 +5,42 @@ can be limited to some LXD projects, with a role in each (D81, Phase 6). The app
 talks to LXD as one admin; it decides what each user may see and do, and LXD's project
 restrictions guard the host.
 
+## Read this before deploying: one admin connection to LXD
+
+microcloud-ui talks to LXD with **one certificate that has full admin rights over the
+whole cluster**. Every user's action, whoever they are, reaches LXD as that certificate.
+LXD never learns who the person is, so it can't apply its own access control to them.
+
+So for its users, **microcloud-ui re-implements part of LXD's security model itself**:
+who may see and do what in which project. It does not use LXD's own fine-grained
+authorization (identities, groups, OIDC). What follows from that:
+
+- **The app is the boundary between users.** A project user is kept out of other
+  projects by microcloud-ui's checks alone, not by LXD. A bug in those checks could let
+  them see or change another project. Every API route declares a policy, and the tests
+  and live checks (`docs/LIVE-TESTS.md` P1–P6) exist because of this.
+- **LXD still guards the host, but only in restricted projects.** In a
+  `restricted=true` project, LXD refuses privileged instances, host disks and similar
+  even from the admin connection. That's why operator and admin grants need one.
+  Restrictions don't separate projects from each other, though; only the app does that.
+- **Whoever controls microcloud-ui controls the cluster.** The server's certificate and
+  key, its config and its data directory are as sensitive as LXD's own admin access.
+  Anyone with a shell on the machine running it, or with a cluster admin account in it,
+  can do anything to the cluster. Run it on a trusted machine, as the hardened service
+  the bundle installs (`docs/DEPLOY.md`), behind HTTPS, and don't expose it to untrusted
+  networks.
+- **LXD's own logs show the certificate, not the person.** LXD's events and operations
+  credit every change to microcloud-ui. Who actually did it is only in microcloud-ui's
+  audit log (the **Audit** page).
+- **Users live in microcloud-ui, not in LXD.** Its users, passwords and grants are in its
+  own database. Disabling someone in LXD, or in an identity provider, doesn't affect them
+  here, and the other way round.
+
+Using LXD's own identities, so LXD enforces each user's rights itself (for example
+through OIDC), would remove most of this. It's planned for a later phase (AU-4, AC-2).
+Until then, treat microcloud-ui as an admin tool that can safely *delegate* parts of
+LXD to other people, not as a substitute for LXD's own access control.
+
 ## Roles
 
 Every user has one of three roles:
@@ -77,6 +113,12 @@ can't, for example, choose which member an instance runs on.
 ## Managing users
 
 ![The Users page](screenshots/users.png)
+
+**The audit log:** the **Audit** page lists every change and who made it, with LXD's
+operation for each. Cluster admins and viewers see everything; a project user sees their
+projects' changes.
+
+![The audit log](screenshots/audit.png)
 
 **In the UI:** **Users** (cluster admins only): create users and choose their role; edit
 the role or reset the password (which signs them out); **Projects** to grant or remove a

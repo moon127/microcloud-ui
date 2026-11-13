@@ -28,6 +28,21 @@ export const setGrant = (username: string, project: string, role: ProjectRole) =
 export const removeGrant = (username: string, project: string) =>
   send<User>("DELETE", `${userPath(username)}/grants/${encodeURIComponent(project)}`);
 
+/** One audit log entry (AU-3): who changed what, and LXD's operation for it. */
+export interface AuditEntry {
+  id: number;
+  ts: number; // Unix seconds
+  username: string | null;
+  action: string;
+  target: string | null;
+  ok: boolean;
+  detail: Record<string, unknown> | null;
+  operation_id: string | null;
+}
+/** Newest first; ``before`` an id pages back. Project users get their projects' entries. */
+export const fetchAudit = (limit = 100, before?: number) =>
+  api<AuditEntry[]>(`/api/audit?limit=${limit}${before !== undefined ? `&before=${before}` : ""}`);
+
 export interface Me {
   user: User;
   csrf: string;
