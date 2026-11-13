@@ -115,6 +115,22 @@ async def run(
     return st
 
 
+async def finished(client: LXDClient, st: Started, limit: float = 3600) -> Started:
+    """Wait for ``st``'s operation to end, however long (up to ``limit`` seconds); raise if it
+    failed. For a step that must finish before the next starts (a two-step move)."""
+    if st.operation is None:
+        return st
+    op: dict[str, Any] = st.operation
+    for _ in range(int(limit // MAX_WAIT) + 1):
+        op = await wait(client, str(op["id"]))
+        if op.get("status") in FINAL:
+            break
+    st.operation = op
+    if op.get("status") != "Success":
+        raise LXDError(op.get("err") or f"operation {op.get('status', 'unfinished')}", 500)
+    return st
+
+
 async def list_all(client: LXDClient) -> list[dict[str, Any]]:
     """Every operation in every project, newest first, flattened with its status.
 

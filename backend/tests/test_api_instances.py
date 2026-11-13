@@ -370,3 +370,111 @@ async def test_not_configured(tmp_path):
     async with client(create_app(services=svc, static_dir=None)) as c:
         await login(c, "v", "pw")
         assert (await c.get("/api/instances")).status_code == 503
+
+
+# --- member and pool together (Ceph <-> local, seen live on LXD 6.10) -----------------
+
+
+def _two_step_routes(pool: str, driver: str, status: str = "Stopped"):
+    respx.get(f"{INST}/c1").mock(
+        return_value=lxd_ok(
+            {"name": "c1", "status": status, "expanded_devices": {"root": {"pool": pool}}}
+        )
+    )
+    respx.get(f"{EP1}/1.0/storage-pools/{pool}").mock(return_value=lxd_ok({"driver": driver}))
+    respx.get(f"{EP1}/1.0/operations/op1/wait").mock(
+        return_value=lxd_ok({**OP, "status": "Success"})
+    )
+    return respx.post(f"{INST}/c1").mock(return_value=async_resp())
+
+
+@respx.mock
+async def test_from_ceph_member_first_then_pool(app, services):
+    post = _two_step_routes("remote", "ceph")
+    async with client(app) as c:
+        h = await admin(c)
+        r = await c.post(
+            "/api/instances/p/c1/move", json={"target": "m2", "pool": "local"}, headers=h
+        )
+        assert r.status_code == 200, r.text
+    calls = [(json.loads(x.request.content), dict(x.request.url.params)) for x in post.calls]
+    assert calls == [
+        ({"name": "c1", "migration": True, "live": False}, {"project": "p", "target": "m2"}),
+        (
+            {"name": "c1", "migration": True, "live": False, "pool": "local"},
+            {"project": "p"},
+        ),
+    ]
+    assert last_audit(services)[:3] == ("instance.move", "p/c1", True)
+
+
+@respx.mock
+async def test_from_local_pool_first_then_member(app):
+    post = _two_step_routes("local", "zfs")
+    async with client(app) as c:
+        h = await admin(c)
+        await c.post("/api/instances/p/c1/move", json={"target": "m2", "pool": "remote"}, headers=h)
+    firsts = [json.loads(x.request.content).get("pool") for x in post.calls]
+    assert firsts == ["remote", None]
+    assert dict(post.calls[1].request.url.params) == {"project": "p", "target": "m2"}
+
+
+@respx.mock
+async def test_a_failed_first_step_stops_there(app, services):
+    post = _two_step_routes("local", "zfs")
+    respx.get(f"{EP1}/1.0/operations/op1/wait").mock(
+        return_value=lxd_ok({**OP, "status": "Failure", "err": "Instance must be stopped"})
+    )
+    async with client(app) as c:
+        h = await admin(c)
+        r = await c.post(
+            "/api/instances/p/c1/move", json={"target": "m2", "pool": "remote"}, headers=h
+        )
+    assert r.status_code == 502 and "must be stopped" in r.text
+    assert post.call_count == 1
+    assert last_audit(services)[2] is False
+
+
+@respx.mock
+async def test_running_is_refused_before_either_step(app):
+    post = _two_step_routes("remote", "ceph", status="Running")
+    async with client(app) as c:
+        h = await admin(c)
+        r = await c.post(
+            "/api/instances/p/c1/move", json={"target": "m2", "pool": "local"}, headers=h
+        )
+    assert r.status_code == 400 and "stop c1 first" in r.text and not post.called
+
+
+@respx.mock
+async def test_no_root_device_counts_as_local(app):
+    respx.get(f"{INST}/c1").mock(return_value=lxd_ok({"name": "c1", "status": "Stopped"}))
+    respx.get(f"{EP1}/1.0/operations/op1/wait").mock(
+        return_value=lxd_ok({**OP, "status": "Success"})
+    )
+    post = respx.post(f"{INST}/c1").mock(return_value=async_resp())
+    async with client(app) as c:
+        h = await admin(c)
+        await c.post("/api/instances/p/c1/move", json={"target": "m2", "pool": "remote"}, headers=h)
+    assert json.loads(post.calls[0].request.content)["pool"] == "remote"
+
+
+@respx.mock
+async def test_finished_waits_until_the_end():
+    import ssl
+
+    from mcui.lxd import operations
+    from mcui.lxd.client import LXDClient, LXDError
+
+    lxd = LXDClient([EP1], verify=ssl.create_default_context())
+    waits = respx.get(f"{EP1}/1.0/operations/op1/wait").mock(
+        side_effect=[lxd_ok({**OP, "status": "Running"}), lxd_ok({**OP, "status": "Success"})]
+    )
+    st = await operations.finished(lxd, operations.Started(operation=dict(OP)))
+    assert st.operation["status"] == "Success" and waits.call_count == 2
+    assert (await operations.finished(lxd, operations.Started(operation=None))).operation is None
+    waits.side_effect = None
+    waits.mock(return_value=lxd_ok({**OP, "status": "Running"}))
+    with pytest.raises(LXDError, match="unfinished|Running"):
+        await operations.finished(lxd, operations.Started(operation=dict(OP)), limit=30)
+    await lxd.aclose()

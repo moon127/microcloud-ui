@@ -221,6 +221,32 @@ describe("instance actions", () => {
     expect(dialog().queryByLabelText("To project")).toBeNull();
   });
 
+  it("won't send a pool move for a running instance; member and pool go together as two moves", async () => {
+    const move = vi.spyOn(api, "moveInstance").mockResolvedValue(ok);
+    open(full());
+    fireEvent.click(await screen.findByRole("button", { name: "Move" }));
+    await dialog().findByRole("option", { name: "remote (ceph)" });
+    fireEvent.change(dialog().getByLabelText("To storage pool"), { target: { value: "remote" } });
+    expect(dialog().getByRole("alert")).toHaveTextContent("Stop c1 first");
+    expect(dialog().queryByText(/moved cold/)).toBeNull();
+    fireEvent.click(dialog().getByRole("button", { name: "Move" }));
+    expect(move).not.toHaveBeenCalled();
+    fireEvent.click(dialog().getByRole("button", { name: "Cancel" }));
+  });
+
+  it("explains a move to another member's pool", async () => {
+    const move = vi.spyOn(api, "moveInstance").mockResolvedValue(ok);
+    open(full({ status: "Stopped" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Move" }));
+    await dialog().findByRole("option", { name: "m2" });
+    fireEvent.change(dialog().getByLabelText("To member"), { target: { value: "m2" } });
+    await dialog().findByRole("option", { name: "remote (ceph)" });
+    fireEvent.change(dialog().getByLabelText("To storage pool"), { target: { value: "remote" } });
+    expect(dialog().getByText(/Done as two moves: to m2 and to remote/)).toBeInTheDocument();
+    fireEvent.click(dialog().getByRole("button", { name: "Move" }));
+    expect(move).toHaveBeenCalledWith("default", "c1", { target: "m2", pool: "remote", live: false });
+  });
+
   it("publishes with or without an alias", async () => {
     const pub = vi.spyOn(api, "publishInstance").mockResolvedValue(ok);
     open(full({ status: "Stopped" }));

@@ -217,7 +217,8 @@ function MoveDialog({ inst, onClose }: { inst: InstanceFull; onClose: () => void
       onCancel={onClose}
       onConfirm={() => {
         if (!target && !pool && !project) return;
-        if (project && running) return; // LXD refuses it, with a message about pools
+        // LXD refuses both for a running instance, with a message about pools
+        if ((project || (pool && !live)) && running) return;
         onClose();
         const opts = {
           target: target || undefined,
@@ -229,8 +230,17 @@ function MoveDialog({ inst, onClose }: { inst: InstanceFull; onClose: () => void
         );
       }}
     >
-      {running && !live && !project && (
+      {running && !live && !project && !pool && (
         <p className="muted">Running instances are moved cold: stop it first{vm ? ", or use live migration" : ""}.</p>
+      )}
+      {running && !live && !project && pool && (
+        <p role="alert">Stop {inst.name} first: LXD moves an instance to another pool stopped.</p>
+      )}
+      {target && pool && (
+        <p className="muted">
+          Done as two moves: to {target} and to {pool}, in whichever order copies the data once (for example Ceph to a
+          member&apos;s local pool).
+        </p>
       )}
       {others.length > 0 && (
         <label className="field">

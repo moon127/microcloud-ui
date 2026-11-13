@@ -148,6 +148,7 @@ left is the browser itself: file pickers, upload progress and downloads.
 | B8 | A project's **Restrictions**: allow container low-level options | The page warns that it reaches the host; set it back |
 | B9 | An OVN network's **Peers** → Add peer, peering back | Both sides show Created; instances on the two networks reach each other |
 | B10 | A volume's **Copy…** to the other pool, then **Move…** to another project | The copy lists in its pool; the moved volume's page opens in the new project |
+| B11 | On a cluster with local pools: **Move** a stopped instance (container and VM) from Ceph to another member's local pool, and back | One request in the UI; it lands on that member's pool and starts. VMs weren't testable in the session (no nested KVM) |
 
 ## Already verified live by the session (for reference)
 

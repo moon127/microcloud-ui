@@ -713,6 +713,10 @@ of the remaining parity list testable on the test cloud:
 - Not here: SR-IOV (no hardware), zones (needs an external DNS server to check), cluster
   groups and config (cluster-wide: fixtures plus the owner's checklist), sign-in options.
 
+**Ceph <-> local storage moves (D85, 2026-11-13):** done. The Move dialog's pool and member
+choices cover it; together they become two LXD moves in the order that copies once.
+Proven on a throwaway two-member cluster in VMs; VMs on local pools untested (no nested KVM).
+
 **Phase 10: Remaining parity** (was Phase 8, before that 7 and 6; after packaging, which is
 done). Backups, project moves and ISO upload moved to Phase 7 (D83). The rest of PJ-2
 (restriction keys beyond 7e), sriov, peers, zones, ACL logs

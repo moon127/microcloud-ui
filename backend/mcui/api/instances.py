@@ -411,6 +411,14 @@ async def move(
         raise HTTPException(status_code=400, detail="give a target member, a pool or a project")
     if other:
         await ctx.check_project(other)
+    if body.target and body.pool and not other:
+        return await ctx.audit(
+            "instance.move",
+            project,
+            name,
+            _member_and_pool(ctx.lxd, project, name, body),
+            detail=body.model_dump(exclude_none=True),
+        )
     payload: dict[str, Any] = {"name": name, "migration": True, "live": body.live}
     if body.pool:
         payload["pool"] = body.pool
@@ -427,6 +435,38 @@ async def move(
         params={"target": body.target} if body.target else None,
         detail=body.model_dump(exclude_none=True),
     )
+
+
+REMOTE_DRIVERS = frozenset({"ceph", "cephfs", "cephobject"})
+
+
+async def _member_and_pool(
+    lxd: LXDClient, project: str, name: str, body: Move
+) -> operations.Started:
+    """LXD moves to the member and ignores the pool when given both in one request (seen
+    live on 6.10, every direction), so do it as two moves. On remote storage the member
+    move is only a relink, so: from Ceph, member first and then copy to its local pool;
+    from local storage, copy to the pool first and then relink to the member."""
+    info = await lxd.get(_inst(name), project=project)
+    if info.get("status") != "Stopped" and not body.live:
+        # else the member move would happen (LXD restarts it there) and the pool move fail
+        raise HTTPException(status_code=400, detail=f"stop {name} first: pools take it stopped")
+    current = ((info.get("expanded_devices") or {}).get("root") or {}).get("pool", "")
+    remote = (
+        bool(current)
+        and (await lxd.get(f"/1.0/storage-pools/{current}")).get("driver") in REMOTE_DRIVERS
+    )
+    base = {"name": name, "migration": True, "live": body.live}
+    to_member = (
+        {**base},
+        {"project": project, "target": body.target},
+    )
+    to_pool = ({**base, "pool": body.pool}, {"project": project})
+    first, second = (to_member, to_pool) if remote else (to_pool, to_member)
+    await operations.finished(
+        lxd, await operations.start(lxd, "POST", _inst(name), json=first[0], params=first[1])
+    )
+    return await operations.start(lxd, "POST", _inst(name), json=second[0], params=second[1])
 
 
 class Copy(BaseModel):
