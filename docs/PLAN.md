@@ -288,8 +288,8 @@ certificates. Findings:
 **5a Compatibility (must have).** One commit per item, each tested on fixtures from both
 LTS releases and checked live on 3.4.
 - **Two fixture sets** (both recorded): `recorded-5.21` (from 5.0) and `recorded-6.10` (from 5.1), with the
-  recorded-fixture tests run against both. The demo cluster for screenshots (D59) moves
-  to LXD 6.10.
+  recorded-fixture tests run against both. ✅ The demo cluster for screenshots (D59) runs
+  LXD 6.10 (2026-11-13), with placement groups, registries and load balancers shown.
 - **Background operations** (verified working on 6.10, 5.1): LXD 6.6 and 6.8 made create, update, rename and delete
   return background operations for storage pools, volumes, buckets, networks, ACLs,
   forwards, load balancers, peers, zones, and profile PUT/PATCH; project delete followed

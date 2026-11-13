@@ -1,22 +1,31 @@
 // Invented demo cluster for the README screenshots (D59): three hosts on
 // documentation addresses (192.0.2.0/24, 2001:db8::/32), made-up instances, and
 // smooth, deterministic metric history. Typed against the real API so it can't drift.
+// It runs MicroCloud 3.4 LTS (LXD 6.10, Ceph Tentacle), so the LXD 6 features show;
+// on MicroCloud 2.x (LXD 5.21) the same pages appear without them.
 import type {
   CephState,
   Host,
+  ImageRegistry,
   Instance,
   InstanceFull,
   InstanceLive,
   Labels,
+  LbPool,
   LiveMetrics,
+  LoadBalancer,
   LocalImage,
   Member,
   MemberLive,
   Network,
+  NetworkDetail,
+  NetworkState,
   NetworkTraffic,
   OvnNetwork,
   OvnUplink,
+  PlacementGroup,
   Point,
+  PoolTarget,
   Profile,
   Project,
   QueryResult,
@@ -103,20 +112,40 @@ const limits = (d: Demo): Record<string, string> =>
   unlimited(d) ? {} : { "limits.cpu": String(d.cpus), "limits.memory": `${d.memory / GIB}GiB` };
 
 export const SERVER: ServerInfo = {
-  version: "5.21.3",
+  version: "6.10.1",
   clustered: true,
   server_name: "node-1",
   auth: "trusted",
   auth_method: "tls",
   endpoint: "https://192.0.2.11:8443",
-  features: { metrics: true, storage_buckets: true, network_peers: true, network_acls: true, vga_console: true },
+  features: {
+    clustering: true,
+    metrics: true,
+    vga_console: true,
+    network_acls: true,
+    network_forwards: true,
+    network_load_balancers: true,
+    network_peers: true,
+    storage_buckets: true,
+    cluster_evacuation: true,
+    // LXD 6.x (MicroCloud 3.4); LXD 5.21 has none of these
+    placement_groups: true,
+    snapshot_volumes: true,
+    load_balancer_pools: true,
+    load_balancer_health_checks: true,
+    image_registries: true,
+    cephfs_path: true,
+    evacuation_force: true,
+    boot_mode: true,
+    ovn_dhcp_ranges: true,
+  },
 };
 
 export const MEMBERS: Member[] = HOSTS.map((name, i) => ({
   name,
   url: `https://${ip(i)}:8443`,
   status: "Online",
-  roles: i === 0 ? ["database-leader", "database", "ovn-chassis"] : ["database", "ovn-chassis"],
+  roles: i === 0 ? ["database-leader"] : ["database-voter"],
   failure_domain: "default",
   message: "Fully operational",
   architecture: "x86_64",
@@ -153,7 +182,7 @@ export function instanceFull(project: string, name: string): InstanceFull | unde
     ephemeral: false,
     stateful: false,
     profiles: ["default"],
-    config: { ...limits(d), "image.os": "Ubuntu", "image.release": "noble" },
+    config: { ...limits(d), "image.os": "Ubuntu", "image.release": "resolute", ...(GROUPED[d.name] ? { "placement.group": GROUPED[d.name] } : {}) },
     devices: {},
     expanded_config: limits(d),
     expanded_devices: { root: { type: "disk", path: "/", pool: "remote" }, eth0: { type: "nic", network: "default", name: "eth0" } },
@@ -201,11 +230,12 @@ export const NETWORKS: Network[] = [
 
 export const POOLS: StoragePool[] = [
   { name: "remote", driver: "ceph", status: "Created", description: "Distributed storage on Ceph", config: { "ceph.osd.pool_name": "lxd_remote", "ceph.cluster_name": "ceph" }, used_by: 21, locations: HOSTS },
-  { name: "remote-fs", driver: "cephfs", status: "Created", description: "Shared filesystems", config: { source: "lxd_cephfs" }, used_by: 2, locations: HOSTS },
+  { name: "remote-fs", driver: "cephfs", status: "Created", description: "Shared filesystems", config: { "cephfs.path": "lxd_cephfs" }, used_by: 2, locations: HOSTS },
   { name: "local", driver: "zfs", status: "Created", description: "Local NVMe storage", config: { source: "/dev/nvme1n1", "zfs.pool_name": "local" }, used_by: 4, locations: HOSTS },
 ];
 
 export const IMAGES: LocalImage[] = [
+  ["ubuntu/26.04", "Ubuntu resolute amd64 (20261101_07:42)", "container", 138e6],
   ["ubuntu/24.04", "Ubuntu noble amd64 (20261101_07:42)", "container", 132e6],
   ["ubuntu/24.04/vm", "Ubuntu noble amd64 (20261101_07:42)", "virtual-machine", 312e6],
   ["debian/13", "Debian trixie amd64 (20261101_05:24)", "container", 98e6],
@@ -240,6 +270,8 @@ const remote = (os: string, release: string, title: string, variant = "default")
   version: "20261110_07:42",
 });
 export const REMOTE_IMAGES: RemoteImage[] = [
+  remote("Ubuntu", "26.04", "resolute"),
+  remote("Ubuntu", "26.04", "resolute", "cloud"),
   remote("Ubuntu", "24.04", "noble"),
   remote("Ubuntu", "24.04", "noble", "cloud"),
   remote("Ubuntu", "22.04", "jammy"),
@@ -249,6 +281,68 @@ export const REMOTE_IMAGES: RemoteImage[] = [
   remote("Fedora", "43", "43"),
   remote("Rockylinux", "10", "10"),
 ];
+
+// LXD 6.10 keeps image servers itself: the built-ins plus a team mirror
+const registry = (name: string, url: string, description: string, builtin = true): ImageRegistry => ({
+  name,
+  description,
+  protocol: "simplestreams",
+  builtin,
+  public: true,
+  config: { url },
+});
+export const REGISTRIES: ImageRegistry[] = [
+  registry("images", "https://images.lxd.canonical.com", "Community images"),
+  registry("ubuntu", "https://cloud-images.ubuntu.com/releases", "Ubuntu releases"),
+  registry("ubuntu-minimal", "https://cloud-images.ubuntu.com/minimal/releases", "Ubuntu minimal releases"),
+  registry("lab-mirror", "https://mirror.example.org/images", "Team mirror", false),
+];
+
+// placement groups (LXD 6.6+): keep the default project's services on separate hosts
+const GROUPED: Record<string, string> = { "dns-1": "infra-spread", monitoring: "infra-spread", "build-runner": "runners" };
+export const PLACEMENT: PlacementGroup[] = [
+  { name: "infra-spread", description: "One per host", project: "default", config: { policy: "spread", rigor: "strict" }, used_by: [] },
+  { name: "runners", description: "CI runners together", project: "default", config: { policy: "compact", rigor: "permissive" }, used_by: [] },
+].map((g) => ({
+  ...g,
+  config: g.config as PlacementGroup["config"],
+  used_by: Object.entries(GROUPED).filter(([, n]) => n === g.name).map(([i]) => `/1.0/instances/${i}?project=default`),
+}));
+
+// the default OVN network's load balancer: HTTPS to a health-checked pool of the two
+// default-project services, and DNS to a named backend
+export const LOAD_BALANCERS: LoadBalancer[] = [
+  {
+    listen_address: "198.51.100.10",
+    description: "Public services",
+    config: {},
+    backends: [{ name: "dns", target_address: "10.10.0.15", target_port: "53", description: "" }],
+    ports: [
+      { protocol: "tcp", listen_port: "80,443", target_pool: "front", description: "" },
+      { protocol: "udp", listen_port: "53", target_backend: ["dns"], description: "" },
+    ],
+  },
+];
+export const LB_POOLS: LbPool[] = [
+  { name: "front", description: "", config: { protocol: "tcp", target_port: "443", healthcheck: "true", "healthcheck.interval": "5" }, instances: [{ name: "monitoring" }, { name: "dns-1" }] },
+];
+export const POOL_STATE: { targets: PoolTarget[] } = {
+  targets: [
+    { name: "monitoring", address: "10.10.0.16", port: "443", listen_address: "198.51.100.10", listen_port: "443", status: "online" },
+    { name: "dns-1", address: "10.10.0.15", port: "443", listen_address: "198.51.100.10", listen_port: "443", status: "online" },
+  ],
+};
+
+export const NETWORK_DETAIL: NetworkDetail = { ...NETWORKS[1], used_by: [], locations: HOSTS, project: "default" };
+export const NETWORK_STATE: NetworkState = {
+  addresses: [{ address: "10.10.0.1", family: "inet", netmask: "24", scope: "global" }],
+  counters: { bytes_received: 9.1e10, bytes_sent: 5.4e10, packets_received: 7.2e7, packets_sent: 5.1e7 },
+  hwaddr: "00:16:3e:00:00:01",
+  mtu: 1442,
+  state: "up",
+  type: "broadcast",
+  ovn: { chassis: "node-1" },
+};
 
 export const HOST_INTERFACES: Network[] = [
   { name: "enp1s0f0", type: "physical", managed: false, description: "", status: "", config: {}, used_by: 1 },
@@ -396,7 +490,7 @@ export const CEPH: CephState = {
   mgr: "http://192.0.2.12:9283",
   scraped_at: NOW,
   health: { status: "HEALTH_OK", checks: [] },
-  version: "19.2.3 squid",
+  version: "20.2.1 tentacle",
   mons: HOSTS.map((name) => ({ name, in_quorum: true })),
   mgrs: HOSTS.map((name, i) => ({ name: `${name}.mgr`, active: i === 1 })),
   osds: OSDS.map((id) => ({
@@ -651,7 +745,7 @@ export function answer(method: string, url: URL): unknown {
   if (method !== "GET") return {};
   const fixed: Record<string, unknown> = {
     "/api/auth/me": { user: { username: "admin", role: "admin" }, csrf: "demo" },
-    "/api/health": { status: "ok", version: "0.1.0", lxd_configured: true },
+    "/api/health": { status: "ok", version: "0.1.5", lxd_configured: true },
     "/api/server": SERVER,
     "/api/metrics/live": LIVE,
     "/api/hosts": HOSTS_VIEW,
@@ -668,6 +762,16 @@ export function answer(method: string, url: URL): unknown {
     "/api/volumes": [],
     "/api/network-acls": [],
     "/api/network-allocations": [],
+    "/api/image-registries": REGISTRIES,
+    "/api/placement-groups": PLACEMENT,
+    "/api/networks/default/default": NETWORK_DETAIL,
+    "/api/networks/default/default/state": NETWORK_STATE,
+    "/api/networks/default/default/members": [],
+    "/api/networks/default/default/leases": [],
+    "/api/networks/default/default/forwards": [],
+    "/api/networks/default/default/load-balancers": LOAD_BALANCERS,
+    "/api/networks/default/default/load-balancer-pools": LB_POOLS,
+    "/api/networks/default/default/load-balancer-pools/front/state": POOL_STATE,
   };
   if (p in fixed) return fixed[p];
   if (p === "/api/networks") return s.get("target") ? HOST_INTERFACES : NETWORKS;

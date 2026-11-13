@@ -33,6 +33,9 @@ export const PAGES: { file: string; path: string; wait?: string; full?: boolean;
   { file: "ceph.png", path: "/ceph?range=86400", wait: "HEALTH_OK", full: true },
   { file: "networks.png", path: "/networks?range=86400", wait: "UPLINK", full: true },
   { file: "ovn.png", path: "/ovn", wait: "UPLINK", full: true },
+  // LXD 6 (MicroCloud 3.4) only
+  { file: "placement-groups.png", path: "/placement-groups", wait: "infra-spread" },
+  { file: "load-balancers.png", path: "/networks/default/default", wait: "198.51.100.10", full: true },
 ];
 
 async function main() {

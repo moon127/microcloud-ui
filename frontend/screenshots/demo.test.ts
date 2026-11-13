@@ -61,13 +61,26 @@ describe("demo cluster", () => {
       "/api/metrics/top?metric=memory&range=3600",
       "/api/metrics/network-traffic?range=3600",
       "/api/operations",
+      // LXD 6 (MicroCloud 3.4) pages
+      "/api/placement-groups?project=default",
+      "/api/image-registries",
+      "/api/networks/default/default",
+      "/api/networks/default/default/state",
+      "/api/networks/default/default/load-balancers",
+      "/api/networks/default/default/load-balancer-pools",
+      "/api/networks/default/default/load-balancer-pools/front/state",
     ]) {
       expect(get(path), path).toBeDefined();
     }
     expect(get("/api/nope")).toBeUndefined();
     expect(get("/api/instances/web/nope")).toBeUndefined();
     expect(answer("POST", new URL("http://demo/api/instances"))).toEqual({});
-    const all = JSON.stringify([HOSTS_VIEW, LIST, get("/api/server"), get("/api/ceph"), get("/api/ovn"), get("/api/cluster/members")]);
+    const all = JSON.stringify([
+      HOSTS_VIEW,
+      LIST,
+      ...["/api/server", "/api/ceph", "/api/ovn", "/api/cluster/members", "/api/image-registries"].map(get),
+      ...["", "/state", "/load-balancers", "/load-balancer-pools/front/state"].map((s) => get(`/api/networks/default/default${s}`)),
+    ]);
     const ips = all.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/g) ?? [];
     // 192.0.2.0/24 and 198.51.100.0/24 are documentation ranges; 10.x are private instance addresses
     expect(ips.filter((a) => !/^(192\.0\.2|198\.51\.100|10)\./.test(a))).toEqual([]);
