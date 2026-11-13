@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 import yaml
@@ -87,7 +88,10 @@ def test_weekly_scan():
     assert sec["permissions"] == {"contents": "read"}
     image = sec["jobs"]["image"]
     assert image["permissions"]["issues"] == "write"
-    scans = [s["with"] for s in image["steps"] if "trivy-action" in s.get("uses", "")]
+    trivy = [s for s in image["steps"] if "trivy-action" in s.get("uses", "")]
+    # a moved tag can't change what runs (trivy-action's tags were rewritten in 2026)
+    assert all(re.fullmatch(r"aquasecurity/trivy-action@[0-9a-f]{40}", s["uses"]) for s in trivy)
+    scans = [s["with"] for s in trivy]
     assert all(w["ignore-unfixed"] is True and w["severity"] == "HIGH,CRITICAL" for w in scans)
     assert image["env"]["IMAGE"] == "ghcr.io/moon127/microcloud-ui:latest"
     issue = image["steps"][-1]["run"]

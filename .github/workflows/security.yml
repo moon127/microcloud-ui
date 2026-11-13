@@ -34,8 +34,10 @@ jobs:
       IMAGE: ghcr.io/moon127/microcloud-ui:latest
     steps:
       - uses: actions/checkout@v4
+      # pinned to a commit, not a tag: trivy-action's tags were rewritten in March 2026
+      # (the 0.x tags became v0.x); Dependabot keeps the pin current
       - name: Scan the latest release image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           image-ref: ${{ env.IMAGE }}
           ignore-unfixed: true
@@ -43,7 +45,7 @@ jobs:
           format: json
           output: trivy.json
       - name: The same, for the Security tab
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
         with:
           image-ref: ${{ env.IMAGE }}
           ignore-unfixed: true
