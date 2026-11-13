@@ -425,8 +425,8 @@ the upgrade and the mgr restarts, so Tentacle 20.2.1 exports the OSD used/size a
 latency series with no change (`recorded-6.10-cluster/ceph_mgr.txt`). Nothing to do for
 Tentacle; the longer-term risk is a watch item in Phase 7.
 
-**Phase 6: Users and project access.** *Proposed 2026-11-13 (D81), for the owner to review;
-nothing built yet.* App users who see and change only the LXD projects they're granted,
+**Phase 6: Users and project access.** *Agreed 2026-11-13 (D81): the owner approved the plan
+and the five defaults below. It leads to release 0.2.0; `main` is 0.2.0.dev0 meanwhile.* App users who see and change only the LXD projects they're granted,
 while the app keeps one admin connection to LXD. OIDC, groups and LXD-side identities
 stay later (Phase 8, AU-4/AC-1/AC-2).
 
