@@ -14,6 +14,7 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
    | Area | Doc |
    |---|---|
    | Config | `docs/CONFIGURATION.md` |
+   | Users, roles and project access | `docs/USERS.md` |
    | LXD certificates | `docs/LXD-CREDENTIALS.md` |
    | Host metrics | `docs/HOST-METRICS.md` |
    | Ceph metrics | `docs/CEPH-METRICS.md` |

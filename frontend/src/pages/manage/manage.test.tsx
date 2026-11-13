@@ -288,7 +288,11 @@ const project = (over: Partial<api.Project> = {}): api.Project => ({
 
 describe("projects", () => {
   it("lists projects and creates one with features", async () => {
-    vi.spyOn(api, "fetchProjects").mockResolvedValue([project(), project({ name: "bare", config: {}, used_by: [] })]);
+    vi.spyOn(api, "fetchProjects").mockResolvedValue([
+      project(),
+      project({ name: "bare", config: {}, used_by: [] }),
+      project({ name: "safe", config: { restricted: "true" }, used_by: [] }),
+    ]);
     vi.spyOn(api, "fetchProject").mockResolvedValue(project({ name: "new" }));
     const create = vi.spyOn(api, "createProject").mockResolvedValue(ok);
     routes("/projects");
@@ -296,11 +300,14 @@ describe("projects", () => {
     expect(row).toHaveTextContent("images, profiles");
     expect(row).toHaveTextContent("instances=5");
     expect(screen.getByRole("link", { name: "bare" }).closest("tr")).toHaveTextContent("–");
+    expect(row).not.toHaveTextContent("yes");
+    expect(screen.getByRole("link", { name: "safe" }).closest("tr")).toHaveTextContent("yes");
     fireEvent.click(screen.getByRole("button", { name: "Create project" }));
     fireEvent.click(dialog().getByRole("button", { name: "Create" })); // no name: ignored
     fireEvent.change(dialog().getByLabelText("Name"), { target: { value: " new " } });
     fireEvent.change(dialog().getByLabelText("Description"), { target: { value: "d" } });
     fireEvent.click(dialog().getByLabelText("Own networks"));
+    fireEvent.click(dialog().getByLabelText("Restricted"));
     fireEvent.click(dialog().getByRole("button", { name: "Create" }));
     expect(create).toHaveBeenCalledWith("new", {
       description: "d",
@@ -311,6 +318,7 @@ describe("projects", () => {
         "features.storage.buckets": "true",
         "features.networks": "true",
         "features.networks.zones": "false",
+        restricted: "true",
       },
     });
     expect(await screen.findByRole("heading", { name: "Project new" })).toBeInTheDocument();

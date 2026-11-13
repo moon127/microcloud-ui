@@ -244,6 +244,9 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 6 done 2026-11-13 (D81):** 6e added `docs/USERS.md`, the README and requirements
+  (AU-5), the Users screenshot, and a Restricted option when creating a project. Ready for
+  release 0.2.0.
 - **Phase 6d done 2026-11-13 (D81):** live on the test cloud (`mcui-test` restricted for
   the run, `default` as the other project, read-only). Found that LXD's operations and
   allocations name their project only in URLs (`mcui/lxd/entities.py`). Next: 6e docs,

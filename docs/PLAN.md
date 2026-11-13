@@ -585,8 +585,17 @@ each route in the code):
   - **Cleanup:** the test container deleted and `mcui-test` restored exactly.
 
   Steps to repeat: `docs/LIVE-TESTS.md` P1–P6.
-- **6e, docs:** `docs/CONFIGURATION.md` (users and grants), the README, the requirements
-  (AU-2 extended, a new AU-5), and `docs/LIVE-TESTS.md`.
+- ✅ **6e, docs** (2026-11-13):
+  - **`docs/USERS.md`:** roles and project roles, preparing a restricted project (and
+    keeping its own storage volumes), what project users see, managing users from the
+    UI, CLI or API, how it's enforced, and upgrading to 0.2.0.
+  - **The README:** who may do what, the user commands, and the Users screenshot.
+  - **Requirements:** AU-2 extended and a new AU-5.
+  - **Elsewhere:** `CLAUDE.md`'s doc table and `docs/CONFIGURATION.md`.
+  - **One UI addition:** a **Restricted** checkbox when creating a project, and a
+    Restricted column in the projects list.
+
+  Phase 6 is done; next is release 0.2.0.
 
 *Out of scope for Phase 6:*
 - OIDC and other identity providers, and groups (AU-4).

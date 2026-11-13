@@ -134,7 +134,8 @@ operations with progress and cancel.
 | ID | Requirement | Tier |
 |---|---|---|
 | AU-1 | Local user accounts (argon2), login/logout, HttpOnly session cookie, CSRF protection | MVP |
-| AU-2 | Roles: `admin` (everything) and `viewer` (read-only + metrics) | MVP |
+| AU-2 | Roles: `admin` (everything) and `viewer` (read-only + metrics); since 0.2.0 also `project` (AU-5) | MVP |
+| AU-5 | Users limited to LXD projects: a grant of viewer, operator or admin per project, enforced by the server on every route (lists, metrics, operations, audit and events filtered; other projects "not found"); operator and admin only on `restricted=true` projects; a Users page and `mcui user grant/revoke`. D81, `docs/USERS.md` | Done 0.2.0 |
 | AU-3 | Audit log of every mutating action (who, what, when, LXD operation id) | MVP |
 | AU-4 | Further login options (OIDC/Entra ID etc.) evaluated after MVP | P2 |
 | CF-1 | Config file (TOML) + env overrides; certs/keys by path; refuse to start if key files are world-readable | MVP |

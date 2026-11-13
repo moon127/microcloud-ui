@@ -4,7 +4,7 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** Phases 1–4 built, and Phase 5 (MicroCloud 3.4 LTS support) checked live on a three-member 3.4 cluster: connectivity, local auth, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards and a Hosts view (optional node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)). Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
+**Status:** Phases 1–4 built; Phase 5 (MicroCloud 3.4 LTS support) and Phase 6 (users limited to LXD projects, [`docs/USERS.md`](docs/USERS.md)) checked live on a three-member 3.4 cluster: connectivity, local auth with cluster and per-project roles, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards and a Hosts view (optional node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)). Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
 **Running it for real:** an offline bundle (`make bundle`) installs on Ubuntu as a
@@ -53,7 +53,8 @@ More: [instances](docs/screenshots/instances.png) ·
 [create instance](docs/screenshots/create-instance.png) ·
 [storage](docs/screenshots/storage.png) ·
 [networks](docs/screenshots/networks.png) ·
-[OVN](docs/screenshots/ovn.png)
+[OVN](docs/screenshots/ovn.png) ·
+[users and project grants](docs/screenshots/users.png)
 
 LXD 6 / MicroCloud 3.4 only: [placement groups](docs/screenshots/placement-groups.png) ·
 [OVN load balancers with a health-checked pool](docs/screenshots/load-balancers.png) (the
@@ -162,12 +163,21 @@ On LXD 6 (MicroCloud 3.4) there's more:
 - multi-volume snapshots on the Snapshots tab
 - child operations on the Operations page
 - a forced evacuation when LXD refuses one for quorum (it doesn't always: see `docs/LIVE-TESTS.md` C2a)
-- a DHCP ranges field for new OVN networks Admins can change things; viewers read only. Pick the time range (15 min to 1 year) above
-the graphs. History is collected in the background into `<data_dir>/metrics.db`.
+- a DHCP ranges field for new OVN networks
+
+**Who may do what:** cluster admins change anything and manage **Users**; cluster viewers
+read everything. **Project users** see only the LXD projects granted to them, as viewer,
+operator (lifecycle, consoles, files, snapshots) or admin of each. Operator and admin need
+a restricted project, so LXD itself keeps them off the host. See
+[`docs/USERS.md`](docs/USERS.md).
+
+Pick the time range (15 min to 1 year) above the graphs. History is collected in the background into `<data_dir>/metrics.db`.
 
 Other user commands: `mcui user list`, `mcui user passwd <name>` (also signs the user
-out), `mcui user delete <name>`. Admins can do the same through the `/api/users`
-endpoints. Users live in the config's `data_dir`, so a server started with another
+out), `mcui user delete <name>`, and for project users `mcui user add <name> --role
+project`, `mcui user grant <name> <project> viewer|operator|admin` and `mcui user revoke
+<name> <project>`. Cluster admins can do the same on the **Users** page or through the
+`/api/users` endpoints ([`docs/USERS.md`](docs/USERS.md)). Users live in the config's `data_dir`, so a server started with another
 config (or none) doesn't know them.
 
 ### Live tests and fixtures (run on a machine that reaches the cluster)

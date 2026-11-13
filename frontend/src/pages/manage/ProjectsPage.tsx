@@ -41,6 +41,7 @@ export default function ProjectsPage() {
                 <th>Name</th>
                 <th>Description</th>
                 <th>Own</th>
+                <th>Restricted</th>
                 <th>Limits</th>
                 <th className="num">Used by</th>
               </tr>
@@ -57,6 +58,7 @@ export default function ProjectsPage() {
                       .map((f) => f.key.replace("features.", ""))
                       .join(", ") || "–"}
                   </td>
+                  <td>{p.config.restricted === "true" ? "yes" : "–"}</td>
                   <td>
                     {Object.entries(p.config)
                       .filter(([k]) => k.startsWith("limits."))
@@ -81,6 +83,7 @@ function CreateProject({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [features, setFeatures] = useState(() => Object.fromEntries(FEATURES.map((f) => [f.key, f.on])));
+  const [restricted, setRestricted] = useState(false);
   return (
     <Confirm
       title="Create project"
@@ -90,7 +93,10 @@ function CreateProject({ onClose }: { onClose: () => void }) {
         const n = name.trim();
         if (!n) return;
         onClose();
-        const config = Object.fromEntries(Object.entries(features).map(([k, v]) => [k, String(v)]));
+        const config = {
+          ...Object.fromEntries(Object.entries(features).map(([k, v]) => [k, String(v)])),
+          ...(restricted ? { restricted: "true" } : {}),
+        };
         void run(`Create project ${n}`, () => createProject(n, { description, config })).then(
           (ok) => ok && navigate(`/projects/${encodeURIComponent(n)}`),
         );
@@ -115,6 +121,13 @@ function CreateProject({ onClose }: { onClose: () => void }) {
         </label>
       ))}
       <p className="muted">Features can't be changed once the project has instances or images.</p>
+      <label>
+        <input type="checkbox" checked={restricted} onChange={(e) => setRestricted(e.target.checked)} /> Restricted
+      </label>
+      <p className="muted">
+        LXD then refuses privileged instances, host disks and similar inside it. Project users can only be operators or
+        admins of a restricted project (docs/USERS.md).
+      </p>
     </Confirm>
   );
 }

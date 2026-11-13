@@ -14,7 +14,7 @@ can be overridden with an env var `MCUI_<SECTION>__<KEY>`, e.g.
 
 ```toml
 [server]
-data_dir = "~/.local/share/mcui"   # SQLite DB (users, sessions, audit); default ./data
+data_dir = "~/.local/share/mcui"   # SQLite DB (users, project grants, sessions, audit); default ./data
 secure_cookies = true              # session cookie only over HTTPS; set false for http://localhost dev
 session_hours = 12
 host = "127.0.0.1"                 # where `mcui serve` listens (--host/--port override)
