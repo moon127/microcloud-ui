@@ -247,7 +247,17 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
-- **Phase 10a agreed 2026-11-13 (D84):** peers, ACL logs, volume copy/move. Next: peers.
+- **Phase 10a: peers done 2026-11-13 (D84).** An OVN network's page lists its peers (Pending
+  explained), adds one (optionally peering back from the other network, if the user can
+  manage it there), edits the description, deletes. Creating needs manage here and read in
+  the target project (naming its network shows it exists). Live in `mcui-test-2` (networks
+  turned on and the uplink allowed for the run, then restored): a project admin made two
+  OVN networks and two Alpine containers; c3 reached c4 only while peered both ways.
+  **ACL log viewer dropped:** LXD's `/1.0/network-acls/{name}/log` asks every member, each
+  runs `journalctl -u snap.microovn.chassis --grep lxd_acl…`, and on MicroCloud that unit
+  never has entries (the owner confirmed on member 1: "No entries" in any boot), so the
+  endpoint only ever errors ("exit status 1"). Revisit if MicroOVN starts logging ACL hits
+  there. Next: volume copy/move.
 - **Phase 7 done 2026-11-13 (D83):** 7f added the README lines, LIVE-TESTS B1–B8 (the
   browser side: pickers, upload progress, downloads, a real installer ISO), and demo
   screenshots `backups.png`, `volumes.png` (an ISO's byte size now shows as GiB) and

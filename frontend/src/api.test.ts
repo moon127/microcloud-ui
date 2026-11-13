@@ -458,3 +458,20 @@ describe("ISO upload (Phase 7d)", () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe("network peers (Phase 10a)", () => {
+  it("send the right method, URL and body", async () => {
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(() => Promise.resolve(json({})));
+    await api.fetchPeers("p", "ovn 1");
+    await api.createPeer("p", "ovn1", { name: "to2", description: "", target_project: "q", target_network: "ovn2" });
+    await api.updatePeer("p", "ovn1", "to 2", { description: "d", config: {} });
+    await api.deletePeer("p", "ovn1", "to2");
+    const calls = f.mock.calls.map(([url, init]) => [url, (init as RequestInit).method, (init as RequestInit).body ?? null]);
+    expect(calls).toEqual([
+      ["/api/networks/p/ovn%201/peers", "GET", null],
+      ["/api/networks/p/ovn1/peers", "POST", '{"name":"to2","description":"","target_project":"q","target_network":"ovn2"}'],
+      ["/api/networks/p/ovn1/peers/to%202", "PUT", '{"description":"d","config":{}}'],
+      ["/api/networks/p/ovn1/peers/to2", "DELETE", null],
+    ]);
+  });
+});

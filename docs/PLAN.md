@@ -700,13 +700,14 @@ recorded mgr scrape; nothing to build until then.
 
 **Phase 10a: Network peers, ACL logs, volume copy/move** (owner, 2026-11-13, D84). The parts
 of the remaining parity list testable on the test cloud:
-- **Peers (NW-7):** an OVN network's page lists its peers (status Pending until the other
+- ✅ 2026-11-13 **Peers (NW-7):** an OVN network's page lists its peers (status Pending until the other
   side peers back, then Created) and adds or deletes them, with an option to create the
   matching peer on the other network too. Manage in the project (and in the other one for
   the matching peer). Live: two temporary OVN networks `mcui-test-*` on the uplink (owner's
   permission), deleted afterwards.
-- **ACL log viewer (NW-4):** an ACL's page shows LXD's log of its `logged` rules
-  (`/1.0/network-acls/{name}/log`). Read right in the project.
+- ~~**ACL log viewer (NW-4)**~~ dropped 2026-11-13: LXD reads ACL hits from the
+  `snap.microovn.chassis` journal on every member, which has none on MicroCloud (checked
+  live and by the owner), so its log endpoint only errors. Revisit if MicroOVN logs them.
 - **Volume copy and move (ST-4):** copy a custom volume to another pool, member or project,
   and move it (rename is there already). Manage in both projects for a project change.
 - Not here: SR-IOV (no hardware), zones (needs an external DNS server to check), cluster

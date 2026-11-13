@@ -26,6 +26,7 @@ from mcui.api import (
     networks,
     ops,
     ovn,
+    peers,
     placement,
     registries,
     storage,
@@ -95,6 +96,7 @@ def create_app(
     app.include_router(networks.router)
     app.include_router(acls.router)
     app.include_router(loadbalancers.router)
+    app.include_router(peers.router)
     app.include_router(placement.router)
     app.include_router(registries.router)
     app.include_router(storage.router)

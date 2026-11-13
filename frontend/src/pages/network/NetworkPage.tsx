@@ -22,6 +22,7 @@ import YamlEditor from "../../YamlEditor";
 import { asConfig } from "../instance/state";
 import Forwards from "./Forwards";
 import LoadBalancers from "./LoadBalancers";
+import Peers from "./Peers";
 import { aclPath } from "./paths";
 import { useAccess } from "../../access";
 
@@ -132,6 +133,7 @@ export default function NetworkPage() {
               {(n.type === "bridge" || n.type === "ovn") && (
                 <Forwards project={project} network={name} admin={admin} members={n.type === "bridge" ? (n.locations ?? []) : []} />
               )}
+              {n.type === "ovn" && features.network_peers && <Peers project={project} network={name} admin={admin} />}
               {n.type === "ovn" && features.network_load_balancers && (
                 <LoadBalancers
                   project={project}

@@ -973,6 +973,31 @@ export interface ForwardBody {
 
 const fwd = (project: string, network: string, listen?: string) =>
   `${net(project, network)}/forwards${listen ? `/${encodeURIComponent(listen)}` : ""}`;
+// --- Phase 10a: OVN network peers (NW-7) ------------------------------------------
+
+export interface NetworkPeer {
+  name: string;
+  description: string;
+  target_project: string;
+  target_network: string;
+  /** Pending until the other network peers back, then Created */
+  status: string;
+  config: Record<string, string>;
+  used_by?: string[] | null;
+}
+
+const peers = (project: string, network: string) => `${net(project, network)}/peers`;
+export const fetchPeers = (project: string, network: string) => api<NetworkPeer[]>(peers(project, network));
+export const createPeer = (
+  project: string,
+  network: string,
+  body: { name: string; description: string; target_project: string; target_network: string },
+) => send<Started>("POST", peers(project, network), body);
+export const updatePeer = (project: string, network: string, name: string, body: { description: string; config: Record<string, string> }) =>
+  send<Started>("PUT", `${peers(project, network)}/${encodeURIComponent(name)}`, body);
+export const deletePeer = (project: string, network: string, name: string) =>
+  send<Started>("DELETE", `${peers(project, network)}/${encodeURIComponent(name)}`);
+
 export const fetchForwards = (project: string, network: string) => api<NetworkForward[]>(fwd(project, network));
 export const createForward = (project: string, network: string, body: ForwardBody & { listen_address: string }, target?: string) =>
   send<Started>("POST", `${fwd(project, network)}${tq(target)}`, body);
