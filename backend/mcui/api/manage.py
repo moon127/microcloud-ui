@@ -12,7 +12,14 @@ from fastapi import APIRouter, HTTPException, Path, Query, Request
 from pydantic import BaseModel, Field
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import (
+    AdminDep,
+    InBodyDep,
+    LXDDep,
+    ProjectManageDep,
+    ProjectReadDep,
+    StoreDep,
+)
 from mcui.api.instances import NAME, ProjectName
 from mcui.auth.store import Session, Store
 from mcui.lxd import operations
@@ -73,7 +80,7 @@ class NewProfile(ProfileBody):
 
 @router.get("/profiles/{project}/{name}")
 async def get_profile(
-    project: ProjectName, name: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> dict[str, Any]:
     data: dict[str, Any] = await lxd.get(f"/1.0/profiles/{name}", project=project)
     return data
@@ -81,8 +88,10 @@ async def get_profile(
 
 @router.post("/profiles")
 async def create_profile(
-    body: NewProfile, session: AdminDep, store: StoreDep, lxd: LXDDep
+    body: NewProfile, guard: InBodyDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
+    await guard.check(body.project)
+    session = guard.session
     return await _change(
         session,
         store,
@@ -101,7 +110,7 @@ async def update_profile(
     project: ProjectName,
     name: ObjName,
     body: ProfileBody,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -123,7 +132,7 @@ async def rename_profile(
     project: ProjectName,
     name: ObjName,
     body: Rename,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -143,7 +152,7 @@ async def rename_profile(
 
 @router.delete("/profiles/{project}/{name}")
 async def delete_profile(
-    project: ProjectName, name: ObjName, session: AdminDep, store: StoreDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, session: ProjectManageDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
     return await _change(
         session,
@@ -162,7 +171,7 @@ async def delete_profile(
 
 @router.get("/images/{project}/{fingerprint}")
 async def get_image(
-    project: ProjectName, fingerprint: Fingerprint, _: SessionDep, lxd: LXDDep
+    project: ProjectName, fingerprint: Fingerprint, _: ProjectReadDep, lxd: LXDDep
 ) -> dict[str, Any]:
     data: dict[str, Any] = await lxd.get(f"/1.0/images/{fingerprint}", project=project)
     return data
@@ -179,7 +188,7 @@ async def update_image(
     project: ProjectName,
     fingerprint: Fingerprint,
     body: ImageUpdate,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -198,7 +207,11 @@ async def update_image(
 
 @router.delete("/images/{project}/{fingerprint}")
 async def delete_image(
-    project: ProjectName, fingerprint: Fingerprint, session: AdminDep, store: StoreDep, lxd: LXDDep
+    project: ProjectName,
+    fingerprint: Fingerprint,
+    session: ProjectManageDep,
+    store: StoreDep,
+    lxd: LXDDep,
 ) -> dict[str, Any]:
     return await _change(
         session,
@@ -222,7 +235,7 @@ async def add_alias(
     project: ProjectName,
     fingerprint: Fingerprint,
     body: NewAlias,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -242,7 +255,7 @@ async def add_alias(
 
 @router.delete("/images/{project}/aliases/{alias:path}")
 async def delete_alias(
-    project: ProjectName, alias: AliasName, session: AdminDep, store: StoreDep, lxd: LXDDep
+    project: ProjectName, alias: AliasName, session: ProjectManageDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
     return await _change(
         session,
@@ -269,8 +282,10 @@ class ImageImport(BaseModel):
 
 @router.post("/images/import")
 async def import_image(
-    body: ImageImport, session: AdminDep, store: StoreDep, lxd: LXDDep
+    body: ImageImport, guard: InBodyDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
+    await guard.check(body.project)
+    session = guard.session
     if body.remote not in REMOTES:
         raise HTTPException(status_code=400, detail=f"remote must be one of {sorted(REMOTES)}")
     payload: dict[str, Any] = {
@@ -303,7 +318,7 @@ async def import_image(
 @router.post("/images/upload")
 async def upload_image(
     request: Request,
-    session: AdminDep,
+    guard: InBodyDep,
     store: StoreDep,
     lxd: LXDDep,
     project: Annotated[str, Query(pattern=NAME, max_length=63)] = "default",
@@ -313,6 +328,8 @@ async def upload_image(
     filename: Annotated[str, Query(max_length=255)] = "image.tar.gz",
 ) -> dict[str, Any]:
     """Import a unified image tarball sent as the raw request body (streamed)."""
+    await guard.check(project)
+    session = guard.session
 
     async def call() -> operations.Started:
         r = await lxd.raw(
@@ -369,9 +386,9 @@ class NewProject(ProjectBody):
     name: str = Field(pattern=NAME, max_length=63)
 
 
-@router.get("/projects/{name}")
-async def get_project(name: ObjName, _: SessionDep, lxd: LXDDep) -> dict[str, Any]:
-    data: dict[str, Any] = await lxd.get(f"/1.0/projects/{name}")
+@router.get("/projects/{project}")
+async def get_project(project: ObjName, _: ProjectReadDep, lxd: LXDDep) -> dict[str, Any]:
+    data: dict[str, Any] = await lxd.get(f"/1.0/projects/{project}")
     return data
 
 

@@ -13,7 +13,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from mcui.api.deps import ServicesDep, SessionDep
+from mcui.api.deps import ClusterReadDep, ServicesDep
 from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import Member, members
 from mcui.metrics.store import MetricStore
@@ -97,7 +97,7 @@ async def _last_rates(store: MetricStore | None, name: str) -> dict[str, float]:
 
 
 @router.get("/hosts")
-async def hosts(_: SessionDep, services: ServicesDep) -> dict[str, Any]:
+async def hosts(_: ClusterReadDep, services: ServicesDep) -> dict[str, Any]:
     lxd = services.lxd
     if lxd is None:
         raise HTTPException(status_code=503, detail="LXD is not configured")

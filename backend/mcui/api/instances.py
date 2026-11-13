@@ -1,7 +1,8 @@
 """Instances: list, detail, lifecycle, config, rename/copy/move, snapshots, logs, publish.
 
-IN-1, IN-3, IN-4, IN-5, IN-6, IN-10, IN-12. Every change needs the admin role
-and CSRF token, and is audited with its LXD operation (D42).
+IN-1, IN-3, IN-4, IN-5, IN-6, IN-10, IN-12. Every change needs the CSRF token and the
+right in the instance's project (operate: lifecycle and snapshots; manage: the rest, D81),
+and is audited with its LXD operation (D42).
 """
 
 from __future__ import annotations
@@ -13,7 +14,17 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Response
 from pydantic import BaseModel, Field
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, ServicesDep, SessionDep, StoreDep
+from mcui.api.deps import (
+    InBody,
+    InBodyDep,
+    LXDDep,
+    ProjectManageDep,
+    ProjectOperateDep,
+    ProjectReadDep,
+    ScopeDep,
+    ServicesDep,
+    StoreDep,
+)
 from mcui.auth.store import Session, Store
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient
@@ -43,9 +54,20 @@ class Ctx:
     """Everything a change needs: who, where, and how to audit it."""
 
     def __init__(
-        self, session: Session, store: Store, lxd: LXDClient, index: InstanceIndex
+        self,
+        session: Session,
+        store: Store,
+        lxd: LXDClient,
+        index: InstanceIndex,
+        in_body: InBody | None = None,
     ) -> None:
         self.session, self.store, self.lxd, self.index = session, store, lxd, index
+        self.in_body = in_body  # creates: check the project named in the body
+
+    async def check_project(self, project: str) -> None:
+        if self.in_body is None:  # pragma: no cover - a route wiring error
+            raise RuntimeError("check_project needs CtxCreateDep")
+        await self.in_body.check(project)
 
     async def audit(
         self,
@@ -88,11 +110,25 @@ class Ctx:
         return st.as_dict()
 
 
-async def get_ctx(session: AdminDep, store: StoreDep, lxd: LXDDep, index: IndexDep) -> Ctx:
+async def get_ctx_operate(
+    session: ProjectOperateDep, store: StoreDep, lxd: LXDDep, index: IndexDep
+) -> Ctx:
     return Ctx(session, store, lxd, index)
 
 
-CtxDep = Annotated[Ctx, Depends(get_ctx)]
+async def get_ctx_manage(
+    session: ProjectManageDep, store: StoreDep, lxd: LXDDep, index: IndexDep
+) -> Ctx:
+    return Ctx(session, store, lxd, index)
+
+
+async def get_ctx_create(in_body: InBodyDep, store: StoreDep, lxd: LXDDep, index: IndexDep) -> Ctx:
+    return Ctx(in_body.session, store, lxd, index, in_body)
+
+
+CtxOperateDep = Annotated[Ctx, Depends(get_ctx_operate)]
+CtxManageDep = Annotated[Ctx, Depends(get_ctx_manage)]
+CtxCreateDep = Annotated[Ctx, Depends(get_ctx_create)]
 
 
 def _inst(name: str) -> str:
@@ -147,7 +183,8 @@ def image_source(img: ImageSource, registries: bool = False) -> dict[str, str]:
 
 
 @router.post("")
-async def create_instance(body: NewInstance, ctx: CtxDep) -> dict[str, Any]:
+async def create_instance(body: NewInstance, ctx: CtxCreateDep) -> dict[str, Any]:
+    await ctx.check_project(body.project)
     registries = False
     if body.image.remote != "local":
         info = await ctx.lxd.get("/1.0")
@@ -181,9 +218,7 @@ async def create_instance(body: NewInstance, ctx: CtxDep) -> dict[str, Any]:
 
 
 @router.get("")
-async def list_instances(
-    _: SessionDep, index: IndexDep, fresh: bool = False
-) -> list[dict[str, Any]]:
+async def list_instances(_: ScopeDep, index: IndexDep, fresh: bool = False) -> list[dict[str, Any]]:
     """``fresh``: skip the short cache (progress views, e.g. during an evacuation)."""
     if fresh:
         index.invalidate()
@@ -192,7 +227,7 @@ async def list_instances(
 
 @router.get("/{project}/{name}")
 async def get_instance(
-    project: ProjectName, name: InstName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: InstName, _: ProjectReadDep, lxd: LXDDep
 ) -> dict[str, Any]:
     """The full LXD instance (config, devices, expanded_*, state, snapshots)."""
     data: dict[str, Any] = await lxd.get(_inst(name), project=project, recursion=1)
@@ -200,14 +235,16 @@ async def get_instance(
 
 
 @router.get("/{project}/{name}/logs")
-async def list_logs(project: ProjectName, name: InstName, _: SessionDep, lxd: LXDDep) -> list[str]:
+async def list_logs(
+    project: ProjectName, name: InstName, _: ProjectReadDep, lxd: LXDDep
+) -> list[str]:
     urls = await lxd.get(f"{_inst(name)}/logs", project=project) or []
     return sorted(str(u).rsplit("/", 1)[-1] for u in urls)
 
 
 @router.get("/{project}/{name}/logs/{filename}")
 async def get_log(
-    project: ProjectName, name: InstName, filename: LogName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: InstName, filename: LogName, _: ProjectReadDep, lxd: LXDDep
 ) -> Response:
     r = await lxd.raw("GET", f"{_inst(name)}/logs/{filename}", params={"project": project})
     if r.status_code != 200:
@@ -227,7 +264,7 @@ class StateChange(BaseModel):
 
 @router.put("/{project}/{name}/state")
 async def change_state(
-    project: ProjectName, name: InstName, body: StateChange, ctx: CtxDep
+    project: ProjectName, name: InstName, body: StateChange, ctx: CtxOperateDep
 ) -> dict[str, Any]:
     return await ctx.change(
         f"instance.{body.action}",
@@ -242,7 +279,7 @@ async def change_state(
 
 @router.delete("/{project}/{name}")
 async def delete_instance(
-    project: ProjectName, name: InstName, ctx: CtxDep, force: bool = False
+    project: ProjectName, name: InstName, ctx: CtxManageDep, force: bool = False
 ) -> dict[str, Any]:
     """Delete; with ``force`` a running instance is stopped first (like ``lxc delete -f``).
 
@@ -285,7 +322,7 @@ class InstanceUpdate(BaseModel):
 
 @router.put("/{project}/{name}")
 async def update_instance(
-    project: ProjectName, name: InstName, body: InstanceUpdate, ctx: CtxDep
+    project: ProjectName, name: InstName, body: InstanceUpdate, ctx: CtxManageDep
 ) -> dict[str, Any]:
     return await ctx.change(
         "instance.update",
@@ -303,7 +340,7 @@ class ConfigPatch(BaseModel):
 
 @router.patch("/{project}/{name}/config")
 async def patch_config(
-    project: ProjectName, name: InstName, body: ConfigPatch, ctx: CtxDep
+    project: ProjectName, name: InstName, body: ConfigPatch, ctx: CtxManageDep
 ) -> dict[str, Any]:
     """Set some config keys, leaving the rest (used for snapshot schedules)."""
     return await ctx.change(
@@ -325,7 +362,9 @@ class Rename(BaseModel):
 
 
 @router.post("/{project}/{name}/rename")
-async def rename(project: ProjectName, name: InstName, body: Rename, ctx: CtxDep) -> dict[str, Any]:
+async def rename(
+    project: ProjectName, name: InstName, body: Rename, ctx: CtxManageDep
+) -> dict[str, Any]:
     return await ctx.change(
         "instance.rename",
         project,
@@ -344,7 +383,9 @@ class Move(BaseModel):
 
 
 @router.post("/{project}/{name}/move")
-async def move(project: ProjectName, name: InstName, body: Move, ctx: CtxDep) -> dict[str, Any]:
+async def move(
+    project: ProjectName, name: InstName, body: Move, ctx: CtxManageDep
+) -> dict[str, Any]:
     if not body.target and not body.pool:
         raise HTTPException(status_code=400, detail="give a target member or a pool")
     payload: dict[str, Any] = {"name": name, "migration": True, "live": body.live}
@@ -371,7 +412,9 @@ class Copy(BaseModel):
 
 
 @router.post("/{project}/{name}/copy")
-async def copy(project: ProjectName, name: InstName, body: Copy, ctx: CtxDep) -> dict[str, Any]:
+async def copy(
+    project: ProjectName, name: InstName, body: Copy, ctx: CtxManageDep
+) -> dict[str, Any]:
     source = f"{name}/{body.snapshot}" if body.snapshot else name
     payload = {
         "name": body.name,
@@ -407,7 +450,7 @@ class NewSnapshot(BaseModel):
 
 @router.post("/{project}/{name}/snapshots")
 async def create_snapshot(
-    project: ProjectName, name: InstName, body: NewSnapshot, ctx: CtxDep
+    project: ProjectName, name: InstName, body: NewSnapshot, ctx: CtxOperateDep
 ) -> dict[str, Any]:
     return await ctx.change(
         "snapshot.create",
@@ -425,7 +468,7 @@ async def create_snapshot(
 
 @router.post("/{project}/{name}/snapshots/{snap}/rename")
 async def rename_snapshot(
-    project: ProjectName, name: InstName, snap: SnapName, body: Rename, ctx: CtxDep
+    project: ProjectName, name: InstName, snap: SnapName, body: Rename, ctx: CtxOperateDep
 ) -> dict[str, Any]:
     return await ctx.change(
         "snapshot.rename",
@@ -440,7 +483,7 @@ async def rename_snapshot(
 
 @router.delete("/{project}/{name}/snapshots/{snap}")
 async def delete_snapshot(
-    project: ProjectName, name: InstName, snap: SnapName, ctx: CtxDep
+    project: ProjectName, name: InstName, snap: SnapName, ctx: CtxOperateDep
 ) -> dict[str, Any]:
     return await ctx.change(
         "snapshot.delete",
@@ -459,7 +502,7 @@ class Restore(BaseModel):
 
 @router.post("/{project}/{name}/snapshots/{snap}/restore")
 async def restore_snapshot(
-    project: ProjectName, name: InstName, snap: SnapName, body: Restore, ctx: CtxDep
+    project: ProjectName, name: InstName, snap: SnapName, body: Restore, ctx: CtxOperateDep
 ) -> dict[str, Any]:
     return await ctx.change(
         "snapshot.restore",
@@ -484,7 +527,7 @@ class Publish(BaseModel):
 
 @router.post("/{project}/{name}/publish")
 async def publish(
-    project: ProjectName, name: InstName, body: Publish, ctx: CtxDep
+    project: ProjectName, name: InstName, body: Publish, ctx: CtxManageDep
 ) -> dict[str, Any]:
     source: dict[str, str] = (
         {"type": "snapshot", "name": f"{name}/{body.snapshot}"}

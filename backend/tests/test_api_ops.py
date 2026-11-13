@@ -217,6 +217,18 @@ def test_events_refused(app, headers, login_first, code):
     assert e.value.code == code
 
 
+def test_events_refuse_project_users_until_6b(app, services):
+    """Websockets authenticate on their own, so the project-user lockout must hold there
+    too: otherwise a project user would see every project's events (D81)."""
+    services.store.add_user("pat", "patpw", "project")
+    with (
+        ws_client(app, "pat").websocket_connect("/api/events", headers=ORIGIN) as ws,
+        pytest.raises(WebSocketDisconnect) as e,
+    ):
+        ws.receive_text()
+    assert e.value.code == 4403 and "aren't enabled yet" in e.value.reason
+
+
 def test_events_upstream_error(app, services, monkeypatch):
     async def boom(*a, **kw):
         raise LXDError("no LXD endpoint reachable")

@@ -7,7 +7,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from mcui.api.deps import ServicesDep, SessionDep
+from mcui.api.deps import ClusterReadDep, ScopeDep, ServicesDep
 from mcui.metrics.store import RESOLUTIONS, Fn, MetricStore, SeriesData, aggregate
 from mcui.metrics.top import TopMetric, top
 
@@ -47,13 +47,13 @@ Match = Annotated[list[str], Query(description="label=value, repeatable")]
 
 
 @router.get("/names")
-async def names(_: SessionDep, store: StoreDep) -> list[dict[str, Any]]:
+async def names(_: ScopeDep, store: StoreDep) -> list[dict[str, Any]]:
     return await store.names()
 
 
 @router.get("/series")
 async def series(
-    _: SessionDep,
+    _: ScopeDep,
     store: StoreDep,
     name: str,
     match: Match = [],  # noqa: B006
@@ -63,7 +63,7 @@ async def series(
 
 @router.get("/query")
 async def query(
-    _: SessionDep,
+    _: ScopeDep,
     store: StoreDep,
     name: str,
     match: Match = [],  # noqa: B006
@@ -83,7 +83,7 @@ async def query(
 
 @router.get("/top")
 async def top_n(
-    _: SessionDep,
+    _: ScopeDep,
     store: StoreDep,
     metric: TopMetric,
     range: Annotated[int, Query(ge=60)] = 3600,  # noqa: A002
@@ -97,7 +97,7 @@ async def top_n(
 
 
 @router.get("/status")
-async def status(_: SessionDep, services: ServicesDep, store: StoreDep) -> dict[str, Any]:
+async def status(_: ClusterReadDep, services: ServicesDep, store: StoreDep) -> dict[str, Any]:
     c = services.collector
     return {
         "collecting": bool(c and c.running),
@@ -108,7 +108,7 @@ async def status(_: SessionDep, services: ServicesDep, store: StoreDep) -> dict[
 
 @router.get("/network-traffic")
 async def network_traffic(
-    _: SessionDep,
+    _: ScopeDep,
     services: ServicesDep,
     store: StoreDep,
     range: Annotated[int, Query(ge=60)] = 3600,  # noqa: A002

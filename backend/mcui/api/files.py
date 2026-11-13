@@ -16,7 +16,7 @@ from fastapi.responses import StreamingResponse
 from starlette.background import BackgroundTask
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import LXDDep, ProjectOperateDep, StoreDep
 from mcui.api.instances import InstName, ProjectName
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient, LXDError
@@ -70,7 +70,7 @@ async def _head(lxd: LXDClient, name: str, project: str, path: str) -> dict[str,
 
 @router.get("")
 async def browse(
-    project: ProjectName, name: InstName, path: FilePath, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: InstName, path: FilePath, _: ProjectOperateDep, lxd: LXDDep
 ) -> dict[str, Any]:
     path = clean(path)
     files = f"/1.0/instances/{name}/files"
@@ -106,7 +106,7 @@ async def browse(
 
 @router.get("/download")
 async def download(
-    project: ProjectName, name: InstName, path: FilePath, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: InstName, path: FilePath, _: ProjectOperateDep, lxd: LXDDep
 ) -> Response:
     path = clean(path)
     r = await lxd.open_stream(
@@ -151,7 +151,7 @@ async def upload(
     name: InstName,
     path: FilePath,
     request: Request,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
     mode: Annotated[str, Query(pattern=r"^[0-7]{3,4}$")] = "0644",
@@ -180,7 +180,7 @@ async def mkdir(
     project: ProjectName,
     name: InstName,
     path: FilePath,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -202,7 +202,7 @@ async def delete(
     project: ProjectName,
     name: InstName,
     path: FilePath,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:

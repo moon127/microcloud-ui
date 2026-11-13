@@ -16,7 +16,15 @@ from fastapi import APIRouter, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import (
+    InBodyDep,
+    LXDDep,
+    ProjectManageDep,
+    ProjectOperateDep,
+    ProjectReadDep,
+    ScopeDep,
+    StoreDep,
+)
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName, Rename
 from mcui.api.networks import MemberName
@@ -69,7 +77,7 @@ async def _change(
 
 @router.get("")
 async def list_volumes(
-    _: SessionDep,
+    _: ScopeDep,
     lxd: LXDDep,
     project: str = "default",
     pool: str | None = None,
@@ -100,7 +108,7 @@ async def get_volume(
     project: ProjectName,
     pool: ObjName,
     name: ObjName,
-    _: SessionDep,
+    _: ProjectReadDep,
     lxd: LXDDep,
     target: MemberName = None,
 ) -> dict[str, Any]:
@@ -125,7 +133,7 @@ async def list_snapshots(
     project: ProjectName,
     pool: ObjName,
     name: ObjName,
-    _: SessionDep,
+    _: ProjectReadDep,
     lxd: LXDDep,
     target: MemberName = None,
 ) -> list[dict[str, Any]]:
@@ -151,8 +159,10 @@ class NewVolume(VolumeBody):
 
 @router.post("")
 async def create_volume(
-    body: NewVolume, session: AdminDep, store: StoreDep, lxd: LXDDep
+    body: NewVolume, guard: InBodyDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
+    await guard.check(body.project)
+    session = guard.session
     return await _change(
         session,
         store,
@@ -182,7 +192,7 @@ async def update_volume(
     pool: ObjName,
     name: ObjName,
     body: VolumeBody,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -212,7 +222,7 @@ async def rename_volume(
     pool: ObjName,
     name: ObjName,
     body: Rename,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -236,7 +246,7 @@ async def delete_volume(
     project: ProjectName,
     pool: ObjName,
     name: ObjName,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -267,7 +277,7 @@ async def create_snapshot(
     pool: ObjName,
     name: ObjName,
     body: NewSnapshot,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -292,7 +302,7 @@ async def rename_snapshot(
     name: ObjName,
     snap: SnapName,
     body: Rename,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -317,7 +327,7 @@ async def restore_snapshot(
     pool: ObjName,
     name: ObjName,
     snap: SnapName,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -347,7 +357,7 @@ async def delete_snapshot(
     pool: ObjName,
     name: ObjName,
     snap: SnapName,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -384,7 +394,7 @@ async def attach(
     pool: ObjName,
     name: ObjName,
     body: Attach,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -447,7 +457,7 @@ async def detach(
     pool: ObjName,
     name: ObjName,
     body: Detach,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:

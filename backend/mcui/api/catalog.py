@@ -11,7 +11,7 @@ from typing import Annotated, Any
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 
-from mcui.api.deps import LXDDep, ServicesDep, SessionDep
+from mcui.api.deps import LXDDep, ScopeDep, ServicesDep, SessionDep
 from mcui.api.instances import NAME
 from mcui.lxd.client import LXDError
 from mcui.lxd.remotes import ARCH, REMOTES, RemoteCatalog, RemoteImage, parse_registry_images
@@ -29,9 +29,7 @@ CatalogDep = Annotated[RemoteCatalog, Depends(get_catalog)]
 
 
 @router.get("/images")
-async def local_images(
-    _: SessionDep, lxd: LXDDep, project: str = "default"
-) -> list[dict[str, Any]]:
+async def local_images(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
     data = await lxd.get("/1.0/images", recursion=1, project=project)
     return [
         {
@@ -89,7 +87,7 @@ async def remote_images(
 
 
 @router.get("/profiles")
-async def profiles(_: SessionDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+async def profiles(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
     data = await lxd.get("/1.0/profiles", recursion=1, project=project)
     return [
         {
@@ -106,7 +104,7 @@ async def profiles(_: SessionDep, lxd: LXDDep, project: str = "default") -> list
 
 @router.get("/networks")
 async def networks(
-    _: SessionDep, lxd: LXDDep, project: str = "default", target: str | None = None
+    _: ScopeDep, lxd: LXDDep, project: str = "default", target: str | None = None
 ) -> list[dict[str, Any]]:
     """Networks of a project; ``target`` lists that member's own interfaces too."""
     params: dict[str, Any] = {"project": project}

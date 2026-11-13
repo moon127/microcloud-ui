@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import InBodyDep, LXDDep, ProjectManageDep, ProjectReadDep, ScopeDep, StoreDep
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName
 from mcui.lxd import clustered, operations
@@ -39,7 +39,7 @@ def _net(name: str) -> str:
 
 @router.get("/networks/{project}/{name}")
 async def get_network(
-    project: ProjectName, name: ObjName, _: SessionDep, lxd: LXDDep, target: MemberName = None
+    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep, target: MemberName = None
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"project": project}
     if target:
@@ -50,7 +50,7 @@ async def get_network(
 
 @router.get("/networks/{project}/{name}/state")
 async def network_state(
-    project: ProjectName, name: ObjName, _: SessionDep, lxd: LXDDep, target: MemberName = None
+    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep, target: MemberName = None
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"project": project}
     if target:
@@ -61,7 +61,7 @@ async def network_state(
 
 @router.get("/networks/{project}/{name}/members")
 async def network_members(
-    project: ProjectName, name: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> list[dict[str, Any]]:
     """Each member's own settings for the network (``parent`` and the like)."""
     info = await server_info(lxd)
@@ -81,7 +81,7 @@ async def network_members(
 
 @router.get("/networks/{project}/{name}/leases")
 async def network_leases(
-    project: ProjectName, name: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> list[dict[str, Any]]:
     data = await lxd.get(f"{_net(name)}/leases", project=project)
     return list(data or [])
@@ -89,7 +89,7 @@ async def network_leases(
 
 @router.get("/network-allocations")
 async def network_allocations(
-    _: SessionDep, lxd: LXDDep, project: str | None = None
+    _: ScopeDep, lxd: LXDDep, project: str | None = None
 ) -> list[dict[str, Any]]:
     params = {"project": project} if project else {"all-projects": "true"}
     data = await lxd.get("/1.0/network-allocations", **params)
@@ -131,8 +131,10 @@ async def _create(lxd: LXDClient, body: NewNetwork) -> operations.Started:
 
 @router.post("/networks")
 async def create_network(
-    body: NewNetwork, session: AdminDep, store: StoreDep, lxd: LXDDep
+    body: NewNetwork, guard: InBodyDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
+    await guard.check(body.project)
+    session = guard.session
     _check_member_keys(body.members)
     st = await audited(
         session,
@@ -152,7 +154,7 @@ async def update_network(
     project: ProjectName,
     name: ObjName,
     body: NetworkBody,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -182,7 +184,7 @@ async def update_network(
 
 @router.delete("/networks/{project}/{name}")
 async def delete_network(
-    project: ProjectName, name: ObjName, session: AdminDep, store: StoreDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, session: ProjectManageDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
     st = await audited(
         session,

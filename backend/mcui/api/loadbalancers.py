@@ -16,7 +16,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field, field_validator
 
 from mcui.api.acls import ListenAddress, _change, _ip, _listen
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import LXDDep, ProjectManageDep, ProjectReadDep, StoreDep
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName
 
@@ -114,7 +114,7 @@ def _pool(network: str, name: str | None = None) -> str:
 
 @router.get("/{project}/{network}/load-balancers")
 async def list_lbs(
-    project: ProjectName, network: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, network: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> list[dict[str, Any]]:
     return list(await lxd.get(_lb(network), recursion=1, project=project) or [])
 
@@ -124,7 +124,7 @@ async def create_lb(
     project: ProjectName,
     network: ObjName,
     body: NewLb,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -147,7 +147,7 @@ async def update_lb(
     network: ObjName,
     listen: ListenAddress,
     body: LbBody,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -170,7 +170,7 @@ async def delete_lb(
     project: ProjectName,
     network: ObjName,
     listen: ListenAddress,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -192,14 +192,14 @@ async def delete_lb(
 
 @router.get("/{project}/{network}/load-balancer-pools")
 async def list_pools(
-    project: ProjectName, network: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, network: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> list[dict[str, Any]]:
     return list(await lxd.get(_pool(network), recursion=1, project=project) or [])
 
 
 @router.get("/{project}/{network}/load-balancer-pools/{name}/state")
 async def pool_state(
-    project: ProjectName, network: ObjName, name: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, network: ObjName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> dict[str, Any]:
     """Each target's health: ``online``, ``offline`` or ``pending`` (health checks)."""
     data: dict[str, Any] = await lxd.get(f"{_pool(network, name)}/state", project=project)
@@ -211,7 +211,7 @@ async def create_pool(
     project: ProjectName,
     network: ObjName,
     body: NewPool,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -234,7 +234,7 @@ async def update_pool(
     network: ObjName,
     name: ObjName,
     body: PoolBody,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -256,7 +256,7 @@ async def delete_pool(
     project: ProjectName,
     network: ObjName,
     name: ObjName,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:

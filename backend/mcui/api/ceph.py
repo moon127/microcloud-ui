@@ -9,7 +9,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Query
 
-from mcui.api.deps import ServicesDep, SessionDep
+from mcui.api.deps import ClusterReadDep, ServicesDep
 from mcui.api.metrics import StoreDep
 from mcui.lxd.client import LXDError
 from mcui.metrics.ceph_view import rbd_owner, summarize
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/api/ceph")
 
 
 @router.get("")
-async def ceph_state(_: SessionDep, services: ServicesDep) -> dict[str, Any]:
+async def ceph_state(_: ClusterReadDep, services: ServicesDep) -> dict[str, Any]:
     c = services.collector
     if services.ceph is None or c is None:
         return {"enabled": False}
@@ -39,7 +39,7 @@ async def ceph_state(_: SessionDep, services: ServicesDep) -> dict[str, Any]:
 
 @router.get("/rbd")
 async def rbd(
-    _: SessionDep,
+    _: ClusterReadDep,
     services: ServicesDep,
     store: StoreDep,
     metric: RbdMetric = "write_bytes",

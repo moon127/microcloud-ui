@@ -244,6 +244,12 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Phase 6a done 2026-11-13 (D81):**
+  - **Users:** project users and grants (store migration, API, CLI).
+  - **Enforcement:** a declared policy on every route, checked by a test.
+  - **Behaviour change:** files and consoles now need operate, not just read.
+  - **Next, 6b:** project users stay locked out until the server filters lists,
+    metrics, operations, audit and the event stream, and checks stream ownership.
 - **React Compiler lint rules on 2026-11-13:** the 12 places rewritten (edit pages and the
   YAML editor take loaded values during render; `useEffectEvent` in `events.ts` and the
   terminal; the consoles reset on Reconnect). This also removes the cause of the

@@ -14,7 +14,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import AdminDep, ClusterReadDep, LXDDep, StoreDep
 from mcui.api.instances import NAME
 from mcui.api.manage import ObjName
 from mcui.api.networks import MemberName
@@ -41,14 +41,14 @@ def _target(target: str | None) -> dict[str, Any]:
 
 @router.get("/storage-pools/{name}")
 async def get_pool(
-    name: ObjName, _: SessionDep, lxd: LXDDep, target: MemberName = None
+    name: ObjName, _: ClusterReadDep, lxd: LXDDep, target: MemberName = None
 ) -> dict[str, Any]:
     data: dict[str, Any] = await lxd.get(_pool(name), **_target(target))
     return data
 
 
 @router.get("/storage-pools/{name}/members")
-async def pool_members(name: ObjName, _: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
+async def pool_members(name: ObjName, _: ClusterReadDep, lxd: LXDDep) -> list[dict[str, Any]]:
     """Each member's own settings and capacity (one entry when not clustered)."""
     info = await server_info(lxd)
 

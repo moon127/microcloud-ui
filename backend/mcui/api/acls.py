@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Path
 from pydantic import BaseModel, Field, field_validator
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import InBodyDep, LXDDep, ProjectManageDep, ProjectReadDep, ScopeDep, StoreDep
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName, Rename
 from mcui.api.networks import MemberName
@@ -82,14 +82,14 @@ def _acl(name: str) -> str:
 
 
 @router.get("/network-acls")
-async def list_acls(_: SessionDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+async def list_acls(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
     data = await lxd.get("/1.0/network-acls", recursion=1, project=project)
     return list(data or [])
 
 
 @router.get("/network-acls/{project}/{name}")
 async def get_acl(
-    project: ProjectName, name: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> dict[str, Any]:
     data: dict[str, Any] = await lxd.get(_acl(name), project=project)
     return data
@@ -97,8 +97,10 @@ async def get_acl(
 
 @router.post("/network-acls")
 async def create_acl(
-    body: NewAcl, session: AdminDep, store: StoreDep, lxd: LXDDep
+    body: NewAcl, guard: InBodyDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
+    await guard.check(body.project)
+    session = guard.session
     return await _change(
         session,
         store,
@@ -117,7 +119,7 @@ async def update_acl(
     project: ProjectName,
     name: ObjName,
     body: AclBody,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -139,7 +141,7 @@ async def rename_acl(
     project: ProjectName,
     name: ObjName,
     body: Rename,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -159,7 +161,7 @@ async def rename_acl(
 
 @router.delete("/network-acls/{project}/{name}")
 async def delete_acl(
-    project: ProjectName, name: ObjName, session: AdminDep, store: StoreDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, session: ProjectManageDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
     return await _change(
         session,
@@ -224,7 +226,7 @@ def _params(project: str, target: str | None) -> dict[str, Any]:
 
 @router.get("/networks/{project}/{network}/forwards")
 async def list_forwards(
-    project: ProjectName, network: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, network: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> list[dict[str, Any]]:
     data = await lxd.get(_fwd(network), recursion=1, project=project)
     return list(data or [])
@@ -235,7 +237,7 @@ async def create_forward(
     project: ProjectName,
     network: ObjName,
     body: NewForward,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -259,7 +261,7 @@ async def update_forward(
     network: ObjName,
     listen: ListenAddress,
     body: ForwardBody,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,
@@ -283,7 +285,7 @@ async def delete_forward(
     project: ProjectName,
     network: ObjName,
     listen: ListenAddress,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
     target: MemberName = None,

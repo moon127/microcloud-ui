@@ -86,7 +86,7 @@ async def test_browse_directory_symlink_and_file(app):
         )
     )
     async with client(app) as c:
-        await login(c, "viewer", "viewerpw")
+        await login(c, "admin", "adminpw")
         d = (await c.get(U, params={"path": "/etc/"})).json()
         assert d["path"] == "/etc" and d["type"] == "directory" and d["truncated"] is False
         assert [(e["name"], e["type"]) for e in d["entries"]] == [
@@ -122,7 +122,7 @@ async def test_large_directory_is_truncated(app, monkeypatch):
         )
     )
     async with client(app) as c:
-        await login(c, "viewer", "viewerpw")
+        await login(c, "admin", "adminpw")
         d = (await c.get(U, params={"path": "/"})).json()
     assert d["truncated"] is True and [(e["name"], e["type"]) for e in d["entries"]] == [
         ("a", "file"),
@@ -154,7 +154,7 @@ async def test_download_streams_files_only(app):
         )
     )
     async with client(app) as c:
-        await login(c, "viewer", "viewerpw")
+        await login(c, "admin", "adminpw")
         r = await c.get(f"{U}/download", params={"path": "/x/data.bin"})
         assert r.status_code == 200 and len(r.content) == 70000
         assert r.headers["content-disposition"] == 'attachment; filename="data.bin"'
@@ -169,11 +169,20 @@ async def test_download_without_length_and_odd_name(app):
     # respx can't serve two streamed bodies in one test, so this case stands alone
     respx.route(url__startswith=F).mock(side_effect=lambda req: no_length(b"1"))
     async with client(app) as c:
-        await login(c, "viewer", "viewerpw")
+        await login(c, "admin", "adminpw")
         r = await c.get(f"{U}/download", params={"path": '/x/we"ird'})
     assert r.content == b"1"
     assert r.headers["content-disposition"] == 'attachment; filename="weird"'
     assert "content-length" not in r.headers  # LXD sent none: none is promised
+
+
+async def test_files_need_the_operate_right(app):
+    """Files can hold secrets, so browsing and downloading need operate, not just read
+    (D81): a viewer is refused before LXD is asked."""
+    async with client(app) as c:
+        await login(c, "viewer", "viewerpw")
+        assert (await c.get(U, params={"path": "/"})).status_code == 403
+        assert (await c.get(f"{U}/download", params={"path": "/etc/hosts"})).status_code == 403
 
 
 @respx.mock
@@ -197,7 +206,7 @@ async def test_upload_mkdir_delete(app, services):
             content=b"hello",
             headers=h,
         )
-        assert r.status_code == 200
+        assert r.status_code == 200, r.text
         req = up.calls.last.request
         assert req.content == b"hello" and req.headers["x-lxd-type"] == "file"
         assert req.headers["x-lxd-mode"] == "0600" and req.headers["x-lxd-write"] == "overwrite"

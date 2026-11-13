@@ -6,7 +6,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from mcui.api.deps import LiveDep, LXDDep, SessionDep
+from mcui.api.deps import ClusterReadDep, LiveDep, LXDDep, ScopeDep, SessionDep
 from mcui.lxd.server import members, server_info
 
 router = APIRouter(prefix="/api")
@@ -19,17 +19,17 @@ async def server(_: SessionDep, lxd: LXDDep) -> dict[str, Any]:
 
 
 @router.get("/cluster/members")
-async def cluster_members(_: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
+async def cluster_members(_: ClusterReadDep, lxd: LXDDep) -> list[dict[str, Any]]:
     return [m.as_dict() for m in await members(lxd)]
 
 
 @router.get("/metrics/live")
-async def live_metrics(_: SessionDep, live: LiveDep) -> dict[str, Any]:
+async def live_metrics(_: ScopeDep, live: LiveDep) -> dict[str, Any]:
     return await live.snapshot()
 
 
 @router.get("/cluster/members/{name}/resources")
-async def member_resources(name: str, _: SessionDep, lxd: LXDDep) -> dict[str, Any]:
+async def member_resources(name: str, _: ClusterReadDep, lxd: LXDDep) -> dict[str, Any]:
     """Hardware inventory of one member (CL-2)."""
     if name not in {m.name for m in await members(lxd)}:
         raise HTTPException(status_code=404, detail="no such member")

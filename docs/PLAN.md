@@ -506,9 +506,18 @@ each route in the code):
 | Users, audit, auth | users: cluster-admin; audit: filtered; auth: any session |
 
 *Steps:*
-- **6a, the model:** grants in the user store and migration of the existing users; the
-  `authorize` check; every route's policy declared; the every-route test. No UI change
-  yet: everyone is still a cluster role.
+- ✅ **6a, the model** (2026-11-13):
+  - project users and grants in the store, with a migration for existing databases
+  - the users API and `mcui user grant`/`revoke`; above viewer only on restricted
+    projects
+  - one authorization layer (`mcui/auth/policy.py` and the checks in `api/deps.py`): every
+    one of the 138 routes declares a policy, enforced by `tests/test_policy.py`
+  - enforcement tests for a project user: 404 outside their projects, 403 without the
+    right, read-only once a project stops being restricted
+
+  Project users stay locked out (HTTP and websockets) until 6b filters lists, metrics,
+  operations, the audit log and the streams. Existing users are cluster roles, so nothing
+  changed for them.
 - **6b, filtering:** lists, metrics, operations, the audit log and the event stream
   filtered on the server. Fixture tests per area with a project user.
 - **6c, the UI:**

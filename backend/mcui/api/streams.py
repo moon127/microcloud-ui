@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from websockets.asyncio.client import ClientConnection
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, ServicesDep, SessionDep, StoreDep
+from mcui.api.deps import LXDDep, ProjectOperateDep, ServicesDep, StoreDep
 from mcui.api.instances import InstName, ProjectName
 from mcui.api.wsproxy import POLICY, UPSTREAM, authenticate, relay_stream
 from mcui.lxd import operations
@@ -106,7 +106,7 @@ async def start_exec(
     project: ProjectName,
     name: InstName,
     body: ExecRequest,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
     registry: RegistryDep,
@@ -145,7 +145,7 @@ async def start_console(
     project: ProjectName,
     name: InstName,
     body: ConsoleRequest,
-    session: AdminDep,
+    session: ProjectOperateDep,
     store: StoreDep,
     lxd: LXDDep,
     registry: RegistryDep,
@@ -168,7 +168,9 @@ async def start_console(
 
 
 @router.get("/instances/{project}/{name}/console-log")
-async def console_log(project: ProjectName, name: InstName, _: SessionDep, lxd: LXDDep) -> Response:
+async def console_log(
+    project: ProjectName, name: InstName, _: ProjectOperateDep, lxd: LXDDep
+) -> Response:
     r = await lxd.raw("GET", f"/1.0/instances/{name}/console", params={"project": project})
     if r.status_code != 200:
         msg = (
@@ -184,7 +186,7 @@ async def console_log(project: ProjectName, name: InstName, _: SessionDep, lxd: 
 
 @router.delete("/instances/{project}/{name}/console-log")
 async def clear_console_log(
-    project: ProjectName, name: InstName, session: AdminDep, store: StoreDep, lxd: LXDDep
+    project: ProjectName, name: InstName, session: ProjectOperateDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
     st = await audited(
         session,
@@ -230,3 +232,8 @@ async def attach(ws: WebSocket, stream_id: str) -> None:
         await relay_stream(ws, data, control)
     finally:
         await stream.release_control()
+
+
+# a stream is attached only by the session that started it, which needed the
+# operate right then (D81)
+attach.POLICY = "stream-owner"  # type: ignore[attr-defined]

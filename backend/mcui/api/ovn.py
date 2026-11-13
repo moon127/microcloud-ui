@@ -12,7 +12,7 @@ from typing import Any
 
 from fastapi import APIRouter
 
-from mcui.api.deps import LXDDep, SessionDep
+from mcui.api.deps import ClusterReadDep, LXDDep
 from mcui.lxd.client import LXDClient, LXDError
 
 router = APIRouter(prefix="/api")
@@ -90,7 +90,7 @@ async def _network(lxd: LXDClient, project: str, n: dict[str, Any]) -> dict[str,
 
 
 @router.get("/ovn")
-async def ovn_overview(_: SessionDep, lxd: LXDDep) -> dict[str, Any]:
+async def ovn_overview(_: ClusterReadDep, lxd: LXDDep) -> dict[str, Any]:
     # projects without features.networks use default's networks: list each network once
     projects = [
         p["name"]

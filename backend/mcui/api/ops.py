@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, WebSocket
 from pydantic import BaseModel
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import AdminDep, ClusterReadDep, LXDDep, ScopeDep, StoreDep
 from mcui.api.wsproxy import UPSTREAM, Dedupe, authenticate, relay
 from mcui.lxd import operations
 from mcui.lxd.client import LXDError
@@ -19,12 +19,12 @@ router = APIRouter(prefix="/api")
 
 
 @router.get("/operations")
-async def list_operations(_: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
+async def list_operations(_: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
     return await operations.list_all(lxd)
 
 
 @router.get("/operations/{op_id}")
-async def get_operation(op_id: str, _: SessionDep, lxd: LXDDep, wait: int = 0) -> dict[str, Any]:
+async def get_operation(op_id: str, _: ScopeDep, lxd: LXDDep, wait: int = 0) -> dict[str, Any]:
     """With ``wait`` > 0, block up to that many seconds (max 30) for completion."""
     if wait > 0:
         return await operations.wait(lxd, op_id, wait)
@@ -41,7 +41,7 @@ async def cancel_operation(op_id: str, session: AdminDep, store: StoreDep, lxd: 
 
 
 @router.get("/warnings")
-async def list_warnings(_: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
+async def list_warnings(_: ClusterReadDep, lxd: LXDDep) -> list[dict[str, Any]]:
     data = await lxd.get("/1.0/warnings", recursion=1, **{"all-projects": "true"})
     return sorted(data or [], key=lambda w: str(w.get("last_seen_at", "")), reverse=True)
 
@@ -121,7 +121,7 @@ async def restore(
 
 
 @router.get("/projects")
-async def list_projects(_: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
+async def list_projects(_: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
     data = await lxd.get("/1.0/projects", recursion=1)
     return [
         {
@@ -151,3 +151,7 @@ async def events(ws: WebSocket) -> None:
         await ws.close(code=UPSTREAM, reason=str(e)[:120])
         return
     await relay(ws, upstream, read_client=False, keep=Dedupe())
+
+
+# the event stream is filtered to the user's projects (D81, Phase 6b)
+events.POLICY = "scoped"  # type: ignore[attr-defined]

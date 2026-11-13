@@ -14,7 +14,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from mcui.api.acls import _change
-from mcui.api.deps import AdminDep, LXDDep, SessionDep, StoreDep
+from mcui.api.deps import InBodyDep, LXDDep, ProjectManageDep, ProjectReadDep, ScopeDep, StoreDep
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName, Rename
 
@@ -43,14 +43,14 @@ def _group(name: str) -> str:
 
 
 @router.get("")
-async def list_groups(_: SessionDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
+async def list_groups(_: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
     data = await lxd.get("/1.0/placement-groups", recursion=1, project=project)
     return list(data or [])
 
 
 @router.get("/{project}/{name}")
 async def get_group(
-    project: ProjectName, name: ObjName, _: SessionDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
 ) -> dict[str, Any]:
     data: dict[str, Any] = await lxd.get(_group(name), project=project)
     return data
@@ -58,8 +58,10 @@ async def get_group(
 
 @router.post("")
 async def create_group(
-    body: NewGroup, session: AdminDep, store: StoreDep, lxd: LXDDep
+    body: NewGroup, guard: InBodyDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
+    await guard.check(body.project)
+    session = guard.session
     return await _change(
         session,
         store,
@@ -78,7 +80,7 @@ async def update_group(
     project: ProjectName,
     name: ObjName,
     body: GroupBody,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -100,7 +102,7 @@ async def rename_group(
     project: ProjectName,
     name: ObjName,
     body: Rename,
-    session: AdminDep,
+    session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
@@ -120,7 +122,7 @@ async def rename_group(
 
 @router.delete("/{project}/{name}")
 async def delete_group(
-    project: ProjectName, name: ObjName, session: AdminDep, store: StoreDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, session: ProjectManageDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
     return await _change(
         session,

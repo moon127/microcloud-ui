@@ -59,6 +59,10 @@ async def authenticate(
     if session is None:
         await ws.close(code=UNAUTHORIZED, reason="not logged in")
         return None
+    if session.user.role == "project" and not ws.app.state.project_access:
+        # as for HTTP routes (deps.current_session): locked out until 6b filters the streams
+        await ws.close(code=POLICY, reason="project users aren't enabled yet")
+        return None
     if admin and not session.user.is_admin:
         await ws.close(code=POLICY, reason="admin role required")
         return None
