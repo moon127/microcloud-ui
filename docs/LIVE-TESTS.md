@@ -36,6 +36,15 @@ change with its LXD operation id.
 |---|---|---|
 | C1 | Member page → **Evacuate** a member at a quiet time, mode *stop* or *migrate* | Toast follows the operation to the end; member shows *Evacuated*; instances moved/stopped as chosen |
 | C2 | Same member → **Restore** | Member *Online*; instances back |
+| C2a | LXD 6.9+: with one member evacuated, **Evacuate** a second one, then **Cancel** the force prompt | LXD refuses for quorum before moving anything; the UI shows the refusal and offers *Force evacuation* |
+
+Done on LXD 6.10 (2026-11-13, member 2, Default mode): C1 moved four instances in about two
+minutes, each down for a few seconds, and the member's OVN gateway moved off it. C2 failed
+the first time: a VM with `migration.stateful=true`, live-migrated out without trouble,
+failed to live-migrate back ("Failed restoring checkpoint"). LXD stopped it and left the
+member evacuated. With that VM stopped, a second Restore moved everything back; a stopped
+instance comes back stopped. **Stop live-migrating VMs before a Restore** until that's
+understood. C2a not run yet.
 | C3 | Warnings → Acknowledge / Reopen / Delete a harmless warning (e.g. the cgroup network priority one) | Status changes; deleted warnings come back if the condition persists |
 | C4 | Projects → **Create** a throwaway project, edit its description/limits, **Rename** it, **Delete** it | Each step works; renaming/deleting a non-empty project shows LXD's refusal |
 | C5 | Operations page while an image downloads | Running operation listed with Cancel; cancelling stops it |

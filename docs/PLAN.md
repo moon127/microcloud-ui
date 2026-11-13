@@ -248,8 +248,17 @@ fixtures, so record a full set **before** the upgrade (5.0).
     `cluster.evacuate` value; the evacuate call takes stop, migrate or live-migrate. The
     dialog no longer offers it, and the API refuses it.
 
-  Not checked live yet: an evacuation and restore with the fixed dialog, and the
-  quorum refusal (owner only).
+  - **Evacuation and restore with the fix** (owner, member 2, Default mode):
+    - The evacuation moved four instances in two minutes. The OVN gateway moved off the
+      member, and the database ran on the other two voters.
+    - The first restore failed. A VM with `migration.stateful=true`, which had
+      live-migrated out fine, failed to live-migrate back ("Failed restoring checkpoint").
+      LXD stopped it and left the member evacuated.
+    - With the VM stopped, a second restore moved everything back. The VM stayed stopped,
+      as LXD doesn't start a stopped instance it moves. A CPU difference between members
+      is the first suspect. `docs/LIVE-TESTS.md` C1/C2 has the note.
+
+  Not checked live yet: the quorum refusal (C2a, owner only).
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
   "verify the current code still works"; anything that fails feeds 5a.
 
