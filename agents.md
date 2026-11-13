@@ -237,6 +237,13 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.1.5 released 2026-11-13** (run 43396165721): checked live on the test cloud after its
+  upgrade to MicroCloud 3.4 (placement, registries, load balancers, multi-volume snapshots,
+  child operations, evacuate/restore), the evacuation "auto" fix, OVN DHCP ranges. A first tag
+  went to the wrong commit again: `git commit -a` gave the pre-commit hook a temporary
+  GIT_INDEX_FILE that broke the release tests (fixed), and a `grep` pipe hid the failure. The
+  version check stopped the run, nothing was published, and the owner deleted the tag. `main`
+  is now 0.1.6.dev0.
 - **Phase 5b, image registries 2026-11-12 (D47 amended):** picker uses LXD 6.10's registries
   (built-in and custom), instances from `source.image_registry`, registry list/add/delete on the Images
   page; LXD 5.21 unchanged. Verified on the 6.10 VM. With this, the agreed 5b scope is built.
