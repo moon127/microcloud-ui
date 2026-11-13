@@ -45,6 +45,8 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
   - Anything that changes the real cluster happens only in LXD project **`mcui-test`**,
     or in **`mcui-test-2`** (created 2026-11-13 with the owner's consent, for moves between
     projects; restricted, same limits). Restore either's config after changing it.
+  - (2026-11-13, D84) temporary OVN networks named `mcui-test-*` on the uplink, for peer
+    and ACL-log tests; delete them after the run.
   - Outside it, the agreed exceptions are `mcui-test-*` ACLs, network forwards and a bridge
     network, and (2026-11-13) OVN load balancers and pools for tests on one of the owner's
     OVN networks, e.g. `legacy-infra`; delete them after the run.

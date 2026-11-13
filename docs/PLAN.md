@@ -698,6 +698,20 @@ track lands, OSD used/size and per-op latency (MO-7a) need another source: scrap
 mgr's REST API (needs a Ceph key). Check each new MicroCeph track's release notes and the
 recorded mgr scrape; nothing to build until then.
 
+**Phase 10a: Network peers, ACL logs, volume copy/move** (owner, 2026-11-13, D84). The parts
+of the remaining parity list testable on the test cloud:
+- **Peers (NW-7):** an OVN network's page lists its peers (status Pending until the other
+  side peers back, then Created) and adds or deletes them, with an option to create the
+  matching peer on the other network too. Manage in the project (and in the other one for
+  the matching peer). Live: two temporary OVN networks `mcui-test-*` on the uplink (owner's
+  permission), deleted afterwards.
+- **ACL log viewer (NW-4):** an ACL's page shows LXD's log of its `logged` rules
+  (`/1.0/network-acls/{name}/log`). Read right in the project.
+- **Volume copy and move (ST-4):** copy a custom volume to another pool, member or project,
+  and move it (rename is there already). Manage in both projects for a project change.
+- Not here: SR-IOV (no hardware), zones (needs an external DNS server to check), cluster
+  groups and config (cluster-wide: fixtures plus the owner's checklist), sign-in options.
+
 **Phase 10: Remaining parity** (was Phase 8, before that 7 and 6; after packaging, which is
 done). Backups, project moves and ISO upload moved to Phase 7 (D83). The rest of PJ-2
 (restriction keys beyond 7e), sriov, peers, zones, ACL logs
