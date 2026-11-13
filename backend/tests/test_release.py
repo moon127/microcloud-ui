@@ -1,6 +1,7 @@
 """The release workflow and the versions its builds carry (D67, D68)."""
 
 import importlib.util
+import os
 import subprocess
 from pathlib import Path
 
@@ -60,6 +61,14 @@ def test_check(tag, version, error):
 )
 def test_dev_version(version, commits, expected):
     assert build_version.dev_version(version, commits) == expected
+
+
+@pytest.fixture(autouse=True)
+def _own_repo(monkeypatch):
+    """Run git in the test's repo only. Under a hook (``git commit -a`` sets
+    GIT_INDEX_FILE to a temporary index) the GIT_* variables point at the outer repo."""
+    for key in [k for k in os.environ if k.startswith("GIT_")]:
+        monkeypatch.delenv(key)
 
 
 def _git(cwd: Path, *args: str) -> None:
