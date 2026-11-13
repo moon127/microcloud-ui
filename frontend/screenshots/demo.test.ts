@@ -73,6 +73,10 @@ describe("demo cluster", () => {
       "/api/instances/web/db-primary/backups",
       "/api/projects/web",
       "/api/volumes?project=default",
+      "/api/networks/default/default/peers",
+      "/api/volumes/default/remote/grafana-data",
+      "/api/volumes/default/remote/grafana-data/snapshots",
+      "/api/volumes/default/remote/grafana-data/backups",
     ]) {
       expect(get(path), path).toBeDefined();
     }
@@ -80,6 +84,7 @@ describe("demo cluster", () => {
     expect(get("/api/instances/web/nope")).toBeUndefined();
     expect(get("/api/instances/web/nope/backups")).toBeUndefined();
     expect(get("/api/projects/nope")).toBeUndefined();
+    expect(get("/api/volumes/default/remote/nope")).toBeUndefined();
     expect(answer("POST", new URL("http://demo/api/instances"))).toEqual({});
     const all = JSON.stringify([
       HOSTS_VIEW,

@@ -21,6 +21,7 @@ import type {
   MemberLive,
   Network,
   NetworkDetail,
+  NetworkPeer,
   NetworkState,
   NetworkTraffic,
   OvnNetwork,
@@ -40,6 +41,7 @@ import type {
   TopResult,
   User,
   Volume,
+  VolumeDetail,
 } from "../src/api.ts";
 
 export const NOW = Date.UTC(2026, 10, 11, 14, 0, 0) / 1000;
@@ -222,6 +224,17 @@ export const VOLUMES: Volume[] = [
   { name: "ubuntu-26.04-live-server-amd64", pool: "remote", type: "custom", content_type: "iso", description: "", config: { size: "3268411392" }, location: "none", used_by: [] },
   { name: "scratch", pool: "local", type: "custom", content_type: "block", description: "Build cache", config: { size: "20GiB" }, location: "node-2", used_by: [] },
 ];
+
+/** The OVN network's peers (Phase 10a): one working both ways, one waiting for the other side. */
+export const PEERS: NetworkPeer[] = [
+  { name: "to-web-backend", description: "Front end to the web project's back end", target_project: "web", target_network: "backend", status: "Created", config: {}, used_by: [] },
+  { name: "to-lab", description: "", target_project: "lab", target_network: "lab-net", status: "Pending", config: {}, used_by: [] },
+];
+
+export function volumeDetail(pool: string, name: string): VolumeDetail | undefined {
+  const v = VOLUMES.find((x) => x.pool === pool && x.name === name);
+  return v && { ...v, project: "default", state: { usage: { used: 9.6 * GIB, total: 40 * GIB } } };
+}
 
 export const RESOURCES: Resources = {
   cpu: { total: 16, architecture: "x86_64", sockets: [{ name: "AMD EPYC 4344P 8-Core Processor", vendor: "AuthenticAMD" }] },
@@ -839,6 +852,7 @@ export function answer(method: string, url: URL): unknown {
     "/api/networks/default/default/leases": [],
     "/api/networks/default/default/forwards": [],
     "/api/networks/default/default/load-balancers": LOAD_BALANCERS,
+    "/api/networks/default/default/peers": PEERS,
     "/api/networks/default/default/load-balancer-pools": LB_POOLS,
     "/api/networks/default/default/load-balancer-pools/front/state": POOL_STATE,
   };
@@ -856,6 +870,11 @@ export function answer(method: string, url: URL): unknown {
   if (m) return RESOURCES;
   m = /^\/api\/instances\/([^/]+)\/([^/]+)\/backups$/.exec(p);
   if (m) return instanceFull(decodeURIComponent(m[1]), decodeURIComponent(m[2])) ? BACKUPS : undefined;
+  m = /^\/api\/volumes\/default\/([^/]+)\/([^/]+)(\/snapshots|\/backups)?$/.exec(p);
+  if (m) {
+    const v = volumeDetail(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
+    return v && (m[3] === "/snapshots" ? [] : m[3] === "/backups" ? BACKUPS.slice(0, 1) : v);
+  }
   m = /^\/api\/projects\/([^/]+)$/.exec(p);
   if (m) return PROJECTS.find((x) => x.name === decodeURIComponent(m![1]) && mine(x.name));
   m = /^\/api\/instances\/([^/]+)\/([^/]+)$/.exec(p);

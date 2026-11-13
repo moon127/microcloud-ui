@@ -248,6 +248,12 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **User guide 2026-11-13:** `docs/WORKFLOWS.md` (backups and restore, ISO installs,
+  moving instances incl. Ceph <-> local and between projects, volume backups/copy/move,
+  OVN peers, restrictions), with new demo shots `import-backup`, `create-vm-iso`,
+  `move-to-local`, `volume-copy`, `peers` (`load-balancers` retaken: the page now has
+  peers). Owner's rule from now on: every user-visible feature gets user docs and a demo
+  screenshot before it counts as done (CLAUDE.md).
 - **0.3.1 released 2026-11-13** (run 43505336327): Ceph <-> local storage moves (D85).
   `main` is now 0.3.2.dev0.
 - **Ceph <-> local storage moves, 2026-11-13 (D85):** proven on a throwaway cluster (VMs

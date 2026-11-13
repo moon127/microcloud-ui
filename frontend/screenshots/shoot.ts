@@ -44,11 +44,59 @@ export const PAGES: {
   // LXD 6 (MicroCloud 3.4) only
   { file: "placement-groups.png", path: "/placement-groups", wait: "infra-spread" },
   { file: "load-balancers.png", path: "/networks/default/default", wait: "198.51.100.10", full: true },
-  // users and project access (D81)
-  // Phase 7: backups, ISOs, restrictions
+  // workflows (docs/WORKFLOWS.md): backups, ISOs, moves, copies, peers, restrictions
   { file: "backups.png", path: "/instances/web/db-primary?tab=backups", wait: "weekly-2026-11-09" },
+  {
+    file: "import-backup.png",
+    path: "/instances",
+    wait: "db-primary",
+    prepare: async (p) => {
+      await p.getByRole("button", { name: "Import backup" }).click();
+      await p.getByRole("dialog").getByLabel(/^Name/).fill("db-restored");
+    },
+  },
   { file: "volumes.png", path: "/storage/volumes", wait: "ubuntu-26.04-live-server-amd64" },
+  {
+    file: "create-vm-iso.png",
+    path: "/instances/new",
+    wait: "noble",
+    prepare: async (p) => {
+      await p.getByLabel("Name", { exact: true }).fill("installer-test");
+      await p.getByLabel("VM").check();
+      await p.getByLabel("Boot from an ISO").selectOption({ label: "ubuntu-26.04-live-server-amd64 (remote)" });
+      await p.getByLabel(/No image: an empty/).check();
+    },
+  },
+  {
+    file: "move-to-local.png",
+    path: "/instances/lab/k8s-test",
+    wait: "k8s-test",
+    prepare: async (p) => {
+      await p.getByRole("button", { name: "Move", exact: true }).click();
+      const d = p.getByRole("dialog");
+      await d.getByLabel("To member").selectOption("node-1");
+      await d.getByLabel("To storage pool").selectOption("local");
+    },
+  },
+  {
+    file: "volume-copy.png",
+    path: "/storage/volumes/default/remote/grafana-data",
+    wait: "Used by",
+    prepare: async (p) => {
+      await p.getByRole("button", { name: "Copy…" }).click();
+      await p.getByRole("dialog").getByLabel("Project").selectOption("lab");
+    },
+  },
+  {
+    file: "peers.png",
+    path: "/networks/default/default",
+    wait: "to-web-backend",
+    prepare: async (p) => {
+      await p.getByRole("region", { name: "Peers" }).evaluate((el) => el.scrollIntoView({ block: "start" }));
+    },
+  },
   { file: "restrictions.png", path: "/projects/web", wait: "Restrictions", full: true },
+  // users and project access (D81)
   { file: "users.png", path: "/users", wait: "ops-oncall" },
   { file: "audit.png", path: "/audit", wait: "before-upgrade" },
   // what a project user sees: ops-oncall, operator in web and lab

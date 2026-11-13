@@ -18,7 +18,9 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   audit log (Phase 6, [`docs/USERS.md`](docs/USERS.md)).
 - **Backups, moves and ISOs:** instance and volume backups (make, download, import), moving
   instances between projects, ISO upload to install VMs from, and a project's restrictions
-  as a form (Phase 7); OVN network peers and copying or moving volumes (Phase 10a).
+  as a form (Phase 7); OVN network peers, copying or moving volumes (Phase 10a), and
+  moving instances between Ceph and local storage. How-tos with screenshots:
+  [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md).
 
 Next in the plan: a metric store evaluation, alerts and export (Phase 8). Owner live
 checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See
@@ -75,7 +77,12 @@ More: [instances](docs/screenshots/instances.png) ·
 [users and project grants](docs/screenshots/users.png) ·
 [audit log](docs/screenshots/audit.png) ·
 [backups](docs/screenshots/backups.png) ·
+[importing one](docs/screenshots/import-backup.png) ·
 [volumes with an ISO](docs/screenshots/volumes.png) ·
+[a VM from an ISO](docs/screenshots/create-vm-iso.png) ·
+[moving to a local pool](docs/screenshots/move-to-local.png) ·
+[copying a volume](docs/screenshots/volume-copy.png) ·
+[OVN peers](docs/screenshots/peers.png) ·
 [project restrictions](docs/screenshots/restrictions.png) ·
 a project user's [Overview](docs/screenshots/project-user.png) and
 [instance page](docs/screenshots/project-user-instance.png) (an operator: only their projects,

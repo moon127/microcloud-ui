@@ -15,6 +15,7 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
    |---|---|
    | Config | `docs/CONFIGURATION.md` |
    | Users, roles and project access | `docs/USERS.md` |
+   | Backups, ISOs, moves, volume copies, peers (how-tos) | `docs/WORKFLOWS.md` |
    | LXD certificates | `docs/LXD-CREDENTIALS.md` |
    | Host metrics | `docs/HOST-METRICS.md` |
    | Ceph metrics | `docs/CEPH-METRICS.md` |
@@ -38,6 +39,14 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
   pytest and vitest.
 - **The design log:** add or amend a `D<n>` row in `agents.md` for any design decision, and
   update its Status section, in the same commit. Keep the docs in sync with the code.
+- **User docs for every feature (owner, 2026-11-13):** anything a user can see or do gets
+  written up for users before the step or phase counts as done, not only in `agents.md`,
+  `docs/PLAN.md` or LIVE-TESTS:
+  - how to use it, in `docs/WORKFLOWS.md` (or the area's doc, e.g. `docs/USERS.md`), with
+    its limits and LXD's own quirks;
+  - a demo screenshot of its page or dialog (`make screenshots`; add the shot to
+    `frontend/screenshots/shoot.ts` and the data to `demo.ts`);
+  - a line in the README's feature list and links to the guide.
 - **No real IPs, hostnames or screenshots of the real cluster** in new docs, fixtures or
   screenshots. Use 192.0.2.x, 198.51.100.x and 2001:db8::. Screenshots come only from the
   invented demo cluster (`make screenshots`, D59). Recorded fixtures are scrubbed (D26).
