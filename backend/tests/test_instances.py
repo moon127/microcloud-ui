@@ -60,6 +60,9 @@ def test_summarize():
         "description": "",
         "profiles": [],
         "nics": {},
+        "stateful": False,
+        "evacuate": "",
+        "evacuated_from": "",
     }
 
 

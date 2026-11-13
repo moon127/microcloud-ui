@@ -181,7 +181,12 @@ async def create_instance(body: NewInstance, ctx: CtxDep) -> dict[str, Any]:
 
 
 @router.get("")
-async def list_instances(_: SessionDep, index: IndexDep) -> list[dict[str, Any]]:
+async def list_instances(
+    _: SessionDep, index: IndexDep, fresh: bool = False
+) -> list[dict[str, Any]]:
+    """``fresh``: skip the short cache (progress views, e.g. during an evacuation)."""
+    if fresh:
+        index.invalidate()
     return [i.as_dict() for i in await index.get()]
 
 

@@ -24,6 +24,11 @@ class InstanceInfo:
     profiles: list[str] = field(default_factory=list)
     # guest interface name (as in lxd_network_* metrics) -> LXD network
     nics: dict[str, str] = field(default_factory=dict)
+    # for evacuations: migration.stateful (VMs then live-migrate), cluster.evacuate
+    # ("" = auto), and the member it was evacuated from (volatile.evacuate.origin)
+    stateful: bool = False
+    evacuate: str = ""
+    evacuated_from: str = ""
 
     def as_dict(self) -> dict[str, Any]:
         return {
@@ -35,6 +40,9 @@ class InstanceInfo:
             "description": self.description,
             "profiles": self.profiles,
             "nics": self.nics,
+            "stateful": self.stateful,
+            "evacuate": self.evacuate,
+            "evacuated_from": self.evacuated_from,
         }
 
 
@@ -62,6 +70,7 @@ def guest_nics(inst: dict[str, Any]) -> dict[str, str]:
 
 
 def summarize(inst: dict[str, Any]) -> InstanceInfo:
+    config = inst.get("expanded_config") or {}
     return InstanceInfo(
         project=inst.get("project", "default"),
         name=inst["name"],
@@ -71,6 +80,9 @@ def summarize(inst: dict[str, Any]) -> InstanceInfo:
         description=inst.get("description", ""),
         profiles=list(inst.get("profiles") or []),
         nics=guest_nics(inst),
+        stateful=config.get("migration.stateful") == "true",
+        evacuate=str(config.get("cluster.evacuate") or ""),
+        evacuated_from=str(config.get("volatile.evacuate.origin") or ""),
     )
 
 

@@ -202,9 +202,15 @@ export interface Instance {
   description: string;
   profiles?: string[];
   nics: Record<string, string>;
+  /** migration.stateful (a running VM then live-migrates), cluster.evacuate ("" = auto) */
+  stateful?: boolean;
+  evacuate?: string;
+  /** volatile.evacuate.origin: the member it was evacuated from */
+  evacuated_from?: string;
 }
 
-export const fetchInstances = () => api<Instance[]>("/api/instances");
+/** ``fresh``: skip the backend's short cache (progress views). */
+export const fetchInstances = (fresh = false) => api<Instance[]>(fresh ? "/api/instances?fresh=true" : "/api/instances");
 
 export interface Snapshot {
   name: string;

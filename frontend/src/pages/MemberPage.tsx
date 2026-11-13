@@ -3,12 +3,17 @@ import { useState } from "react";
 import {
   evacuateMember,
   fetchHosts,
+  fetchInstances,
   fetchMemberResources,
   fetchMembers,
   fetchServer,
+  operationProgress,
   restoreMember,
   type EvacuationMode,
+  type Instance,
   type Labels,
+  type Member,
+  type Operation,
   type QueryResult,
   type Resources,
 } from "../api";
@@ -20,6 +25,7 @@ import { cpuModeSeries, nonZero, usedPercentSeries, type PanelQuery } from "../c
 import { add, subtract } from "../chart/series";
 import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
 import { HOST_METRICS_DOC } from "./hostValues";
+import { evacuationRisks, membersOut, mixedCpus, restoreRisks, votersLeft } from "./evacuation";
 import { useRange } from "../range";
 import RangePicker from "../RangePicker";
 import { useApi } from "../useApi";
@@ -293,24 +299,98 @@ const MODES: { value: EvacuationMode | ""; label: string }[] = [
   { value: "stop", label: "stop instances, don't move them" },
 ];
 
+/** Each member's CPU model, "" where it can't be read. */
+async function memberCpus(names: string[]): Promise<Record<string, string>> {
+  const rows = await Promise.all(
+    names.map(async (n) => [n, await fetchMemberResources(n).then((r) => r.cpu.sockets?.[0]?.name ?? "", () => "")] as const),
+  );
+  return Object.fromEntries(rows);
+}
+
+const names = (xs: { name: string }[]) => xs.map((x) => x.name).join(", ");
+
+/** Why evacuating ``name`` now could hurt (docs/LIVE-TESTS.md C1, C2a). */
+function EvacuationWarnings({ name, members, instances, cpus, mode }: {
+  name: string;
+  members: Member[];
+  instances: Instance[];
+  cpus: Record<string, string>;
+  mode: EvacuationMode | "";
+}) {
+  const out = membersOut(members, name);
+  const left = members.filter((m) => m.name !== name && m.status === "Online");
+  const voters = votersLeft(members, name);
+  const vms = mixedCpus(cpus) ? evacuationRisks(instances, name, mode) : [];
+  if (!out.length && !vms.length) return null;
+  return (
+    <>
+      {out.length > 0 && (
+        <p role="alert">
+          {names(out)} {out.length === 1 ? "is" : "are"} already out ({out.map((m) => m.status).join(", ")}). LXD doesn&apos;t
+          always refuse a second evacuation: every instance would run on {names(left) || "no member"}, and the database would
+          rest on {voters.length} online voter{voters.length === 1 ? "" : "s"}. Restore {out.length === 1 ? "it" : "them"} first.
+        </p>
+      )}
+      {vms.length > 0 && (
+        <p role="alert">
+          These VMs would live-migrate: {names(vms)}. The members have different CPUs (
+          {Object.entries(cpus)
+            .map(([m, c]) => `${m}: ${c}`)
+            .join("; ")}
+          ), and a VM moved to a newer CPU can&apos;t live-migrate back, so the restore would fail. Choose
+          &quot;migrate (cold)&quot;, or set <code>cluster.evacuate=migrate</code> on them.
+        </p>
+      )}
+    </>
+  );
+}
+
+/** While an evacuation or restore runs: LXD's step and what's on the member now. */
+function Progress({ name, label, op }: { name: string; label: string; op: Operation | null }) {
+  const here = useApi(`member-progress:${name}:${label}`, () => fetchInstances(true), 3000);
+  const on = (here.data ?? []).filter((i) => i.location === name);
+  const note = op && operationProgress(op);
+  return (
+    <span role="status" className="progress">
+      {label}
+      {note ? `: ${note}` : "…"}
+      {here.data && (
+        <>
+          {" "}
+          · {on.length} instance{on.length === 1 ? "" : "s"} on {name} now{on.length ? `: ${names(on)}` : ""}
+        </>
+      )}
+    </span>
+  );
+}
+
 function MemberActions({ name }: { name: string }) {
   const { user } = useSession();
   const { run, version } = useActions();
   const members = useApi(`members:${version}`, fetchMembers);
   const server = useApi("server", fetchServer);
+  const instances = useApi(`instances:${version}`, () => fetchInstances());
+  const memberNames = (members.data ?? []).map((m) => m.name);
+  const cpus = useApi(`member-cpus:${memberNames.join(",")}`, () => memberCpus(memberNames));
   const [confirm, setConfirm] = useState<"evacuate" | "restore" | "force" | null>(null);
   const [refusal, setRefusal] = useState("");
   const [mode, setMode] = useState<EvacuationMode | "">("");
+  const [progress, setProgress] = useState<{ label: string; op: Operation | null } | null>(null);
   const member = members.data?.find((m) => m.name === name);
   // LXD 6.9+ refuses an evacuation that would cost the database its quorum, unless forced
   const canForce = !!server.data?.features.evacuation_force;
   if (!member) return null;
   const admin = user.role === "admin";
+  const follow = (label: string, start: Parameters<typeof run>[1], onError?: (message: string) => void) => {
+    setProgress({ label, op: null });
+    void run(label, start, { onProgress: (op) => setProgress({ label, op }), onError }).finally(() => setProgress(null));
+  };
+  const backFromElsewhere = restoreRisks(instances.data ?? [], name, cpus.data ?? {});
   return (
     <p>
       Status: <strong>{member.status}</strong>
       {member.message ? ` (${member.message})` : ""} · roles: {member.roles.join(", ") || "none"}
-      {admin && (
+      {admin && !progress && (
         <>
           {" "}
           {member.status === "Evacuated" ? (
@@ -324,6 +404,12 @@ function MemberActions({ name }: { name: string }) {
           )}
         </>
       )}
+      {progress && (
+        <>
+          <br />
+          <Progress name={name} label={progress.label} op={progress.op} />
+        </>
+      )}
       {confirm === "evacuate" && (
         <Confirm
           title={`Evacuate ${name}?`}
@@ -332,17 +418,16 @@ function MemberActions({ name }: { name: string }) {
           onCancel={() => setConfirm(null)}
           onConfirm={() => {
             setConfirm(null);
-            void run(`Evacuate ${name}`, () => evacuateMember(name, mode || undefined), {
-              onError: (message) => {
-                if (canForce && /quorum/i.test(message)) {
-                  setRefusal(message);
-                  setConfirm("force");
-                }
-              },
+            follow(`Evacuate ${name}`, () => evacuateMember(name, mode || undefined), (message) => {
+              if (canForce && /quorum/i.test(message)) {
+                setRefusal(message);
+                setConfirm("force");
+              }
             });
           }}
         >
           <p>All instances on this member are moved or stopped, and no new ones are placed here until it is restored.</p>
+          <EvacuationWarnings name={name} members={members.data ?? []} instances={instances.data ?? []} cpus={cpus.data ?? {}} mode={mode} />
           <label>
             Mode{" "}
             <select value={mode} onChange={(e) => setMode(e.target.value as EvacuationMode | "")}>
@@ -363,13 +448,13 @@ function MemberActions({ name }: { name: string }) {
           onCancel={() => setConfirm(null)}
           onConfirm={() => {
             setConfirm(null);
-            void run(`Evacuate ${name} (forced)`, () => evacuateMember(name, mode || undefined, true));
+            follow(`Evacuate ${name} (forced)`, () => evacuateMember(name, mode || undefined, true));
           }}
         >
           <p>LXD refused: {refusal}.</p>
           <p>
             Forcing it takes this member out although too few database members would stay online. Until enough of them are
-            back, the cluster can't make changes and may not answer. Only do this if the other members will return.
+            back, the cluster can&apos;t make changes and may not answer. Only do this if the other members will return.
           </p>
         </Confirm>
       )}
@@ -380,10 +465,17 @@ function MemberActions({ name }: { name: string }) {
           onCancel={() => setConfirm(null)}
           onConfirm={() => {
             setConfirm(null);
-            void run(`Restore ${name}`, () => restoreMember(name));
+            follow(`Restore ${name}`, () => restoreMember(name));
           }}
         >
           <p>Instances evacuated from this member are moved back and started.</p>
+          {backFromElsewhere.length > 0 && (
+            <p role="alert">
+              Stop these VMs first: {names(backFromElsewhere)}. They would live-migrate back from a member with a different CPU,
+              which fails, and the restore stops with this member still evacuated. Stopped, they move back cold; start them
+              afterwards.
+            </p>
+          )}
         </Confirm>
       )}
     </p>

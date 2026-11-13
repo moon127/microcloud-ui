@@ -36,6 +36,7 @@ change with its LXD operation id.
 |---|---|---|
 | C1 | Member page → **Evacuate** a member at a quiet time, mode *stop* or *migrate* | Toast follows the operation to the end; member shows *Evacuated*; instances moved/stopped as chosen |
 | C2 | Same member → **Restore** | Member *Online*; instances back |
+| C2b | Member page → **Evacuate** with another member already evacuated, then **Cancel**; on mixed CPUs with a running stateful VM on it, open **Evacuate** (Default mode), then switch to *migrate* | The dialog warns that another member is out, naming where instances would run and the voters left. It names the VMs that would live-migrate and the CPU models; the second warning disappears with *migrate*. During a real evacuation or restore, the progress line shows LXD's step and the instances on the member |
 | C2a | LXD 6.9+: with one member evacuated, **Evacuate** a second one, then **Cancel** the force prompt | On three members LXD 6.10 does **not** refuse (see below). Don't run this on a cluster in use |
 
 Done on LXD 6.10 (2026-11-13, member 2, Default mode): C1 moved four instances in about two

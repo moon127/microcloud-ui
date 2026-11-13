@@ -268,9 +268,14 @@ fixtures, so record a full set **before** the upgrade (5.0).
     member of three. The first one's demotion left two voters, and LXD counts one of two
     as a majority. All instances ended up on one member, and the restore failed on the
     CPU difference until the VMs were stopped. Full account: `docs/LIVE-TESTS.md`.
-    Follow-up (5c): the evacuate dialog warns when another member is out, and when VMs
-    would live-migrate between different CPUs. The restore dialog warns about VMs that
-    can't live-migrate back. Evacuations and restores show progress.
+    - ✅ **Follow-up (5c, D75):**
+      - The evacuate dialog warns when another member is out, and when VMs would
+        live-migrate between different CPUs.
+      - The restore dialog names the VMs to stop first.
+      - Evacuations and restores show LXD's progress and the member's instances as they
+        go.
+      - Fixture-tested; live check C2b. LXD's progress metadata key is assumed to end in
+        `progress`, as LXD's other progress keys do; C2b confirms it.
 - **After:** `mcui check`, the integration tests, and `docs/LIVE-TESTS.md`. This is
   "verify the current code still works"; anything that fails feeds 5a.
 

@@ -317,6 +317,36 @@ async def test_success_invalidates_cache(app, services):
     assert lst.call_count == 2
 
 
+@respx.mock
+async def test_list_for_evacuations(app):
+    """The fields the evacuate and restore dialogs need, and ``fresh`` for progress views."""
+    vm = {
+        "name": "vm1",
+        "type": "virtual-machine",
+        "location": "node-3",
+        # a stateful VM evacuated from node-2, as on the test cloud (LXD 6.10)
+        "expanded_config": {
+            "migration.stateful": "true",
+            "volatile.evacuate.origin": "node-2",
+        },
+    }
+    cold = {"name": "vm2", "expanded_config": {"cluster.evacuate": "migrate"}}
+    lst = respx.get(INST, params={"recursion": "2"}).mock(return_value=lxd_ok([vm, cold]))
+    async with client(app) as c:
+        await login(c, "viewer", "viewerpw")
+        listed = {i["name"]: i for i in (await c.get("/api/instances")).json()}
+        assert {k: listed["vm1"][k] for k in ("stateful", "evacuate", "evacuated_from")} == {
+            "stateful": True,
+            "evacuate": "",
+            "evacuated_from": "node-2",
+        }
+        assert (listed["vm2"]["stateful"], listed["vm2"]["evacuate"]) == (False, "migrate")
+        await c.get("/api/instances")
+        assert lst.call_count == 1  # cached
+        await c.get("/api/instances", params={"fresh": "true"})
+        assert lst.call_count == 2
+
+
 async def test_not_configured(tmp_path):
     store = fast_store()
     store.add_user("v", "pw")

@@ -1,4 +1,4 @@
-import { act, fireEvent, screen, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { Route, Routes } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as api from "../api";
@@ -178,6 +178,7 @@ describe("member evacuate and restore", () => {
     vi.spyOn(api, "fetchMemberResources").mockReturnValue(new Promise(() => {}));
     vi.spyOn(api, "queryMetric").mockReturnValue(new Promise(() => {}));
     vi.spyOn(api, "fetchMembers").mockResolvedValue([member(status), { ...member("Online"), name: "m2", roles: [] }]);
+    vi.spyOn(api, "fetchInstances").mockResolvedValue([]);
     return renderAt(<MemberPage />, { url: "/members/m1", path: "/members/:name", s });
   }
 
@@ -239,6 +240,77 @@ describe("member evacuate and restore", () => {
     fireEvent.click(screen.getByRole("button", { name: "Restore" }));
     fireEvent.click(within(screen.getByRole("dialog", { name: "Restore m1?" })).getByRole("button", { name: "Restore" }));
     expect(rs).toHaveBeenCalledWith("m1");
+  });
+
+  // the test cloud on 2026-11-13 (docs/LIVE-TESTS.md C2a): mixed CPUs, stateful VMs
+  function cluster(m1: string, others: api.Member[], instances: api.Instance[]) {
+    vi.spyOn(api, "fetchServer").mockResolvedValue({
+      version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "", features: {},
+    });
+    const cpu: Record<string, string> = { m1: "Xeon D-1518", m2: "Xeon D-1518", m3: "Xeon D-2123IT" };
+    vi.spyOn(api, "fetchMemberResources").mockImplementation(async (n) => ({
+      cpu: { total: 8, sockets: [{ name: cpu[n] }] }, memory: { total: 1 },
+    }) as api.Resources);
+    vi.spyOn(api, "queryMetric").mockReturnValue(new Promise(() => {}));
+    vi.spyOn(api, "fetchMembers").mockResolvedValue([member(m1), ...others]);
+    const list = vi.spyOn(api, "fetchInstances").mockResolvedValue(instances);
+    renderAt(<MemberPage />, { url: "/members/m1", path: "/members/:name" });
+    return list;
+  }
+  const vm = (name: string, location: string, over: Partial<api.Instance> = {}): api.Instance => ({
+    project: "default", name, type: "virtual-machine", status: "Running", location, description: "", nics: {}, stateful: true, ...over,
+  });
+  const m = (name: string, status: string, roles: string[]) => ({ ...member(status), name, roles });
+
+  it("warns before evacuating while another member is out, and about live-migrating VMs on mixed CPUs", async () => {
+    cluster("Online", [m("m2", "Evacuated", []), m("m3", "Online", ["database-leader"])], [vm("cos", "m1"), vm("box", "m1", { evacuate: "migrate" })]);
+    fireEvent.click(await screen.findByRole("button", { name: "Evacuate" }));
+    const dlg = screen.getByRole("dialog", { name: "Evacuate m1?" });
+    const out = await within(dlg).findByText(/m2 is already out \(Evacuated\)/);
+    expect(out).toHaveTextContent("every instance would run on m3, and the database would rest on 1 online voter");
+    const cpus = await within(dlg).findByText(/These VMs would live-migrate: cos\./);
+    expect(cpus).toHaveTextContent("m3: Xeon D-2123IT");
+    // a cold move avoids it
+    fireEvent.change(within(dlg).getByLabelText("Mode"), { target: { value: "migrate" } });
+    expect(within(dlg).queryByText(/would live-migrate/)).toBeNull();
+  });
+
+  it("no warnings on a healthy cluster with one CPU model", async () => {
+    vi.spyOn(api, "fetchMemberResources").mockResolvedValue({ cpu: { total: 8, sockets: [{ name: "same" }] }, memory: { total: 1 } } as api.Resources);
+    vi.spyOn(api, "queryMetric").mockReturnValue(new Promise(() => {}));
+    vi.spyOn(api, "fetchServer").mockResolvedValue({ version: "6.10.1", clustered: true, server_name: "m1", auth: "trusted", auth_method: "tls", endpoint: "", features: {} });
+    vi.spyOn(api, "fetchMembers").mockResolvedValue([member("Online"), m("m2", "Online", ["database-voter"])]);
+    vi.spyOn(api, "fetchInstances").mockResolvedValue([vm("cos", "m1")]);
+    renderAt(<MemberPage />, { url: "/members/m1", path: "/members/:name" });
+    fireEvent.click(await screen.findByRole("button", { name: "Evacuate" }));
+    await act(async () => {});
+    expect(within(screen.getByRole("dialog")).queryByRole("alert")).toBeNull();
+  });
+
+  it("says which VMs to stop before a restore", async () => {
+    cluster("Evacuated", [m("m3", "Online", ["database-leader"])], [vm("minecraft", "m3", { evacuated_from: "m1" })]);
+    fireEvent.click(await screen.findByRole("button", { name: "Restore" }));
+    expect(await within(screen.getByRole("dialog")).findByText(/Stop these VMs first: minecraft\./)).toBeInTheDocument();
+  });
+
+  it("shows LXD's step and the member's instances while an evacuation runs", async () => {
+    const running = { id: "ev1", description: "Evacuating cluster member", created_at: "", status: "Running", may_cancel: false, project: "", location: "m1" };
+    vi.spyOn(api, "evacuateMember").mockResolvedValue({ operation: running as api.Operation, metadata: null });
+    let release: (op: api.Operation) => void = () => {};
+    vi.spyOn(api, "waitOperation")
+      .mockResolvedValueOnce({ ...running, metadata: { evacuation_progress: 'Migrating "cos" in project "default" to "m3"' } } as api.Operation)
+      .mockReturnValueOnce(new Promise((r) => (release = r)));
+    const list = cluster("Online", [m("m3", "Online", ["database-leader"])], [vm("cos", "m1", { evacuate: "migrate" })]);
+    fireEvent.click(await screen.findByRole("button", { name: "Evacuate" }));
+    fireEvent.click(within(screen.getByRole("dialog")).getByRole("button", { name: "Evacuate" }));
+    const status = await screen.findByText(/Migrating "cos" in project "default" to "m3"/);
+    expect(status).toHaveTextContent("Evacuate m1: Migrating");
+    await waitFor(() => expect(status).toHaveTextContent("· 1 instance on m1 now: cos"));
+    expect(list).toHaveBeenCalledWith(true); // fresh, not the 10 s cache
+    expect(screen.queryByRole("button", { name: "Evacuate" })).toBeNull(); // no second click meanwhile
+    await act(async () => release({ ...running, status: "Success" } as api.Operation));
+    expect(await screen.findByText(/✓ Evacuate m1/)).toBeInTheDocument();
+    expect(screen.queryByText(/Migrating "cos"/)).toBeNull();
   });
 
   it("shows status without buttons to viewers, and nothing for unknown members", async () => {

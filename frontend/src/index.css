@@ -105,5 +105,6 @@ button.link { border: none; background: none; padding: 0; color: var(--accent); 
 .chip button { border: none; padding: 0 0.15rem; line-height: 1; }
 .progress { padding: 0.6rem 0.8rem; margin: 0.75rem 0; border: 1px solid var(--accent); border-radius: 6px; max-width: 40rem; }
 .progress.failed { border-color: var(--error); }
+span.progress { display: block; }
 .chips { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 a.chip { text-decoration: none; color: inherit; }
