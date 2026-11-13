@@ -49,12 +49,17 @@ Browsers reach it on **8843** (HTTPS) by default. The history grows to roughly
 | LXD | 5.21 LTS (supported to June 2029) | 6.10 LTS (supported to June 2031) |
 | Ceph | MicroCeph Squid (19.2) | MicroCeph Tentacle (20.2) |
 | OVN | MicroOVN 24.03 | MicroOVN 26.03 |
-| Tested | live, on the test cloud | in a 3.4 VM; test cloud upgraded 2026-11-12, live checks under way (Phase 5) |
+| Tested | live on the test cloud until its upgrade (2026-11-12); since then against its recorded responses (`recorded-5.21`) in every test run | live on the three-member test cloud (2026-11-13) and in a 3.4 VM |
 
-The app reads each server's API extensions and shows only what it supports. On LXD 6.x
-you also get placement groups, image registries in the image picker (6.10), OVN
-load-balancer pools with health checks (6.9/6.10), multi-volume snapshots, nested child
-operations and a forced evacuation when LXD refuses one for quorum. `mcui check` lists
+Both are fully supported. The app reads each server's API extensions and shows only what
+it supports, so MicroCloud 2.x gets everything except the LXD 6 additions:
+- placement groups
+- image registries in the image picker (6.10)
+- OVN load-balancer pools with health checks (6.9/6.10)
+- multi-volume snapshots
+- nested child operations
+- a forced evacuation when LXD refuses one for quorum
+- OVN DHCP ranges (6.6) `mcui check` lists
 anything hidden ("Unavailable") and warns about LXD releases missing the October 2026
 TLS security fix (update to 5.21.9 or 6.10.1).
 

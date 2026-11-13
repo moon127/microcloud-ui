@@ -4,7 +4,7 @@ A web UI for Canonical MicroCloud (LXD, MicroCeph, MicroOVN) with built-in
 metrics: per-instance CPU/memory/disk/network history, Ceph and local storage
 usage, and OVN network visibility.
 
-**Status:** Phases 1–4 built: connectivity, local auth, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards and a Hosts view (optional node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)). Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
+**Status:** Phases 1–4 built, and Phase 5 (MicroCloud 3.4 LTS support) checked live on a three-member 3.4 cluster: connectivity, local auth, metrics history and graphs, management of instances (create, lifecycle, config, snapshots, terminal, consoles, files), profiles, images, projects, networks (incl. ACLs and forwards), storage pools and custom volumes, plus Ceph and OVN dashboards and a Hosts view (optional node_exporter, [`docs/HOST-METRICS.md`](docs/HOST-METRICS.md)). Owner live checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md),
 [`docs/PLAN.md`](docs/PLAN.md) and the design log in [`agents.md`](agents.md).
 
 **Running it for real:** an offline bundle (`make bundle`) installs on Ubuntu as a
@@ -14,15 +14,28 @@ Releases attach the bundles and publish the image; `:edge` and the **edge** pre-
 follow `main` ([`docs/RELEASING.md`](docs/RELEASING.md)). Either can sit behind NGINX Proxy Manager, Cosmos, Caddy
 or nginx, which then handle Let's Encrypt certificates. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
-**Supported releases:** MicroCloud 3.4 LTS (LXD 6.10) and MicroCloud 2.x (LXD 5.21). The
-UI checks which LXD features the cluster has and hides what it lacks, so the LXD 6
-features (placement groups, image registries, load-balancer pools, multi-volume
-snapshots) only appear on 3.4. Details: [`docs/DEPLOY.md`](docs/DEPLOY.md#supported-releases).
+**Supported releases:** both current LTS lines are fully supported.
+- **MicroCloud 3.4 LTS** (LXD 6.10, Ceph Tentacle, MicroOVN 26.03).
+- **MicroCloud 2.x** (LXD 5.21, Ceph Squid, MicroOVN 24.03).
+
+The UI reads which LXD features the cluster has and shows only those. **On 2.x everything
+works except the LXD 6 additions**, which simply don't appear:
+- placement groups
+- image registries (the image picker offers `images:` and `ubuntu:` instead)
+- load-balancer pools and health checks (load balancers with named backends still work)
+- multi-volume snapshots
+- nested child operations
+- the forced evacuation
+- OVN DHCP ranges
+
+`mcui check` lists what's hidden. Details: [`docs/DEPLOY.md`](docs/DEPLOY.md#supported-releases).
 
 ## Screenshots
 
-From an invented demo cluster (`make screenshots`), not a real one. Shown in the dark
-theme; the Theme menu in the top bar switches between Light, Dark and System (follows the OS).
+From an invented demo cluster (`make screenshots`), not a real one. It runs MicroCloud
+3.4 LTS, so the LXD 6 features show. On MicroCloud 2.x the pages look the same, without
+those parts. Shown in the dark theme; the Theme menu in the top bar switches between
+Light, Dark and System (follows the OS).
 
 **Overview:** hosts (CPU, memory, disk, allocation), members, top instances, live table
 ![Overview](docs/screenshots/overview.png)
@@ -41,6 +54,10 @@ More: [instances](docs/screenshots/instances.png) ·
 [storage](docs/screenshots/storage.png) ·
 [networks](docs/screenshots/networks.png) ·
 [OVN](docs/screenshots/ovn.png)
+
+LXD 6 / MicroCloud 3.4 only: [placement groups](docs/screenshots/placement-groups.png) ·
+[OVN load balancers with a health-checked pool](docs/screenshots/load-balancers.png) (the
+image registries are the tabs in [create instance](docs/screenshots/create-instance.png))
 
 **Light theme**
 ![Overview, light theme](docs/screenshots/overview-light.png)
@@ -124,13 +141,28 @@ make serve                             # or: make dev-backend (+ npm run dev for
 ```
 
 Sign in at http://127.0.0.1:8000 (`make serve`) or http://localhost:5173 (Vite).
-Pages: Overview (hosts, members, top instances, live table), Instances (filters, bulk
-actions, create wizard) and an instance page (graphs, configuration, console and
-terminal, files, snapshots, logs), Profiles, Images, Projects, member pages
-(hardware, graphs, evacuate/restore), Storage (pools with per-member capacity,
-custom volumes with snapshots and attach/detach), Ceph (health, OSDs, pools,
-latency, busiest disks), Networks (create/edit per member, ACLs, forwards, leases,
-OVN overview), Operations and Warnings. Admins can change things; viewers read only. Pick the time range (15 min to 1 year) above
+Pages:
+- **Overview:** hosts, members, top instances and a live table.
+- **Instances:** filters, bulk actions and the create wizard.
+- **An instance page:** graphs, configuration, console and terminal, files, snapshots
+  and logs.
+- **Profiles, Images and Projects.**
+- **Member pages:** hardware, graphs, and evacuate/restore.
+- **Storage:** pools with per-member capacity, and custom volumes with snapshots and
+  attach/detach.
+- **Ceph:** health, OSDs, pools, latency and the busiest disks.
+- **Networks:** create and edit per member, ACLs, forwards, load balancers, leases and the
+  OVN overview.
+- **Operations and Warnings.**
+
+On LXD 6 (MicroCloud 3.4) there's more:
+- a Placement groups page, and a placement group choice in the create wizard
+- image registries on the Images page and in the image picker
+- load-balancer pools with health checks
+- multi-volume snapshots on the Snapshots tab
+- child operations on the Operations page
+- a forced evacuation when LXD refuses one for quorum
+- a DHCP ranges field for new OVN networks Admins can change things; viewers read only. Pick the time range (15 min to 1 year) above
 the graphs. History is collected in the background into `<data_dir>/metrics.db`.
 
 Other user commands: `mcui user list`, `mcui user passwd <name>` (also signs the user
