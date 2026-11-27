@@ -253,6 +253,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.3.5 released 2026-11-27** (run 46037675912): D89, D90 and the review fixes; tested
+  as edge 0.3.5.dev4 in x86 VMs first (below). `main` is now 0.3.6.dev0.
 - **Edge image and bundle tests before 0.3.5, 2026-11-27:** x86 VMs: Ubuntu 24.04 (py3.12
   bundle, Podman 4.9 Quadlet image, 0.3.4 -> edge upgrade) and 26.04 (py3.14 bundle):
   install, health, sign-in, UI, CSP/HSTS/frame headers, Settings API, throttling, clean
