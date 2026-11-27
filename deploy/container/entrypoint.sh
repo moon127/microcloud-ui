@@ -7,15 +7,19 @@ set -eu
 tls=/var/lib/mcui/tls
 
 selfsigned() {
-    [ -e "$tls/ui.key" ] && return 0
+    # both files, not empty: a start killed between writing the key and the certificate
+    # would otherwise loop on the missing certificate (D90 review)
+    [ -s "$tls/ui.key" ] && [ -s "$tls/ui.crt" ] && return 0
     # names the browser uses: MCUI_TLS_SAN="DNS:mcui.example.org,IP:192.0.2.10"
     san="DNS:localhost,IP:127.0.0.1,DNS:$(hostname)${MCUI_TLS_SAN:+,$MCUI_TLS_SAN}"
     echo "mcui-entrypoint: making a self-signed HTTPS certificate for $san" >&2
     mkdir -p "$tls"
     chmod 700 "$tls"
+    [ -e "$tls/ui.key" ] && mv -f "$tls/ui.key" "$tls/ui.key.old"  # kept, in case it's in use
+    rm -f "$tls/ui.crt"
     openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 825 \
         -subj "/CN=$(hostname)" -addext "subjectAltName=$san" \
-        -keyout "$tls/ui.key" -out "$tls/ui.crt" 2>/dev/null
+        -keyout "$tls/ui.key" -out "$tls/ui.crt"
     chmod 600 "$tls/ui.key"
 }
 

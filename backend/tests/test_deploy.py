@@ -1,8 +1,12 @@
 """The production files in deploy/ agree with the code and with each other (D63)."""
 
+import os
 import re
+import subprocess
 import tomllib
 from pathlib import Path
+
+import pytest
 
 from mcui.config import Settings
 
@@ -57,7 +61,8 @@ def test_paths_agree():
     assert 'tls_cert = "/var/lib/mcui/tls/ui.crt"' in read("config.example.toml")
     assert 'tls="$DATA/tls"' in install and "-keyout ui.key -out ui.crt" in install
     # made as mcui, not root: root would follow symlinks planted in $DATA (D88)
-    assert "runuser -u mcui -- sh -c" in install and '[ ! -L "$tls/ui.key" ]' in install
+    assert "runuser -u mcui -- sh -c" in install  # what the block does: test_install_tls_block
+    assert 'missing "$tls/ui.key" || missing "$tls/ui.crt"' in install
     assert 'chown mcui:mcui "$tls' not in install
 
 
@@ -72,6 +77,8 @@ def test_container_files_agree():
     assert "EXPOSE 8843" in image and 'CMD ["serve"]' in image
     # the entrypoint makes the self-signed pair where the example config looks for it
     assert "tls=/var/lib/mcui/tls" in entry
+    # an interrupted first start mustn't loop on a key without its certificate (D90)
+    assert '[ -s "$tls/ui.key" ] && [ -s "$tls/ui.crt" ] && return 0' in entry
     for f in (quadlet, compose):
         assert "/etc/mcui:ro" in f and "mcui-data:/var/lib/mcui" in f
     for setting in ("Network=host", "ReadOnly=true", "DropCapability=ALL", "NoNewPrivileges=true"):
@@ -91,3 +98,67 @@ def test_no_backports():
     project = tomllib.loads((DEPLOY.parent / "backend/pyproject.toml").read_text())["project"]
     assert project["requires-python"].startswith(">=3.12")
     assert not [d for d in project["dependencies"] if "python_version" in d]
+
+
+def _tls_block() -> str:
+    """install.sh's TLS block, from ``tls=`` to its ``fi``."""
+    install = (DEPLOY / "install.sh").read_text()
+    start = install.index('tls="$DATA/tls"')
+    return install[start : install.index("\nfi\n", start) + 4]
+
+
+def _openssl_has_addext() -> bool:
+    cmd = ["openssl", "req", "-help"]
+    out = subprocess.run(cmd, capture_output=True, text=True)  # noqa: S603, S607
+    return "-addext" in out.stderr + out.stdout
+
+
+@pytest.mark.skipif(not _openssl_has_addext(), reason="this openssl has no -addext")
+@pytest.mark.parametrize(
+    "case", ["fresh", "both", "key-only", "crt-only", "empty-crt", "dangling-crt"]
+)
+def test_install_tls_block(tmp_path, case):
+    """The installer's TLS block, run for real with runuser and hostname stubbed (D90): a
+    healthy pair is kept, an incomplete one remade with the old key kept, links not
+    followed (D89)."""
+    data, bin_ = tmp_path / "data", tmp_path / "bin"
+    tls, bin_ = data / "tls", bin_
+    bin_.mkdir()
+    (bin_ / "runuser").write_text(
+        '#!/bin/sh\nwhile [ "$1" != "--" ]; do shift; done; shift; exec "$@"\n'
+    )
+    (bin_ / "hostname").write_text('#!/bin/sh\n[ "$1" = "-I" ] && echo 192.0.2.7 || echo node-1\n')
+    for f in bin_.iterdir():
+        f.chmod(0o755)
+    tls.mkdir(parents=True)
+    victim = tmp_path / "victim"
+    if case == "both":
+        (tls / "ui.key").write_text("K")
+        (tls / "ui.crt").write_text("C")
+    elif case == "key-only":
+        (tls / "ui.key").write_text("K")
+    elif case == "crt-only":
+        (tls / "ui.crt").write_text("C")
+    elif case == "empty-crt":
+        (tls / "ui.key").write_text("K")
+        (tls / "ui.crt").write_text("")
+    elif case == "dangling-crt":
+        (tls / "ui.crt").symlink_to(victim)  # with no key: remade, the link not followed
+    script = (
+        f'set -euo pipefail\nDATA="{data}"\n'
+        'say() { echo "$*"; }\ndie() { echo "DIE $*" >&2; exit 1; }\n' + _tls_block()
+    )
+    env = {**os.environ, "PATH": f"{bin_}:{os.environ['PATH']}"}
+    r = subprocess.run(  # noqa: S603 - our own script
+        ["/bin/bash", "-c", script], env=env, capture_output=True, text=True
+    )
+    assert r.returncode == 0, r.stderr
+    key, crt = (tls / "ui.key"), (tls / "ui.crt")
+    if case == "both":
+        assert key.read_text() == "K" and crt.read_text() == "C" and r.stdout == ""
+        return
+    assert "BEGIN CERTIFICATE" in crt.read_text() and "PRIVATE KEY" in key.read_text()
+    assert oct(key.stat().st_mode & 0o777) == "0o600"
+    assert not crt.is_symlink() and not victim.exists()
+    if case in ("key-only", "empty-crt"):
+        assert (tls / "ui.key.old").read_text() == "K"  # an operator's key isn't lost

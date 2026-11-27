@@ -253,6 +253,14 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Edge image and bundle tests before 0.3.5, 2026-11-27:** x86 VMs: Ubuntu 24.04 (py3.12
+  bundle, Podman 4.9 Quadlet image, 0.3.4 -> edge upgrade) and 26.04 (py3.14 bundle):
+  install, health, sign-in, UI, CSP/HSTS/frame headers, Settings API, throttling, clean
+  stops (container Result=success), no tracebacks. Found: a refused TLS-symlink run left
+  `ui.key` without `ui.crt`, and the next install skipped the certificate (service down);
+  the container entrypoint had the same key-only check. Fixed (both files checked, empty
+  counts as missing, an incomplete pair replaced with its key kept as `ui.key.old`, the
+  planted link removed as mcui, openssl's errors shown) and reviewed by the two agents.
 - **Security fixes, second batch 2026-11-27 (D89):** shared default objects refused for
   project users, sign-in throttling and off-loop hashing, grants follow project rename and
   delete, streams and events re-check access, security headers, install.sh TLS made as

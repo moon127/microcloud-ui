@@ -145,7 +145,7 @@ built for a different Python version. It sets up the following:
 | Config: written once and never overwritten (root:mcui, 0640) | `/etc/mcui/config.toml` |
 | Keys and certificates: owned by `mcui`, keys 0600 | `/etc/mcui/certs/` |
 | Data: `mcui.db` (users, sessions, audit) and `metrics.db` (history) | `/var/lib/mcui/` |
-| HTTPS certificate: self-signed for the host's names and IPs, made only if missing | `/var/lib/mcui/tls/ui.{crt,key}` |
+| HTTPS certificate: self-signed for the host's names and IPs, made by the `mcui` user if either file is missing or empty (an incomplete pair is replaced; its key is kept as `ui.key.old`) | `/var/lib/mcui/tls/ui.{crt,key}` |
 | systemd unit: enabled, then restarted | `/etc/systemd/system/mcui.service` |
 | `mcui` admin command: runs as the `mcui` user with the system config | `/usr/local/bin/mcui` |
 
