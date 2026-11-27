@@ -336,3 +336,33 @@ async def test_storage_pools(app):
             },
             {"name": "x", "driver": "", "status": "", "description": "", **empty},
         ]
+
+
+async def test_security_headers(app):
+    """CSP, no framing, nosniff, referrer policy; HSTS only over https (D88)."""
+    async with client(app) as c:
+        for url in ("/api/health", "/api/auth/me"):
+            r = await c.get(url, headers={"host": "mcui.example:8843"})
+            csp = r.headers["content-security-policy"]
+            assert "script-src 'self';" in csp and "frame-ancestors 'none'" in csp
+            assert "connect-src 'self' wss://mcui.example:8843 ws://mcui.example:8843" in csp
+            assert r.headers["x-content-type-options"] == "nosniff"
+            assert r.headers["x-frame-options"] == "DENY"
+            assert r.headers["referrer-policy"] == "same-origin"
+            assert "strict-transport-security" not in r.headers
+    import httpx
+
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="https://test"
+    ) as c:
+        r = await c.get("/api/health")
+        assert r.headers["strict-transport-security"] == "max-age=31536000"
+
+
+def test_security_headers_without_a_host():
+    from starlette.requests import Request
+
+    from mcui.main import security_headers_for
+
+    req = Request({"type": "http", "scheme": "http", "headers": [], "path": "/", "server": None})
+    assert "connect-src 'self';" in security_headers_for(req)["Content-Security-Policy"]

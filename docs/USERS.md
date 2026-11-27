@@ -170,7 +170,11 @@ Keep **own storage volumes** (`features.storage.volumes=true`, LXD's default for
 projects). LXD answers queries on a project without them with `default`'s volumes, so
 project users would see those. A project without its own networks, profiles or images
 shares `default`'s: project users can see them and use them when creating an instance,
-but not change them.
+but not change them. The app refuses their writes there (0.3.5): without the feature, LXD
+would apply a project's profile change to `default`'s profile and check restrictions
+against `default`, which has none. Give projects for users their own profiles, images
+and volumes (`features.profiles`, `features.images`, `features.storage.volumes`, LXD's
+defaults for new projects).
 
 The project's own settings, `restricted` included, can only be changed by a cluster
 admin. If someone unsets `restricted` behind the app's back (with `lxc`), operators and
@@ -180,6 +184,22 @@ seconds.
 LXD's other restriction keys (`restricted.devices.*`, `restricted.cluster.target`,
 `restricted.networks.*` and so on) apply as usual. With the defaults, a project user
 can't, for example, choose which member an instance runs on.
+
+## Sign-in and sessions
+
+- **Failed sign-ins are throttled** (0.3.5): after 5 failures for a username, or 30 from
+  one address, within 5 minutes, sign-in answers "too many failed sign-ins" (HTTP 429)
+  until the oldest failure is 5 minutes old. A success clears that username's count. The
+  count is in memory, so a restart clears it. Behind a reverse proxy, set
+  `forwarded_allow_ips` so the address is the client's, not the proxy's.
+- **Failed sign-ins with an unknown username are audited without it**: people sometimes
+  type a password there.
+- **Open connections follow access changes** (0.3.5): a terminal or console re-checks the
+  operate right when (re)attached and belongs to the login session that started it, so it
+  ends with a logout, a removed grant or a deleted user. The live event stream re-reads
+  its session every 30 seconds.
+- **Grants go with their project**: renaming a project moves its grants, deleting it
+  removes them, so a later project with the old name starts with none.
 
 ## What a project user sees
 

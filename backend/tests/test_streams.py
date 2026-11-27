@@ -196,11 +196,24 @@ def add_stream(services, owner="admin", secrets=None):
     return s
 
 
+def ws_session(app, services, user, stream):
+    """A browser signed in as ``user``, owning ``stream`` (D88: streams belong to the
+    login session that started them)."""
+    from mcui.api.deps import COOKIE
+    from mcui.streams import session_key
+
+    tc = ws_client(app, user)
+    stream.session = session_key(tc.cookies[COOKIE])
+    return tc
+
+
 def test_attach_relays_data_and_control(app, services, monkeypatch):
     ups = Upstreams()
     monkeypatch.setattr(services.lxd, "websocket", ups)
     stream = add_stream(services)
-    with ws_client(app, "admin").websocket_connect("/api/streams/s1", headers=ORIGIN) as ws:
+    with ws_session(app, services, "admin", stream).websocket_connect(
+        "/api/streams/s1", headers=ORIGIN
+    ) as ws:
         assert ws.receive_text() == "hello"
         assert ws.receive_bytes() == b"\x1b[0m"  # terminal output is binary
         ws.send_bytes(b"ls\n")
@@ -220,7 +233,7 @@ def test_vga_connections_share_one_control(app, services, monkeypatch):
     ups = Upstreams()
     monkeypatch.setattr(services.lxd, "websocket", ups)
     stream = add_stream(services)
-    tc = ws_client(app, "admin")
+    tc = ws_session(app, services, "admin", stream)
     with tc.websocket_connect("/api/streams/s1", headers=ORIGIN, subprotocols=["binary"]) as a:
         assert a.accepted_subprotocol == "binary"
         a.receive_text()
@@ -235,8 +248,10 @@ def test_vga_connections_share_one_control(app, services, monkeypatch):
 def test_attach_without_control_secret(app, services, monkeypatch):
     ups = Upstreams()
     monkeypatch.setattr(services.lxd, "websocket", ups)
-    add_stream(services, secrets={"data": "data-secret"})
-    with ws_client(app, "admin").websocket_connect("/api/streams/s1", headers=ORIGIN) as ws:
+    stream = add_stream(services, secrets={"data": "data-secret"})
+    with ws_session(app, services, "admin", stream).websocket_connect(
+        "/api/streams/s1", headers=ORIGIN
+    ) as ws:
         assert ws.receive_text() == "hello"
         ws.send_text("dropped: no control channel")
     assert list(ups.by_secret) == ["data-secret"]
@@ -264,7 +279,9 @@ def test_attach_upstream_failure_releases(app, services, monkeypatch, fail):
     monkeypatch.setattr(services.lxd, "websocket", ups)
     stream = add_stream(services)
     with (
-        ws_client(app, "admin").websocket_connect("/api/streams/s1", headers=ORIGIN) as ws,
+        ws_session(app, services, "admin", stream).websocket_connect(
+            "/api/streams/s1", headers=ORIGIN
+        ) as ws,
         pytest.raises(WebSocketDisconnect) as e,
     ):
         ws.receive_text()
@@ -293,3 +310,62 @@ async def test_release_tolerates_close_errors():
     await s.acquire_control(connect)
     await s.release_control()
     assert s.control is None
+
+
+# --- re-checked on attach (D88) --------------------------------------------------------
+
+
+def test_attach_rechecks_the_owner_and_the_right(app, services, monkeypatch):
+    """A stream outlives neither its owner's grant nor its owner: a user deleted and made
+    again under the same name isn't the owner; a removed grant ends it."""
+    store = services.store
+    store.add_user("pat", "patpw", "project")
+    store.set_grant("pat", "p", "operator")
+    stream = add_stream(services, owner="pat")
+    tc = ws_session(app, services, "pat", stream)
+
+    def attach(client=None):
+        with (
+            (client or tc).websocket_connect("/api/streams/s1", headers=ORIGIN) as ws,
+            pytest.raises(WebSocketDisconnect) as e,
+        ):
+            ws.receive_text()
+        return e.value
+
+    async def restricted(conn, lxd, project):
+        return project_ok
+
+    monkeypatch.setattr("mcui.api.streams.project_restricted", restricted)
+    project_ok = False  # the project is no longer restricted
+    e = attach()
+    assert e.code == 4403 and e.reason == "no longer allowed in p"
+    project_ok = True
+    store.remove_grant("pat", "p")
+    store.set_grant("pat", "p", "viewer")  # operate taken away
+    assert attach().reason == "no longer allowed in p"
+    store.delete_user("pat")
+    store.add_user("pat", "patpw", "project")  # same name, another user, maybe the same id
+    store.set_grant("pat", "p", "operator")
+    assert attach(ws_client(app, "pat")).reason == "no such session"
+
+
+def test_live_events_rereads_the_session():
+    """An open event stream follows grant and role changes, and ends with the session (D88)."""
+    from mcui.api.wsproxy import Dedupe, LiveEvents, SessionEnded
+    from mcui.auth.policy import Scope
+    from mcui.auth.store import Session, User
+
+    now = [0.0]
+    admin = Session("t", "c", User(1, "a", "admin"), 0)
+    pat = Session("t", "c", User(1, "a", "project", {"web": "viewer"}), 0)
+    current = [admin]
+    ev = LiveEvents(lambda: current[0], Scope(None), Dedupe(), every=30, clock=lambda: now[0])
+    assert ev('{"project":"lab","n":1}')  # a global role sees everything
+    current[0] = pat  # demoted: applies at the next check
+    assert ev('{"project":"lab","n":2}')
+    now[0] = 30
+    assert not ev('{"project":"lab","n":3}') and ev('{"project":"web","n":4}')
+    current[0] = None  # logged out, expired or deleted
+    now[0] = 60
+    with pytest.raises(SessionEnded):
+        ev('{"project":"web","n":5}')

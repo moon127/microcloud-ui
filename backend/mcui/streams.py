@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hashlib
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
@@ -11,6 +12,11 @@ from dataclasses import dataclass, field
 from websockets.asyncio.client import ClientConnection
 
 STREAM_TTL = 3600.0
+
+
+def session_key(token: str) -> str:
+    """What a stream keeps of the session that started it: never the token itself."""
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 @dataclass
@@ -29,6 +35,10 @@ class Stream:
     control: ClientConnection | None = None
     attached: int = 0
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    # the login session that started it (a hash of its token): a reload or another tab
+    # shares it; after a logout, or the user deleted and made again under the same name
+    # (SQLite can reuse the id), it no longer matches (D88)
+    session: str | None = None
 
     async def acquire_control(
         self, connect: Callable[[str], Awaitable[ClientConnection]]

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 
 from mcui import __version__
 from mcui.api import (
@@ -45,6 +45,28 @@ REPO_STATIC_DIR = _HERE.parent.parent / "frontend" / "dist"  # a checkout after 
 PACKAGED_STATIC_DIR = _HERE / "static"  # inside the wheel (`make dist`, D63)
 
 
+def security_headers_for(request: Request) -> dict[str, str]:
+    """A second layer if a cross-site scripting bug ever appears, and no framing (D88).
+    Inline styles stay allowed (React ``style`` props); the SPICE console plays its
+    video and audio from blob: URLs; websockets only to this host."""
+    host = request.headers.get("host", "")
+    ws = f" wss://{host} ws://{host}" if host else ""
+    headers = {
+        "Content-Security-Policy": (
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self' data:; "
+            f"connect-src 'self'{ws}; object-src 'none'; base-uri 'none'; "
+            "form-action 'self'; frame-ancestors 'none'"
+        ),
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "DENY",
+        "Referrer-Policy": "same-origin",
+    }
+    if request.url.scheme == "https":
+        headers["Strict-Transport-Security"] = "max-age=31536000"
+    return headers
+
+
 def default_static_dir(repo: Path = REPO_STATIC_DIR, packaged: Path = PACKAGED_STATIC_DIR) -> Path:
     """The built SPA: a checkout's frontend/dist, else the copy shipped in the wheel."""
     return repo if (repo / "index.html").is_file() else packaged
@@ -74,7 +96,15 @@ def create_app(
 
     app = FastAPI(title="microcloud-ui", version=__version__, lifespan=lifespan)
     app.state.services = services
-    app.state.restricted_cache = {}  # project -> (checked at, restricted=true)
+    app.state.restricted_cache = {}  # project -> (checked at, its config)
+
+    @app.middleware("http")
+    async def security_headers(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        response = await call_next(request)
+        response.headers.update(security_headers_for(request))
+        return response
 
     @app.exception_handler(UnsafePath)
     async def unsafe_path(_: Request, exc: UnsafePath) -> JSONResponse:

@@ -226,6 +226,12 @@ async def test_projects(app, services):
     put = respx.put(f"{EP1}/1.0/projects/lab").mock(return_value=lxd_ok(None))
     ren = respx.post(f"{EP1}/1.0/projects/lab").mock(return_value=async_resp())
     dele = respx.delete(f"{EP1}/1.0/projects/lab").mock(return_value=lxd_ok(None))
+    respx.get(f"{EP1}/1.0/operations/op1/wait").mock(
+        return_value=lxd_ok({"id": "op1", "status": "Success"})
+    )
+    # grants follow a renamed project and go with a deleted one (D88)
+    services.store.add_user("pat", "patpw", "project")
+    services.store.set_grant("pat", "lab", "admin", host_devices=True)
     async with client(app) as c:
         h = await admin(c)
         assert (await c.get("/api/projects/lab")).json() == {"name": "lab"}
@@ -245,7 +251,11 @@ async def test_projects(app, services):
         assert body(put) == {"description": "d", "config": {"limits.instances": "5"}}
         await c.post("/api/projects/lab/rename", json={"name": "lab2"}, headers=h)
         assert body(ren) == {"name": "lab2"}
+        pat = services.store.get_user("pat")
+        assert pat.grants == {"lab2": "admin"} and pat.host_devices == {"lab2"}
+        services.store.set_grant("pat", "lab", "viewer")  # as if lab came back
         assert (await c.delete("/api/projects/lab", headers=h)).status_code == 200 and dele.called
+        assert services.store.get_user("pat").grants == {"lab2": "admin"}
         for r in (
             await c.post("/api/projects/default/rename", json={"name": "x"}, headers=h),
             await c.delete("/api/projects/default", headers=h),

@@ -55,9 +55,10 @@ def test_paths_agree():
     assert "groupadd --system --gid 8843 mcui" in install  # same ids as the image
     assert "ReadWritePaths=/var/lib/mcui" in unit and "User=mcui" in unit
     assert 'tls_cert = "/var/lib/mcui/tls/ui.crt"' in read("config.example.toml")
-    assert (
-        'tls="$DATA/tls"' in install and '"$tls/ui.crt"' in install and '"$tls/ui.key"' in install
-    )
+    assert 'tls="$DATA/tls"' in install and "-keyout ui.key -out ui.crt" in install
+    # made as mcui, not root: root would follow symlinks planted in $DATA (D88)
+    assert "runuser -u mcui -- sh -c" in install and '[ ! -L "$tls/ui.key" ]' in install
+    assert 'chown mcui:mcui "$tls' not in install
 
 
 def test_container_files_agree():

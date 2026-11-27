@@ -7,6 +7,7 @@ import contextlib
 import logging
 from dataclasses import dataclass, field
 
+from mcui.auth.limit import LoginLimiter
 from mcui.auth.store import Store
 from mcui.config import Settings
 from mcui.hostfs import HostFsConfig, effective
@@ -41,6 +42,8 @@ class Services:
     node: NodeScraper | None = None
     streams: StreamRegistry = field(default_factory=StreamRegistry)
     browser: HostBrowser | None = None
+    logins: LoginLimiter = field(default_factory=LoginLimiter)
+    hashing: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(2))
     _housekeeping: asyncio.Task[None] | None = None
 
     def hostfs(self) -> HostFsConfig:

@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
 from mcui.api.deps import COOKIE, AdminDep, LXDDep, ScopeDep, ServicesDep, SessionDep, StoreDep
@@ -49,12 +50,36 @@ def _me(s: Session) -> dict[str, Any]:
 
 
 @router.post("/auth/login")
-async def login(body: LoginBody, response: Response, services: ServicesDep) -> dict[str, Any]:
-    store = services.store
-    user = store.authenticate(body.username, body.password)
+async def login(
+    body: LoginBody, request: Request, response: Response, services: ServicesDep
+) -> dict[str, Any]:
+    store, limiter = services.store, services.logins
+    address = request.client.host if request.client else ""
+    wait = limiter.retry_after(address, body.username)
+    if wait > 0:
+        raise HTTPException(
+            status_code=429,
+            detail="too many failed sign-ins: wait a few minutes",
+            headers={"Retry-After": str(int(wait) + 1)},
+        )
+    row, stored = store.login_lookup(body.username)
+    # argon2 in a worker thread, two at a time: each takes tens of ms of CPU and 64 MiB,
+    # and on the event loop a handful of sign-ins stalled every page and stream (D88)
+    async with services.hashing:
+        ok = await asyncio.to_thread(store.verify, stored, body.password)
+    user = store.login_finish(row, body.password) if ok else None
     if user is None:
-        store.audit(body.username, "auth.login", ok=False)
+        limiter.failed(address, body.username)
+        # what was typed as a username is sometimes a password: keep only real usernames
+        known = row is not None
+        store.audit(
+            body.username if known else None,
+            "auth.login",
+            ok=False,
+            detail=None if known else {"username": "(unknown)"},
+        )
         raise HTTPException(status_code=401, detail="invalid username or password")
+    limiter.succeeded(body.username)
     ttl = services.settings.server.session_hours * 3600
     session = store.create_session(user, ttl)
     response.set_cookie(

@@ -450,17 +450,18 @@ async def rename_project(
 ) -> dict[str, Any]:
     if name == "default":
         raise HTTPException(status_code=400, detail="the default project can't be renamed")
-    return await _change(
-        session,
-        store,
-        lxd,
-        "project.rename",
-        name,
-        "POST",
-        f"/1.0/projects/{name}",
-        json={"name": body.name},
-        detail={"to": body.name},
-    )
+
+    async def call() -> operations.Started:
+        # finished first: the grants move only with a project that did (D88)
+        st = await operations.finished(
+            lxd,
+            await operations.start(lxd, "POST", f"/1.0/projects/{name}", json={"name": body.name}),
+        )
+        store.rename_project_grants(name, body.name)
+        return st
+
+    st = await audited(session, store, "project.rename", name, call(), detail={"to": body.name})
+    return st.as_dict()
 
 
 @router.delete("/projects/{name}")
@@ -469,6 +470,14 @@ async def delete_project(
 ) -> dict[str, Any]:
     if name == "default":
         raise HTTPException(status_code=400, detail="the default project can't be deleted")
-    return await _change(
-        session, store, lxd, "project.delete", name, "DELETE", f"/1.0/projects/{name}"
-    )
+
+    async def call() -> operations.Started:
+        st = await operations.finished(
+            lxd, await operations.start(lxd, "DELETE", f"/1.0/projects/{name}")
+        )
+        # a later project of the same name mustn't inherit them (D88)
+        store.drop_project_grants(name)
+        return st
+
+    st = await audited(session, store, "project.delete", name, call())
+    return st.as_dict()

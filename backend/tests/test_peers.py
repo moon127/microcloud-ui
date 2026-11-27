@@ -76,7 +76,7 @@ async def test_a_project_admin_peers_only_to_projects_they_see(tmp_path):
         services=build_services(settings, store=store, clients=lxd_pair()), static_dir=None
     )
     respx.get(f"{EP1}/1.0/projects/web").mock(
-        return_value=lxd_ok({"config": {"restricted": "true"}})
+        return_value=lxd_ok({"config": {"restricted": "true", "features.networks": "true"}})
     )
     create = respx.post(PEERS).mock(return_value=async_resp())
     url = "/api/networks/web/ovn1/peers"

@@ -399,3 +399,43 @@ async def test_a_project_move_needs_manage_in_both(tmp_path):
         assert r.status_code == 403 and "manage right in ops" in r.text and not move.called
         assert (await c.post(url, json={"project": "lab"}, headers=h)).status_code == 200
         assert move.called
+
+
+# --- shared default objects (0.3.4 follow-up, D88) ---------------------------------------
+
+
+@respx.mock
+async def test_project_users_dont_write_the_default_projects_shared_objects(tmp_path):
+    """Without features.profiles, LXD applies a project's profile writes to default's
+    profiles and checks restrictions there (LXD source, AllowProfileUpdate on the effective
+    project). The same for images, volumes and networks: refused for project users."""
+    store = fast_store()
+    store.add_user("pat", "patpw", "project")
+    store.set_grant("pat", "web", "admin")
+    settings = Settings(server={"data_dir": str(tmp_path), "secure_cookies": False})
+    app = create_app(
+        services=build_services(settings, store=store, clients=lxd_pair()), static_dir=None
+    )
+    cfg = {"restricted": "true"}
+    respx.get(f"{EP1}/1.0/projects/web").mock(side_effect=lambda req: lxd_ok({"config": cfg}))
+    put = respx.put(f"{EP1}/1.0/profiles/default").mock(return_value=lxd_ok(None))
+    respx.get(f"{EP1}/1.0/profiles/default").mock(return_value=lxd_ok({"name": "default"}))
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "pat", "patpw")}
+        writes = [
+            ("PUT", "/api/profiles/web/default", {"config": {}}, "features.profiles"),
+            ("POST", "/api/profiles", {"name": "p", "project": "web"}, "features.profiles"),
+            ("DELETE", "/api/images/web/" + "a" * 64, None, "features.images"),
+            ("DELETE", "/api/volumes/web/remote/v1", None, "features.storage.volumes"),
+            ("DELETE", "/api/networks/web/net1", None, "features.networks"),
+            ("POST", "/api/network-acls", {"name": "a", "project": "web"}, "features.networks"),
+        ]
+        for method, url, body, feature in writes:
+            r = await c.request(method, url, json=body, headers=h)
+            assert r.status_code == 403 and feature in r.text, (url, r.text)
+        assert not put.called
+        assert (await c.get("/api/profiles/web/default")).status_code == 200  # reading is fine
+        app.state.restricted_cache.clear()
+        cfg["features.profiles"] = "true"
+        r = await c.put("/api/profiles/web/default", json={"config": {}}, headers=h)
+        assert r.status_code == 200 and put.called

@@ -8,8 +8,8 @@ from fastapi import APIRouter, HTTPException, WebSocket
 from pydantic import BaseModel
 
 from mcui.api.audited import audited
-from mcui.api.deps import AdminDep, ClusterReadDep, LXDDep, ScopeDep, StoreDep
-from mcui.api.wsproxy import UPSTREAM, Dedupe, ProjectEvents, authenticate, redact_event, relay
+from mcui.api.deps import COOKIE, AdminDep, ClusterReadDep, LXDDep, ScopeDep, StoreDep
+from mcui.api.wsproxy import UPSTREAM, Dedupe, LiveEvents, authenticate, redact_event, relay
 from mcui.auth.policy import Scope
 from mcui.lxd import operations
 from mcui.lxd.client import LXDError
@@ -161,8 +161,8 @@ async def events(ws: WebSocket) -> None:
     except LXDError as e:
         await ws.close(code=UPSTREAM, reason=str(e)[:120])
         return
-    dedupe = Dedupe()
-    keep = dedupe if scope.everything else ProjectEvents(scope, dedupe)
+    token = ws.cookies.get(COOKIE) or ""
+    keep = LiveEvents(lambda: services.store.get_session(token), scope, Dedupe())
     await relay(ws, upstream, read_client=False, keep=keep, rewrite=redact_event)
 
 

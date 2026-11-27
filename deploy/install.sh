@@ -116,18 +116,21 @@ if [ ! -e "$ETC/config.toml" ]; then
     install -o root -g mcui -m 0640 "$HERE/config.example.toml" "$ETC/config.toml"
 fi
 tls="$DATA/tls"
-if [ ! -e "$tls/ui.key" ]; then
+# made by the mcui user, not root: $DATA belongs to mcui, so root writing (or chowning)
+# there would follow any symlink planted in it, e.g. ui.crt -> /etc/shadow (D88).
+# -L too: a dangling symlink isn't -e.
+if [ ! -e "$tls/ui.key" ] && [ ! -L "$tls/ui.key" ]; then
     fqdn=$(hostname -f 2>/dev/null || hostname)
     san="DNS:$(hostname),DNS:$fqdn"
     for ip in $(hostname -I); do san="$san,IP:$ip"; done
     say "making a self-signed HTTPS certificate for $san"
-    install -d -o mcui -g mcui -m 0700 "$tls"
-    openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes -days 825 \
-        -subj "/CN=$fqdn" -addext "subjectAltName=$san" \
-        -keyout "$tls/ui.key" -out "$tls/ui.crt" 2>/dev/null
-    chown mcui:mcui "$tls/ui.key" "$tls/ui.crt"
-    chmod 600 "$tls/ui.key"
-    chmod 644 "$tls/ui.crt"
+    # shellcheck disable=SC2016  # $1-$3 are the inner shell's arguments
+    runuser -u mcui -- sh -c 'umask 077 && mkdir -p "$1" && cd "$1" &&
+        openssl req -x509 -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 -nodes \
+            -days 825 -subj "/CN=$2" -addext "subjectAltName=$3" \
+            -keyout ui.key -out ui.crt 2>/dev/null && chmod 644 ui.crt' \
+        sh "$tls" "$fqdn" "$san" ||
+        die "couldn't write the HTTPS certificate in $tls as the mcui user: check that nothing there is a symlink, then run again"
 fi
 
 # --- service ----------------------------------------------------------------

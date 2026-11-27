@@ -257,6 +257,16 @@ class Store:
         if cur.rowcount == 0:
             raise AuthError(f"{username!r} has no grant on {project!r}")
 
+    def rename_project_grants(self, old: str, new: str) -> int:
+        """Grants follow a renamed project (D88): left behind, a later project reusing the
+        old name would inherit them. Returns how many moved."""
+        cur = self.db.execute("UPDATE grants SET project = ? WHERE project = ?", (new, old))
+        return cur.rowcount
+
+    def drop_project_grants(self, project: str) -> int:
+        """Grants go with a deleted project (D88). Returns how many went."""
+        return self.db.execute("DELETE FROM grants WHERE project = ?", (project,)).rowcount
+
     def delete_user(self, username: str) -> None:
         cur = self.db.execute("DELETE FROM users WHERE username = ?", (username,))
         if cur.rowcount == 0:
@@ -268,17 +278,31 @@ class Store:
 
     def authenticate(self, username: str, password: str) -> User | None:
         """Check a password; constant work whether or not the user exists."""
+        row, stored = self.login_lookup(username)
+        return self.login_finish(row, password) if self.verify(stored, password) else None
+
+    def login_lookup(self, username: str) -> tuple[sqlite3.Row | None, str]:
+        """The user's row and stored hash, or none and a dummy hash (same work either way).
+        The login route verifies in a worker thread, off the event loop (D88)."""
         row = self.db.execute(
             "SELECT id, username, role, password_hash FROM users WHERE username = ?",
             (username,),
         ).fetchone()
-        stored = row["password_hash"] if row else self._dummy_hash
+        return row, (row["password_hash"] if row else self._dummy_hash)
+
+    def verify(self, stored: str, password: str) -> bool:
+        """The argon2 check alone: no database, so it may run in another thread."""
         try:
             self.hasher.verify(stored, password)
         except (VerificationError, InvalidHashError):
-            return None
+            return False
+        return True
+
+    def login_finish(self, row: sqlite3.Row | None, password: str) -> User | None:
+        """After a matching password: rehash if the parameters changed, and the user."""
         if row is None:  # pragma: no cover - the password matched the random dummy
             return None
+        stored = row["password_hash"]
         if self.hasher.check_needs_rehash(stored):
             self.db.execute(
                 "UPDATE users SET password_hash = ? WHERE id = ?",

@@ -294,9 +294,12 @@ def scoped(tmp_path):
     )
 
 
+OWN = {f"features.{f}": "true" for f in ("profiles", "images", "networks", "storage.volumes")}
+
+
 def restricted():
     respx.get(url__regex=rf"{EP1}/1\.0/projects/(web|lab)$").mock(
-        return_value=lxd_ok({"config": {"restricted": "true"}})
+        return_value=lxd_ok({"config": {"restricted": "true", **OWN}})
     )
 
 

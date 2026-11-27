@@ -11,6 +11,7 @@ from collections.abc import Awaitable, Callable
 from typing import Annotated, Any, TypeVar
 
 from fastapi import Depends, HTTPException, Request
+from starlette.requests import HTTPConnection
 
 from mcui.auth.policy import (
     Action,
@@ -124,22 +125,43 @@ async def get_scope(session: SessionDep) -> Scope:
 
 ScopeDep = Annotated[Scope, Depends(get_scope)]
 
-RESTRICTED_TTL = 30.0  # how long a project's restricted=true is trusted
+RESTRICTED_TTL = 30.0  # how long a project's config (restricted, features) is trusted
+
+# Writes a project user makes here land on the project's own objects only if the project
+# has that feature. Without it LXD resolves the project to "default" and checks
+# restrictions there, where there are none: a restricted project's admin could edit
+# default's profiles (LXD's AllowProfileUpdate runs against the effective project; found
+# in the 2026-11-27 review, D88). LXD refused network writes in the same case (seen live);
+# they're covered all the same.
+FEATURE_BY_PREFIX: tuple[tuple[str, str, str], ...] = (
+    ("/api/profiles", "features.profiles", "profiles"),
+    ("/api/images", "features.images", "images"),
+    ("/api/volumes", "features.storage.volumes", "storage volumes"),
+    ("/api/networks", "features.networks", "networks"),
+    ("/api/network-acls", "features.networks", "networks"),
+)
 
 
-async def _restricted(request: Request, lxd: LXDClient, project: str) -> bool:
-    from mcui.lxd.projects import NoSuchProject, is_restricted
+async def _config(request: HTTPConnection, lxd: LXDClient, project: str) -> dict[str, str]:
+    from mcui.lxd.projects import NoSuchProject, project_config
 
-    cache: dict[str, tuple[float, bool]] = request.app.state.restricted_cache
+    cache: dict[str, tuple[float, dict[str, str]]] = request.app.state.restricted_cache
     hit = cache.get(project)
     if hit and time.monotonic() - hit[0] < RESTRICTED_TTL:
         return hit[1]
     try:
-        value = await is_restricted(lxd, project)
+        value = await project_config(lxd, project)
     except NoSuchProject:
-        value = False
+        value = {}
     cache[project] = (time.monotonic(), value)
     return value
+
+
+async def _restricted(request: HTTPConnection, lxd: LXDClient, project: str) -> bool:
+    return (await _config(request, lxd, project)).get("restricted") == "true"
+
+
+project_restricted = _restricted  # for websockets, which have no dependencies
 
 
 async def _authorize(
@@ -152,11 +174,23 @@ async def _authorize(
         raise HTTPException(status_code=404, detail="not found")
     # a project user's operate/manage rights need LXD to guard the host (D81)
     needs_restricted = user.role == "project" and action != "read"
-    if needs_restricted and lxd is not None and not await _restricted(request, lxd, project):
+    if not needs_restricted or lxd is None:
+        return
+    if not await _restricted(request, lxd, project):
         raise HTTPException(
             status_code=403,
             detail=f"project {project} is no longer restricted, so it's read-only for now",
         )
+    path = request.url.path
+    for prefix, feature, kind in FEATURE_BY_PREFIX:
+        if path == prefix or path.startswith(prefix + "/"):
+            if (await _config(request, lxd, project)).get(feature) != "true":
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"project {project} shares the default project's {kind} ({feature}"
+                    " is off), so its users can't change them",
+                )
+            break
 
 
 def _project_dep(action: Action) -> Callable[..., Awaitable[Session]]:

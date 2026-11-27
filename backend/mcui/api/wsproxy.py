@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import json
+import time
 from collections import deque
 from collections.abc import Callable, Coroutine
 from typing import Any
@@ -95,6 +96,41 @@ def redact_event(msg: str | bytes) -> str | bytes:
     if not isinstance(event, dict) or not isinstance(event.get("metadata"), dict):
         return msg
     return json.dumps({**event, "metadata": redact(event["metadata"])})
+
+
+class SessionEnded(RuntimeError):
+    """The events socket's session was logged out, expired or its user deleted. A
+    RuntimeError, so the relay closes the socket quietly; the browser's reconnect then
+    meets the login check."""
+
+
+class LiveEvents:
+    """The events filter, re-reading the session every ``every`` seconds (D88): a grant
+    removed, a role changed or a logout applies to an open event stream within that
+    time, instead of lasting as long as the socket. Then it's ``ProjectEvents`` for a
+    project user, everything for a global role, both deduplicated."""
+
+    def __init__(
+        self,
+        lookup: Callable[[], Session | None],
+        user_scope: Scope,
+        dedupe: Callable[[str | bytes], bool],
+        every: float = 30.0,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self.lookup, self.scope, self.dedupe = lookup, user_scope, dedupe
+        self.every, self.clock = every, clock
+        self.checked = clock()
+
+    def __call__(self, msg: str | bytes) -> bool:
+        if self.clock() - self.checked >= self.every:
+            session = self.lookup()
+            if session is None:
+                raise SessionEnded("session ended")
+            self.scope, self.checked = Scope.of(session.user), self.clock()
+        if self.scope.everything:
+            return self.dedupe(msg)
+        return ProjectEvents(self.scope, self.dedupe)(msg)
 
 
 class Dedupe:

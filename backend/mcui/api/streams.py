@@ -21,14 +21,15 @@ from pydantic import BaseModel, Field
 from websockets.asyncio.client import ClientConnection
 
 from mcui.api.audited import audited
-from mcui.api.deps import LXDDep, ProjectOperateDep, ServicesDep, StoreDep
+from mcui.api.deps import LXDDep, ProjectOperateDep, ServicesDep, StoreDep, project_restricted
 from mcui.api.instances import InstName, ProjectName
 from mcui.api.wsproxy import POLICY, UPSTREAM, authenticate, relay_stream
+from mcui.auth.policy import allowed
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient, LXDError
 from mcui.lxd.server import members
 from mcui.services import Services
-from mcui.streams import Stream, StreamRegistry
+from mcui.streams import Stream, StreamRegistry, session_key
 
 router = APIRouter(prefix="/api")
 
@@ -85,6 +86,7 @@ async def _start(
         id=uuid.uuid4().hex,
         kind=kind,
         owner=session.user.username,
+        session=session_key(session.token),
         project=project,
         instance=name,
         operation=str(op.get("id")),
@@ -208,10 +210,23 @@ async def attach(ws: WebSocket, stream_id: str) -> None:
         return
     services: Services = ws.app.state.services
     stream = services.streams.get(stream_id)
-    if stream is None or stream.owner != session.user.username or services.lxd is None:
+    user = session.user
+    if (
+        stream is None
+        or stream.owner != user.username
+        or stream.session != session_key(session.token)
+        or services.lxd is None
+    ):
         await ws.close(code=POLICY, reason="no such session")
         return
     lxd = services.lxd
+    # the right, again: a grant removed (or a project no longer restricted) since the
+    # stream started ends it (D88)
+    if not allowed(user, stream.project, "operate") or (
+        user.role == "project" and not await project_restricted(ws, lxd, stream.project)
+    ):
+        await ws.close(code=POLICY, reason=f"no longer allowed in {stream.project}")
+        return
     path = f"/1.0/operations/{stream.operation}/websocket"
 
     async def connect(secret: str) -> ClientConnection:
