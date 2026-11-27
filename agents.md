@@ -250,6 +250,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.3.3 released 2026-11-27** (run 46001721815): the container stop fix and the
+  frontend dependency updates. `main` is now 0.3.4.dev0.
 - **Container stop fix 2026-11-27:** as PID 1 in the image, uvicorn's re-raise of SIGTERM
   after a graceful shutdown failed with `PermissionError`, so every stop or restart left the
   Quadlet unit failed (exit 1; in 0.3.2 and before). `mcui serve` now runs its own
