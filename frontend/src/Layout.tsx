@@ -1,4 +1,6 @@
 import { NavLink, Outlet } from "react-router";
+import { AlertBell, AlertNotices } from "./AlertBell";
+import { useAlertCenter } from "./alertCenter";
 import { fetchProjects } from "./api";
 import { useProject } from "./project";
 import { applyTheme, THEMES, useThemeChoice, type Theme } from "./theme";
@@ -17,7 +19,7 @@ const NAV: { to: string; label: string; end?: boolean; who?: "cluster" | "admin"
   { to: "/ceph", label: "Ceph", who: "cluster" },
   { to: "/networks", label: "Networks" },
   { to: "/operations", label: "Operations" },
-  { to: "/warnings", label: "Warnings", who: "cluster" },
+  { to: "/alerts", label: "Alerts" },
   { to: "/audit", label: "Audit" },
   { to: "/users", label: "Users", who: "admin" },
   { to: "/settings", label: "Settings", who: "admin" },
@@ -28,6 +30,7 @@ export default function Layout() {
   const access = useAccess();
   const { project, setProject } = useProject();
   const projects = useApi("projects", fetchProjects, 300_000);
+  const alerts = useAlertCenter();
   return (
     <>
       <header className="topbar">
@@ -53,6 +56,7 @@ export default function Layout() {
             )}
           </select>
         </label>
+        <AlertBell center={alerts} />
         <ThemeSelect />
         <span>
           {user.username} ({user.role}){" "}
@@ -61,6 +65,7 @@ export default function Layout() {
           </button>
         </span>
       </header>
+      <AlertNotices center={alerts} />
       <main>
         <Outlet />
       </main>

@@ -11,6 +11,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, HTTPException, Path, Query, Request
 from pydantic import AfterValidator, BaseModel, Field
 
+from mcui.alerts.store import AlertStore
 from mcui.api.audited import audited
 from mcui.api.deps import (
     AdminDep,
@@ -455,6 +456,11 @@ def _forget_project(request: Request, *names: str) -> None:
         request.app.state.restricted_cache.pop(n, None)
 
 
+def _alerts(request: Request) -> AlertStore | None:
+    alerts = request.app.state.services.alerts
+    return alerts.store if alerts is not None else None
+
+
 @router.post("/projects/{name}/rename")
 async def rename_project(
     request: Request,
@@ -474,6 +480,8 @@ async def rename_project(
             await operations.start(lxd, "POST", f"/1.0/projects/{name}", json={"name": body.name}),
         )
         store.rename_project_grants(name, body.name)
+        if alerts := _alerts(request):  # its alerts follow it too (D91)
+            alerts.rename_project(name, body.name)
         _forget_project(request, name, body.name)
         return st
 
@@ -494,6 +502,8 @@ async def delete_project(
         )
         # a later project of the same name mustn't inherit them (D88)
         store.drop_project_grants(name)
+        if alerts := _alerts(request):
+            alerts.forget_project(name)
         _forget_project(request, name)
         return st
 

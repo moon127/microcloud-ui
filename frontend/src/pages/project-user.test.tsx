@@ -38,12 +38,13 @@ describe("navigation by role", () => {
 
   it("viewers see the cluster pages but not Users", () => {
     const links = nav(viewer);
-    expect(links).toEqual(expect.arrayContaining(["Storage", "Ceph", "Warnings"]));
+    expect(links).toEqual(expect.arrayContaining(["Storage", "Ceph", "Alerts"]));
     expect(links).not.toContain("Users");
   });
 
   it("project users see only project pages", () => {
-    expect(nav(pat)).toEqual(["Overview", "Instances", "Profiles", "Images", "Projects", "Networks", "Operations", "Audit"]);
+    // Alerts for everyone: a project user's shows their projects' (D91)
+    expect(nav(pat)).toEqual(["Overview", "Instances", "Profiles", "Images", "Projects", "Networks", "Operations", "Alerts", "Audit"]);
     expect(screen.getByText("pat (project)")).toBeInTheDocument();
   });
 });

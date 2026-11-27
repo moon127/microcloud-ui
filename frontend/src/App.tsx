@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { ApiError, fetchMe, logout, setCsrf, type User } from "./api";
 import ActionsProvider from "./ActionsProvider";
 import Layout from "./Layout";
@@ -30,7 +30,7 @@ import CreatePoolPage from "./pages/storage/CreatePoolPage";
 import PoolPage from "./pages/storage/PoolPage";
 import VolumePage from "./pages/storage/VolumePage";
 import VolumesPage from "./pages/storage/VolumesPage";
-import WarningsPage from "./pages/WarningsPage";
+import AlertsPage from "./pages/AlertsPage";
 import AuditPage from "./pages/AuditPage";
 import { ProjectProvider } from "./ProjectProvider";
 import { SessionContext } from "./session";
@@ -72,7 +72,8 @@ export function AppRoutes() {
         <Route path="ovn" element={<OvnPage />} />
         <Route path="network-acls/:project/:name" element={<AclPage />} />
         <Route path="operations" element={<OperationsPage />} />
-        <Route path="warnings" element={<WarningsPage />} />
+        <Route path="warnings" element={<Navigate to="/alerts?tab=lxd" replace />} />
+        <Route path="alerts" element={<AlertsPage />} />
         <Route path="audit" element={<AuditPage />} />
         <Route path="*" element={<p>Page not found.</p>} />
       </Route>

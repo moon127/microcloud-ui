@@ -17,6 +17,7 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
    | Users, roles and project access | `docs/USERS.md` |
    | Backups, ISOs, moves, volume copies, peers, host devices (how-tos) | `docs/WORKFLOWS.md` |
    | LXD certificates | `docs/LXD-CREDENTIALS.md` |
+   | Alerts (rules, thresholds, the bell) | `docs/ALERTS.md` |
    | Host metrics | `docs/HOST-METRICS.md` |
    | Ceph metrics | `docs/CEPH-METRICS.md` |
    | Production (bundle, systemd, container) | `docs/DEPLOY.md` |
@@ -81,8 +82,9 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
   cloud runs 3.4 (MicroOVN 26.03 `flow-restore-wait` gotcha: `docs/DEPLOY.md`). **Phase 6**
   (users and project access, D81) is done and released (0.2.0). **Phase 7** (backups,
   project moves, ISO upload, restriction keys; D83) is done, towards release 0.3.0.
-  **Phase 8** (metric-store evaluation, alerts, export, quota history) waits for the
-  owner's go-ahead. Don't start it unprompted.
+  **Phase 8a** (alerts in the UI, D91) is the owner's go-ahead for alerts (2026-11-27);
+  the rest of Phase 8 (metric-store evaluation, export, quota history, sending alerts out)
+  waits for the owner. Don't start it unprompted.
 
 ## Environment (owner's Mac)
 

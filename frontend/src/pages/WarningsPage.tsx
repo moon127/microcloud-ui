@@ -5,7 +5,8 @@ import Confirm from "../Confirm";
 import { useApi } from "../useApi";
 import { useAccess } from "../access";
 
-export default function WarningsPage() {
+/** LXD's own warnings; the Alerts page's "LXD warnings" tab (D91). */
+export default function WarningsPage({ embedded = false }: { embedded?: boolean }) {
   const access = useAccess();
   const { run, version } = useActions();
   const { data, error } = useApi(`warnings:${version}`, fetchWarnings, 60_000);
@@ -14,7 +15,7 @@ export default function WarningsPage() {
 
   return (
     <>
-      <h1>Warnings</h1>
+      {!embedded && <h1>Warnings</h1>}
       {error && <p role="alert">{error}</p>}
       {!data && !error && <p role="status">Loading…</p>}
       {data && data.length === 0 && <p>No warnings.</p>}

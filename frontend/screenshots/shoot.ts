@@ -121,6 +121,8 @@ export const PAGES: {
     },
   },
   { file: "settings.png", path: "/settings", wait: "Folder browser", full: true },
+  // alerts (D91): the page, the bell and the critical banner
+  { file: "alerts.png", path: "/alerts", wait: "An OSD is nearly full" },
   // users and project access (D81)
   { file: "users.png", path: "/users", wait: "ops-oncall" },
   { file: "audit.png", path: "/audit", wait: "before-upgrade" },

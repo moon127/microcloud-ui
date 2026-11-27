@@ -212,8 +212,11 @@ can't, for example, choose which member an instance runs on.
 
 ![An operator's instance page](screenshots/project-user-instance.png)
 
-- **Menu:** Overview, Instances, Profiles, Images, Projects, Networks and Operations. No
-  Storage, Ceph, Warnings or Users.
+- **Menu:** Overview, Instances, Profiles, Images, Projects, Networks, Operations and
+  Alerts. No Storage, Ceph, LXD's warnings or Users.
+- **Alerts:** only their projects' (instances out of memory or root disk, the project
+  near its limits, the project's own networks running out of addresses); a project admin
+  can acknowledge them, for everyone ([`ALERTS.md`](ALERTS.md)).
 - **Project picker:** only their projects. "All projects" means all of theirs.
 - **Overview:** their instances only, with no hosts or members table.
 - **Instance pages:** actions and tabs by their role. A viewer gets no Console or Files

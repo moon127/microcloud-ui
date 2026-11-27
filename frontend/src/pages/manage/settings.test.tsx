@@ -1,9 +1,12 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../../api";
 import { renderAt, session } from "../../test/render";
 import SettingsPage from "./SettingsPage";
 
+beforeEach(() => {
+  vi.spyOn(api, "fetchAlertSettings").mockReturnValue(new Promise(() => {}));
+});
 afterEach(() => vi.restoreAllMocks());
 
 const DEFAULT = ["/home", "/etc"];

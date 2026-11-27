@@ -232,6 +232,10 @@ async def test_projects(app, services):
     # grants follow a renamed project and go with a deleted one (D88)
     services.store.add_user("pat", "patpw", "project")
     services.store.set_grant("pat", "lab", "admin", host_devices=True)
+    from mcui.alerts.store import Alert
+
+    alerts = services.alerts.store
+    oom = alerts.fire(Alert("instance_oom", "lab/c1", "warning", "t", "d", "", "lab"))
     async with client(app) as c:
         h = await admin(c)
         assert (await c.get("/api/projects/lab")).json() == {"name": "lab"}
@@ -253,9 +257,13 @@ async def test_projects(app, services):
         assert body(ren) == {"name": "lab2"}
         pat = services.store.get_user("pat")
         assert pat.grants == {"lab2": "admin"} and pat.host_devices == {"lab2"}
+        assert alerts.get(oom)["project"] == "lab2"  # its alerts too (D91)
+        alerts.rename_project("lab2", "lab")
         services.store.set_grant("pat", "lab", "viewer")  # as if lab came back
         assert (await c.delete("/api/projects/lab", headers=h)).status_code == 200 and dele.called
         assert services.store.get_user("pat").grants == {"lab2": "admin"}
+        gone = alerts.get(oom)  # resolved, and no project's any more
+        assert gone["project"] is None and gone["resolved_at"] is not None
         for r in (
             await c.post("/api/projects/default/rename", json={"name": "x"}, headers=h),
             await c.delete("/api/projects/default", headers=h),

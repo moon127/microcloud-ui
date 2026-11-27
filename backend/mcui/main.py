@@ -13,6 +13,7 @@ from mcui import __version__
 from mcui.api import (
     acls,
     admin_settings,
+    alerts,
     auth,
     backups,
     catalog,
@@ -137,6 +138,7 @@ def create_app(
     app.include_router(placement.router)
     app.include_router(registries.router)
     app.include_router(admin_settings.router)
+    app.include_router(alerts.router)
     app.include_router(storage.router)
     app.include_router(volumes.router)
     app.include_router(volume_backups.router)

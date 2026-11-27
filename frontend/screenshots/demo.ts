@@ -5,6 +5,8 @@
 // on MicroCloud 2.x (LXD 5.21) the same pages appear without them.
 import type {
   AuditEntry,
+  AlertRow,
+  AlertSettingsView,
   Backup,
   HostDeviceSettings,
   HostEntry,
@@ -233,6 +235,48 @@ const HOST_FOLDERS: Record<string, HostEntry[]> = {
   "/srv/nfs": [D("ci-cache"), D("datasets"), D("media"), D("releases"), { name: "README.txt", type: "file", size: 2048, mtime: 1794500000 }],
 };
 export const hostFolder = (member: string, path: string): HostFolder => ({ member, path, entries: HOST_FOLDERS[path] ?? [] });
+
+/** Alerts (D91): what the demo cluster has wrong now, and what cleared. */
+const A = (id: number, rule: string, subject: string, severity: "warning" | "critical", title: string, detail: string, link: string, firedAgo: number, extra: Partial<AlertRow> = {}): AlertRow => ({
+  id, key: `${rule}:${subject}`, rule, subject, severity, title, detail, link, project: null,
+  fired_at: 1794400000 - firedAgo, last_seen: 1794400000, resolved_at: null, ack_by: null, ack_at: null, data: {}, ...extra,
+});
+export const ALERTS_ACTIVE: AlertRow[] = [
+  A(6, "ceph_health", "OSD_NEARFULL", "warning", "An OSD is nearly full", "Ceph health check OSD_NEARFULL (HEALTH_WARN). Details: ceph health detail", "/ceph", 1500),
+  A(5, "local_pool", "node-2/local", "critical", "Storage pool local on node-2 is filling up", "Pool local on node-2 (92%; warning at 80%, critical at 90%)", "/storage/pools/local", 3600),
+  A(4, "network_addresses", "default/default", "warning", "Network default is running out of addresses", "205 of 253 IPv4 addresses in 10.10.0.1/24 in use (81%; warning at 80%, critical at 95%)", "/networks/default/default", 7200, { ack_by: "admin" }),
+  A(3, "instance_rootfs", "web/db-primary", "warning", "db-primary's root disk is filling up", "Root filesystem of web/db-primary (91%; warning at 90%, critical at 95%)", "/instances/web/db-primary", 86400, { project: "web" }),
+];
+export const ALERTS_HISTORY: AlertRow[] = [
+  A(2, "member_status", "node-3", "warning", "node-3 is evacuated", "Evacuated: its instances run elsewhere until it's restored", "/members/node-3", 172800, { resolved_at: 1794400000 - 169200 }),
+  A(1, "host_clock", "node-1", "warning", "node-1's clock isn't synchronised", "The kernel reports the clock unsynchronised (check chrony or systemd-timesyncd); Ceph and OVN need it", "/members/node-1", 259200, { resolved_at: 1794400000 - 258900 }),
+];
+const THRESHOLDS: Record<string, [number, number]> = {
+  ceph_raw: [75, 85], local_pool: [80, 90], host_fs: [85, 95], host_memory: [90, 95], instance_rootfs: [90, 95],
+  project_limits: [90, 98], ovn_uplink: [80, 95], network_addresses: [80, 95], cert_days: [30, 7],
+};
+const RULE_INFO: [string, string, string | null, number][] = [
+  ["ceph_health", "Ceph's own health checks (OSD nearfull, down, degraded, slow...)", null, 0],
+  ["ceph_raw", "Raw Ceph capacity used (%)", "ceph_raw", 60],
+  ["local_pool", "Local storage pools on each member (%)", "local_pool", 60],
+  ["host_fs", "Host filesystems, with node_exporter (%)", "host_fs", 60],
+  ["host_memory", "Host memory in use, with node_exporter (%)", "host_memory", 120],
+  ["host_clock", "Host clocks synchronised, with node_exporter", null, 120],
+  ["member_status", "Cluster members offline or evacuated", null, 60],
+  ["lxd_security", "LXD releases missing a security fix", null, 0],
+  ["instance_oom", "Instances killing processes for lack of memory", null, 0],
+  ["instance_rootfs", "Instance root disks (%)", "instance_rootfs", 60],
+  ["project_limits", "Project limits.* used (%)", "project_limits", 60],
+  ["ovn_uplink", "OVN router addresses used from each uplink's range (%)", "ovn_uplink", 60],
+  ["network_addresses", "IPv4 addresses in use on bridge and OVN networks (%)", "network_addresses", 60],
+  ["cert_expiry", "Certificates expiring (days left)", "cert_days", 0],
+  ["collection", "Metric collection failing (Ceph mgr, node_exporter, LXD)", null, 0],
+];
+export const ALERT_SETTINGS: AlertSettingsView = {
+  rules: RULE_INFO.map(([name, description, threshold, for_seconds]) => ({ name, description, threshold, for_seconds })),
+  thresholds: THRESHOLDS, default_thresholds: THRESHOLDS, thresholds_saved: false,
+  disabled: [], disabled_saved: false, enabled: true, interval_seconds: 30, retention_days: 90,
+};
 
 /** The Settings page (D87): the built-in hidden list, the browser on with its helpers. */
 export const HOST_SETTINGS: HostDeviceSettings = {
@@ -925,6 +969,7 @@ export function answer(method: string, url: URL): unknown {
     "/api/image-registries": REGISTRIES,
     "/api/users": USERS,
     "/api/settings/host-devices": HOST_SETTINGS,
+    "/api/settings/alerts": ALERT_SETTINGS,
     "/api/audit": signedIn.role === "project" ? AUDIT.filter((e) => mine(String(e.target).split("/")[0]) && e.target?.includes("/")) : AUDIT,
     "/api/placement-groups": PLACEMENT,
     "/api/networks/default/default": NETWORK_DETAIL,
@@ -939,6 +984,11 @@ export function answer(method: string, url: URL): unknown {
   };
   if (p in fixed) return fixed[p];
   if (p === "/api/networks") return s.get("target") ? HOST_INTERFACES : NETWORKS;
+  if (p === "/api/alerts") {
+    // a project user sees only their projects' (D91)
+    const rows = s.get("state") === "history" ? ALERTS_HISTORY : ALERTS_ACTIVE;
+    return signedIn.role === "project" ? rows.filter((a) => a.project !== null && mine(a.project)) : rows;
+  }
   if (p === "/api/metrics/query") return query(s);
   if (p === "/api/metrics/top") {
     const t = top(s.get("metric") ?? "cpu", signedIn.role === "project" ? mine : undefined);

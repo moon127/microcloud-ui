@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { fetchHostDeviceSettings, updateHostDeviceSettings, type HostDeviceSettings, type SettingSource } from "../../api";
+import {
+  fetchAlertSettings,
+  fetchHostDeviceSettings,
+  updateAlertSettings,
+  updateHostDeviceSettings,
+  type AlertSettingsChange,
+  type AlertSettingsView,
+  type HostDeviceSettings,
+  type SettingSource,
+} from "../../api";
 import { useAccess } from "../../access";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
@@ -17,18 +26,130 @@ export default function SettingsPage() {
   const access = useAccess();
   const { version } = useActions();
   const s = useApi(`settings:host-devices:${version}`, fetchHostDeviceSettings);
+  const al = useApi(`settings:alerts:${version}`, fetchAlertSettings);
   if (!access.clusterAdmin) return <p role="alert">Settings need the cluster admin role.</p>;
   return (
     <>
       <h1>Settings</h1>
       <p className="muted">
-        Saved here, a setting wins over the config file&apos;s <code>[host_devices]</code> section; <strong>Use the config
-        file</strong> goes back to it.
+        Saved here, a setting wins over the config file&apos;s <code>[alerts]</code> and <code>[host_devices]</code> sections;{" "}
+        <strong>Use the config file</strong> goes back to it.
       </p>
       {s.error && <p role="alert">{s.error}</p>}
       {!s.data && !s.error && <p role="status">Loading…</p>}
+      {al.error && <p role="alert">{al.error}</p>}
+      {al.data && <Alerts key={JSON.stringify(al.data)} s={al.data} />}
       {s.data && <HostDevices key={JSON.stringify(s.data)} s={s.data} />}
     </>
+  );
+}
+
+/** Alert rules: on or off, and their thresholds (D91). */
+function Alerts({ s }: { s: AlertSettingsView }) {
+  const { run } = useActions();
+  const [off, setOff] = useState(new Set(s.disabled));
+  const [limits, setLimits] = useState(s.thresholds);
+  const [problem, setProblem] = useState("");
+  const changedOff = [...off].sort().join() !== [...s.disabled].sort().join();
+  const changedLimits = JSON.stringify(limits) !== JSON.stringify(s.thresholds);
+  const set = (name: string, i: 0 | 1, v: string) => {
+    const next = [...limits[name]] as [number, number];
+    next[i] = v.trim() === "" ? NaN : Number(v); // empty isn't 0: that would alert on everything
+    setLimits({ ...limits, [name]: next });
+  };
+  const save = () => {
+    for (const [name, [warn, crit]] of Object.entries(limits)) {
+      if (!Number.isFinite(warn) || !Number.isFinite(crit)) return setProblem(`${name}: numbers only`);
+      if (name === "cert_days" ? crit > warn : crit < warn) return setProblem(`${name}: critical must be past warning`);
+      // as the server checks (config.threshold_problem)
+      if (name === "cert_days" ? !(crit > 0 && warn <= 3650) : !(warn > 0 && crit <= 100))
+        return setProblem(name === "cert_days" ? `${name}: days above 0` : `${name}: percent between 0 and 100`);
+    }
+    setProblem("");
+    const change: AlertSettingsChange = {};
+    if (changedLimits) change.thresholds = limits;
+    if (changedOff) change.disabled = [...off];
+    void run("Save alert settings", () => updateAlertSettings(change).then(() => undefined));
+  };
+  return (
+    <section aria-label="Alerts">
+      <h2>Alerts</h2>
+      <p className="muted">
+        Checked every {s.interval_seconds} seconds{s.enabled ? "" : " (switched off in the config file)"}; cleared alerts
+        are kept {s.retention_days} days. Percentages, except certificates: days left. An alert fires once its condition
+        has held for the time shown, and clears 2 points below its threshold.
+      </p>
+      <div className="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>On</th>
+              <th>Watches</th>
+              <th>Warning at</th>
+              <th>Critical at</th>
+              <th>Holds for</th>
+            </tr>
+          </thead>
+          <tbody>
+            {s.rules.map((r) => (
+              <tr key={r.name}>
+                <td>
+                  <input
+                    type="checkbox"
+                    aria-label={`${r.name} on`}
+                    checked={!off.has(r.name)}
+                    onChange={(e) => {
+                      const next = new Set(off);
+                      if (e.target.checked) next.delete(r.name);
+                      else next.add(r.name);
+                      setOff(next);
+                    }}
+                  />
+                </td>
+                <td>
+                  {r.description} <span className="muted">({r.name})</span>
+                </td>
+                {r.threshold ? (
+                  ([0, 1] as const).map((i) => (
+                    <td key={i}>
+                      <input
+                        type="number"
+                        className="narrow"
+                        aria-label={`${r.threshold} ${i ? "critical" : "warning"}`}
+                        value={limits[r.threshold!][i]}
+                        onChange={(e) => set(r.threshold!, i, e.target.value)}
+                      />
+                    </td>
+                  ))
+                ) : (
+                  <td colSpan={2} className="muted">
+                    as reported
+                  </td>
+                )}
+                <td>{r.for_seconds ? `${r.for_seconds} s` : "at once"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {problem && <p role="alert">{problem}</p>}
+      <p className="actions">
+        <button type="button" className="primary" disabled={!changedOff && !changedLimits} onClick={save}>
+          Save
+        </button>
+        <button type="button" onClick={() => setLimits(s.default_thresholds)}>
+          Built-in thresholds
+        </button>
+        {(s.thresholds_saved || s.disabled_saved) && (
+          <button
+            type="button"
+            onClick={() => void run("Alert settings from the config file", () => updateAlertSettings({ reset_thresholds: true, reset_disabled: true }).then(() => undefined))}
+          >
+            Use the config file
+          </button>
+        )}
+      </p>
+    </section>
   );
 }
 

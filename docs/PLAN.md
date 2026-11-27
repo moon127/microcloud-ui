@@ -727,6 +727,13 @@ Finding a path (D87, same day): the member's mounts from node_exporter, an opt-i
 browser through helper containers in `mcui-server`, and folders hidden from project admins,
 set in the config file or on a new Settings page.
 
+**Phase 8a: Alerts in the UI (D91, 2026-11-27):** done. Rules on the data the app already
+collects (Ceph's health checks, capacity, pools, hosts, members, instances, project
+limits, OVN ranges, network addresses, certificates, collection), recorded with history,
+a bell, toasts and a banner on every page, an Alerts page replacing Warnings, thresholds
+on Settings. The rest of Phase 8 (sending alerts out, metric store, export, quota history)
+waits.
+
 **Phase 10: Remaining parity** (was Phase 8, before that 7 and 6; after packaging, which is
 done). Backups, project moves and ISO upload moved to Phase 7 (D83). The rest of PJ-2
 (restriction keys beyond 7e), sriov, peers, zones, ACL logs

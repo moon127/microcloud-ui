@@ -17,6 +17,64 @@ export interface User {
   host_devices?: string[];
 }
 
+// --- alerts (Phase 8a, D91) -----------------------------------------------------------
+
+export type AlertSeverity = "warning" | "critical";
+
+export interface AlertRow {
+  id: number;
+  key: string;
+  rule: string;
+  severity: AlertSeverity;
+  title: string;
+  detail: string;
+  subject: string;
+  /** the page that shows it, if any */
+  link: string;
+  project: string | null;
+  fired_at: number;
+  last_seen: number;
+  resolved_at: number | null;
+  ack_by: string | null;
+  ack_at: number | null;
+  data: Record<string, unknown>;
+}
+
+export const fetchAlerts = (state: "active" | "history" = "active", limit = 200) =>
+  api<AlertRow[]>(`/api/alerts?state=${state}&limit=${limit}`);
+export const ackAlert = (id: number) => send<AlertRow>("POST", `/api/alerts/${id}/ack`);
+
+export interface AlertRuleInfo {
+  name: string;
+  description: string;
+  /** the threshold it uses, if any (cert_days is in days, the rest in %) */
+  threshold: string | null;
+  for_seconds: number;
+}
+
+export interface AlertSettingsView {
+  rules: AlertRuleInfo[];
+  thresholds: Record<string, [number, number]>;
+  default_thresholds: Record<string, [number, number]>;
+  thresholds_saved: boolean;
+  disabled: string[];
+  disabled_saved: boolean;
+  enabled: boolean;
+  interval_seconds: number;
+  retention_days: number;
+}
+
+export interface AlertSettingsChange {
+  thresholds?: Record<string, [number, number]>;
+  reset_thresholds?: boolean;
+  disabled?: string[];
+  reset_disabled?: boolean;
+}
+
+export const fetchAlertSettings = () => api<AlertSettingsView>("/api/settings/alerts");
+export const updateAlertSettings = (change: AlertSettingsChange) =>
+  send<AlertSettingsView>("PUT", "/api/settings/alerts", change);
+
 // --- settings a cluster admin changes in the app (D87) --------------------------------
 
 export type SettingSource = "app" | "config" | "default";

@@ -206,6 +206,70 @@ class HostDevicesSettings(_Section):
         return v
 
 
+# (warning, critical) per threshold rule (D91); percentages, except cert_days (days left,
+# so lower is worse)
+DEFAULT_THRESHOLDS: dict[str, tuple[float, float]] = {
+    "ceph_raw": (75, 85),
+    "local_pool": (80, 90),
+    "host_fs": (85, 95),
+    "host_memory": (90, 95),
+    "instance_rootfs": (90, 95),
+    "project_limits": (90, 98),
+    "ovn_uplink": (80, 95),
+    "network_addresses": (80, 95),
+    "cert_days": (30, 7),
+}
+
+
+def threshold_problem(name: str, pair: tuple[float, float]) -> str | None:
+    """Why a [warning, critical] pair can't be used, if so (D91 review): an empty field
+    sent as 0 would alert on everything."""
+    warn, crit = pair
+    if any(v != v or v in (float("inf"), float("-inf")) for v in pair):
+        return "numbers only"
+    if name == "cert_days":
+        if not 0 < crit < warn <= 3650:
+            return "days left: critical below warning, both above 0"
+        return None
+    if not 0 < warn < crit <= 100:
+        return "percent: warning below critical, both between 0 and 100"
+    return None
+
+
+class AlertSettings(_Section):
+    """Alerts (Phase 8a, D91). A cluster admin can change thresholds and switch rules off
+    on the Settings page too; values saved there win over these."""
+
+    enabled: bool = True
+    interval_seconds: int = Field(default=30, ge=10)
+    retention_days: int = Field(default=90, ge=1)
+    # rule name -> [warning, critical]; unset rules keep DEFAULT_THRESHOLDS
+    thresholds: dict[str, tuple[float, float]] = Field(default_factory=dict)
+    disabled: list[str] = Field(default_factory=list)
+
+    @field_validator("thresholds")
+    @classmethod
+    def _known(cls, v: dict[str, tuple[float, float]]) -> dict[str, tuple[float, float]]:
+        unknown = sorted(set(v) - set(DEFAULT_THRESHOLDS))
+        if unknown:
+            raise ValueError(f"unknown alert thresholds: {', '.join(unknown)}")
+        for name, pair in v.items():
+            problem = threshold_problem(name, pair)
+            if problem:
+                raise ValueError(f"alerts threshold {name}: {problem}")
+        return v
+
+    @field_validator("disabled")
+    @classmethod
+    def _known_rules(cls, v: list[str]) -> list[str]:
+        from mcui.alerts.rules import RULES
+
+        unknown = sorted(set(v) - set(RULES))
+        if unknown:
+            raise ValueError(f"unknown alert rules: {', '.join(unknown)}")
+        return v
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="MCUI_", env_nested_delimiter="__", extra="forbid")
 
@@ -215,6 +279,7 @@ class Settings(BaseSettings):
     ceph: CephSettings = Field(default_factory=lambda: CephSettings())
     node_exporter: NodeExporterSettings = Field(default_factory=lambda: NodeExporterSettings())
     host_devices: HostDevicesSettings = Field(default_factory=lambda: HostDevicesSettings())
+    alerts: AlertSettings = Field(default_factory=lambda: AlertSettings())
 
     @classmethod
     def settings_customise_sources(

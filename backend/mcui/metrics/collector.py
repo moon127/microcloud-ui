@@ -65,6 +65,9 @@ class Collector:
         # the last ceph-mgr scrape, for the Ceph dashboard's "now" view
         self.ceph_last: CephScrape | None = None
         self.ceph_at: float | None = None
+        # each member's latest state (storage pools, load...) and when, for the alert rules
+        # (D91); members no longer listed are dropped
+        self.state_last: dict[str, tuple[float, dict[str, Any]]] = {}
 
     # one round of each job
 
@@ -108,7 +111,10 @@ class Collector:
     async def collect_state(self) -> int:
         n = 0
         errors = []
-        for m in self.live.members or await members(self.api):
+        listed = self.live.members or await members(self.api)
+        for gone in set(self.state_last) - {m.name for m in listed}:
+            self.state_last.pop(gone)
+        for m in listed:
             try:
                 try:
                     state = await self.api.get(f"/1.0/cluster/members/{m.name}/state")
@@ -116,6 +122,7 @@ class Collector:
                     if e.status != 404:  # 404: standalone server, no member state
                         raise
                 else:
+                    self.state_last[m.name] = (self.clock(), state)
                     n += await self.store.write(
                         int(self.clock()), member_state_samples(m.name, state)
                     )

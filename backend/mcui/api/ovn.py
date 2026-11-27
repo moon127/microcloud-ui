@@ -91,6 +91,12 @@ async def _network(lxd: LXDClient, project: str, n: dict[str, Any]) -> dict[str,
 
 @router.get("/ovn")
 async def ovn_overview(_: ClusterReadDep, lxd: LXDDep) -> dict[str, Any]:
+    return await overview(lxd)
+
+
+async def overview(lxd: LXDClient) -> dict[str, Any]:
+    """Every OVN network with its uplink and allocations, and each uplink's use of its
+    OVN range; also read by the alert rules (D91)."""
     # projects without features.networks use default's networks: list each network once
     projects = [
         p["name"]

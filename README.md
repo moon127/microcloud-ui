@@ -21,13 +21,19 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   as a form (Phase 7); OVN network peers, copying or moving volumes (Phase 10a), and
   moving instances between Ceph and local storage. How-tos with screenshots:
   [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md).
+- **Alerts:** Ceph's health checks (an OSD nearly full and the rest), storage pools, host
+  disks and memory, members, instances out of memory or disk, project limits, network
+  addresses and OVN ranges, certificates. A bell, toasts and a banner on every page, an
+  Alerts page with history, thresholds on Settings (Phase 8a,
+  [`docs/ALERTS.md`](docs/ALERTS.md)).
 - **Host paths and USB devices:** attach a member's folders (an NFS mount, a SAN), disks and
   USB devices to an instance on it, with what that does to moves and evacuations. Pick a
   member's mounts from a list or, opt-in, browse its folders. Cluster admins only, unless
   they give the right to a project's admins, who don't see the folders hidden on
   **Settings** ([`docs/WORKFLOWS.md`](docs/WORKFLOWS.md#attach-host-paths-and-usb-devices)).
 
-Next in the plan: a metric store evaluation, alerts and export (Phase 8). Owner live
+Next in the plan: the rest of Phase 8 (a metric store evaluation, export, quota history,
+sending alerts out). Owner live
 checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See
 [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md), [`docs/PLAN.md`](docs/PLAN.md) and the
 design log in [`agents.md`](agents.md).
@@ -93,6 +99,7 @@ More: [instances](docs/screenshots/instances.png) ·
 [adding a USB device](docs/screenshots/host-usb.png) ·
 [browsing a member's folders](docs/screenshots/host-browse.png) ·
 [settings](docs/screenshots/settings.png) ·
+[alerts](docs/screenshots/alerts.png) ·
 a project user's [Overview](docs/screenshots/project-user.png) and
 [instance page](docs/screenshots/project-user-instance.png) (an operator: only their projects,
 no cluster pages, no rename or delete)
@@ -195,7 +202,7 @@ Pages:
 - **Ceph:** health, OSDs, pools, latency and the busiest disks.
 - **Networks:** create and edit per member, ACLs, forwards, load balancers, leases and the
   OVN overview.
-- **Operations and Warnings.**
+- **Operations and Alerts** (with LXD's warnings).
 - **Settings** (cluster admins): folders hidden from project admins, and the folder
   browser.
 

@@ -166,6 +166,18 @@ Evacuation, VMs and the browser on the other members are left.
 | U3 | As a project admin: without the right, the tab has no Add buttons; give them the right (**Users → Projects → Allow host devices**) | After reload they can add a path under the project's allowed paths, and LXD refuses one outside them |
 | U4 | **Settings → Folder browser → Switch on**, then Add host path → **Browse** on an instance on each member, in a real browser; then **Switch off** | Folders list (first one after a few seconds); the NFS share's contents show once opened; switching off removes `mcui-server` (`lxc project list`) |
 
+## Alerts (Phase 8a, D91): yours to run
+
+The session checked every rule against the cluster and, in Chrome, the bell, toasts,
+banner, acknowledging, history and a project user's view, with thresholds lowered
+(2026-11-27). Left: alerts from real events on the hosts.
+
+| # | Steps | Expect |
+|---|---|---|
+| A1 | Leave the app open while something real happens: an OSD nearfull, a member evacuated, a host disk past 85% | A toast on whatever page you're on, then the alert on **Alerts**; when it clears, it moves to History |
+| A2 | Stop node_exporter or the active Ceph mgr on a member for a few minutes | A "Collecting … fails" warning; the Ceph and host alerts already open stay rather than clearing |
+| A3 | A member offline (reboot one at a quiet time) | A critical alert and the banner within about a minute; cleared once it's back |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/

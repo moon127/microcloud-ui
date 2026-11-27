@@ -7,6 +7,7 @@ import contextlib
 import logging
 from dataclasses import dataclass, field
 
+from mcui.alerts.service import AlertService
 from mcui.auth.limit import LoginLimiter
 from mcui.auth.store import Store
 from mcui.config import Settings
@@ -42,9 +43,11 @@ class Services:
     node: NodeScraper | None = None
     streams: StreamRegistry = field(default_factory=StreamRegistry)
     browser: HostBrowser | None = None
+    alerts: AlertService | None = None
     logins: LoginLimiter = field(default_factory=LoginLimiter)
     hashing: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(2))
     _housekeeping: asyncio.Task[None] | None = None
+    _alerting: asyncio.Task[None] | None = None
 
     def hostfs(self) -> HostFsConfig:
         """Hidden folders and the browser switch, as saved in the app or configured (D87)."""
@@ -68,17 +71,32 @@ class Services:
             await self.browser_housekeeping()
             await asyncio.sleep(HOUSEKEEPING_SECONDS)
 
+    async def _alert_loop(self) -> None:
+        assert self.alerts is not None  # noqa: S101 - started only with alerts
+        while True:
+            try:
+                await self.alerts.run_once()
+            except Exception as e:  # noqa: BLE001 - keep alerting alive
+                log.warning("alerts: %s", e)
+            await asyncio.sleep(self.settings.alerts.interval_seconds)
+
     async def start(self) -> None:
         if self.collector is not None and self.settings.metrics.collect:
             self.collector.start()
+        if self.alerts is not None and self.settings.alerts.enabled:
+            self._alerting = asyncio.create_task(self._alert_loop())
+        elif self.alerts is not None:
+            # switched off: nothing stays open in every bell and banner (D91 review)
+            self.alerts.store.resolve_all()
         if self.browser is not None:
             self._housekeeping = asyncio.create_task(self._housekeep())
 
     async def aclose(self) -> None:
-        if self._housekeeping is not None:
-            self._housekeeping.cancel()
-            with contextlib.suppress(asyncio.CancelledError):
-                await self._housekeeping
+        for task in (self._housekeeping, self._alerting):
+            if task is not None:
+                task.cancel()
+                with contextlib.suppress(asyncio.CancelledError):
+                    await task
         if self.collector is not None:
             await self.collector.stop()
         for c in {id(c): c for c in (self.lxd, self.metrics_lxd) if c is not None}.values():
@@ -140,14 +158,16 @@ def build_services(
     store = store or Store.open(settings.server.data_dir)
     clients = clients or lxd_clients(settings)
     if clients is None:
-        return Services(settings, store)
+        svc = Services(settings, store)
+        svc.alerts = AlertService(svc)
+        return svc
     api, metrics = clients
     live = LiveMetrics(api, Scraper(metrics, settings.metrics))
     history = metrics_store or open_metric_store(settings)
     ceph = CephScraper(settings.ceph) if settings.ceph.enabled else None
     node = NodeScraper(settings.node_exporter) if settings.node_exporter.enabled else None
     collector = Collector(api, live, history, settings, ceph, node)
-    return Services(
+    svc = Services(
         settings,
         store,
         api,
@@ -161,3 +181,5 @@ def build_services(
         node,
         browser=HostBrowser(api, settings.host_devices),
     )
+    svc.alerts = AlertService(svc)
+    return svc
