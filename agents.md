@@ -250,6 +250,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.3.2 released 2026-11-27** (run 45992467564): host paths and USB devices (D86) and
+  finding them (D87). `main` is now 0.3.3.dev0.
 - **Finding a host path 2026-11-27 (D87):** mounted filesystems from node_exporter in Add
   host path; the opt-in folder browser (helper containers in `mcui-server`, read-only `/`,
   filesystems mounted on the way, idle stop, removal on switch-off and at startup when off);
