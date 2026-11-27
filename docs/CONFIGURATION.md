@@ -61,7 +61,36 @@ username = "mcui"                           # basic auth; set both or neither
 password_file = "~/.config/mcui/node-exporter.pass"   # chmod 600
 member_overrides = {}                       # e.g. { "gw-1" = "https://10.0.0.1:9100" }
 timeout_seconds = 5
+
+[host_devices]                              # host paths and USB devices, see below
+# hidden_paths = ["/home", "/root", "/etc"] # unset: the built-in list
+browse = false                              # the folder browser (helper containers)
+browse_project = "mcui-server"              # the LXD project the helpers live in
+# browse_pool = "remote"                    # unset: the default profile's root pool
+browse_image = "alpine/edge"                # from the images server
+browse_idle_minutes = 10                    # a helper stops after this long unused
 ```
+
+### `[host_devices]`: what project admins can find and attach (D87)
+
+A cluster admin can set both of these in the app too, on **Settings**. A value saved there
+wins over the file, and **Use the config file** goes back to it, so either way works.
+
+- **`hidden_paths`**: folders that project admins with the host-devices right (D86) can't
+  see in the folder browser or the mounted-filesystem list, and can't attach a path inside.
+  Cluster admins aren't limited. Unset, the built-in list hides `/home`, `/root`, `/etc`,
+  `/snap`, `/var/snap` (LXD, MicroCeph and MicroOVN keys), `/run` and `/var/run` (the LXD
+  socket: mounting it hands over the cluster), `/var/lib`, `/var/log`, `/proc`, `/sys`,
+  `/dev`, `/boot`, `/tmp` and `/var/tmp`. USB disks (`/dev/disk/by-id/usb-…`) are always
+  offered. The check is on the path as written; a project's
+  `restricted.devices.disk.paths` is the hard limit, enforced by LXD.
+- **`browse`**: off by default. On, the app keeps a small Alpine container per member in
+  `browse_project` (created when switched on, marked `user.mcui.role=host-browser`), with
+  the member's `/` mounted read-only, and lists folders through it. Helpers start when
+  someone browses and stop after `browse_idle_minutes`. Switching it off, in the app or
+  here (at the next start), deletes the helpers, their image and the project. The app
+  never touches a project of that name without its marker. See
+  [`WORKFLOWS.md`](WORKFLOWS.md#find-a-path-on-the-member).
 
 History lives in `<data_dir>/metrics.db`. Expect roughly 0.5–0.7 GB a year
 for a three-member cluster with ~10 instances and Ceph at the defaults; see

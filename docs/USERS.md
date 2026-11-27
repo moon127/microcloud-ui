@@ -88,6 +88,14 @@ project's restrictions are LXD's, and both apply:
   has a field for it.
 - USB devices: `restricted.devices.usb=allow`.
 
+**Hidden folders (the app's check):** a project admin with the right still can't see or
+attach anything in the folders a cluster admin hides under **Settings** (or
+`[host_devices] hidden_paths`). The built-in list covers personal files, host config,
+snap state with LXD's, MicroCeph's and MicroOVN's keys, `/run` with the LXD socket, logs,
+and kernel and device folders. It's checked on the path as typed, so treat
+`restricted.devices.disk.paths` as the real boundary; the hidden list catches mistakes and
+keeps the folder browser away from private places.
+
 So the safe pattern for, say, an NFS share every member mounts: allow disks with the
 share's folder as the only allowed path, then give that project's admins the right.
 Anyone with the right can attach any USB device a member has, so allow USB only where

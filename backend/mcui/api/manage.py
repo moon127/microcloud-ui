@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from mcui.api.audited import audited
 from mcui.api.deps import (
     AdminDep,
+    HiddenPathsDep,
     InBodyDep,
     LXDDep,
     ProjectManageDep,
@@ -90,11 +91,15 @@ async def get_profile(
 
 @router.post("/profiles")
 async def create_profile(
-    body: NewProfile, guard: InBodyDep, store: StoreDep, lxd: LXDDep
+    body: NewProfile,
+    guard: InBodyDep,
+    store: StoreDep,
+    lxd: LXDDep,
+    hidden_paths: HiddenPathsDep,
 ) -> dict[str, Any]:
     await guard.check(body.project)
     session = guard.session
-    check_host_devices(session, body.project, body.devices)
+    check_host_devices(session, body.project, body.devices, hidden_paths=hidden_paths)
     return await _change(
         session,
         store,
@@ -116,10 +121,12 @@ async def update_profile(
     session: ProjectManageDep,
     store: StoreDep,
     lxd: LXDDep,
+    hidden_paths: HiddenPathsDep,
 ) -> dict[str, Any]:
     if any(is_host_device(d) for d in body.devices.values()):
         current = await lxd.get(f"/1.0/profiles/{name}", project=project)
-        check_host_devices(session, project, body.devices, current.get("devices") or {})
+        old = current.get("devices") or {}
+        check_host_devices(session, project, body.devices, old, hidden_paths)
     return await _change(
         session,
         store,

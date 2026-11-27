@@ -57,6 +57,10 @@ CREATE TABLE IF NOT EXISTS audit (
     operation_id TEXT
 );
 CREATE INDEX IF NOT EXISTS audit_ts ON audit(ts);
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+);
 """
 SCHEMA_VERSION = 2
 
@@ -152,6 +156,24 @@ class Store:
 
     def close(self) -> None:
         self.db.close()
+
+    # --- settings a cluster admin changes in the app (D87) --------------------
+
+    def get_setting(self, key: str) -> Any:
+        """The saved value, or ``None`` when the app hasn't saved one."""
+        row = self.db.execute("SELECT value FROM settings WHERE key = ?", (key,)).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def set_setting(self, key: str, value: Any) -> None:
+        """Save ``value``; ``None`` removes it (back to the config file)."""
+        if value is None:
+            self.db.execute("DELETE FROM settings WHERE key = ?", (key,))
+            return
+        self.db.execute(
+            "INSERT INTO settings (key, value) VALUES (?, ?) "
+            "ON CONFLICT (key) DO UPDATE SET value = excluded.value",
+            (key, json.dumps(value)),
+        )
 
     # --- users -------------------------------------------------------------
 

@@ -179,6 +179,30 @@ class NodeExporterSettings(_Section):
         return self.password_file.read_text().strip()
 
 
+class HostDevicesSettings(_Section):
+    """Host paths and USB devices (D86, D87). A cluster admin can change ``hidden_paths``
+    and ``browse`` in the app too; the app's saved values then win over these."""
+
+    # folders project admins can't browse or attach; unset: the built-in list
+    # (mcui.hostfs.DEFAULT_HIDDEN)
+    hidden_paths: list[str] | None = None
+    # the folder browser: helper containers, one per member, in their own project
+    browse: bool = False
+    browse_project: str = Field(default="mcui-server", pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
+    # empty: the pool of the default project's root disk
+    browse_pool: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+    browse_image: str = "alpine/edge"
+    # a helper is stopped once nobody has browsed with it for this long
+    browse_idle_minutes: int = Field(default=10, ge=1)
+
+    @field_validator("hidden_paths")
+    @classmethod
+    def _absolute(cls, v: list[str] | None) -> list[str] | None:
+        if v is not None and any(not p.startswith("/") for p in v):
+            raise ValueError("hidden_paths are absolute paths")
+        return v
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="MCUI_", env_nested_delimiter="__", extra="forbid")
 
@@ -187,6 +211,7 @@ class Settings(BaseSettings):
     metrics: MetricsSettings = Field(default_factory=lambda: MetricsSettings())
     ceph: CephSettings = Field(default_factory=lambda: CephSettings())
     node_exporter: NodeExporterSettings = Field(default_factory=lambda: NodeExporterSettings())
+    host_devices: HostDevicesSettings = Field(default_factory=lambda: HostDevicesSettings())
 
     @classmethod
     def settings_customise_sources(

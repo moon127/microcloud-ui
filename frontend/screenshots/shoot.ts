@@ -107,6 +107,20 @@ export const PAGES: {
       await p.getByRole("dialog").getByLabel(/Serial console adapter/).check();
     },
   },
+  {
+    file: "host-browse.png",
+    path: "/instances/default/build-runner?tab=host",
+    wait: "signing-token",
+    prepare: async (p) => {
+      await p.getByRole("button", { name: "Add host path" }).click();
+      const d = p.getByRole("dialog");
+      await d.getByRole("button", { name: "Browse node-3…" }).click();
+      await d.getByRole("button", { name: "📁 srv/" }).click();
+      await d.getByRole("button", { name: "📁 nfs/" }).click();
+      await d.getByText("README.txt").waitFor();
+    },
+  },
+  { file: "settings.png", path: "/settings", wait: "Folder browser", full: true },
   // users and project access (D81)
   { file: "users.png", path: "/users", wait: "ops-oncall" },
   { file: "audit.png", path: "/audit", wait: "before-upgrade" },

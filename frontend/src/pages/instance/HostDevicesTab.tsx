@@ -15,6 +15,7 @@ import Confirm from "../../Confirm";
 import { formatBytes } from "../../format";
 import { MemberLink } from "../../links";
 import { useApi } from "../../useApi";
+import HostFolderBrowser from "./HostFolderBrowser";
 
 const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 const MOVES = new Set(["migrate", "live-migrate"]);
@@ -202,8 +203,16 @@ function AddPath({ inst, inv, onClose }: { inst: InstanceFull; inv?: HostInvento
   const [shift, setShift] = useState(false);
   const [everywhere, setEverywhere] = useState(false);
   const [problem, setProblem] = useState("");
+  const [browsing, setBrowsing] = useState(false);
   const member = inv?.member || "the host";
   const disks = inv?.disks ?? [];
+  const mounts = inv?.mounts ?? [];
+  const allowed = inv?.allowed ?? [];
+  const hiddenPaths = inv?.hidden ?? [];
+  const pick = (p: string) => {
+    setSource(p);
+    setBrowsing(false);
+  };
   const parts = disks.flatMap((d) =>
     d.partitions.length > 0
       ? d.partitions.map((p) => ({ label: `${d.model || d.id} ${p.id} (${formatBytes(p.size)})`, source: p.source }))
@@ -240,6 +249,41 @@ function AddPath({ inst, inv, onClose }: { inst: InstanceFull; inv?: HostInvento
         Path on {member} <span className="muted">(a folder, a file, or a block device such as /dev/disk/by-id/…)</span>
         <input value={source} placeholder="/srv/nfs/media" onChange={(e) => setSource(e.target.value)} />
       </label>
+      {inv?.browse && !browsing && (
+        <p>
+          <button type="button" onClick={() => setBrowsing(true)}>
+            Browse {member}…
+          </button>
+        </p>
+      )}
+      {browsing && (
+        <HostFolderBrowser
+          inst={inst}
+          start={source.trim().startsWith("/") ? source.trim() : (allowed[0] ?? "/")}
+          onPick={pick}
+        />
+      )}
+      {mounts.length > 0 && (
+        <label className="field">
+          Or a filesystem mounted on {member}
+          <select value="" onChange={(e) => setSource(e.target.value)}>
+            <option value="">Choose…</option>
+            {mounts.map((m) => (
+              <option key={m.path} value={m.path}>
+                {m.path} ({m.fstype}, {formatBytes(m.size)})
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+      {allowed.length > 0 && (
+        <p className="muted">
+          {inst.project} allows host paths only under {allowed.join(", ")}.
+        </p>
+      )}
+      {hiddenPaths.length > 0 && (
+        <p className="muted">Hidden from project admins: {hiddenPaths.join(", ")}.</p>
+      )}
       {parts.length > 0 && (
         <label className="field">
           Or a USB disk on {member}

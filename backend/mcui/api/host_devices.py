@@ -7,21 +7,39 @@ restricted project LXD also wants ``restricted.devices.disk=allow`` (better with
 added and removed while the instance runs. LXD's "auto" evacuation stops such an instance
 instead of moving it; ``cluster.evacuate=migrate`` moves it anyway, for a path that exists
 on every member (NFS, a SAN).
+
+To find a path (D87): the member's mounted filesystems from its node_exporter, and, when a
+cluster admin switched it on, a folder browser (``mcui.lxd.hostbrowser``). Project admins
+don't see or attach the hidden folders (``mcui.hostfs``), and with
+``restricted.devices.disk.paths`` set they browse only inside those.
 """
 
 from __future__ import annotations
 
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Query
 from pydantic import BaseModel, Field, field_validator
 
 from mcui.api.audited import audited
-from mcui.api.deps import LXDDep, ProjectHostDevicesDep, StoreDep
+from mcui.api.deps import (
+    HiddenPathsDep,
+    LXDDep,
+    ProjectHostDevicesDep,
+    ServicesDep,
+    StoreDep,
+    check_host_devices,
+)
 from mcui.api.instances import InstName, ProjectName
 from mcui.auth.policy import is_host_device
+from mcui.auth.store import Session
+from mcui.hostfs import hidden, normalize, under
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient, LXDError
+from mcui.lxd.hostbrowser import BrowseError
+from mcui.metrics.live import SKIP_FSTYPES
+from mcui.metrics.select import NODE_SKIP_MOUNT_PREFIXES
+from mcui.services import Services
 
 router = APIRouter(prefix="/api/instances")
 
@@ -127,21 +145,113 @@ def _disk(d: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def mounts(services: Services, member: str) -> list[dict[str, Any]]:
+    """The member's real filesystems, from its last node_exporter scrape (not ``/``)."""
+    scrape = services.node.last.get(member) if services.node else None
+    if scrape is None or not scrape.ok:
+        return []
+    seen: dict[str, dict[str, Any]] = {}
+    for smp in scrape.exposition.samples:
+        if smp.name != "node_filesystem_size_bytes":
+            continue
+        mp, fstype = smp.labels.get("mountpoint", ""), smp.labels.get("fstype", "")
+        if mp in ("", "/") or fstype in SKIP_FSTYPES or mp.startswith(NODE_SKIP_MOUNT_PREFIXES):
+            continue
+        seen[mp] = {"path": mp, "fstype": fstype, "size": smp.value}
+    return sorted(seen.values(), key=lambda m: m["path"])
+
+
+async def allowed_paths(lxd: LXDClient, session: Session, project: str) -> list[str]:
+    """A restricted project's ``restricted.devices.disk.paths``: where a project admin may
+    browse (LXD refuses attaching anything else). Empty: anywhere not hidden."""
+    if session.user.is_admin:
+        return []
+    cfg = (await lxd.get(f"/1.0/projects/{project}")).get("config") or {}
+    if cfg.get("restricted") != "true":
+        return []
+    raw = cfg.get("restricted.devices.disk.paths", "")
+    return [normalize(p.strip()) for p in raw.split(",") if p.strip().startswith("/")]
+
+
+def _member(inst: dict[str, Any]) -> str:
+    loc = inst.get("location") or ""
+    return "" if loc == "none" else loc
+
+
 @router.get("/{project}/{name}/host-devices")
 async def host_inventory(
-    project: ProjectName, name: InstName, _: ProjectHostDevicesDep, lxd: LXDDep
+    project: ProjectName,
+    name: InstName,
+    session: ProjectHostDevicesDep,
+    lxd: LXDDep,
+    services: ServicesDep,
 ) -> dict[str, Any]:
-    """The USB devices and USB disks of the member the instance is on."""
+    """The USB devices, USB disks and mounted filesystems of the instance's member, and
+    whether the folder browser is on."""
     inst = await lxd.get(f"/1.0/instances/{name}", project=project)
-    member = inst.get("location") or ""
-    clustered = member not in ("", "none")
-    res = await lxd.get("/1.0/resources", **({"target": member} if clustered else {}))
+    member = _member(inst)
+    res = await lxd.get("/1.0/resources", **({"target": member} if member else {}))
     disks = (res.get("storage") or {}).get("disks") or []
+    fs = services.hostfs()
+    hide = [] if session.user.is_admin else fs.hidden_paths
+    allowed = await allowed_paths(lxd, session, project)
     return {
-        "member": member if clustered else "",
+        "member": member,
         "usb": [_usb(d) for d in (res.get("usb") or {}).get("devices") or []],
         "disks": [_disk(d) for d in disks if d.get("type") == "usb"],
+        "mounts": [
+            m
+            for m in mounts(services, member)
+            if not hidden(m["path"], hide) and (not allowed or under(m["path"], allowed))
+        ],
+        "browse": fs.browse and services.browser is not None,
+        "hidden": hide,
+        "allowed": allowed,
     }
+
+
+@router.get("/{project}/{name}/host-files")
+async def host_files(
+    project: ProjectName,
+    name: InstName,
+    session: ProjectHostDevicesDep,
+    lxd: LXDDep,
+    services: ServicesDep,
+    path: str = Query(default="/", max_length=4096),
+) -> dict[str, Any]:
+    """A folder on the instance's member, through the folder browser (D87)."""
+    fs = services.hostfs()
+    if not fs.browse or services.browser is None:
+        raise HTTPException(409, "the folder browser is off (Settings → Host devices)")
+    try:
+        p = normalize(path)
+    except ValueError as e:
+        raise HTTPException(422, "an absolute path") from e
+    hide = [] if session.user.is_admin else fs.hidden_paths
+    allowed = await allowed_paths(lxd, session, project)
+    if allowed and not under(p, allowed):
+        raise HTTPException(403, f"{project} allows host paths only under {', '.join(allowed)}")
+    if hidden(p, hide):
+        raise HTTPException(403, f"{p} is hidden from project admins")
+    member = _member(await lxd.get(f"/1.0/instances/{name}", project=project))
+    mounted = {m["path"]: m["fstype"] for m in mounts(services, member)}
+    try:
+        entries = await services.browser.listing(member, p, list(mounted))
+    except BrowseError as e:
+        raise HTTPException(e.status, str(e)) from e
+    services.store.audit(
+        session.user.username,
+        "host.browse",
+        f"{member or 'host'}:{p}",
+        detail={"instance": f"{project}/{name}"},
+    )
+    out = []
+    for ent in entries:
+        full = p.rstrip("/") + "/" + ent.name
+        if hidden(full, hide):
+            continue
+        out.append({**ent.__dict__, **({"mount": mounted[full]} if full in mounted else {})})
+    return {"member": member, "path": p, "entries": out}
 
 
 @router.post("/{project}/{name}/host-devices")
@@ -152,7 +262,9 @@ async def add_host_device(
     session: ProjectHostDevicesDep,
     store: StoreDep,
     lxd: LXDDep,
+    hidden_paths: HiddenPathsDep,
 ) -> dict[str, Any]:
+    check_host_devices(session, project, {body.name: device_of(body)}, None, hidden_paths)
     inst = await lxd.get(f"/1.0/instances/{name}", project=project)
     if body.name in (inst.get("expanded_devices") or inst.get("devices") or {}):
         raise HTTPException(409, f"{name} already has a device {body.name}")

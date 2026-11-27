@@ -15,6 +15,7 @@ from pydantic import BaseModel, Field
 
 from mcui.api.audited import audited
 from mcui.api.deps import (
+    HiddenPathsDep,
     InBody,
     InBodyDep,
     LXDDep,
@@ -190,9 +191,11 @@ def image_source(img: ImageSource, registries: bool = False) -> dict[str, str]:
 
 
 @router.post("")
-async def create_instance(body: NewInstance, ctx: CtxCreateDep) -> dict[str, Any]:
+async def create_instance(
+    body: NewInstance, ctx: CtxCreateDep, hidden_paths: HiddenPathsDep
+) -> dict[str, Any]:
     await ctx.check_project(body.project)
-    check_host_devices(ctx.session, body.project, body.devices)
+    check_host_devices(ctx.session, body.project, body.devices, hidden_paths=hidden_paths)
     if body.image is None and body.type != "virtual-machine":
         raise HTTPException(status_code=400, detail="a container needs an image")
     registries = False
@@ -338,11 +341,16 @@ class InstanceUpdate(BaseModel):
 
 @router.put("/{project}/{name}")
 async def update_instance(
-    project: ProjectName, name: InstName, body: InstanceUpdate, ctx: CtxManageDep
+    project: ProjectName,
+    name: InstName,
+    body: InstanceUpdate,
+    ctx: CtxManageDep,
+    hidden_paths: HiddenPathsDep,
 ) -> dict[str, Any]:
     if any(is_host_device(d) for d in body.devices.values()):
         current = await ctx.lxd.get(_inst(name), project=project)
-        check_host_devices(ctx.session, project, body.devices, current.get("devices") or {})
+        old = current.get("devices") or {}
+        check_host_devices(ctx.session, project, body.devices, old, hidden_paths)
     return await ctx.change(
         "instance.update",
         project,

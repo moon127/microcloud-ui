@@ -13,7 +13,7 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
 
    | Area | Doc |
    |---|---|
-   | Config | `docs/CONFIGURATION.md` |
+   | Config (incl. `[host_devices]`, the Settings page) | `docs/CONFIGURATION.md` |
    | Users, roles and project access | `docs/USERS.md` |
    | Backups, ISOs, moves, volume copies, peers, host devices (how-tos) | `docs/WORKFLOWS.md` |
    | LXD certificates | `docs/LXD-CREDENTIALS.md` |
@@ -56,6 +56,9 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
     projects; restricted, same limits). Restore either's config after changing it.
   - (2026-11-13, D84) temporary OVN networks named `mcui-test-*` on the uplink, for peer
     and ACL-log tests; delete them after the run.
+  - (2026-11-27, D87) the folder browser's project **`mcui-server`** and its helper
+    containers, created by the app (or by hand) for tests; switch the browser off or delete
+    them afterwards.
   - Outside it, the agreed exceptions are `mcui-test-*` ACLs, network forwards and a bridge
     network, and (2026-11-13) OVN load balancers and pools for tests on one of the owner's
     OVN networks, e.g. `legacy-infra`; delete them after the run.

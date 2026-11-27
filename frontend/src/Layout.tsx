@@ -20,6 +20,7 @@ const NAV: { to: string; label: string; end?: boolean; who?: "cluster" | "admin"
   { to: "/warnings", label: "Warnings", who: "cluster" },
   { to: "/audit", label: "Audit" },
   { to: "/users", label: "Users", who: "admin" },
+  { to: "/settings", label: "Settings", who: "admin" },
 ];
 
 export default function Layout() {

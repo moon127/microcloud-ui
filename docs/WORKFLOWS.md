@@ -139,13 +139,44 @@ says what evacuating its member would do with it.
 
 **Add host path:**
 - **Path on the member**: a folder, a file, or a block device such as
-  `/dev/disk/by-id/…`. The app can't browse the member's files, so type it; LXD says if
-  it doesn't exist. USB disks plugged into the member are offered from a list.
+  `/dev/disk/by-id/…`. Type it, pick a mounted filesystem or USB disk from the lists, or
+  browse for it ([below](#find-a-path-on-the-member)). LXD says if it doesn't exist.
 - **Path inside**: where it's mounted. A container needs one. A VM gets a folder through
   its agent at that path; leave it empty to give a VM a block device as a disk.
 - **Read-only** is ticked by default. **Shift** (containers) maps file ownership so the
   container's users own their files.
 - **Every member has this path** sets `cluster.evacuate=migrate` (below).
+
+### Find a path on the member
+
+You don't need to know the member's folders:
+- **Or a filesystem mounted on the member** lists its mounts (NFS shares, SAN volumes,
+  extra disks), from the member's node_exporter. Members without node_exporter show none.
+- **Browse the member…** (when a cluster admin has switched the folder browser on, under
+  **Settings**) opens the member's folders. Click a folder to go in, a file to choose it,
+  or **Use** for the folder shown. The first listing on a member takes a few seconds: it
+  starts that member's helper.
+
+![Browsing a member's folders](screenshots/host-browse.png)
+
+What the browser shows:
+- Only what an ordinary user on the member could list: not `/root`, or private home
+  folders. Names, sizes and dates only, never file contents. Every listing is in the audit
+  log.
+- For a **project admin**, nothing in the **hidden folders**, and, if the project sets
+  `restricted.devices.disk.paths`, nothing outside those folders (the browser starts in the
+  first). The dialog says which applies.
+- Other filesystems mounted on the member (an NFS share, `/boot`) appear once you open
+  them: the helper mounts each on the way, read-only.
+
+**Setting it up (cluster admin):** **Settings → Folder browser → Switch on**. The app
+creates an LXD project (`mcui-server` by default) and, on first use on each member, a
+small Alpine container there (64 MiB, no network, the member's `/` mounted read-only).
+They stop after 10 idle minutes. **Switch off and remove the helpers** deletes them, their
+image and the project. The same settings are in the config file
+([`CONFIGURATION.md`](CONFIGURATION.md)); a value saved in the app wins.
+
+![Settings: hidden folders and the folder browser](screenshots/settings.png)
 
 **Add USB device:** choose one from the member's live list. Devices already attached are
 greyed out.
@@ -174,6 +205,10 @@ Both kinds are added and removed at once, even while the instance runs (checked 
   device (LXD's USB devices aren't required to start).
 - **A VM with a host path can't live-migrate.** LXD refuses `migration.stateful` on it.
 - The **Move** dialog names the instance's host devices when you choose another member.
+
+**Hidden folders:** project admins can't attach a path inside the folders a cluster admin
+hides (**Settings**; by default `/home`, `/etc`, `/var/snap`, `/run` and other system
+folders). The app refuses it on every route, the YAML editor included.
 
 **What LXD insists on in a restricted project** (as every project with project users is):
 - Host paths need `restricted.devices.disk=allow` (project page → **Restrictions** → Disk

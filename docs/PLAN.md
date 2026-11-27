@@ -723,6 +723,9 @@ it runs; "every member has this path" sets `cluster.evacuate=migrate`. Cluster a
 default; a cluster admin can give a project's admins the host-devices right, which the app
 checks on every route that writes devices. Checked live with a container in `mcui-test-2`;
 evacuation and VMs are the owner's (LIVE-TESTS U1–U3).
+Finding a path (D87, same day): the member's mounts from node_exporter, an opt-in folder
+browser through helper containers in `mcui-server`, and folders hidden from project admins,
+set in the config file or on a new Settings page.
 
 **Phase 10: Remaining parity** (was Phase 8, before that 7 and 6; after packaging, which is
 done). Backups, project moves and ISO upload moved to Phase 7 (D83). The rest of PJ-2

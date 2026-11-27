@@ -287,3 +287,83 @@ describe("Host devices tab", () => {
     expect(await screen.findByText("The host's devices unavailable: boom")).toBeInTheDocument();
   });
 });
+
+describe("finding a host path (D87)", () => {
+  const folder = (path: string, entries: api.HostEntry[]): api.HostFolder => ({ member: "m1", path, entries });
+
+  it("offers the member's mounted filesystems", async () => {
+    vi.spyOn(api, "fetchHostInventory").mockResolvedValue({ ...INV, mounts: [{ path: "/srv/nfs", fstype: "nfs4", size: 4 * 2 ** 40 }] });
+    open();
+    fireEvent.click(await screen.findByRole("button", { name: "Add host path" }));
+    const sel = await dialog().findByLabelText("Or a filesystem mounted on m1");
+    expect(within(sel).getByRole("option", { name: "/srv/nfs (nfs4, 4.0 TiB)" })).toBeInTheDocument();
+    fireEvent.change(sel, { target: { value: "/srv/nfs" } });
+    expect(dialog().getByLabelText(/^Path on m1/)).toHaveValue("/srv/nfs");
+    expect(dialog().queryByRole("button", { name: /Browse/ })).toBeNull(); // the browser is off
+  });
+
+  it("browses folders, follows the breadcrumb and picks a folder or a file", async () => {
+    vi.spyOn(api, "fetchHostInventory").mockResolvedValue({ ...INV, browse: true });
+    const list = vi.spyOn(api, "fetchHostFolder").mockImplementation((_p, _n, path) =>
+      Promise.resolve(
+        path === "/"
+          ? folder("/", [
+              { name: "srv", type: "dir", size: 4096, mtime: 1 },
+              { name: "lib", type: "link", size: 7, mtime: 1 },
+              { name: "null", type: "other", size: 0, mtime: 1 },
+            ])
+          : path === "/srv"
+            ? folder("/srv", [
+                { name: "nfs", type: "dir", size: 4096, mtime: 1, mount: "nfs4" },
+                { name: "notes.txt", type: "file", size: 2048, mtime: 1 },
+              ])
+            : folder(path, []),
+      ),
+    );
+    open();
+    fireEvent.click(await screen.findByRole("button", { name: "Add host path" }));
+    fireEvent.click(await dialog().findByRole("button", { name: "Browse m1…" }));
+    const browser = () => within(dialog().getByRole("group", { name: "Folders on the member" }));
+    expect(await browser().findByText("lib (link)")).toBeInTheDocument();
+    expect(browser().getByText("null (special file)")).toBeInTheDocument();
+    fireEvent.click(browser().getByRole("button", { name: "📁 srv/" }));
+    expect(await browser().findByText("nfs4 mount")).toBeInTheDocument();
+    expect(browser().getByText("2.0 KiB")).toBeInTheDocument();
+    fireEvent.click(browser().getByRole("button", { name: "📁 nfs/" }));
+    expect(await browser().findByText(/Empty, or nothing readable/)).toBeInTheDocument();
+    expect(list).toHaveBeenLastCalledWith("web", "c1", "/srv/nfs");
+    const crumbs = within(browser().getByRole("navigation", { name: "Folder path" }));
+    expect(crumbs.getByRole("button", { name: "nfs" })).toBeDisabled();
+    fireEvent.click(crumbs.getByRole("button", { name: "srv" }));
+    fireEvent.click(await browser().findByRole("button", { name: "notes.txt" }));
+    expect(dialog().getByLabelText(/^Path on m1/)).toHaveValue("/srv/notes.txt");
+    expect(dialog().queryByRole("group", { name: "Folders on the member" })).toBeNull();
+    // opens where the typed path is; "Use" takes the folder shown
+    fireEvent.click(dialog().getByRole("button", { name: "Browse m1…" }));
+    await waitFor(() => expect(list).toHaveBeenLastCalledWith("web", "c1", "/srv/notes.txt"));
+    fireEvent.click(within(dialog().getByRole("navigation", { name: "Folder path" })).getByRole("button", { name: "/" }));
+    fireEvent.click(await browser().findByRole("button", { name: "Use /" }));
+    expect(dialog().getByLabelText(/^Path on m1/)).toHaveValue("/");
+  });
+
+  it("a project admin starts in the project's allowed folder and is told what's hidden", async () => {
+    vi.spyOn(api, "fetchHostInventory").mockResolvedValue({ ...INV, browse: true, allowed: ["/srv/nfs"], hidden: ["/home", "/etc"] });
+    vi.spyOn(api, "fetchHostFolder").mockRejectedValue(new Error("/srv/nfs is hidden from project admins"));
+    open(inst(), pat(["web"]));
+    fireEvent.click(await screen.findByRole("button", { name: "Add host path" }));
+    expect(await dialog().findByText("web allows host paths only under /srv/nfs.")).toBeInTheDocument();
+    expect(dialog().getByText("Hidden from project admins: /home, /etc.")).toBeInTheDocument();
+    fireEvent.click(dialog().getByRole("button", { name: "Browse m1…" }));
+    expect(await dialog().findByRole("alert")).toHaveTextContent("hidden from project admins");
+    expect(api.fetchHostFolder).toHaveBeenCalledWith("web", "c1", "/srv/nfs");
+  });
+
+  it("says the helper may be starting", async () => {
+    vi.spyOn(api, "fetchHostInventory").mockResolvedValue({ ...INV, browse: true });
+    vi.spyOn(api, "fetchHostFolder").mockReturnValue(new Promise(() => {}));
+    open();
+    fireEvent.click(await screen.findByRole("button", { name: "Add host path" }));
+    fireEvent.click(await dialog().findByRole("button", { name: "Browse m1…" }));
+    expect(await dialog().findByRole("status")).toHaveTextContent("Listing /… (the first time starts the helper)");
+  });
+});

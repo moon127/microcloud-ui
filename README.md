@@ -22,9 +22,10 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   moving instances between Ceph and local storage. How-tos with screenshots:
   [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md).
 - **Host paths and USB devices:** attach a member's folders (an NFS mount, a SAN), disks and
-  USB devices to an instance on it, with what that does to moves and evacuations. Cluster
-  admins only, unless they give the right to a project's admins
-  ([`docs/WORKFLOWS.md`](docs/WORKFLOWS.md#attach-host-paths-and-usb-devices)).
+  USB devices to an instance on it, with what that does to moves and evacuations. Pick a
+  member's mounts from a list or, opt-in, browse its folders. Cluster admins only, unless
+  they give the right to a project's admins, who don't see the folders hidden on
+  **Settings** ([`docs/WORKFLOWS.md`](docs/WORKFLOWS.md#attach-host-paths-and-usb-devices)).
 
 Next in the plan: a metric store evaluation, alerts and export (Phase 8). Owner live
 checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See
@@ -90,6 +91,8 @@ More: [instances](docs/screenshots/instances.png) ·
 [project restrictions](docs/screenshots/restrictions.png) ·
 [host paths and USB devices](docs/screenshots/host-devices.png) ·
 [adding a USB device](docs/screenshots/host-usb.png) ·
+[browsing a member's folders](docs/screenshots/host-browse.png) ·
+[settings](docs/screenshots/settings.png) ·
 a project user's [Overview](docs/screenshots/project-user.png) and
 [instance page](docs/screenshots/project-user-instance.png) (an operator: only their projects,
 no cluster pages, no rename or delete)
@@ -193,6 +196,8 @@ Pages:
 - **Networks:** create and edit per member, ACLs, forwards, load balancers, leases and the
   OVN overview.
 - **Operations and Warnings.**
+- **Settings** (cluster admins): folders hidden from project admins, and the folder
+  browser.
 
 On LXD 6 (MicroCloud 3.4) there's more:
 - a Placement groups page, and a placement group choice in the create wizard

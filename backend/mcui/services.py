@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
+import logging
 from dataclasses import dataclass, field
 
 from mcui.auth.store import Store
 from mcui.config import Settings
+from mcui.hostfs import HostFsConfig, effective
 from mcui.lxd.client import LXDClient
+from mcui.lxd.hostbrowser import HostBrowser
 from mcui.lxd.instances import InstanceIndex
 from mcui.lxd.remotes import RemoteCatalog
 from mcui.metrics.ceph import CephScraper
@@ -16,6 +21,9 @@ from mcui.metrics.node import NodeScraper
 from mcui.metrics.scrape import Scraper
 from mcui.metrics.store import H1, M1, RAW, MetricStore
 from mcui.streams import StreamRegistry
+
+log = logging.getLogger(__name__)
+HOUSEKEEPING_SECONDS = 60.0
 
 
 @dataclass
@@ -32,12 +40,42 @@ class Services:
     remotes: RemoteCatalog | None = None
     node: NodeScraper | None = None
     streams: StreamRegistry = field(default_factory=StreamRegistry)
+    browser: HostBrowser | None = None
+    _housekeeping: asyncio.Task[None] | None = None
+
+    def hostfs(self) -> HostFsConfig:
+        """Hidden folders and the browser switch, as saved in the app or configured (D87)."""
+        return effective(self.settings.host_devices, self.store)
+
+    async def browser_housekeeping(self) -> None:
+        """Stop idle helpers; with the browser switched off, remove what's left of it (a
+        config change while the app was down)."""
+        if self.browser is None:
+            return
+        try:
+            if self.hostfs().browse:
+                await self.browser.stop_idle()
+            elif await self.browser.remove_all():
+                log.info("folder browser off: removed project %s", self.browser.project)
+        except Exception as e:  # noqa: BLE001 - keep the loop alive; LXD may be away
+            log.warning("folder browser housekeeping: %s", e)
+
+    async def _housekeep(self) -> None:
+        while True:
+            await self.browser_housekeeping()
+            await asyncio.sleep(HOUSEKEEPING_SECONDS)
 
     async def start(self) -> None:
         if self.collector is not None and self.settings.metrics.collect:
             self.collector.start()
+        if self.browser is not None:
+            self._housekeeping = asyncio.create_task(self._housekeep())
 
     async def aclose(self) -> None:
+        if self._housekeeping is not None:
+            self._housekeeping.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._housekeeping
         if self.collector is not None:
             await self.collector.stop()
         for c in {id(c): c for c in (self.lxd, self.metrics_lxd) if c is not None}.values():
@@ -118,4 +156,5 @@ def build_services(
         InstanceIndex(api),
         RemoteCatalog(),
         node,
+        browser=HostBrowser(api, settings.host_devices),
     )

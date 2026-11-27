@@ -6,6 +6,9 @@
 import type {
   AuditEntry,
   Backup,
+  HostDeviceSettings,
+  HostEntry,
+  HostFolder,
   HostInventory,
   CephState,
   Host,
@@ -203,6 +206,14 @@ export const HOST_INVENTORY = (member: string): HostInventory => ({
     { vendor_id: "1209", product_id: "0003", vendor: "Example Labs", product: "Flash Disk", serial: "FD-7781", busnum: 2, devnum: 2, storage: true, drivers: ["usb-storage"] },
     { vendor_id: "1209", product_id: "0002", vendor: "Example Labs", product: "Serial console adapter", serial: "", busnum: 1, devnum: 5, storage: false, drivers: ["cp210x"] },
   ],
+  mounts: [
+    { path: "/boot", fstype: "ext4", size: 2 * GIB },
+    { path: "/srv/nfs", fstype: "nfs4", size: 8 * 1024 * GIB },
+    { path: "/srv/san", fstype: "xfs", size: 2 * 1024 * GIB },
+  ],
+  browse: true,
+  hidden: [],
+  allowed: [],
   disks: [
     {
       id: "sdc",
@@ -213,6 +224,36 @@ export const HOST_INVENTORY = (member: string): HostInventory => ({
     },
   ],
 });
+
+/** What the folder browser shows on a member (D87). */
+const D = (name: string, extra: Partial<HostEntry> = {}): HostEntry => ({ name, type: "dir", size: 4096, mtime: 1794500000, ...extra });
+const HOST_FOLDERS: Record<string, HostEntry[]> = {
+  "/": ["bin", "boot", "etc", "home", "opt", "srv", "usr", "var"].map((n) => D(n)),
+  "/srv": [D("nfs", { mount: "nfs4" }), D("san", { mount: "xfs" }), D("www")],
+  "/srv/nfs": [D("ci-cache"), D("datasets"), D("media"), D("releases"), { name: "README.txt", type: "file", size: 2048, mtime: 1794500000 }],
+};
+export const hostFolder = (member: string, path: string): HostFolder => ({ member, path, entries: HOST_FOLDERS[path] ?? [] });
+
+/** The Settings page (D87): the built-in hidden list, the browser on with its helpers. */
+export const HOST_SETTINGS: HostDeviceSettings = {
+  hidden_paths: ["/boot", "/dev", "/etc", "/home", "/proc", "/root", "/run", "/snap", "/sys", "/tmp", "/var/lib", "/var/log", "/var/run", "/var/snap", "/var/tmp"],
+  hidden_source: "default",
+  default_hidden: [],
+  config_hidden: null,
+  browse: true,
+  browse_source: "app",
+  config_browse: false,
+  browse_idle_minutes: 10,
+  browser: {
+    project: "mcui-server",
+    exists: true,
+    ours: true,
+    helpers: [
+      { name: "browse-node-1", member: "node-1", status: "Stopped" },
+      { name: "browse-node-3", member: "node-3", status: "Running" },
+    ],
+  },
+};
 
 export function instanceFull(project: string, name: string): InstanceFull | undefined {
   const d = INSTANCES.find((i) => i.project === project && i.name === name);
@@ -883,6 +924,7 @@ export function answer(method: string, url: URL): unknown {
     "/api/network-allocations": [],
     "/api/image-registries": REGISTRIES,
     "/api/users": USERS,
+    "/api/settings/host-devices": HOST_SETTINGS,
     "/api/audit": signedIn.role === "project" ? AUDIT.filter((e) => mine(String(e.target).split("/")[0]) && e.target?.includes("/")) : AUDIT,
     "/api/placement-groups": PLACEMENT,
     "/api/networks/default/default": NETWORK_DETAIL,
@@ -911,6 +953,11 @@ export function answer(method: string, url: URL): unknown {
   if (m) {
     const i = instanceFull(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
     return i && HOST_INVENTORY(i.location);
+  }
+  m = /^\/api\/instances\/([^/]+)\/([^/]+)\/host-files$/.exec(p);
+  if (m) {
+    const i = instanceFull(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
+    return i && hostFolder(i.location, s.get("path") ?? "/");
   }
   m = /^\/api\/instances\/([^/]+)\/([^/]+)\/backups$/.exec(p);
   if (m) return instanceFull(decodeURIComponent(m[1]), decodeURIComponent(m[2])) ? BACKUPS : undefined;

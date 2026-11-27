@@ -131,7 +131,15 @@ async def test_inventory_off_a_cluster(app):
     res = respx.get(f"{EP1}/1.0/resources").mock(return_value=lxd_ok({}))
     async with client(app) as c:
         await admin(c)
-        assert (await c.get(U)).json() == {"member": "", "usb": [], "disks": []}
+        assert (await c.get(U)).json() == {
+            "member": "",
+            "usb": [],
+            "disks": [],
+            "mounts": [],
+            "browse": False,
+            "hidden": [],
+            "allowed": [],
+        }
     assert dict(res.calls.last.request.url.params) == {}
 
 
@@ -345,3 +353,170 @@ async def test_other_routes_guard_host_devices(scoped):
         assert r.status_code == 403 and not profile_put.called
         r = await c.put("/api/profiles/lab/p1", json={"devices": {"root": ROOT}}, headers=h)
         assert r.status_code == 200 and profile_put.called
+
+
+# --- finding a path: mounts, the folder browser, hidden folders (D87) -------------------
+
+NODE = """node_filesystem_size_bytes{device="/dev/sdb2",fstype="ext4",mountpoint="/boot"} 2e9
+node_filesystem_size_bytes{device="/dev/mapper/vg-root",fstype="ext4",mountpoint="/"} 1e11
+node_filesystem_size_bytes{device="nas:/media",fstype="nfs4",mountpoint="/srv/nfs"} 4e12
+node_filesystem_avail_bytes{device="nas:/media",fstype="nfs4",mountpoint="/srv/nfs"} 1e12
+node_filesystem_size_bytes{device="tmpfs",fstype="tmpfs",mountpoint="/tmp"} 3e10
+node_filesystem_size_bytes{device="tmpfs",fstype="ext4",mountpoint="/var/snap/lxd/x"} 1
+"""
+
+
+def scraped(services, member="m1", ok=True):
+    from mcui.metrics.node import NodeScrape
+    from mcui.metrics.prom import parse
+
+    services.node.last[member] = NodeScrape(
+        member, "http://m1:9100", ok, 0.0, exposition=parse(NODE)
+    )
+
+
+class FakeBrowser:
+    project = "mcui-server"
+
+    def __init__(self, entries=None, error=None):
+        self.entries, self.error, self.calls = entries or [], error, []
+
+    async def listing(self, member, path, mounts):
+        self.calls.append((member, path, mounts))
+        if self.error:
+            raise self.error
+        return self.entries
+
+
+def entries(*names):
+    from mcui.lxd.hostbrowser import Entry
+
+    return [Entry(n, "dir", 4096, 1) for n in names]
+
+
+@respx.mock
+async def test_inventory_mounts_and_browser(app, services):
+    from mcui.hostfs import BROWSE_KEY
+
+    respx.get(INST).mock(return_value=lxd_ok({"name": "c1", "location": "m1"}))
+    respx.get(f"{EP1}/1.0/resources").mock(return_value=lxd_ok({}))
+    scraped(services)
+    services.store.set_setting(BROWSE_KEY, True)
+    async with client(app) as c:
+        await admin(c)
+        inv = (await c.get(U)).json()
+    assert inv["mounts"] == [
+        {"path": "/boot", "fstype": "ext4", "size": 2e9},
+        {"path": "/srv/nfs", "fstype": "nfs4", "size": 4e12},
+    ]
+    assert inv["browse"] is True and inv["hidden"] == [] and inv["allowed"] == []
+    scraped(services, ok=False)
+    async with client(app) as c:
+        await admin(c)
+        assert (await c.get(U)).json()["mounts"] == []
+
+
+@respx.mock
+async def test_host_files_for_a_cluster_admin(app, services):
+    from mcui.hostfs import BROWSE_KEY
+
+    respx.get(INST).mock(return_value=lxd_ok({"name": "c1", "location": "m1"}))
+    scraped(services)
+    fake = FakeBrowser(entries("boot", "etc", "nfs"))
+    services.browser = fake
+    F = "/api/instances/default/c1/host-files"
+    async with client(app) as c:
+        h = await admin(c)
+        r = await c.get(F)
+        assert r.status_code == 409 and "browser is off" in r.text
+        services.store.set_setting(BROWSE_KEY, True)
+        r = await c.get(F, params={"path": "relative"})
+        assert r.status_code == 422
+        r = await c.get(F, params={"path": "/srv/"})
+        assert r.json() == {
+            "member": "m1",
+            "path": "/srv",
+            "entries": [
+                {"name": "boot", "type": "dir", "size": 4096, "mtime": 1},
+                {"name": "etc", "type": "dir", "size": 4096, "mtime": 1},
+                {"name": "nfs", "type": "dir", "size": 4096, "mtime": 1, "mount": "nfs4"},
+            ],
+        }
+        assert fake.calls[-1] == ("m1", "/srv", ["/boot", "/srv/nfs"])
+        assert last_audit(services)[:2] == ("host.browse", "m1:/srv")
+        r = await c.get(F, params={"path": "/"})  # nothing hidden from a cluster admin
+        assert [e["name"] for e in r.json()["entries"]] == ["boot", "etc", "nfs"]
+        from mcui.lxd.hostbrowser import BrowseError
+
+        fake.error = BrowseError("/root on m1 isn't readable by ordinary users", 403)
+        r = await c.get(F, params={"path": "/root"})
+        assert r.status_code == 403 and "ordinary users" in r.text
+        assert h
+
+
+@respx.mock
+async def test_host_files_and_paths_for_a_project_admin(tmp_path):
+    from mcui.hostfs import BROWSE_KEY, HIDDEN_KEY
+
+    store = fast_store()
+    store.add_user("pat", "patpw", "project")
+    store.set_grant("pat", "web", "admin", host_devices=True)
+    settings = Settings(server={"data_dir": str(tmp_path), "secure_cookies": False})
+    svc = build_services(settings, store=store, clients=lxd_pair())
+    app = create_app(services=svc, static_dir=None)
+    store.set_setting(BROWSE_KEY, True)
+    scraped(svc)
+    fake = FakeBrowser(entries("etc", "home", "srv"))
+    svc.browser = fake
+    project = respx.get(f"{EP1}/1.0/projects/web").mock(
+        return_value=lxd_ok({"config": {"restricted": "true"}})
+    )
+    respx.get(f"{EP1}/1.0/instances/c1").mock(
+        return_value=lxd_ok({"name": "c1", "location": "m1", "type": "container"})
+    )
+    respx.get(f"{EP1}/1.0/resources").mock(return_value=lxd_ok({}))
+    patch = respx.patch(f"{EP1}/1.0/instances/c1").mock(return_value=async_resp())
+    F, DEV = "/api/instances/web/c1/host-files", "/api/instances/web/c1/host-devices"
+    nfs = {"kind": "path", "name": "n", "path": "/mnt/n"}
+    async with client(app) as c:
+        h = {CSRF_HEADER: await login(c, "pat", "patpw")}
+        r = await c.get(F, params={"path": "/"})
+        assert [e["name"] for e in r.json()["entries"]] == ["srv"]
+        for p in ("/etc", "/usr/../home/pat", "/boot/grub"):
+            r = await c.get(F, params={"path": p})
+            assert r.status_code == 403 and "hidden from project admins" in r.text, p
+        inv = (await c.get(DEV)).json()
+        assert [m["path"] for m in inv["mounts"]] == ["/srv/nfs"] and "/home" in inv["hidden"]
+        r = await c.post(DEV, json={**nfs, "source": "/etc/ssh"}, headers=h)
+        assert r.status_code == 403 and "/etc/ssh is hidden" in r.text
+        usb_disk = "/dev/disk/by-id/usb-Flash-0:0-part1"
+        r = await c.post(DEV, json={**nfs, "source": usb_disk}, headers=h)
+        assert r.status_code == 200 and patch.call_count == 1
+        # the project names its folders: browsing stays inside them
+        project.mock(
+            return_value=lxd_ok(
+                {
+                    "config": {
+                        "restricted": "true",
+                        "restricted.devices.disk.paths": "/srv/nfs/, relative, /data",
+                    }
+                }
+            )
+        )
+        r = await c.get(F, params={"path": "/"})
+        assert r.status_code == 403 and "only under /srv/nfs, /data" in r.text
+        assert (await c.get(F, params={"path": "/srv/nfs/a"})).status_code == 200
+        inv = (await c.get(DEV)).json()
+        assert inv["allowed"] == ["/srv/nfs", "/data"]
+        assert [m["path"] for m in inv["mounts"]] == ["/srv/nfs"]
+        # the admin's own list
+        store.set_setting(HIDDEN_KEY, ["/srv/nfs/private"])
+        fake.entries = entries("private", "public")
+        r = await c.get(F, params={"path": "/srv/nfs"})
+        assert [e["name"] for e in r.json()["entries"]] == ["public"]
+    # no longer restricted (within the app's 30 s cache): no allowed paths to apply
+    from mcui.api.host_devices import allowed_paths
+
+    project.mock(return_value=lxd_ok({"config": {"restricted.devices.disk.paths": "/x"}}))
+    session = type("S", (), {"user": store.get_user("pat")})()
+    assert await allowed_paths(svc.lxd, session, "web") == []

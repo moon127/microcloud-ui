@@ -17,6 +17,43 @@ export interface User {
   host_devices?: string[];
 }
 
+// --- settings a cluster admin changes in the app (D87) --------------------------------
+
+export type SettingSource = "app" | "config" | "default";
+
+export interface BrowserStatus {
+  project: string;
+  exists?: boolean;
+  /** carries the app's marker, so the app may remove it */
+  ours?: boolean;
+  helpers?: { name: string; member: string; status: string }[];
+  error?: string;
+}
+
+export interface HostDeviceSettings {
+  hidden_paths: string[];
+  hidden_source: SettingSource;
+  default_hidden: string[];
+  config_hidden: string[] | null;
+  browse: boolean;
+  browse_source: SettingSource;
+  config_browse: boolean;
+  browse_idle_minutes: number;
+  /** null without LXD */
+  browser: BrowserStatus | null;
+}
+
+export interface HostDeviceSettingsChange {
+  hidden_paths?: string[];
+  reset_hidden?: boolean;
+  browse?: boolean;
+  reset_browse?: boolean;
+}
+
+export const fetchHostDeviceSettings = () => api<HostDeviceSettings>("/api/settings/host-devices");
+export const updateHostDeviceSettings = (change: HostDeviceSettingsChange) =>
+  send<HostDeviceSettings>("PUT", "/api/settings/host-devices", change);
+
 // --- users and project grants (cluster admins; AU-2, D81) -------------------------------
 export const fetchUsers = () => api<User[]>("/api/users");
 const userPath = (u: string) => `/api/users/${encodeURIComponent(u)}`;
@@ -331,11 +368,42 @@ export interface HostUsbDisk {
   partitions: { id: string; size: number; source: string }[];
 }
 
+/** A filesystem mounted on the member, from its node_exporter (D87). */
+export interface HostMount {
+  path: string;
+  fstype: string;
+  size: number;
+}
+
 export interface HostInventory {
   /** "" off a cluster */
   member: string;
   usb: HostUsb[];
   disks: HostUsbDisk[];
+  /** the member's mounted filesystems, without hidden ones (D87) */
+  mounts?: HostMount[];
+  /** the folder browser is on */
+  browse?: boolean;
+  /** folders hidden from this user (empty for a cluster admin) */
+  hidden?: string[];
+  /** the project's restricted.devices.disk.paths, for a project admin */
+  allowed?: string[];
+}
+
+/** One entry of a folder on the member, through the folder browser (D87). */
+export interface HostEntry {
+  name: string;
+  type: "dir" | "file" | "link" | "other";
+  size: number;
+  mtime: number;
+  /** another filesystem is mounted here */
+  mount?: string;
+}
+
+export interface HostFolder {
+  member: string;
+  path: string;
+  entries: HostEntry[];
 }
 
 export type NewHostDevice =
@@ -353,6 +421,8 @@ export type NewHostDevice =
 
 export const fetchHostInventory = (project: string, name: string) =>
   api<HostInventory>(`${inst(project, name)}/host-devices`);
+export const fetchHostFolder = (project: string, name: string, path: string) =>
+  api<HostFolder>(`${inst(project, name)}/host-files?path=${encodeURIComponent(path)}`);
 export const addHostDevice = (project: string, name: string, body: NewHostDevice) =>
   send<Started>("POST", `${inst(project, name)}/host-devices`, body);
 export const removeHostDevice = (project: string, name: string, device: string) =>

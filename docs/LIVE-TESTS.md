@@ -154,13 +154,17 @@ left is the browser itself: file pickers, upload progress and downloads.
 
 The session checked a container in `mcui-test-2` through the app (2026-11-27): a host path
 added and removed while running, a USB device node, LXD's refusals in a restricted
-project, and the host-devices right. Evacuation and VMs are left.
+project, and the host-devices right. The folder browser was checked through the app on
+member 1 (25 checks: on/off, listings, `/boot` mounted on the way, `/root` refused, hidden
+folders and allowed paths for a project admin, the project removed when switched off).
+Evacuation, VMs and the browser on the other members are left.
 
 | # | Steps | Expect |
 |---|---|---|
 | U1 | On a container with a host path that every member has (e.g. an NFS mount), tick **Every member has this path** (or **Move it instead**), then **Evacuate** its member, then **Restore** | It's stopped, moved, started elsewhere with the path mounted, and comes back on restore. Without `cluster.evacuate=migrate`, it's stopped and stays on the member |
 | U2 | A VM: add a USB device that's safe to take off its member (a spare stick), then a host folder | The device disappears from the member (`lsusb`) and shows in the VM; the folder appears at its path through the agent; **Remove** gives the device back. **Live migration** of the VM is refused while the folder is attached |
 | U3 | As a project admin: without the right, the tab has no Add buttons; give them the right (**Users → Projects → Allow host devices**) | After reload they can add a path under the project's allowed paths, and LXD refuses one outside them |
+| U4 | **Settings → Folder browser → Switch on**, then Add host path → **Browse** on an instance on each member, in a real browser; then **Switch off** | Folders list (first one after a few seconds); the NFS share's contents show once opened; switching off removes `mcui-server` (`lxc project list`) |
 
 ## Already verified live by the session (for reference)
 
