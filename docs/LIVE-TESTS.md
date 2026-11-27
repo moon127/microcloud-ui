@@ -170,7 +170,14 @@ Evacuation, VMs and the browser on the other members are left.
 
 The session checked every rule against the cluster and, in Chrome, the bell, toasts,
 banner, acknowledging, history and a project user's view, with thresholds lowered
-(2026-11-27). Left: alerts from real events on the hosts.
+(2026-11-27). Then, in a throwaway VM in `mcui-test` (a nested 2-member LXD cluster and a
+MicroCeph on RAM-backed loop OSDs), with default thresholds: a member's filesystem at
+96%, a member stopped (offline after ~2 min; its disk alert kept, not cleared), evacuated
+and restored, memory at 94%, clocks unsynchronised, the HTTPS certificate at 5 and 20
+days, Ceph raw use, `OSD_NEARFULL`, `POOL_NEARFULL`, `OSD_BACKFILLFULL`, `OSD_FULL`
+(critical), `POOL_FULL`, `MON_DISK_LOW`, `SLOW_OPS` and slow heartbeats, each firing and
+clearing. `OSD_DOWN` didn't occur: with every OSD on one host Ceph doesn't mark one down.
+Left: the same from real events on your hosts.
 
 | # | Steps | Expect |
 |---|---|---|

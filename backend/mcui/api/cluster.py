@@ -35,9 +35,13 @@ async def live_metrics(scope: ScopeDep, live: LiveDep) -> dict[str, Any]:
 @router.get("/cluster/members/{name}/resources")
 async def member_resources(name: str, _: ClusterReadDep, lxd: LXDDep) -> dict[str, Any]:
     """Hardware inventory of one member (CL-2)."""
-    if name not in {m.name for m in await members(lxd)}:
+    info = await server_info(lxd)
+    if name not in {m.name for m in await members(lxd, info)}:
         raise HTTPException(status_code=404, detail="no such member")
-    data: dict[str, Any] = await lxd.get("/1.0/resources", target=name)
+    # a standalone server refuses a target ("Cluster member not found"; D91 review)
+    data: dict[str, Any] = await lxd.get(
+        "/1.0/resources", **({"target": name} if info.clustered else {})
+    )
     return data
 
 

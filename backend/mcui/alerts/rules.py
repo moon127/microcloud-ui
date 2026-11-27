@@ -7,6 +7,7 @@ threshold once their alert is open, so a value hovering at the line doesn't flap
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import ipaddress
 import logging
 import ssl
@@ -30,6 +31,8 @@ if TYPE_CHECKING:
 log = logging.getLogger(__name__)
 BROKEN: set[str] = set()  # rules whose failure was logged, until they work again
 MARGIN = 2.0  # percentage points (or days) below a threshold before an open alert clears
+# members that are running (evacuated ones still are)
+ONLINE = frozenset({"Online", "Evacuated", ""})
 REMOTE_DRIVERS = frozenset({"ceph", "cephfs", "cephobject", "powerflex", "pure", "alletra"})
 
 # short descriptions of Ceph's common health checks; others say "Ceph reports NAME"
@@ -211,6 +214,10 @@ async def local_pool(ctx: Context) -> list[Alert]:
     if col is None or lxd is None:
         return []
     if not col.state_last:
+        # a standalone server has no member state: its pools aren't checked (ALERTS.md)
+        st = col.status.get("state")
+        if st is not None and st.last_ok is not None and not st.last_error:
+            return []  # collected, but no member state: a standalone server
         raise NoData("no member state yet")
     pools = await lxd.get("/1.0/storage-pools", recursion=1) or []
     local = {p["name"] for p in pools if p.get("driver") not in REMOTE_DRIVERS}
@@ -238,24 +245,36 @@ async def local_pool(ctx: Context) -> list[Alert]:
     return out
 
 
-def _node(ctx: Context, rule: str) -> list[tuple[str, Exposition]]:
-    """Members' latest node_exporter pages. One failing (there, but erroring) is unknown
-    this round: only its alerts stay as they are (D91 review)."""
+async def _node(ctx: Context, rule: str) -> list[tuple[str, Exposition]]:
+    """Members' latest node_exporter pages. One that can't be read is unknown this round,
+    so only its alerts stay as they are (D91 review): erroring (TLS, auth), or nothing
+    listening while LXD says the member isn't online (found in the VM test: a member
+    that's down looks "absent"). Nothing listening on an online member means node_exporter
+    went away: its alerts clear rather than stay for ever."""
     node = ctx.services.node
     if node is None:
         return []
+    down: set[str] | None = None
     out = []
     for member, scrape in sorted(node.last.items()):
         if scrape.ok:
             out.append((member, scrape.exposition))
-        elif not scrape.absent:
-            ctx.unknown.update({f"{rule}:{member}", f"{rule}:{member}:"})
+            continue
+        if scrape.absent:
+            if down is None:
+                down = set(node.last)  # without LXD's word, keep them all
+                if ctx.services.lxd is not None:
+                    with contextlib.suppress(LXDError):
+                        down = {m.name for m in await _members(ctx) if m.status not in ONLINE}
+            if member not in down:
+                continue
+        ctx.unknown.update({f"{rule}:{member}", f"{rule}:{member}:"})
     return out
 
 
 async def host_fs(ctx: Context) -> list[Alert]:
     out = []
-    for member, exp in _node(ctx, "host_fs"):
+    for member, exp in await _node(ctx, "host_fs"):
         size: dict[str, float] = {}
         avail: dict[str, float] = {}
         free: dict[str, float] = {}
@@ -290,7 +309,7 @@ async def host_fs(ctx: Context) -> list[Alert]:
 
 async def host_memory(ctx: Context) -> list[Alert]:
     out = []
-    for member, exp in _node(ctx, "host_memory"):
+    for member, exp in await _node(ctx, "host_memory"):
         vals = {s.name: s.value for s in exp.samples}
         total = vals.get("node_memory_MemTotal_bytes")
         avail = vals.get("node_memory_MemAvailable_bytes")
@@ -313,7 +332,7 @@ async def host_memory(ctx: Context) -> list[Alert]:
 async def host_clock(ctx: Context) -> list[Alert]:
     """Ceph and OVN need synchronised clocks."""
     out = []
-    for member, exp in _node(ctx, "host_clock"):
+    for member, exp in await _node(ctx, "host_clock"):
         sync = next((s.value for s in exp.samples if s.name == "node_timex_sync_status"), None)
         if sync == 0:
             out.append(

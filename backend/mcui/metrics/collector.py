@@ -11,7 +11,7 @@ from typing import Any
 
 from mcui.config import Settings
 from mcui.lxd.client import LXDClient, LXDError
-from mcui.lxd.server import members
+from mcui.lxd.server import members, server_info
 from mcui.metrics.ceph import CephScrape, CephScraper
 from mcui.metrics.live import LiveMetrics
 from mcui.metrics.node import NodeScraper
@@ -115,20 +115,28 @@ class Collector:
         for gone in set(self.state_last) - {m.name for m in listed}:
             self.state_last.pop(gone)
         for m in listed:
+            on: dict[str, str] = {"target": m.name}
             try:
                 try:
                     state = await self.api.get(f"/1.0/cluster/members/{m.name}/state")
                 except LXDError as e:
-                    if e.status != 404:  # 404: standalone server, no member state
+                    if e.status != 404:
                         raise
+                    # 404: a standalone server (no member state, and no target either:
+                    # "Cluster member not found"), or a member just removed from the
+                    # cluster: skip it rather than record another server's networks
+                    # under its name (D91 review)
+                    if (await server_info(self.api)).clustered:
+                        continue
+                    on = {}
                 else:
                     self.state_last[m.name] = (self.clock(), state)
                     n += await self.store.write(
                         int(self.clock()), member_state_samples(m.name, state)
                     )
-                nets = await self.api.get("/1.0/networks", recursion=1, target=m.name)
+                nets = await self.api.get("/1.0/networks", recursion=1, **on)
                 for net in host_networks(nets):
-                    st = await self.api.get(f"/1.0/networks/{net}/state", target=m.name)
+                    st = await self.api.get(f"/1.0/networks/{net}/state", **on)
                     n += await self.store.write(
                         int(self.clock()), network_state_samples(m.name, net, st)
                     )

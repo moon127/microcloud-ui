@@ -268,6 +268,12 @@ async def test_local_pools():
     s.collector.state_last = {}
     with pytest.raises(NoData):
         await local_pool(ctx(s))
+    # collected fine, but no member state: a standalone server, nothing to report
+    s.collector.status = {"state": TaskStatus(last_ok=NOW - 5)}
+    assert await local_pool(ctx(s)) == []
+    s.collector.status = {"state": TaskStatus(last_ok=NOW - 500, last_error="boom")}
+    with pytest.raises(NoData):  # worked once, failing now: can't look
+        await local_pool(ctx(s))
     assert await local_pool(ctx(svc())) == []  # no LXD
     await lxd.aclose()
 
@@ -287,11 +293,55 @@ async def test_host_rules():
     assert (mem.subject, mem.severity) == ("m1", "warning")  # 92%
     [clk] = await host_clock(ctx(s))
     assert clk.subject == "m1"
-    # one member's exporter failing: only its alerts are unknown (D91 review)
+    # one member's exporter failing: only its alerts are unknown, for every host rule
     node.last["m2"] = SimpleNamespace(ok=False, absent=False, error="HTTP 401", exposition=None)
-    c = ctx(s)
-    assert [a.subject for a in await host_fs(c)] == ["m1:/"]
+    for rule, name in (
+        (host_fs, "host_fs"),
+        (host_memory, "host_memory"),
+        (host_clock, "host_clock"),
+    ):
+        c = ctx(s)
+        await rule(c)
+        assert c.unknown == {f"{name}:m2", f"{name}:m2:"}
+
+
+@respx.mock
+async def test_host_rules_absent_exporter():
+    """Nothing listening: unknown while LXD says the member is down (it can't be read),
+    cleared while it's online (node_exporter went away; found in the VM test)."""
+    from mcui.lxd.client import LXDClient
+
+    lxd = LXDClient([EP1], verify=ssl.create_default_context())
+    respx.get(f"{EP1}/1.0").mock(
+        return_value=lxd_ok({"environment": {"server_clustered": True}, "api_extensions": []})
+    )
+    status = {"m2": "Online"}
+    respx.get(f"{EP1}/1.0/cluster/members").mock(
+        side_effect=lambda req: lxd_ok(
+            [
+                {"server_name": "m1", "url": "https://192.0.2.1:8443", "status": "Online"},
+                {"server_name": "m2", "url": "https://192.0.2.2:8443", "status": status["m2"]},
+            ]
+        )
+    )
+    node = SimpleNamespace(
+        last={
+            "m1": SimpleNamespace(ok=True, absent=False, exposition=NODE),
+            "m2": SimpleNamespace(ok=False, absent=True, exposition=None, error="refused"),
+        }
+    )
+    c = ctx(svc(node=node, lxd=lxd))
+    await host_fs(c)
+    assert c.unknown == set()  # online, nothing listening: its alerts clear
+    status["m2"] = "Offline"
+    c = ctx(svc(node=node, lxd=lxd))
+    await host_fs(c)
     assert c.unknown == {"host_fs:m2", "host_fs:m2:"}
+    respx.get(f"{EP1}/1.0/cluster/members").mock(return_value=lxd_err("down", 503))
+    c = ctx(svc(node=node, lxd=lxd))
+    await host_memory(c)
+    assert c.unknown == {"host_memory:m2", "host_memory:m2:"}  # can't tell: kept
+    await lxd.aclose()
     assert await host_memory(ctx(svc())) == []
     quiet = SimpleNamespace(last={"m1": SimpleNamespace(ok=True, exposition=parse("node_x 1\n"))})
     assert await host_memory(ctx(svc(node=quiet))) == []

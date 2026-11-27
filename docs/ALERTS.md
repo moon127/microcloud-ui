@@ -41,7 +41,7 @@ only cluster roles see them afterwards.
 | Host filesystems | any real filesystem on a member ≥ 85% (95%), counted as `df` does | node_exporter |
 | Host memory | ≥ 90% (95%) in use | node_exporter |
 | Host clocks | not synchronised (Ceph and OVN need it) | node_exporter |
-| Members | offline (critical) or evacuated (warning) | LXD |
+| Members | offline (critical) or evacuated (warning); offline shows about a minute after LXD itself notices, which can take two | LXD |
 | LXD security | a member's LXD release misses a security fix | LXD |
 | Instances out of memory | processes killed for lack of memory in the last 10 minutes | LXD metrics |
 | Instance root disks | ≥ 90% (95%) | LXD metrics |
@@ -51,7 +51,13 @@ only cluster roles see them afterwards.
 | Certificates | the LXD cluster certificate, the app's client, metrics and HTTPS certificates expire within 30 days (7) | the files |
 | Collection | collecting Ceph, host or LXD metrics keeps failing | the app |
 
-Rules without node_exporter or Ceph simply find nothing.
+Rules without node_exporter or Ceph simply find nothing. On a plain standalone LXD server
+(not MicroCloud, which always clusters LXD) local storage pools aren't checked: LXD has
+no member state there.
+
+While a member is offline, its host alerts stay as they were until it's back. If
+node_exporter stops answering on a member that's online (uninstalled, or a firewall),
+that member's host alerts clear.
 
 **Fewer false alarms:** a threshold alert fires only once its condition has held for a
 while (60 seconds, 2 minutes for memory and clocks), and clears only 2 points below its

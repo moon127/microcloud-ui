@@ -94,13 +94,37 @@ async def test_collect_state(collector, store):
     respx.get(f"{EP1}/1.0/networks/bond0/state").mock(
         return_value=lxd_ok({"counters": {"bytes_received": 5, "bytes_sent": 6}})
     )
-    assert await collector.collect_state() == 4 + 2 + 2
-    assert series_count(store, "mcui_member_load5") == 1  # m2 404 = standalone-style: skipped
-    assert series_count(store, "mcui_host_network_receive_bytes_total") == 2
+    # m2 404 in a cluster (just removed): skipped, not asked without target (D91 review)
+    assert await collector.collect_state() == 4 + 2
+    assert series_count(store, "mcui_member_load5") == 1
+    assert series_count(store, "mcui_host_network_receive_bytes_total") == 1
+    calls = [str(c.request.url) for c in respx.calls if "/1.0/networks" in str(c.request.url)]
+    assert calls and all("target=m1" in u for u in calls)
 
     respx.get(f"{EP1}/1.0/cluster/members/m2/state").mock(return_value=lxd_err("boom", 500))
     with pytest.raises(RuntimeError, match="m2: boom"):
         await collector.collect_state()
+
+
+@respx.mock
+async def test_collect_state_standalone(collector, store):
+    """A standalone server: no member state (404), and networks asked without target."""
+    info = fixture_json("server_clustered.json")
+    info["environment"] = {**info["environment"], "server_clustered": False}
+    respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(info))
+    name = info["environment"]["server_name"]
+    respx.get(f"{EP1}/1.0/cluster/members/{name}/state").mock(
+        return_value=lxd_err("not found", 404)
+    )
+    nets = respx.get(f"{EP1}/1.0/networks").mock(
+        return_value=lxd_ok([{"name": "eth0", "type": "physical"}])
+    )
+    respx.get(f"{EP1}/1.0/networks/eth0/state").mock(
+        return_value=lxd_ok({"counters": {"bytes_received": 5, "bytes_sent": 6}})
+    )
+    assert await collector.collect_state() == 2
+    assert nets.called and "target" not in str(nets.calls.last.request.url)
+    assert collector.state_last == {}
 
 
 async def test_guard_records_status(collector):

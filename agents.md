@@ -262,7 +262,18 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   project user scope, clearing into history); it found that LXD capitalises project
   state's `Limit`/`Usage` (fixed). The two-agent review found the network rule reading a
   field LXD doesn't send, and 20 smaller issues; all fixed with tests (D91), the network
-  rules re-checked live (counting the cluster's real allocations). Not live: host rules firing (node_exporter values were
+  rules re-checked live (counting the cluster's real allocations). A VM test (nested
+  2-member LXD cluster in RAM, MicroCeph on RAM loop OSDs; LIVE-TESTS) exercised the host,
+  member, certificate and Ceph rules with default thresholds and found two bugs, fixed:
+  an offline member's failed node_exporter scrape ("absent") cleared its host alerts
+  instead of keeping them; and on a standalone LXD the collector asked for networks with
+  `target=` ("Cluster member not found"), so member state never collected and
+  `local_pool` kept stale alerts (it now finds nothing to report there). Two-agent review
+  of those fixes: "absent" is unknown only while LXD says the member isn't online (else
+  an uninstalled node_exporter kept alerts for ever); dropping `target` follows
+  `server_clustered`, not a 404 (a just-removed member would have recorded another
+  server's networks); the member page's hardware (`/1.0/resources`) had the same standalone
+  `target` bug, fixed. Not done: the folder browser on a standalone LXD (speculative). Not live: host rules firing (node_exporter values were
   under their thresholds), certificates near expiry, members offline. Docs: ALERTS.md,
   CONFIGURATION.md `[alerts]`; shots `alerts`, `settings`.
 - **Development moves to 0.4.0 (owner, 2026-11-27):** `main` is 0.4.0.dev0; the next work

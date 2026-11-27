@@ -287,6 +287,16 @@ async def test_member_resources_and_instances(app):
         await login(c, "viewer", "viewerpw")
         assert (await c.get("/api/cluster/members/m2/resources")).json() == {"cpu": {"total": 8}}
         assert (await c.get("/api/cluster/members/nope/resources")).status_code == 404
+        # a standalone server: asked without target, which LXD refuses there (D91 review)
+        info = fixture_json("server_clustered.json")
+        info["environment"] = {**info["environment"], "server_clustered": False}
+        respx.get(f"{EP1}/1.0").mock(return_value=lxd_ok(info))
+        bare = respx.get(f"{EP1}/1.0/resources", params={}).mock(
+            return_value=lxd_ok({"cpu": {"total": 4}})
+        )
+        name = info["environment"]["server_name"]
+        assert (await c.get(f"/api/cluster/members/{name}/resources")).json()["cpu"]["total"] == 4
+        assert "target" not in str(bare.calls.last.request.url)
         listed = (await c.get("/api/instances")).json()
         assert [i["name"] for i in listed] == ["a", "b"]
         assert (await c.get("/api/instances/p/b")).json()["location"] == "m1"
