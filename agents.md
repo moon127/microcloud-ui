@@ -251,6 +251,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **0.3.4 released 2026-11-27** (run 46013878118): the D88 security fixes. `main` is now
+  0.3.5.dev0.
 - **Security review and fixes 2026-11-27 (D88):** two review agents side by side, findings
   checked against the code and live. Fixed for 0.3.4: LXD path injection (client guard),
   operation secrets redacted everywhere, hidden-folder parents, the host-devices right on
