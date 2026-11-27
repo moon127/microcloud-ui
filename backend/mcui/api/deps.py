@@ -20,7 +20,7 @@ from mcui.auth.policy import (
     may_use_host_devices,
 )
 from mcui.auth.store import Session, Store
-from mcui.hostfs import hidden
+from mcui.hostfs import exposes_hidden
 from mcui.lxd.client import LXDClient
 from mcui.metrics.live import LiveMetrics
 from mcui.services import Services
@@ -222,10 +222,12 @@ def check_host_devices(
         return
     for name in changed:
         source = new[name].get("source", "")
-        if new[name].get("type") == "disk" and hidden(source, hidden_paths or []):
+        host_path = new[name].get("type") == "disk" and source.startswith("/")
+        if host_path and exposes_hidden(source, hidden_paths or []):
             raise HTTPException(
                 status_code=403,
-                detail=f"{name}: {source} is hidden from project admins (Settings → Host devices)",
+                detail=f"{name}: {source} is, or contains, a folder hidden from project admins"
+                " (Settings → Host devices)",
             )
 
 

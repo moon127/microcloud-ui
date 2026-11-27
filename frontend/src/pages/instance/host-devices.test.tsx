@@ -72,8 +72,18 @@ afterEach(() => vi.restoreAllMocks());
 describe("host device helpers", () => {
   it("knows host devices and who may add them", () => {
     expect(isHostDevice(NFS) && isHostDevice({ type: "usb" }) && isHostDevice({ type: "unix-char" })).toBe(true);
-    expect(isHostDevice({ type: "disk", pool: "p", source: "v" }) || isHostDevice({ type: "disk", source: "ceph:x" })).toBe(false);
+    expect(isHostDevice({ type: "disk", pool: "p", source: "v" }) || isHostDevice({ type: "disk", source: "cloud-init:config" })).toBe(false);
     expect(isHostDevice({ type: "disk", path: "/" }) || isHostDevice({ type: "nic" })).toBe(false);
+    expect(isHostDevice({ type: "nic", network: "br", parent: "x" }) || isHostDevice({ type: "disk" })).toBe(false);
+    // widened in 0.3.4 (D88), as the backend
+    const widened: Record<string, string>[] = [
+      { type: "disk", source: "ceph:remote/x" },
+      { type: "disk", source: "cephfs:fs/p" },
+      { type: "proxy" },
+      { type: "nic", nictype: "physical", parent: "eth0" },
+      { type: "nic", parent: "br0" },
+    ];
+    for (const d of widened) expect(isHostDevice(d), JSON.stringify(d)).toBe(true);
     expect(mayUseHostDevices({ username: "a", role: "admin" }, "x")).toBe(true);
     expect(mayUseHostDevices({ username: "v", role: "viewer" }, "x")).toBe(false);
     const p = { username: "p", role: "project" as const, grants: { web: "admin" as const, lab: "operator" as const }, host_devices: ["web", "lab"] };

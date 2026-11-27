@@ -37,7 +37,7 @@ from mcui.api import (
     volumes,
 )
 from mcui.config import Settings, load_settings
-from mcui.lxd.client import LXDError, LXDUnavailable
+from mcui.lxd.client import LXDError, LXDUnavailable, UnsafePath
 from mcui.services import Services, build_services
 
 _HERE = Path(__file__).resolve().parent
@@ -75,6 +75,10 @@ def create_app(
     app = FastAPI(title="microcloud-ui", version=__version__, lifespan=lifespan)
     app.state.services = services
     app.state.restricted_cache = {}  # project -> (checked at, restricted=true)
+
+    @app.exception_handler(UnsafePath)
+    async def unsafe_path(_: Request, exc: UnsafePath) -> JSONResponse:
+        return JSONResponse({"detail": str(exc)}, status_code=400)
 
     @app.exception_handler(LXDError)
     async def lxd_error(_: Request, exc: LXDError) -> JSONResponse:

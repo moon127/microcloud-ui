@@ -12,7 +12,7 @@ screenshots come from the invented demo cluster.
 ## Back up and restore an instance
 
 **Who:** a project operator or above makes, downloads, renames and deletes backups; a
-project admin imports them.
+cluster admin imports them (a backup names its own devices, which the app can't check).
 
 ![An instance's backups](screenshots/backups.png)
 
@@ -207,7 +207,7 @@ Both kinds are added and removed at once, even while the instance runs (checked 
 - The **Move** dialog names the instance's host devices when you choose another member.
 
 **Hidden folders:** project admins can't attach a path inside the folders a cluster admin
-hides (**Settings**; by default `/home`, `/etc`, `/var/snap`, `/run` and other system
+hides, or a folder containing one, such as `/` or `/var` (**Settings**; by default `/home`, `/etc`, `/var/snap`, `/run` and other system
 folders). The app refuses it on every route, the YAML editor included.
 
 **What LXD insists on in a restricted project** (as every project with project users is):

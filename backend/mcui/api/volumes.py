@@ -80,7 +80,7 @@ async def list_volumes(
     scope: ScopeDep,
     lxd: LXDDep,
     project: str = "default",
-    pool: str | None = None,
+    pool: Annotated[str | None, Query(pattern=NAME, max_length=63)] = None,
     all_types: Annotated[bool, Query(alias="all")] = False,
 ) -> list[dict[str, Any]]:
     """Custom volumes of a project on every pool (or one); ``all`` adds instance/image volumes."""

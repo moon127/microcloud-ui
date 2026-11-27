@@ -64,11 +64,24 @@ def test_policy():
     for dev in (
         ROOT,
         {"type": "disk", "pool": "remote", "source": "vol"},
-        {"type": "disk", "source": "ceph:pool/vol"},
         {"type": "disk", "source": "cloud-init:config"},
+        {"type": "disk", "source": "agent:config"},
         {"type": "nic", "network": "ovn"},
+        {"type": "nic", "network": "lxdbr0", "parent": "x"},  # a managed network wins
+        {"type": "tpm"},
     ):
         assert not is_host_device(dev), dev
+    # widened in 0.3.4 (D88): any RBD image or CephFS share, host sockets, host NICs
+    for dev in (
+        {"type": "disk", "source": "ceph:remote/custom_web_other"},
+        {"type": "disk", "source": "cephfs:fs/path"},
+        {"type": "proxy", "connect": "unix:/var/snap/lxd/common/lxd/unix.socket"},
+        {"type": "infiniband", "parent": "ib0"},
+        {"type": "nic", "nictype": "physical", "parent": "eth0"},
+        {"type": "nic", "nictype": "macvlan", "parent": "eth0"},
+        {"type": "nic", "nictype": "bridged", "parent": "br0"},
+    ):
+        assert is_host_device(dev), dev
     old = {"root": ROOT, "doc": DOC}
     assert host_device_changes(old, old) == []
     assert host_device_changes({"root": ROOT}, old) == []  # removing is fine
@@ -488,7 +501,11 @@ async def test_host_files_and_paths_for_a_project_admin(tmp_path):
         inv = (await c.get(DEV)).json()
         assert [m["path"] for m in inv["mounts"]] == ["/srv/nfs"] and "/home" in inv["hidden"]
         r = await c.post(DEV, json={**nfs, "source": "/etc/ssh"}, headers=h)
-        assert r.status_code == 403 and "/etc/ssh is hidden" in r.text
+        assert r.status_code == 403 and "/etc/ssh is, or contains, a folder hidden" in r.text
+        # a folder that contains hidden ones (0.3.4, D88): / and /var hand /etc and /var/snap over
+        for parent in ("/", "/var", "/var/", "//var"):
+            r = await c.post(DEV, json={**nfs, "source": parent}, headers=h)
+            assert r.status_code == 403 and "contains" in r.text, parent
         usb_disk = "/dev/disk/by-id/usb-Flash-0:0-part1"
         r = await c.post(DEV, json={**nfs, "source": usb_disk}, headers=h)
         assert r.status_code == 200 and patch.call_count == 1
@@ -520,3 +537,62 @@ async def test_host_files_and_paths_for_a_project_admin(tmp_path):
     project.mock(return_value=lxd_ok({"config": {"restricted.devices.disk.paths": "/x"}}))
     session = type("S", (), {"user": store.get_user("pat")})()
     assert await allowed_paths(svc.lxd, session, "web") == []
+
+
+# --- devices that arrive from elsewhere (0.3.4, D88) -------------------------------------
+
+
+@respx.mock
+async def test_copy_move_restore_and_import_check_the_right(scoped):
+    """pat: admin in web (with the right) and lab (without). c1 has a host path."""
+    restricted()
+    with_host = {"name": "c1", "devices": {"nfs": DOC}}
+    plain = {"name": "c1", "devices": {}}
+    for p in ("web", "lab"):
+        respx.get(f"{EP1}/1.0/instances/c1", params={"project": p}).mock(
+            return_value=lxd_ok(with_host)
+        )
+    snap = respx.get(f"{EP1}/1.0/instances/c1/snapshots/s1").mock(return_value=lxd_ok(with_host))
+    respx.post(f"{EP1}/1.0/instances").mock(return_value=async_resp())
+    respx.post(f"{EP1}/1.0/instances/c1").mock(return_value=async_resp())
+    respx.put(f"{EP1}/1.0/instances/c1").mock(return_value=async_resp())
+    async with client(scoped) as c:
+        h = {CSRF_HEADER: await login(c, "pat", "patpw")}
+        # without the right in lab: a copy, a restore bringing it back, a move into lab
+        r = await c.post("/api/instances/lab/c1/copy", json={"name": "c2"}, headers=h)
+        assert r.status_code == 403 and "nfs" in r.text
+        r = await c.post(
+            "/api/instances/lab/c1/copy", json={"name": "c2", "snapshot": "s1"}, headers=h
+        )
+        assert r.status_code == 403 and snap.called
+        r = await c.post("/api/instances/web/c1/move", json={"project": "lab"}, headers=h)
+        assert r.status_code == 403
+        respx.get(f"{EP1}/1.0/instances/c1", params={"project": "lab"}).mock(
+            return_value=lxd_ok(plain)
+        )
+        r = await c.post("/api/instances/lab/c1/snapshots/s1/restore", json={}, headers=h)
+        assert r.status_code == 403 and "nfs" in r.text
+        # with the right in web: all fine; the same devices kept: a restore is fine too
+        r = await c.post("/api/instances/web/c1/copy", json={"name": "c2"}, headers=h)
+        assert r.status_code == 200
+        r = await c.post("/api/instances/web/c1/snapshots/s1/restore", json={}, headers=h)
+        assert r.status_code == 200
+        respx.get(f"{EP1}/1.0/instances/c1", params={"project": "lab"}).mock(
+            return_value=lxd_ok(with_host)
+        )
+        r = await c.post("/api/instances/lab/c1/snapshots/s1/restore", json={}, headers=h)
+        assert r.status_code == 200  # nothing it doesn't already have
+        r = await c.post("/api/instances/lab/c1/move", json={"project": "web"}, headers=h)
+        assert r.status_code == 200
+        # instance backups: cluster admins only
+        r = await c.post("/api/instances/import?project=web", content=b"tarball", headers=h)
+        assert r.status_code == 403 and "cluster admin imports" in r.text
+
+
+@respx.mock
+async def test_cluster_admins_skip_the_device_lookups(app):
+    copy = respx.post(INST.rsplit("/", 1)[0]).mock(return_value=async_resp())
+    async with client(app) as c:
+        h = await admin(c)
+        r = await c.post("/api/instances/default/c1/copy", json={"name": "c2"}, headers=h)
+        assert r.status_code == 200 and copy.called

@@ -170,11 +170,11 @@ describe("Import backup", () => {
       report = onProgress!;
       return new Promise((resolve) => (finish = resolve));
     });
-    // a project admin of web, viewer of lab: only web is offered
-    renderAt(<InstancesPage />, { s: session({ user: { username: "p", role: "project", grants: { web: "admin", lab: "viewer" } } }) });
+    renderAt(<InstancesPage />);
     fireEvent.click(await screen.findByRole("button", { name: "Import backup" }));
     await waitFor(() => expect(dialog().getAllByRole("option").map((o) => o.textContent)).toContain("remote"));
-    expect(within(dialog().getByLabelText("Project")).getAllByRole("option").map((o) => o.textContent)).toEqual(["web"]);
+    expect(within(dialog().getByLabelText("Project")).getAllByRole("option").map((o) => o.textContent)).toEqual(["web", "lab"]);
+    fireEvent.change(dialog().getByLabelText("Project"), { target: { value: "web" } });
     expect(dialog().getByRole("note")).toHaveTextContent("LXD will probably refuse the import");
     fireEvent.click(dialog().getByRole("button", { name: "Import" }));
     expect(dialog().getByRole("alert")).toHaveTextContent("Choose a backup file.");
@@ -197,11 +197,16 @@ describe("Import backup", () => {
     expect(toasts).not.toHaveTextContent("LXD is creating");
   });
 
-  it("is offered only to those who can create, and can be cancelled", async () => {
+  it("is offered only to cluster admins, and can be cancelled", async () => {
     const { unmount } = renderAt(<InstancesPage />, { s: session({ user: { username: "v", role: "viewer" } }) });
     await screen.findByRole("heading", { name: "Instances" });
     expect(screen.queryByRole("button", { name: "Import backup" })).toBeNull();
     unmount();
+    // a project admin creates instances but doesn't import backups (0.3.4, D88)
+    const p = renderAt(<InstancesPage />, { s: session({ user: { username: "p", role: "project", grants: { web: "admin" } } }) });
+    expect(await screen.findByRole("link", { name: "Create instance" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Import backup" })).toBeNull();
+    p.unmount();
     renderAt(<InstancesPage />);
     fireEvent.click(await screen.findByRole("button", { name: "Import backup" }));
     fireEvent.change(dialog().getByLabelText("Project"), { target: { value: "lab" } });

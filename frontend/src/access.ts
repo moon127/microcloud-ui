@@ -38,11 +38,18 @@ export const importRefused = (config: Record<string, string> = {}) =>
   config["restricted.containers.lowlevel"] !== "allow";
 
 // device types that reach the host's hardware; host-path disks too (backend policy.py)
-const HOST_TYPES = new Set(["usb", "pci", "gpu", "unix-char", "unix-block", "unix-hotplug"]);
+const HOST_TYPES = new Set(["usb", "pci", "gpu", "unix-char", "unix-block", "unix-hotplug", "proxy", "infiniband"]);
+const HOST_NICTYPES = new Set(["physical", "macvlan", "sriov", "ipvlan"]);
 
-/** A device that uses the host directly: a hardware type, or a disk from a host path. */
-export const isHostDevice = (d: Record<string, string>) =>
-  HOST_TYPES.has(d.type) || (d.type === "disk" && !d.pool && (d.source ?? "").startsWith("/"));
+/** A device that uses the host directly (backend policy.is_host_device, widened in 0.3.4):
+ * a hardware type, a proxy, a NIC on a host interface, or a disk that isn't a pool volume
+ * (a host path, or a Ceph source). */
+export const isHostDevice = (d: Record<string, string>) => {
+  if (HOST_TYPES.has(d.type)) return true;
+  if (d.type === "nic") return HOST_NICTYPES.has(d.nictype) || ("parent" in d && !("network" in d));
+  if (d.type !== "disk" || d.pool) return false;
+  return /^(\/|ceph:|cephfs:)/.test(d.source ?? "");
+};
 
 /** May ``user`` add host paths and USB devices in ``project``? Cluster admins, and project
  * admins whose grant carries the right (D86). */

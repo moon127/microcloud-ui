@@ -9,6 +9,25 @@ from mcui.lxd.client import LXDClient, LXDError
 
 MAX_WAIT = 30  # seconds per wait call; clients poll again for longer operations
 
+# An exec or console operation's metadata carries its websocket secrets ("fds": "0",
+# "control"; seen live on LXD 6.10). LXD's operation websocket takes the secret alone
+# as authentication, so whoever reads it can take the terminal or console over. The app
+# keeps them server-side (D48) and never hands an operation out with them (0.3.4, D88).
+SECRET_KEYS = frozenset({"fds", "secret", "secrets"})
+
+
+def redact(op: Any) -> Any:
+    """A copy of the operation ``op`` without websocket secrets, children included."""
+    if not isinstance(op, dict):
+        return op
+    out = dict(op)
+    md = out.get("metadata")
+    if isinstance(md, dict):
+        out["metadata"] = {k: v for k, v in md.items() if k not in SECRET_KEYS}
+    if isinstance(out.get("children"), list):
+        out["children"] = [redact(c) for c in out["children"]]
+    return out
+
 
 @dataclass
 class Started:
@@ -22,7 +41,8 @@ class Started:
         return str(self.operation["id"]) if self.operation else None
 
     def as_dict(self) -> dict[str, Any]:
-        return {"operation": self.operation, "metadata": self.metadata}
+        """For the browser: the operation without its websocket secrets."""
+        return {"operation": redact(self.operation), "metadata": self.metadata}
 
 
 async def start(

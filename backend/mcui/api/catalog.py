@@ -9,12 +9,14 @@ import re
 from typing import Annotated, Any
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from mcui.api.deps import LXDDep, ScopeDep, ServicesDep, SessionDep
 from mcui.api.instances import NAME
 from mcui.lxd.client import LXDError
 from mcui.lxd.remotes import ARCH, REMOTES, RemoteCatalog, RemoteImage, parse_registry_images
+
+MEMBER = r"^[A-Za-z0-9][A-Za-z0-9.-]*$"  # a cluster member's name
 
 router = APIRouter(prefix="/api")
 
@@ -108,7 +110,10 @@ async def profiles(scope: ScopeDep, lxd: LXDDep, project: str = "default") -> li
 
 @router.get("/networks")
 async def networks(
-    scope: ScopeDep, lxd: LXDDep, project: str = "default", target: str | None = None
+    scope: ScopeDep,
+    lxd: LXDDep,
+    project: str = "default",
+    target: Annotated[str | None, Query(pattern=MEMBER, max_length=63)] = None,
 ) -> list[dict[str, Any]]:
     """Networks of a project; ``target`` lists that member's own interfaces too (a cluster
     role only: they're the host's)."""

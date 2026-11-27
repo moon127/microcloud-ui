@@ -26,6 +26,29 @@ class LXDUnavailable(LXDError):
     """No endpoint could be reached."""
 
 
+class UnsafePath(LXDError):
+    """A request path that could leave the resource it names (0.3.4 security fix)."""
+
+    def __init__(self, path: str) -> None:
+        super().__init__(f"refused an unsafe LXD path: {path[:120]!r}", 400)
+
+
+def check_path(path: str) -> str:
+    """Refuse paths with dot segments, empty segments, a query, a fragment, escapes or
+    backslashes. httpx removes ``..`` segments, so a name like ``x/../../certificates/y``
+    taken from a request would otherwise reach another LXD endpoint as the app's admin
+    certificate. Every path the app builds is plain segments of validated names."""
+    if (
+        not path.startswith("/")
+        or any(c in path for c in "?#%\\\0")
+        or any(ord(c) < 0x20 for c in path)
+    ):
+        raise UnsafePath(path)
+    if any(seg in ("", ".", "..") for seg in path[1:].split("/")):
+        raise UnsafePath(path)
+    return path
+
+
 class LXDClient:
     """Talks to any of ``endpoints``, sticking to the last one that answered."""
 
@@ -104,6 +127,7 @@ class LXDClient:
         ``timeout`` overrides the client's default (long-polls such as operation waits);
         ``content`` may be bytes or an async iterator (streamed uploads).
         """
+        check_path(path)
         if base is not None:
             try:
                 return await self._send(
@@ -152,6 +176,7 @@ class LXDClient:
         self, method: str, path: str, *, params: dict[str, Any] | None = None
     ) -> httpx.Response:
         """Start a request whose body is read incrementally; the caller must ``aclose()`` it."""
+        check_path(path)
         req = self._http.build_request(
             method, self.endpoint + path, params=params, extensions=self._extensions()
         )
@@ -167,6 +192,7 @@ class LXDClient:
         self, path: str, params: dict[str, str] | None = None, *, base: str | None = None
     ) -> ClientConnection:
         """Open an LXD websocket (events, exec/console streams) with the same mTLS."""
+        check_path(path)
         query = str(httpx.QueryParams(params or {}))
         suffix = path + (f"?{query}" if query else "")
         bases = [base.rstrip("/")] if base else self.endpoints

@@ -39,16 +39,28 @@ def may_use_host_devices(user: User, project: str) -> bool:
     return user.grants.get(project) == "admin" and project in user.host_devices
 
 
-# device types that reach the host's hardware; host-path disks too (``is_host_device``)
-HOST_TYPES = frozenset({"usb", "pci", "gpu", "unix-char", "unix-block", "unix-hotplug"})
+# device types that reach the host's hardware or its other tenants (D86, widened 0.3.4)
+HOST_TYPES = frozenset(
+    {"usb", "pci", "gpu", "unix-char", "unix-block", "unix-hotplug", "proxy", "infiniband"}
+)
+# NICs on a host interface rather than a managed network
+HOST_NICTYPES = frozenset({"physical", "macvlan", "sriov", "ipvlan"})
 
 
 def is_host_device(dev: dict[str, str]) -> bool:
-    """A device that uses the host directly: a hardware type, or a disk whose source is a
-    host path (not a pool volume, Ceph or cloud-init)."""
-    if dev.get("type") in HOST_TYPES:
+    """A device that uses the host directly: a hardware type, a proxy (it can connect to
+    the host's sockets, LXD's own included), a NIC on a host interface, or a disk that
+    isn't a pool volume: a host path, or a Ceph source naming any RBD image or CephFS
+    share in the cluster (found in the 2026-11-27 review)."""
+    kind = dev.get("type")
+    if kind in HOST_TYPES:
         return True
-    return dev.get("type") == "disk" and not dev.get("pool") and dev.get("source", "")[:1] == "/"
+    if kind == "nic":
+        return dev.get("nictype") in HOST_NICTYPES or ("parent" in dev and "network" not in dev)
+    if kind != "disk" or dev.get("pool"):
+        return False
+    source = dev.get("source", "")
+    return source.startswith(("/", "ceph:", "cephfs:"))
 
 
 def host_device_changes(

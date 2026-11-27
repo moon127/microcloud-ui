@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from mcui.api.audited import audited
 from mcui.api.deps import AdminDep, ClusterReadDep, LXDDep, ScopeDep, StoreDep
-from mcui.api.wsproxy import UPSTREAM, Dedupe, ProjectEvents, authenticate, relay
+from mcui.api.wsproxy import UPSTREAM, Dedupe, ProjectEvents, authenticate, redact_event, relay
 from mcui.auth.policy import Scope
 from mcui.lxd import operations
 from mcui.lxd.client import LXDError
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api")
 
 @router.get("/operations")
 async def list_operations(scope: ScopeDep, lxd: LXDDep) -> list[dict[str, Any]]:
-    ops = await operations.list_all(lxd)
+    ops = [operations.redact(op) for op in await operations.list_all(lxd)]
     if scope.everything:
         return ops
     return [op for op in ops if scope.sees(operation_project(op) or "")]
@@ -35,8 +35,9 @@ async def get_operation(op_id: str, scope: ScopeDep, lxd: LXDDep, wait: int = 0)
     op = await operations.get(lxd, op_id)
     scope.require(operation_project(op) or "")
     if wait > 0:
-        return await operations.wait(lxd, op_id, wait)
-    return op
+        op = await operations.wait(lxd, op_id, wait)
+    redacted: dict[str, Any] = operations.redact(op)
+    return redacted
 
 
 @router.delete("/operations/{op_id}", status_code=204)
@@ -162,7 +163,7 @@ async def events(ws: WebSocket) -> None:
         return
     dedupe = Dedupe()
     keep = dedupe if scope.everything else ProjectEvents(scope, dedupe)
-    await relay(ws, upstream, read_client=False, keep=keep)
+    await relay(ws, upstream, read_client=False, keep=keep, rewrite=redact_event)
 
 
 # the event stream is filtered to the user's projects (D81, Phase 6b)

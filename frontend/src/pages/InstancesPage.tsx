@@ -84,9 +84,14 @@ export default function InstancesPage() {
             <Link className="button primary" to="/instances/new">
               Create instance
             </Link>{" "}
-            <button type="button" onClick={() => setImporting(true)}>
-              Import backup
-            </button>{" "}
+            {/* a backup names its own devices, unchecked: cluster admins only (0.3.4, D88) */}
+            {access.clusterAdmin && (
+              <>
+                <button type="button" onClick={() => setImporting(true)}>
+                  Import backup
+                </button>{" "}
+              </>
+            )}
           </>
         )}
         <Link to="/placement-groups">Placement groups</Link>

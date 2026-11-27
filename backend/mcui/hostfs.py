@@ -74,6 +74,19 @@ def hidden(path: str, hidden_paths: Sequence[str]) -> bool:
     return under(p, hidden_paths)
 
 
+def exposes_hidden(path: str, hidden_paths: Sequence[str]) -> bool:
+    """For attaching: is ``path`` hidden, or does it contain a hidden folder? Attaching
+    ``/`` or ``/var`` would hand over ``/etc`` or ``/var/snap`` with it (found in the
+    2026-11-27 review). Browsing still passes through such folders; listings leave the
+    hidden ones out."""
+    p = normalize(path)
+    if hidden(p, hidden_paths):
+        return True
+    if any(p.startswith(a) for a in ALWAYS_SHOWN):
+        return False
+    return p == "/" or any(under(h, [p]) for h in hidden_paths)
+
+
 @dataclass(frozen=True)
 class HostFsConfig:
     hidden_paths: list[str]

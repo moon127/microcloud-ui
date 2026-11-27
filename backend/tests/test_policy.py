@@ -389,6 +389,7 @@ async def test_a_project_move_needs_manage_in_both(tmp_path):
             return_value=lxd_ok({"config": {"restricted": "true"}})
         )
     move = respx.post(f"{INST}/c1").mock(return_value=async_resp())
+    respx.get(f"{INST}/c1").mock(return_value=lxd_ok({"name": "c1", "devices": {}}))
     async with client(app) as c:
         h = {CSRF_HEADER: await login(c, "pat", "patpw")}
         url = "/api/instances/web/c1/move"

@@ -18,6 +18,7 @@ from websockets.exceptions import ConnectionClosed
 from mcui.api.deps import COOKIE
 from mcui.auth.policy import Scope
 from mcui.auth.store import Session
+from mcui.lxd.operations import redact
 from mcui.services import Services
 
 # Close codes in the private 4000-4999 range
@@ -80,6 +81,20 @@ class ProjectEvents:
         except (ValueError, AttributeError):
             return False
         return isinstance(project, str) and self.scope.sees(project) and self.then(msg)
+
+
+def redact_event(msg: str | bytes) -> str | bytes:
+    """An operation event without the operation's websocket secrets (0.3.4, D88): every
+    role gets these events, and an exec's secrets let anyone take its terminal over."""
+    if b'"fds"' not in (msg if isinstance(msg, bytes) else msg.encode()):
+        return msg
+    try:
+        event = json.loads(msg)
+    except ValueError:
+        return msg
+    if not isinstance(event, dict) or not isinstance(event.get("metadata"), dict):
+        return msg
+    return json.dumps({**event, "metadata": redact(event["metadata"])})
 
 
 class Dedupe:
@@ -159,16 +174,19 @@ async def relay(
     *,
     read_client: bool = True,
     keep: Callable[[str | bytes], bool] | None = None,
+    rewrite: Callable[[str | bytes], str | bytes] | None = None,
 ) -> None:
     """Pump frames both ways until either side closes. Text stays text, binary stays binary.
 
-    ``keep`` filters frames going to the browser.
+    ``keep`` filters frames going to the browser, then ``rewrite`` changes them.
     """
 
     async def down() -> None:
         async for msg in upstream:
             if keep is not None and not keep(msg):
                 continue
+            if rewrite is not None:
+                msg = rewrite(msg)
             if isinstance(msg, bytes):
                 await client.send_bytes(msg)
             else:

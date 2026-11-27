@@ -57,9 +57,14 @@ A project user has a **grant** per project:
 |---|---|
 | **viewer** | see the project's instances, volumes, networks, profiles, images and placement groups; their graphs; its operations and audit entries |
 | **operator** | viewer, plus start, stop, restart, freeze; consoles and the terminal; files; instance and volume snapshots; instance and volume backups (make, rename, delete, download) |
-| **admin** | operator, plus create, change, rename, copy, move (to another project only if admin there too), publish, import (from a backup) and delete instances, import volume backups, copy and move volumes (to another project only if admin there too), upload ISOs and attach them, and manage the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
+| **admin** | operator, plus create, change, rename, copy, move (to another project only if admin there too), publish and delete instances, import volume backups, copy and move volumes (to another project only if admin there too), upload ISOs and attach them, and manage the project's own profiles, volumes, images, networks, ACLs, forwards, load balancers and placement groups, within its limits |
 
 Files, consoles and backup downloads need operator because they can expose secrets.
+
+**Instance backups are imported by cluster admins only** (0.3.4). A backup names its own
+devices, which the app can't check as the file streams through, so a project admin could
+otherwise bring in host paths or USB devices. LXD 6.10 refuses imports into restricted
+projects anyway; the way round is below (import, then move).
 
 ### The host-devices right
 
@@ -78,7 +83,12 @@ project's instances ([how](WORKFLOWS.md#attach-host-paths-and-usb-devices)). Wit
 it, the app refuses adding or changing any such device, whether through the **Host
 devices** tab, the YAML editor, the create wizard or a profile. They may still edit an
 instance that keeps the host devices a cluster admin gave it, and may remove them from
-its configuration. Checked live on LXD 6.10.1 on 2026-11-27.
+its configuration. The same check covers what arrives from elsewhere (0.3.4): copying an
+instance, moving one into another project, and restoring a snapshot that brings back a
+device removed since. "Host devices" means USB, PCI, GPU, unix, InfiniBand and proxy
+devices, NICs on a host interface (not a managed network), and disks that aren't pool
+volumes: host paths and Ceph sources (`ceph:`/`cephfs:`, which could name any RBD image or
+CephFS share in the cluster). Checked live on LXD 6.10.1 on 2026-11-27.
 
 **LXD still has to allow them in the project.** The right is the app's check; the
 project's restrictions are LXD's, and both apply:
@@ -89,7 +99,8 @@ project's restrictions are LXD's, and both apply:
 - USB devices: `restricted.devices.usb=allow`.
 
 **Hidden folders (the app's check):** a project admin with the right still can't see or
-attach anything in the folders a cluster admin hides under **Settings** (or
+attach anything in the folders a cluster admin hides, nor a folder that contains one (`/`,
+`/var`; 0.3.4), under **Settings** (or
 `[host_devices] hidden_paths`). The built-in list covers personal files, host config,
 snap state with LXD's, MicroCeph's and MicroOVN's keys, `/run` with the LXD socket, logs,
 and kernel and device folders. It's checked on the path as typed, so treat

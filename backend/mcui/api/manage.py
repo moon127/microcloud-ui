@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Annotated, Any
 
 from fastapi import APIRouter, HTTPException, Path, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import AfterValidator, BaseModel, Field
 
 from mcui.api.audited import audited
 from mcui.api.deps import (
@@ -34,7 +34,21 @@ router = APIRouter(prefix="/api")
 ObjName = Annotated[str, Path(pattern=NAME, max_length=63)]
 Fingerprint = Annotated[str, Path(pattern=r"^[0-9a-f]{12,64}$")]
 UPLOAD_WAITS = 20  # x 30 s: give large imports up to 10 minutes before adding the alias
-AliasName = Annotated[str, Path(pattern=r"^[A-Za-z0-9][A-Za-z0-9._/:-]*$", max_length=200)]
+
+
+def _alias_segments(v: str) -> str:
+    """An alias may contain "/" (ubuntu/24.04), but no empty, "." or ".." segment: those
+    would take the LXD path to another endpoint (0.3.4 security fix)."""
+    if any(seg in ("", ".", "..") for seg in v.split("/")):
+        raise ValueError("an alias can't have empty, '.' or '..' parts")
+    return v
+
+
+AliasName = Annotated[
+    str,
+    Path(pattern=r"^[A-Za-z0-9][A-Za-z0-9._/:-]*$", max_length=200),
+    AfterValidator(_alias_segments),
+]
 
 
 async def _change(

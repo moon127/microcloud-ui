@@ -281,7 +281,7 @@ async def test_remove_all(browser):
     stop = respx.put(f"{H}/state").mock(return_value=async_resp())
     d1 = respx.delete(H).mock(return_value=async_resp())
     d2 = respx.delete(f"{EP1}/1.0/instances/browse-node-2").mock(return_value=async_resp())
-    respx.get(f"{EP1}/1.0/images").mock(return_value=lxd_ok(["/1.0/images/abc"]))
+    respx.get(f"{EP1}/1.0/images").mock(return_value=lxd_ok([{"fingerprint": "abc"}]))
     di = respx.delete(f"{EP1}/1.0/images/abc").mock(return_value=async_resp())
     dp = respx.delete(P).mock(return_value=lxd_ok(None))
     wait_with()

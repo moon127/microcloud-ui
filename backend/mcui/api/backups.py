@@ -180,6 +180,14 @@ async def import_backup(
     ``name`` and ``pool`` override the backup's own; LXD keeps everything else from it.
     """
     await guard.check(project)
+    if not guard.session.user.is_admin:
+        # the tarball names its own devices (host paths, USB…), which the app can't check
+        # as it streams through: cluster admins only (0.3.4, D88). LXD 6.10 refuses
+        # imports into restricted projects anyway (D83).
+        raise HTTPException(
+            status_code=403,
+            detail="a cluster admin imports instance backups (then moves the instance here)",
+        )
     if request.headers.get("content-length") == "0":
         raise HTTPException(status_code=400, detail="send the backup file as the body")
     headers = {"Content-Type": "application/octet-stream"}

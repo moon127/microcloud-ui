@@ -404,8 +404,8 @@ async def rename(
 
 
 class Move(BaseModel):
-    target: str | None = Field(default=None, description="cluster member")
-    pool: str | None = Field(default=None, description="storage pool for the root disk")
+    target: str | None = Field(default=None, pattern=NAME, max_length=63, description="member")
+    pool: str | None = Field(default=None, pattern=NAME, max_length=63, description="root pool")
     project: str | None = Field(
         default=None, pattern=NAME, max_length=63, description="another project (IN-6, 7c)"
     )
@@ -415,7 +415,11 @@ class Move(BaseModel):
 
 @router.post("/{project}/{name}/move")
 async def move(
-    project: ProjectName, name: InstName, body: Move, ctx: CtxManageDep
+    project: ProjectName,
+    name: InstName,
+    body: Move,
+    ctx: CtxManageDep,
+    hidden_paths: HiddenPathsDep,
 ) -> dict[str, Any]:
     """Move to another member, pool or project. A project move needs manage in both
     projects (D83); LXD checks the target's restrictions and limits, and moves a stopped
@@ -425,6 +429,7 @@ async def move(
         raise HTTPException(status_code=400, detail="give a target member, a pool or a project")
     if other:
         await ctx.check_project(other)
+        await _guard_devices(ctx, project, name, other, hidden_paths)
     if body.target and body.pool and not other:
         return await ctx.audit(
             "instance.move",
@@ -449,6 +454,25 @@ async def move(
         params={"target": body.target} if body.target else None,
         detail=body.model_dump(exclude_none=True),
     )
+
+
+async def _guard_devices(
+    ctx: Ctx,
+    project: str,
+    source: str,
+    to_project: str,
+    hidden_paths: list[str],
+    old: dict[str, dict[str, str]] | None = None,
+) -> None:
+    """The host-devices right (D86) for devices that arrive from elsewhere: a copy, a move
+    to another project or a snapshot restore brings ``source``'s devices (an instance or
+    ``instance/snapshot``) into ``to_project`` (0.3.4, D88). Cluster admins skip it."""
+    if ctx.session.user.is_admin:
+        return
+    inst, _, snap = source.partition("/")
+    path = f"{_inst(inst)}/snapshots/{snap}" if snap else _inst(inst)
+    devices = (await ctx.lxd.get(path, project=project)).get("devices") or {}
+    check_host_devices(ctx.session, to_project, devices, old, hidden_paths)
 
 
 REMOTE_DRIVERS = frozenset({"ceph", "cephfs", "cephobject"})
@@ -486,16 +510,21 @@ async def _member_and_pool(
 class Copy(BaseModel):
     name: str = Field(pattern=NAME, max_length=63)
     snapshot: str | None = Field(default=None, pattern=NAME, description="copy from this snapshot")
-    target: str | None = None
+    target: str | None = Field(default=None, pattern=r"^@?[A-Za-z0-9][A-Za-z0-9._-]*$")
     instance_only: bool = True
     start: bool = False
 
 
 @router.post("/{project}/{name}/copy")
 async def copy(
-    project: ProjectName, name: InstName, body: Copy, ctx: CtxManageDep
+    project: ProjectName,
+    name: InstName,
+    body: Copy,
+    ctx: CtxManageDep,
+    hidden_paths: HiddenPathsDep,
 ) -> dict[str, Any]:
     source = f"{name}/{body.snapshot}" if body.snapshot else name
+    await _guard_devices(ctx, project, source, project, hidden_paths)
     payload = {
         "name": body.name,
         "source": {"type": "copy", "source": source, "instance_only": body.instance_only},
@@ -582,8 +611,17 @@ class Restore(BaseModel):
 
 @router.post("/{project}/{name}/snapshots/{snap}/restore")
 async def restore_snapshot(
-    project: ProjectName, name: InstName, snap: SnapName, body: Restore, ctx: CtxOperateDep
+    project: ProjectName,
+    name: InstName,
+    snap: SnapName,
+    body: Restore,
+    ctx: CtxOperateDep,
+    hidden_paths: HiddenPathsDep,
 ) -> dict[str, Any]:
+    """A snapshot may hold host devices removed since: restoring them needs the right."""
+    if not ctx.session.user.is_admin:
+        current = (await ctx.lxd.get(_inst(name), project=project)).get("devices") or {}
+        await _guard_devices(ctx, project, f"{name}/{snap}", project, hidden_paths, current)
     return await ctx.change(
         "snapshot.restore",
         project,

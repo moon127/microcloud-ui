@@ -329,8 +329,10 @@ class HostBrowser:
                         json={"action": "stop", "force": True},
                     )
                 await operations.run(self.lxd, "DELETE", path, params=self._p())
-            for fp in await self.lxd.get("/1.0/images", **self._p()) or []:
-                await operations.run(self.lxd, "DELETE", fp, params=self._p())
+            # by fingerprint: the listed URLs can carry ?project=, which check_path refuses
+            for im in await self.lxd.get("/1.0/images", recursion=1, **self._p()) or []:
+                path = f"/1.0/images/{im['fingerprint']}"
+                await operations.run(self.lxd, "DELETE", path, params=self._p())
             await operations.run(self.lxd, "DELETE", f"/1.0/projects/{self.project}")
             self.last_used.clear()
             return True

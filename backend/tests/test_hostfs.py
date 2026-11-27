@@ -4,7 +4,16 @@ import pytest
 from pydantic import ValidationError
 
 from mcui.config import HostDevicesSettings
-from mcui.hostfs import BROWSE_KEY, DEFAULT_HIDDEN, HIDDEN_KEY, effective, hidden, normalize, under
+from mcui.hostfs import (
+    BROWSE_KEY,
+    DEFAULT_HIDDEN,
+    HIDDEN_KEY,
+    effective,
+    exposes_hidden,
+    hidden,
+    normalize,
+    under,
+)
 
 
 def test_paths():
@@ -57,3 +66,14 @@ def test_config_checks():
     with pytest.raises(ValidationError):
         HostDevicesSettings(browse_project="../x")
     assert HostDevicesSettings().browse_project == "mcui-server"
+
+
+def test_exposes_hidden():
+    """Attaching a parent of a hidden folder hands the hidden one over (0.3.4, D88)."""
+    for p in ("/", "/var", "/var/snap/lxd", "/etc", "/srv/../var/"):
+        assert exposes_hidden(p, DEFAULT_HIDDEN), p
+    for p in ("/srv", "/srv/nfs", "/var/www", "/opt", "/dev/disk/by-id/usb-Flash-0:0"):
+        assert not exposes_hidden(p, DEFAULT_HIDDEN), p
+    assert exposes_hidden("/", []) and not exposes_hidden("/var", [])
+    # browsing still goes through /var: only hidden() decides that
+    assert not hidden("/var", DEFAULT_HIDDEN)
