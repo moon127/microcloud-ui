@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useCanWrite } from "../shared";
+import SharedNote from "../SharedNote";
 import { Link } from "react-router";
 import { fetchMembers, fetchNetworks, fetchNetworkTraffic, type Network, type Series } from "../api";
 import { useActions } from "../actions";
@@ -11,7 +13,6 @@ import RangePicker from "../RangePicker";
 import { useCurrentProject } from "../project";
 import { networkPath } from "./network/paths";
 import { useApi } from "../useApi";
-import { useAccess } from "../access";
 
 const label = (suffix: string) => (s: Series) => ({ label: `${s.labels.network} ${suffix}`, points: s.points });
 
@@ -75,7 +76,6 @@ function summary(n: Network): string {
 }
 
 function NetworkList() {
-  const access = useAccess();
   const { version } = useActions();
   const project = useCurrentProject();
   const nets = useApi(`networks:${project}:${version}`, () => fetchNetworks(project), 60_000);
@@ -84,12 +84,13 @@ function NetworkList() {
   const target = member || members.data?.[0]?.name;
   const local = useApi(`networks:${project}:${target}`, () => (target ? fetchNetworks(project, target) : Promise.resolve([])));
   const managed = (nets.data ?? []).filter((n) => n.managed);
+  const write = useCanWrite(project, "manage", "networks");
   const unmanaged = (local.data ?? []).filter((n) => !n.managed);
   return (
     <>
       <h2>LXD networks in {project}</h2>
       <p className="actions">
-        {access.can(project, "manage") && (
+        {write.can && (
           <Link className="button primary" to="/networks/new">
             Create network
           </Link>
@@ -97,6 +98,7 @@ function NetworkList() {
         <Link to="/network-acls">Network ACLs</Link>
         <Link to="/ovn">OVN overview</Link>
       </p>
+      {write.shared && <SharedNote project={project} kind="networks" />}
       {nets.error && <p role="alert">{nets.error}</p>}
       {!nets.data && !nets.error && <p role="status">Loading…</p>}
       {nets.data && managed.length === 0 && <p>No managed networks.</p>}

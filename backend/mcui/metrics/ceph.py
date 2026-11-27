@@ -10,6 +10,7 @@ import httpx
 
 from mcui.config import CephSettings
 from mcui.lxd.server import Member
+from mcui.metrics.http import get_text
 from mcui.metrics.prom import Exposition, parse
 
 
@@ -45,15 +46,15 @@ class CephScraper:
 
     async def _one(self, url: str) -> CephScrape:
         try:
-            r = await self._http.get(url + "/metrics")
+            status, text = await get_text(self._http, url + "/metrics")
         except httpx.HTTPError as e:
             return CephScrape(False, url, f"{type(e).__name__}: {e}".rstrip(": "))
-        if r.status_code != 200:
-            return CephScrape(False, url, f"HTTP {r.status_code}")
-        exp = parse(r.text)
+        if status != 200:
+            return CephScrape(False, url, f"HTTP {status}")
+        exp = parse(text)
         if not exp.samples:
             return CephScrape(False, url, "standby mgr (no data)")
-        return CephScrape(True, url, exposition=exp, text=r.text)
+        return CephScrape(True, url, exposition=exp, text=text)
 
     async def scrape(self, members: list[Member]) -> CephScrape:
         urls = mgr_urls(self.settings, members)

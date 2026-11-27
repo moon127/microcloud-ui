@@ -69,9 +69,17 @@ async def run_check(settings: Settings, api: LXDClient, metrics: LXDClient, out:
             out(f"  FAIL {s.member}: {s.url}: {s.error}")
             ok = False
 
+    if settings.server.forwarded_allow_ips == "*":
+        # any client can then set its own address: sign-in throttling and the audit log
+        # trust it (D90)
+        out('WARN forwarded_allow_ips is "*": name your proxy\'s address instead')
+
     ne = settings.node_exporter
     if ne.enabled:  # optional: reported, never a failure (D58)
         out(f"Host metrics (node_exporter, {ne.scheme} port {ne.port}, optional):")
+        if ne.scheme == "http" and ne.username:
+            # basic auth over plain http: the password crosses the network readable (D89)
+            out("  WARN node_exporter credentials are sent over plain http: use https")
         node = NodeScraper(ne)
         try:
             for r in await node.scrape_all(ms):

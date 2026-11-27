@@ -1,5 +1,6 @@
 """The folder browser's helpers (D87). LXD's answers as seen live on LXD 6.10.1."""
 
+import asyncio
 import json
 import ssl
 
@@ -81,7 +82,7 @@ def exec_mocks(out="", err="", rc=0):
 
 
 def test_names_and_parsing():
-    assert helper_name("gw-ips-microcloud-1") == "browse-gw-ips-microcloud-1"
+    assert helper_name("node-1") == "browse-node-1"
     assert helper_name("Node_1.lan") == "browse-node-1-lan"
     assert len(helper_name("x" * 80)) == 63
     assert mount_device("/srv/nfs") == mount_device("/srv/nfs") != mount_device("/boot")
@@ -209,6 +210,7 @@ async def test_starts_a_stopped_helper_and_mounts_filesystems_on_the_way(browser
                 "source": "/srv/nfs/deep",
                 "path": "/host/srv/nfs/deep",
                 "readonly": "true",
+                "required": "false",
             }
         }
     }
@@ -290,3 +292,46 @@ async def test_remove_all(browser):
     assert stop.called and d1.called and d2.called and di.called and dp.called
     assert dict(di.calls.last.request.url.params) == {"project": "mcui-server"}
     assert browser.last_used == {}
+
+
+@respx.mock
+async def test_helper_output_is_capped(browser, monkeypatch):
+    """A folder with millions of entries mustn't fill the server's memory (D89)."""
+    monkeypatch.setattr("mcui.lxd.hostbrowser.MAX_OUTPUT", 40)
+    respx.get(P).mock(return_value=lxd_ok(OURS))
+    respx.get(H).mock(return_value=lxd_ok({"status": "Running"}))
+    exec_mocks("directory/1/1//host/aaaa\n" * 10)
+    entries = await browser.listing("node-1", "/", [])
+    assert [e.name for e in entries] == ["aaaa"]  # one whole line in 40 bytes; the cut one dropped
+
+
+@respx.mock
+async def test_resolve(browser):
+    """Links resolved in the helper (D90); one leaving the member's folders is refused."""
+    respx.get(P).mock(return_value=lxd_ok(OURS))
+    respx.get(H).mock(return_value=lxd_ok({"status": "Running", "devices": {}}))
+    exec_mocks("/host/etc\n")
+    assert await browser.resolve("node-1", "/srv/nfs/a", []) == "/etc"
+    exec_mocks("/host\n")
+    assert await browser.resolve("node-1", "/", []) == "/"
+    exec_mocks("/etc/passwd\n")  # an absolute link: resolved inside the helper
+    with pytest.raises(BrowseError, match="link out of the host's folders") as e:
+        await browser.resolve("node-1", "/srv/x", [])
+    assert e.value.status == 403
+    exec_mocks("", "realpath: /host/nope: No such file\n", rc=1)
+    with pytest.raises(BrowseError, match="doesn't exist"):
+        await browser.resolve("node-1", "/nope", [])
+
+
+@respx.mock
+async def test_stop_idle_spares_a_helper_used_meanwhile(browser, clock):
+    browser.last_used = {"node-1": 1000.0}
+    clock.t = 1000.0 + 301
+    stop = respx.put(f"{H}/state").mock(return_value=async_resp())
+    wait_with()
+    await browser._lock.acquire()
+    task = asyncio.create_task(browser.stop_idle())
+    await asyncio.sleep(0)
+    browser.last_used["node-1"] = clock.t  # a listing started while stop_idle waited
+    browser._lock.release()
+    assert await task == [] and not stop.called

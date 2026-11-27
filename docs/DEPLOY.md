@@ -224,7 +224,14 @@ certificate with full LXD access (D4, D21), so treat the machine like LXD itself
 Every response carries a content security policy (own scripts only, no framing,
 websockets only to the same host), `X-Content-Type-Options: nosniff`,
 `X-Frame-Options: DENY` and `Referrer-Policy: same-origin`, and HSTS over HTTPS (0.3.5).
-A reverse proxy needn't add them; if it does, keep its CSP at least as strict.
+A reverse proxy needn't add them; if it does, keep its CSP at least as strict. The CSP
+allows websockets to the `Host` the request arrived with; a proxy that rewrites `Host`
+is fine, as `'self'` covers the browser's own origin.
+
+**Sign-in throttling behind a proxy:** set `forwarded_allow_ips` to the proxy's address,
+so the app sees each client's address. Otherwise every client shares the proxy's address,
+and 30 failed sign-ins from anyone in 5 minutes hold up everyone's. Don't use `"*"` when
+clients can reach the app directly: they could then claim any address (`mcui check` warns).
 
 The systemd unit runs the service as the unprivileged `mcui` user, with no capabilities
 and a read-only system. It can write only to `/var/lib/mcui`, has no access to home

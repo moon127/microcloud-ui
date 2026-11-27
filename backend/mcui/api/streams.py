@@ -13,6 +13,8 @@ talks to LXD or sees a secret (D4, D25, D48).
 
 from __future__ import annotations
 
+import asyncio
+import contextlib
 import uuid
 from typing import Annotated, Any, Literal
 
@@ -21,7 +23,14 @@ from pydantic import BaseModel, Field
 from websockets.asyncio.client import ClientConnection
 
 from mcui.api.audited import audited
-from mcui.api.deps import LXDDep, ProjectOperateDep, ServicesDep, StoreDep, project_restricted
+from mcui.api.deps import (
+    COOKIE,
+    LXDDep,
+    ProjectOperateDep,
+    ServicesDep,
+    StoreDep,
+    project_restricted,
+)
 from mcui.api.instances import InstName, ProjectName
 from mcui.api.wsproxy import POLICY, UPSTREAM, authenticate, relay_stream
 from mcui.auth.policy import allowed
@@ -202,6 +211,9 @@ async def clear_console_log(
     return st.as_dict()
 
 
+RECHECK_SECONDS = 30.0
+
+
 @router.websocket("/streams/{stream_id}")
 async def attach(ws: WebSocket, stream_id: str) -> None:
     # starting the stream needed the operate right in its project; only its owner attaches
@@ -244,9 +256,33 @@ async def attach(ws: WebSocket, stream_id: str) -> None:
         await stream.release_control()
         await ws.close(code=UPSTREAM, reason=str(e)[:120])
         return
+    token = ws.cookies.get(COOKIE) or ""
+
+    async def still_allowed() -> bool:
+        current = services.store.get_session(token)
+        if current is None:  # logged out, expired, user deleted
+            return False
+        u = current.user
+        return allowed(u, stream.project, "operate") and (
+            u.role != "project" or await project_restricted(ws, lxd, stream.project)
+        )
+
+    async def watch() -> None:
+        # an open terminal follows a logout or a removed grant within RECHECK_SECONDS (D90)
+        while True:
+            await asyncio.sleep(RECHECK_SECONDS)
+            if not await still_allowed():
+                with contextlib.suppress(RuntimeError, OSError):
+                    await ws.close(code=POLICY, reason="no longer allowed")
+                return
+
+    watcher = asyncio.create_task(watch())
     try:
         await relay_stream(ws, data, control)
     finally:
+        watcher.cancel()
+        with contextlib.suppress(asyncio.CancelledError):
+            await watcher
         await stream.release_control()
 
 

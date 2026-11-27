@@ -74,7 +74,7 @@
         }
       },
       "last_used_at": "2026-09-05T14:49:36.293616323Z",
-      "location": "gw-ips-microcloud-2",
+      "location": "node-2",
       "name": "CosmosCloud",
       "profiles": [
         "legacy"
@@ -364,7 +364,7 @@
         }
       },
       "last_used_at": "2026-07-12T08:16:19.957705448Z",
-      "location": "gw-ips-microcloud-3",
+      "location": "node-3",
       "name": "UmbrelOS",
       "profiles": [
         "legacy"
@@ -416,7 +416,7 @@
         "volatile.uuid.generation": "1576a1a6-5ac6-4567-9e88-56247e0e7e5e"
       },
       "created_at": "2026-06-07T15:57:29.614599332Z",
-      "description": "import of quasselcore-canonical moon127.net DNS/IRC server from po [LEGACY]",
+      "description": "import of quasselcore-canonical example.org DNS/IRC server from po [LEGACY]",
       "devices": {},
       "ephemeral": false,
       "expanded_config": {
@@ -450,7 +450,7 @@
         }
       },
       "last_used_at": "2026-06-07T16:00:15.254565773Z",
-      "location": "gw-ips-microcloud-1",
+      "location": "node-1",
       "name": "dns-legacy",
       "profiles": [
         "legacy"
@@ -630,7 +630,7 @@
         }
       },
       "last_used_at": "2026-08-16T23:31:39.675109794Z",
-      "location": "gw-ips-microcloud-1",
+      "location": "node-1",
       "name": "mirrors",
       "profiles": [
         "legacy"
@@ -808,7 +808,7 @@
         }
       },
       "last_used_at": "2026-08-12T09:24:57.568448629Z",
-      "location": "gw-ips-microcloud-3",
+      "location": "node-3",
       "name": "nginx-proxy-manager",
       "profiles": [
         "legacy"
@@ -978,7 +978,7 @@
         }
       },
       "last_used_at": "2026-08-12T09:40:15.98657467Z",
-      "location": "gw-ips-microcloud-3",
+      "location": "node-3",
       "name": "podman-1",
       "profiles": [
         "legacy"
@@ -1147,7 +1147,7 @@
         }
       },
       "last_used_at": "2026-07-23T20:30:52.507138819Z",
-      "location": "gw-ips-microcloud-1",
+      "location": "node-1",
       "name": "releases-mirror",
       "profiles": [
         "legacy"
@@ -1309,7 +1309,7 @@
         }
       },
       "last_used_at": "2026-07-09T13:28:14.572601736Z",
-      "location": "gw-ips-microcloud-2",
+      "location": "node-2",
       "name": "route-reflector-1-as211437",
       "profiles": [
         "legacy"
@@ -1518,7 +1518,7 @@
         }
       },
       "last_used_at": "2026-06-14T11:57:12.919612956Z",
-      "location": "gw-ips-microcloud-3",
+      "location": "node-3",
       "name": "runtipi",
       "profiles": [
         "legacy"
@@ -1968,7 +1968,7 @@
         }
       },
       "last_used_at": "2026-07-09T14:15:39.518855121Z",
-      "location": "gw-ips-microcloud-1",
+      "location": "node-1",
       "name": "test-routing",
       "profiles": [
         "legacy"
@@ -2179,7 +2179,7 @@
         }
       },
       "last_used_at": "2026-07-23T12:27:49.478124793Z",
-      "location": "gw-ips-microcloud-2",
+      "location": "node-2",
       "name": "ubuntu-mirror-urc",
       "profiles": [
         "legacy"

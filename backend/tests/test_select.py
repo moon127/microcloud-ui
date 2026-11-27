@@ -102,9 +102,7 @@ def test_ceph_samples_from_real_cluster():
 
 
 def test_member_state_samples_from_real_cluster():
-    state = json.loads(
-        (RECORDED / "1.0_cluster_members_gw-ips-microcloud-1_state.json").read_text()
-    )
+    state = json.loads((RECORDED / "1.0_cluster_members_node-1_state.json").read_text())
     out = {
         (s.name, s.labels.get("pool")): s.value
         for s in member_state_samples("m1", state["metadata"])

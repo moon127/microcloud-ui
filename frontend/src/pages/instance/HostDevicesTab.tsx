@@ -315,6 +315,12 @@ function AddPath({ inst, inv, onClose }: { inst: InstanceFull; inv?: HostInvento
           container (<code>shift</code>), so its users own their files
         </label>
       )}
+      {shift && !readonly && !vm && (
+        <p role="alert">
+          Shifted and writable, the container&apos;s root writes there as the host&apos;s root (setuid programs, cron).
+          Project admins can only add a shifted path read-only.
+        </p>
+      )}
       <label>
         <input type="checkbox" checked={everywhere} onChange={(e) => setEverywhere(e.target.checked)} /> Every member has this
         path (an NFS mount, a SAN): move the instance when its member is evacuated (<code>cluster.evacuate=migrate</code>)

@@ -7,8 +7,11 @@ file's ``[host_devices] hidden_paths``, else ``DEFAULT_HIDDEN``. A project's
 ``restricted.devices.disk.paths``, when set, narrows browsing further to those folders
 (LXD refuses attaching anything else anyway).
 
-The check is on the path as written: a symlink under an allowed folder can still point
-elsewhere on the member. LXD's ``restricted.devices.disk.paths`` is the hard boundary.
+The check is on the path as written, like LXD's own ``restricted.devices.disk.paths``
+(a lexical prefix match: ``filepath.Clean``, no symlinks resolved; LXD's source,
+checked 2026-11-27). A symlink in a folder an instance can write to can point elsewhere
+on the member, so allow only folders instances can't write to, or attach read-only. The
+folder browser resolves links before its check (D90).
 """
 
 from __future__ import annotations
@@ -23,8 +26,19 @@ from mcui.config import HostDevicesSettings
 
 # personal files; host config and keys; snap state (LXD, MicroCeph and MicroOVN keys and
 # certificates); /run (the LXD socket: mounting it hands over the cluster); service state;
-# logs; kernel and devices; other users' temporary files
+# logs; kernel and devices; other users' temporary files; programs and libraries, spool
+# (cron), caches and backups, where a writable mount runs code as root (D90)
 DEFAULT_HIDDEN: tuple[str, ...] = (
+    "/bin",
+    "/sbin",
+    "/lib",
+    "/lib32",
+    "/lib64",
+    "/usr",
+    "/var/spool",
+    "/var/cache",
+    "/var/backups",
+    "/var/mail",
     "/home",
     "/root",
     "/etc",

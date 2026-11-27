@@ -260,7 +260,16 @@ class Store:
     def rename_project_grants(self, old: str, new: str) -> int:
         """Grants follow a renamed project (D88): left behind, a later project reusing the
         old name would inherit them. Returns how many moved."""
-        cur = self.db.execute("UPDATE grants SET project = ? WHERE project = ?", (new, old))
+        # grants left on the new name (a project deleted outside the app) would clash with
+        # the primary key and, worse, come back to life: the old project's grants win (D90)
+        self.db.execute("BEGIN")
+        try:
+            self.db.execute("DELETE FROM grants WHERE project = ?", (new,))
+            cur = self.db.execute("UPDATE grants SET project = ? WHERE project = ?", (new, old))
+            self.db.execute("COMMIT")
+        except Exception:
+            self.db.execute("ROLLBACK")
+            raise
         return cur.rowcount
 
     def drop_project_grants(self, project: str) -> int:

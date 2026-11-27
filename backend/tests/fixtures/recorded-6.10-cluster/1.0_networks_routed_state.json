@@ -27,7 +27,7 @@
     "hwaddr": "00:16:3e:00:00:48",
     "mtu": 1442,
     "ovn": {
-      "chassis": "gw-ips-microcloud-1"
+      "chassis": "node-1"
     },
     "state": "up",
     "type": "broadcast",

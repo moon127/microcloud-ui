@@ -45,6 +45,13 @@ def build_parser() -> argparse.ArgumentParser:
 
     rec = sub.add_parser("record-fixtures", help="capture scrubbed LXD responses for tests")
     rec.add_argument("--out", type=Path, default=Path("backend/tests/fixtures/recorded"))
+    rec.add_argument(
+        "--scrub-word",
+        action="append",
+        default=[],
+        metavar="WORD",
+        help="also replace WORD (a domain, a name in descriptions) everywhere; repeatable",
+    )
 
     user = sub.add_parser("user", help="manage local UI users")
     usub = user.add_subparsers(dest="user_command", required=True)
@@ -165,7 +172,7 @@ def _record(args: argparse.Namespace) -> int:
     from mcui.record import record
 
     async def fn(settings: Settings, api: LXDClient, metrics: LXDClient) -> int:
-        failures = await record(settings, api, metrics, args.out, print)
+        failures = await record(settings, api, metrics, args.out, print, args.scrub_word)
         return 1 if failures else 0
 
     return _with_clients(args, fn)

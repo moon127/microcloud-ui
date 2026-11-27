@@ -21,6 +21,7 @@ from mcui.api.audited import audited
 from mcui.api.deps import InBodyDep, LXDDep, ProjectReadDep, StoreDep
 from mcui.api.files import _error
 from mcui.api.instances import NAME, CtxOperateDep, IndexDep, InstName, ProjectName, Rename
+from mcui.api.uploads import attachment, capped
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient
 
@@ -149,7 +150,7 @@ async def stream_export(
             yield chunk
 
     await audit
-    headers = {"Content-Disposition": f'attachment; filename="{stem}{suffix(head)}"'}
+    headers = {"Content-Disposition": attachment(f"{stem}{suffix(head)}")}
     if "content-length" in r.headers:
         headers["Content-Length"] = r.headers["content-length"]
     return StreamingResponse(
@@ -206,7 +207,7 @@ async def import_backup(
             "/1.0/instances",
             params={"project": project},
             headers=headers,
-            content=request.stream(),
+            content=capped(request),
             timeout=IMPORT_TIMEOUT,
         ),
         detail={"pool": pool} if pool else None,

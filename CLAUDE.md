@@ -22,6 +22,7 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
    | Production (bundle, systemd, container) | `docs/DEPLOY.md` |
    | Releases and edge builds (GHCR image + GitHub Release) | `docs/RELEASING.md` |
    | Checks only the owner can run | `docs/LIVE-TESTS.md` |
+   | Code review by two agents (every change) | `docs/REVIEW.md` |
 
 ## Rules that must hold
 
@@ -35,6 +36,11 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
   claude.ai session URL** (D66; `make hooks` installs a commit-msg hook that rejects them).
 - **Tests in the same commit** as every change. Coverage must stay **≥90%** for backend and
   frontend (currently about 99.7% and 98%).
+- **Two-agent code review before every commit of code (owner, 2026-11-27; D90):** run the
+  two review agents of `docs/REVIEW.md` in parallel on the change, check every finding
+  yourself (code, a reproducing test, live in the sandbox or LXD's source), fix what's
+  confirmed with a test, and say in the commit message that it was reviewed and what
+  changed. Docs-only and version-bump commits are exempt.
 - **`make lint test` before every commit:** ruff, mypy strict, eslint, tsc, shellcheck,
   pytest and vitest.
 - **The design log:** add or amend a `D<n>` row in `agents.md` for any design decision, and

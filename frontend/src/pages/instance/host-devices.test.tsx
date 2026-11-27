@@ -148,8 +148,10 @@ describe("Host devices tab", () => {
     fireEvent.click(dialog().getByRole("button", { name: "Add" }));
     expect(dialog().getByRole("alert")).toHaveTextContent("Names start");
     fireEvent.change(dialog().getByLabelText(/^Device name/), { target: { value: "" } });
-    fireEvent.click(dialog().getByLabelText("Read-only"));
     fireEvent.click(dialog().getByLabelText(/Shift file ownership/));
+    expect(dialog().queryByText(/writes there as the host's root/)).toBeNull(); // read-only
+    fireEvent.click(dialog().getByLabelText("Read-only"));
+    expect(dialog().getByText(/writes there as the host's root/)).toBeInTheDocument();
     fireEvent.click(dialog().getByLabelText(/Every member has this path/));
     expect(dialog().getByText(/where the path must exist too/)).toBeInTheDocument();
     fireEvent.click(dialog().getByRole("button", { name: "Add" }));

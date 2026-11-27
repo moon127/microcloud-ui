@@ -213,7 +213,9 @@ folders). The app refuses it on every route, the YAML editor included.
 **What LXD insists on in a restricted project** (as every project with project users is):
 - Host paths need `restricted.devices.disk=allow` (project page → **Restrictions** → Disk
   devices). Also set **Allowed host paths**, for example `/srv/nfs`. Without it any host
-  path can be mounted, and a shifted mount of `/` gives root on the host.
+  path can be mounted, and a writable shifted mount of a program folder gives root on the
+  host. LXD checks the path as typed, without following symlinks: allow folders
+  instances can't write to. Project admins can add a shifted path only read-only.
 - USB devices need `restricted.devices.usb=allow`.
 - LXD refuses the device otherwise, even for a cluster admin, and the app shows its
   message (for example "Disk source path "/etc" not allowed").

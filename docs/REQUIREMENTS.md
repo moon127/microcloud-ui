@@ -162,7 +162,7 @@ installation or reconfiguration, enterprise storage drivers, multi-cluster
 management.
 
 ## 7. Open questions
-- ~~**Q1** LXD version?~~ **Answered 2026-11-05:** LXD 5.21.8, clustered. Cluster cert SAN is `DNS:gw-ips-microcloud-1` plus loopback only, so `server_name = "gw-ips-microcloud-1"`. Both the management cert (trusted) and the metrics cert were verified with curl on :8443. Metrics stay on 8443 for now (no `core.metrics_address`). MicroCloud version still to confirm.
+- ~~**Q1** LXD version?~~ **Answered 2026-11-05:** LXD 5.21.8, clustered. Cluster cert SAN is `DNS:node-1` plus loopback only, so `server_name = "node-1"`. Both the management cert (trusted) and the metrics cert were verified with curl on :8443. Metrics stay on 8443 for now (no `core.metrics_address`). MicroCloud version still to confirm.
 - ~~**Q2**~~ Do you agree with the MVP/P2 tiers above? **Answered 2026-11-05:** tiers accepted, with the VGA console (IN-9) and file browser (IN-11) promoted to MVP.
 - ~~**Q3**~~ Licence: **MIT** (answered 2026-11-05).
 - ~~**Q4**~~ **Answered 2026-11-05:** the owner's Mac reaches the cluster directly. The Claude session's dev VM **cannot** reach it (tested 2026-11-05), so live tests run on the Mac and the session works from recorded fixtures (D26).

@@ -101,7 +101,7 @@ async def profiles(scope: ScopeDep, lxd: LXDDep, project: str = "default") -> li
             "description": p.get("description", ""),
             "config": p.get("config") or {},
             "devices": p.get("devices") or {},
-            "used_by": p.get("used_by") or [],
+            "used_by": scope.keep_urls(p.get("used_by") or []),
             "project": project,
         }
         for p in data or []

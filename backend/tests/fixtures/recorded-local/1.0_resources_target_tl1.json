@@ -475,7 +475,7 @@
         {
           "block_size": 512,
           "device": "8:0",
-          "device_id": "scsi-SQEMU_QEMU_HARDDISK_lxd_root",
+          "device_id": "scsi-SCRUBBED",
           "device_path": "pci-0000:02:00.0-scsi-0:0:0:1",
           "firmware_version": "2.5+",
           "id": "sda",

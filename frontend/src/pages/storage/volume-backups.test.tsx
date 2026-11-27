@@ -34,7 +34,7 @@ function open(url: string, s = session()) {
 }
 
 beforeEach(() => {
-  vi.spyOn(api, "fetchProject").mockResolvedValue({ name: "web", description: "", config: {}, used_by: [] });
+  vi.spyOn(api, "fetchProject").mockResolvedValue({ name: "web", description: "", config: { "features.storage.volumes": "true" }, used_by: [] });
   vi.spyOn(api, "fetchInstances").mockResolvedValue([]);
   vi.spyOn(api, "fetchStoragePools").mockResolvedValue([
     { name: "local", driver: "zfs", status: "Created", description: "" },

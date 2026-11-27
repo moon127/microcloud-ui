@@ -11,15 +11,16 @@
       "ceph.rbd.features": "layering,striping,exclusive-lock,object-map,fast-diff,deep-flatten",
       "ceph.user.name": "admin",
       "source": "lxd_remote",
+      "volatile.initial_source": "lxd_remote",
       "volatile.pool.pristine": "true",
       "volume.size": "20GB"
     },
     "description": "Distributed storage on Ceph",
     "driver": "ceph",
     "locations": [
-      "gw-ips-microcloud-1",
-      "gw-ips-microcloud-3",
-      "gw-ips-microcloud-2"
+      "node-1",
+      "node-3",
+      "node-2"
     ],
     "name": "remote",
     "status": "Created",

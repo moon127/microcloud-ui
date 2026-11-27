@@ -74,7 +74,7 @@
             {
               "core": 2,
               "die": 0,
-              "frequency": 799,
+              "frequency": 800,
               "threads": [
                 {
                   "id": 2,
@@ -95,7 +95,7 @@
             {
               "core": 3,
               "die": 0,
-              "frequency": 799,
+              "frequency": 800,
               "threads": [
                 {
                   "id": 3,
@@ -114,7 +114,7 @@
               ]
             }
           ],
-          "frequency": 799,
+          "frequency": 800,
           "frequency_minimum": 800,
           "frequency_turbo": 2200,
           "name": "Intel(R) Xeon(R) CPU D-1518 @ 2.20GHz",
@@ -128,7 +128,7 @@
       "cards": [
         {
           "driver": "ast",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "drm": {
             "card_device": "226:0",
             "card_name": "card0",
@@ -156,23 +156,23 @@
           "hugepages_used": 0,
           "numa_node": 0,
           "total": 68719476736,
-          "used": 61798223872
+          "used": 21426364416
         }
       ],
       "total": 68719476736,
-      "used": 20493688832
+      "used": 9564725248
     },
     "network": {
       "cards": [
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "firmware_version": "3.25, 0x800005cc",
           "numa_node": 0,
           "pci_address": "0000:07:00.0",
           "ports": [
             {
-              "address": "00:16:3e:00:00:2f",
+              "address": "00:16:3e:00:00:2b",
               "auto_negotiation": true,
               "id": "eno1",
               "link_detected": false,
@@ -199,13 +199,13 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "firmware_version": "3.25, 0x800005d0",
           "numa_node": 0,
           "pci_address": "0000:08:00.0",
           "ports": [
             {
-              "address": "00:16:3e:00:00:30",
+              "address": "00:16:3e:00:00:2c",
               "auto_negotiation": true,
               "id": "eno2",
               "link_detected": false,
@@ -232,13 +232,13 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "firmware_version": "1.63, 0x800009fb",
           "numa_node": 0,
           "pci_address": "0000:0b:00.0",
           "ports": [
             {
-              "address": "00:16:3e:00:00:31",
+              "address": "00:16:3e:00:00:2d",
               "auto_negotiation": true,
               "id": "eno3",
               "link_detected": false,
@@ -270,13 +270,13 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "firmware_version": "1.63, 0x800009fb",
           "numa_node": 0,
           "pci_address": "0000:0b:00.1",
           "ports": [
             {
-              "address": "00:16:3e:00:00:32",
+              "address": "00:16:3e:00:00:2e",
               "auto_negotiation": true,
               "id": "eno4",
               "link_detected": false,
@@ -308,13 +308,13 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "firmware_version": "1.63, 0x800009fb",
           "numa_node": 0,
           "pci_address": "0000:0b:00.2",
           "ports": [
             {
-              "address": "00:16:3e:00:00:33",
+              "address": "00:16:3e:00:00:2f",
               "auto_negotiation": true,
               "id": "eno5",
               "link_detected": false,
@@ -346,13 +346,13 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "firmware_version": "1.63, 0x800009fb",
           "numa_node": 0,
           "pci_address": "0000:0b:00.3",
           "ports": [
             {
-              "address": "00:16:3e:00:00:34",
+              "address": "00:16:3e:00:00:30",
               "auto_negotiation": true,
               "id": "eno6",
               "link_detected": false,
@@ -384,13 +384,13 @@
         },
         {
           "driver": "ixgbe",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "firmware_version": "0x800005b9",
           "numa_node": 0,
           "pci_address": "0000:04:00.0",
           "ports": [
             {
-              "address": "00:16:3e:00:00:35",
+              "address": "00:16:3e:00:00:31",
               "auto_negotiation": false,
               "id": "eno7",
               "link_detected": true,
@@ -420,13 +420,13 @@
         },
         {
           "driver": "ixgbe",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "firmware_version": "0x800005b9",
           "numa_node": 0,
           "pci_address": "0000:04:00.1",
           "ports": [
             {
-              "address": "00:16:3e:00:00:36",
+              "address": "00:16:3e:00:00:32",
               "auto_negotiation": false,
               "id": "eno8",
               "link_detected": true,
@@ -473,7 +473,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 11,
           "numa_node": 0,
           "pci_address": "0000:00:01.0",
@@ -485,7 +485,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 12,
           "numa_node": 0,
           "pci_address": "0000:00:01.1",
@@ -497,7 +497,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 13,
           "numa_node": 0,
           "pci_address": "0000:00:02.0",
@@ -509,7 +509,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 14,
           "numa_node": 0,
           "pci_address": "0000:00:02.2",
@@ -521,7 +521,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 15,
           "numa_node": 0,
           "pci_address": "0000:00:03.0",
@@ -533,7 +533,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 16,
           "numa_node": 0,
           "pci_address": "0000:00:03.2",
@@ -581,7 +581,7 @@
         },
         {
           "driver": "xhci_hcd",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 20,
           "numa_node": 0,
           "pci_address": "0000:00:14.0",
@@ -617,7 +617,7 @@
         },
         {
           "driver": "ehci-pci",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 22,
           "numa_node": 0,
           "pci_address": "0000:00:1a.0",
@@ -629,7 +629,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 23,
           "numa_node": 0,
           "pci_address": "0000:00:1c.0",
@@ -641,7 +641,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 24,
           "numa_node": 0,
           "pci_address": "0000:00:1c.1",
@@ -653,7 +653,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 25,
           "numa_node": 0,
           "pci_address": "0000:00:1c.3",
@@ -665,7 +665,7 @@
         },
         {
           "driver": "pcieport",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 26,
           "numa_node": 0,
           "pci_address": "0000:00:1c.4",
@@ -677,7 +677,7 @@
         },
         {
           "driver": "ehci-pci",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 27,
           "numa_node": 0,
           "pci_address": "0000:00:1d.0",
@@ -689,7 +689,7 @@
         },
         {
           "driver": "lpc_ich",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 28,
           "numa_node": 0,
           "pci_address": "0000:00:1f.0",
@@ -713,7 +713,7 @@
         },
         {
           "driver": "i801_smbus",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 28,
           "numa_node": 0,
           "pci_address": "0000:00:1f.3",
@@ -725,7 +725,7 @@
         },
         {
           "driver": "intel_pch_thermal",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 28,
           "numa_node": 0,
           "pci_address": "0000:00:1f.6",
@@ -785,7 +785,7 @@
         },
         {
           "driver": "ixgbe",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 30,
           "numa_node": 0,
           "pci_address": "0000:04:00.0",
@@ -797,7 +797,7 @@
         },
         {
           "driver": "ixgbe",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 31,
           "numa_node": 0,
           "pci_address": "0000:04:00.1",
@@ -809,7 +809,7 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 32,
           "numa_node": 0,
           "pci_address": "0000:07:00.0",
@@ -821,7 +821,7 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 33,
           "numa_node": 0,
           "pci_address": "0000:08:00.0",
@@ -845,7 +845,7 @@
         },
         {
           "driver": "ast",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 34,
           "numa_node": 0,
           "pci_address": "0000:0a:00.0",
@@ -857,7 +857,7 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 35,
           "numa_node": 0,
           "pci_address": "0000:0b:00.0",
@@ -869,7 +869,7 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 36,
           "numa_node": 0,
           "pci_address": "0000:0b:00.1",
@@ -881,7 +881,7 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 37,
           "numa_node": 0,
           "pci_address": "0000:0b:00.2",
@@ -893,7 +893,7 @@
         },
         {
           "driver": "igb",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 38,
           "numa_node": 0,
           "pci_address": "0000:0b:00.3",
@@ -917,7 +917,7 @@
         },
         {
           "driver": "bdx_uncore",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 0,
           "numa_node": 0,
           "pci_address": "0000:ff:0b.1",
@@ -929,7 +929,7 @@
         },
         {
           "driver": "bdx_uncore",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 0,
           "numa_node": 0,
           "pci_address": "0000:ff:0b.2",
@@ -1061,7 +1061,7 @@
         },
         {
           "driver": "bdx_uncore",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 3,
           "numa_node": 0,
           "pci_address": "0000:ff:10.1",
@@ -1121,7 +1121,7 @@
         },
         {
           "driver": "bdx_uncore",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 4,
           "numa_node": 0,
           "pci_address": "0000:ff:12.1",
@@ -1229,7 +1229,7 @@
         },
         {
           "driver": "bdx_uncore",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 6,
           "numa_node": 0,
           "pci_address": "0000:ff:14.0",
@@ -1241,7 +1241,7 @@
         },
         {
           "driver": "bdx_uncore",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 6,
           "numa_node": 0,
           "pci_address": "0000:ff:14.1",
@@ -1325,7 +1325,7 @@
         },
         {
           "driver": "bdx_uncore",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 7,
           "numa_node": 0,
           "pci_address": "0000:ff:15.0",
@@ -1337,7 +1337,7 @@
         },
         {
           "driver": "bdx_uncore",
-          "driver_version": "6.8.0-101-generic",
+          "driver_version": "7.0.0-43-generic",
           "iommu_group": 7,
           "numa_node": 0,
           "pci_address": "0000:ff:15.1",
@@ -1463,8 +1463,8 @@
         {
           "block_size": 512,
           "device": "8:0",
-          "device_fs_uuid": "912888b9-7526-49bc-8d24-9e5f4cd9e96d",
-          "device_id": "wwn-0x500a0751f00a6128",
+          "device_fs_uuid": "60b776da-f23d-4257-9658-f37547dac649",
+          "device_id": "wwn-SCRUBBED",
           "device_path": "pci-0000:00:1f.2-ata-4.0",
           "firmware_version": "MU02",
           "id": "sda",
@@ -1483,7 +1483,7 @@
           "block_size": 512,
           "device": "8:16",
           "device_fs_uuid": "",
-          "device_id": "wwn-0x5001b444a553db6d",
+          "device_id": "wwn-SCRUBBED",
           "device_path": "pci-0000:00:1f.2-ata-5.0",
           "firmware_version": "6100",
           "id": "sdb",
@@ -1493,7 +1493,7 @@
           "partitions": [
             {
               "device": "8:17",
-              "device_fs_uuid": "3170-1C05",
+              "device_fs_uuid": "3E12-6BAE",
               "id": "sdb1",
               "mounted": true,
               "partition": 1,
@@ -1502,7 +1502,7 @@
             },
             {
               "device": "8:18",
-              "device_fs_uuid": "b7f23894-4442-47b2-8cf3-5f946ccc7f44",
+              "device_fs_uuid": "b9901bf6-658e-4eaf-a44e-4fdcee7103c6",
               "id": "sdb2",
               "mounted": true,
               "partition": 2,
@@ -1511,7 +1511,7 @@
             },
             {
               "device": "8:19",
-              "device_fs_uuid": "b3517406-4daa-42f4-ac85-67be6ef43f84",
+              "device_fs_uuid": "0c2be035-ab86-4a42-8599-cf5df99f1219",
               "id": "sdb3",
               "mounted": false,
               "partition": 3,
@@ -1538,9 +1538,9 @@
       },
       "family": "To be filled by O.E.M.",
       "firmware": {
-        "date": "06/13/2018",
+        "date": "02/06/2024",
         "vendor": "American Megatrends Inc.",
-        "version": "2.0"
+        "version": "2.6"
       },
       "motherboard": {
         "product": "X10SDV-TP8F",
@@ -1559,14 +1559,14 @@
     "usb": {
       "devices": [
         {
-          "bus_address": 3,
+          "bus_address": 1,
           "device_address": 5,
           "interfaces": [
             {
               "class": "Human Interface Device",
               "class_id": 3,
               "driver": "usbhid",
-              "driver_version": "6.8.0-101-generic",
+              "driver_version": "7.0.0-43-generic",
               "number": 0,
               "subclass": "Boot Interface Subclass",
               "subclass_id": 1
@@ -1575,7 +1575,7 @@
               "class": "Human Interface Device",
               "class_id": 3,
               "driver": "usbhid",
-              "driver_version": "6.8.0-101-generic",
+              "driver_version": "7.0.0-43-generic",
               "number": 1,
               "subclass": "Boot Interface Subclass",
               "subclass_id": 1

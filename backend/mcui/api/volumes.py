@@ -28,6 +28,7 @@ from mcui.api.deps import (
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName, Rename
 from mcui.api.networks import MemberName
+from mcui.auth.policy import Scope
 from mcui.auth.store import Session, Store
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient, LXDError
@@ -96,7 +97,7 @@ async def list_volumes(
             return []  # a pool that's unavailable on the answering member
         # LXD lists snapshots as "vol/snap" too; they belong on the volume's page
         return [
-            {**v, "pool": p}
+            {**scope.filter_used_by(v), "pool": p}
             for v in vols or []
             if "/" not in v.get("name", "") and (all_types or v.get("type") == "custom")
         ]
@@ -109,7 +110,7 @@ async def get_volume(
     project: ProjectName,
     pool: ObjName,
     name: ObjName,
-    _: ProjectReadDep,
+    session: ProjectReadDep,
     lxd: LXDDep,
     target: MemberName = None,
 ) -> dict[str, Any]:
@@ -118,6 +119,7 @@ async def get_volume(
         lxd.get(_vol(pool, name), **params),
         _state(lxd, f"{_vol(pool, name)}/state", params),
     )
+    vol = Scope.of(session.user).filter_used_by(vol)  # D90
     return {**vol, "pool": pool, "state": state}
 
 

@@ -2,8 +2,11 @@
 # versions only: a major upgrade (React Router, TypeScript, Vite...) is planned work, not a
 # weekly merge. Security fixes still come, majors included, from Dependabot security updates
 # (enabled in the repository settings), and every advisory shows on the Security tab.
-# The Containerfile's base images aren't listed: their CVEs are caught by the weekly image
-# scan (security.yml), and tag bumps (node 22 → 24) are a deliberate choice.
+# The Containerfile's base images aren't listed, nor pinned by digest: a release rebuilds on
+# the current ubuntu:26.04, which is how a patch release picks up Ubuntu's fixes (D76),
+# their CVEs are caught by the weekly image scan (security.yml), and tag bumps (node 22 →
+# 24) are a deliberate choice. Actions are pinned by commit SHA with the version in a
+# comment (D89); Dependabot updates both.
 version: 2
 updates:
   - package-ecosystem: npm

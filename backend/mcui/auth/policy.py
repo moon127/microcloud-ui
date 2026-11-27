@@ -99,6 +99,21 @@ class Scope:
             return items
         return [i for i in items if i.get(key) in self.projects]
 
+    def keep_urls(self, urls: list[str]) -> list[str]:
+        """LXD object URLs (``used_by``) of the user's projects only: for a shared profile
+        or network the admin certificate lists every project's instances (D89)."""
+        if self.projects is None:
+            return urls
+        from mcui.lxd.entities import url_project
+
+        return [u for u in urls if url_project(u) in self.projects]
+
+    def filter_used_by(self, obj: dict[str, Any]) -> dict[str, Any]:
+        """``obj`` with its ``used_by`` (if any) narrowed by ``keep_urls``."""
+        if "used_by" not in obj or self.projects is None:
+            return obj
+        return {**obj, "used_by": self.keep_urls(obj.get("used_by") or [])}
+
     @classmethod
     def of(cls, user: User) -> Scope:
         return cls(None if user.role != "project" else frozenset(user.grants))

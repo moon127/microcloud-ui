@@ -1,24 +1,26 @@
 import { useState } from "react";
+import { useCanWrite } from "../../shared";
+import SharedNote from "../../SharedNote";
 import { Link, useNavigate } from "react-router";
 import { createProfile, fetchProfiles } from "../../api";
 import { useActions } from "../../actions";
 import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import { NameDialog } from "../instance/Actions";
-import { useAccess } from "../../access";
 
 export default function ProfilesPage() {
-  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const project = useCurrentProject();
   const { data, error } = useApi(`profiles:${project}:${version}`, () => fetchProfiles(project));
   const [creating, setCreating] = useState(false);
+  const write = useCanWrite(project, "manage", "profiles");
 
   return (
     <>
       <h1>Profiles in {project}</h1>
-      {access.can(project, "manage") && (
+      {write.shared && <SharedNote project={project} kind="profiles" />}
+      {write.can && (
         <p>
           <button type="button" className="primary" onClick={() => setCreating(true)}>
             Create profile

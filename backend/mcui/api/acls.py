@@ -19,6 +19,7 @@ from mcui.api.deps import InBodyDep, LXDDep, ProjectManageDep, ProjectReadDep, S
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName, Rename
 from mcui.api.networks import MemberName
+from mcui.auth.policy import Scope
 from mcui.auth.store import Session, Store
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient
@@ -85,15 +86,17 @@ def _acl(name: str) -> str:
 async def list_acls(scope: ScopeDep, lxd: LXDDep, project: str = "default") -> list[dict[str, Any]]:
     scope.require(project)
     data = await lxd.get("/1.0/network-acls", recursion=1, project=project)
-    return list(data or [])
+    # a shared ACL lists every project's users of it: only the user's (D90)
+    return [scope.filter_used_by(a) for a in data or []]
 
 
 @router.get("/network-acls/{project}/{name}")
 async def get_acl(
-    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, session: ProjectReadDep, lxd: LXDDep
 ) -> dict[str, Any]:
     data: dict[str, Any] = await lxd.get(_acl(name), project=project)
-    return data
+    filtered: dict[str, Any] = Scope.of(session.user).filter_used_by(data)
+    return filtered
 
 
 @router.post("/network-acls")

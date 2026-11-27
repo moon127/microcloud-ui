@@ -94,8 +94,9 @@ CephFS share in the cluster). Checked live on LXD 6.10.1 on 2026-11-27.
 project's restrictions are LXD's, and both apply:
 - host paths: `restricted.devices.disk=allow`, and set `restricted.devices.disk.paths`
   to the folders you mean (for example `/srv/nfs`). Without allowed paths, any host path
-  can be mounted, and a shifted mount of `/` gives root on the host. The Restrictions form
-  has a field for it.
+  can be mounted, and a writable shifted mount of, say, `/usr/local/bin` gives root on the
+  host. The Restrictions form has a field for it. LXD checks it on the path as written
+  (no symlinks resolved), so allow folders instances can't write to.
 - USB devices: `restricted.devices.usb=allow`.
 
 **Hidden folders (the app's check):** a project admin with the right still can't see or
@@ -103,9 +104,11 @@ attach anything in the folders a cluster admin hides, nor a folder that contains
 `/var`; 0.3.4), under **Settings** (or
 `[host_devices] hidden_paths`). The built-in list covers personal files, host config,
 snap state with LXD's, MicroCeph's and MicroOVN's keys, `/run` with the LXD socket, logs,
-and kernel and device folders. It's checked on the path as typed, so treat
-`restricted.devices.disk.paths` as the real boundary; the hidden list catches mistakes and
-keeps the folder browser away from private places.
+kernel and device folders, programs and libraries, and cron's spool. It covers disks,
+unix devices and a proxy's unix sockets. Project admins can add a `shift`ed path only
+read-only: writable, the container's root would write there as the host's root (0.3.5).
+Both the app's check and LXD's `restricted.devices.disk.paths` are on the path as typed,
+not following symlinks, so allow folders instances can't write to, or attach read-only.
 
 So the safe pattern for, say, an NFS share every member mounts: allow disks with the
 share's folder as the only allowed path, then give that project's admins the right.

@@ -89,7 +89,7 @@ async def test_export_streams_with_a_name(app, services):
         await admin(c)
         r = await c.get(f"{U}/b1/export")
     assert r.status_code == 200 and r.content == data
-    assert r.headers["content-disposition"] == 'attachment; filename="c1-b1.tar.gz"'
+    assert r.headers["content-disposition"].startswith('attachment; filename="c1-b1.tar.gz";')
     assert r.headers["content-length"] == str(len(data))
     assert last_audit(services)[0] == "backup.export"
 
@@ -105,7 +105,7 @@ async def test_export_without_length(app):
     async with client(app) as c:
         await admin(c)
         r = await c.get(f"{U}/b1/export")
-    assert r.headers["content-disposition"].endswith('c1-b1.tar"')
+    assert r.headers["content-disposition"].startswith('attachment; filename="c1-b1.tar";')
     assert "content-length" not in r.headers
 
 

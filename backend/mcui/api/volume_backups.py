@@ -21,6 +21,7 @@ from mcui.api.deps import InBodyDep, LXDDep, ProjectOperateDep, ProjectReadDep, 
 from mcui.api.instances import NAME, ProjectName
 from mcui.api.manage import ObjName, Rename
 from mcui.api.networks import MemberName
+from mcui.api.uploads import capped
 from mcui.api.volumes import _change, _params, _vol
 from mcui.lxd import operations
 
@@ -204,7 +205,7 @@ async def _upload(
             _vol(pool),
             params=_params(project, target),
             headers=headers,
-            content=request.stream(),
+            content=capped(request),
             timeout=IMPORT_TIMEOUT,
         ),
     )

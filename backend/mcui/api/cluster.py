@@ -42,15 +42,18 @@ async def member_resources(name: str, _: ClusterReadDep, lxd: LXDDep) -> dict[st
 
 
 @router.get("/storage-pools")
-async def storage_pools(_: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
+async def storage_pools(session: SessionDep, lxd: LXDDep) -> list[dict[str, Any]]:
+    """Every signed-in user needs pool names for the create wizard; a pool's config (its
+    source devices, Ceph user and cluster names) only a global role sees (D89)."""
     data = await lxd.get("/1.0/storage-pools", recursion=1)
+    everything = session.user.role != "project"
     return [
         {
             "name": p["name"],
             "driver": p.get("driver", ""),
             "status": p.get("status", ""),
             "description": p.get("description", ""),
-            "config": p.get("config") or {},
+            "config": (p.get("config") or {}) if everything else {},
             "used_by": len(p.get("used_by") or []),
             "locations": p.get("locations") or [],
         }

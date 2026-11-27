@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCanWrite } from "../../shared";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   attachVolume,
@@ -32,7 +33,6 @@ import YamlEditor from "../../YamlEditor";
 import { NameDialog } from "../instance/Actions";
 import { asConfig } from "../instance/state";
 import { poolPath, volumePath } from "./paths";
-import { useAccess } from "../../access";
 
 const FORM_KEYS = [
   { key: "size", label: "Size (raise to grow it)", placeholder: "pool default" },
@@ -52,7 +52,6 @@ export default function VolumePage() {
   const { project = "default", pool = "", name = "" } = useParams();
   const [params] = useSearchParams();
   const target = params.get("member") ?? undefined;
-  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const vol = useApi(`volume:${project}/${pool}/${name}:${target}:${version}`, () => fetchVolume(project, pool, name, target));
@@ -62,8 +61,8 @@ export default function VolumePage() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog | null>(null);
-  const admin = access.can(project, "manage");
-  const operate = access.can(project, "operate"); // snapshots and backups
+  const admin = useCanWrite(project, "manage", "storage.volumes").can;
+  const operate = useCanWrite(project, "operate", "storage.volumes").can; // snapshots, backups
   const v = vol.data;
 
   // take the loaded values into the form as they arrive, during render rather than in an

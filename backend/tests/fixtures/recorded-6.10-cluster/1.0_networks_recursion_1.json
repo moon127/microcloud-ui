@@ -14,9 +14,9 @@
       },
       "description": "",
       "locations": [
-        "gw-ips-microcloud-3",
-        "gw-ips-microcloud-2",
-        "gw-ips-microcloud-1"
+        "node-3",
+        "node-2",
+        "node-1"
       ],
       "managed": true,
       "name": "UPLINK",
@@ -41,9 +41,9 @@
       },
       "description": "",
       "locations": [
-        "gw-ips-microcloud-1",
-        "gw-ips-microcloud-3",
-        "gw-ips-microcloud-2"
+        "node-1",
+        "node-3",
+        "node-2"
       ],
       "managed": true,
       "name": "default",
@@ -64,9 +64,9 @@
       },
       "description": "",
       "locations": [
-        "gw-ips-microcloud-1",
-        "gw-ips-microcloud-3",
-        "gw-ips-microcloud-2"
+        "node-1",
+        "node-3",
+        "node-2"
       ],
       "managed": true,
       "name": "legacy-infra",
@@ -93,9 +93,9 @@
       "config": {},
       "description": "",
       "locations": [
-        "gw-ips-microcloud-1",
-        "gw-ips-microcloud-3",
-        "gw-ips-microcloud-2"
+        "node-1",
+        "node-3",
+        "node-2"
       ],
       "managed": true,
       "name": "macvlan0",
@@ -122,9 +122,9 @@
       },
       "description": "",
       "locations": [
-        "gw-ips-microcloud-1",
-        "gw-ips-microcloud-3",
-        "gw-ips-microcloud-2"
+        "node-1",
+        "node-3",
+        "node-2"
       ],
       "managed": true,
       "name": "routed",

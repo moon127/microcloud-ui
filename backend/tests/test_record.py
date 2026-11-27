@@ -86,8 +86,8 @@ async def test_record_writes_scrubbed_files(settings, lxd, tmp_path):
     names = sorted(p.name for p in out.iterdir())
     assert names == [
         "1.0.json",
-        "1.0_cluster_members_m1_state.json",
-        "1.0_cluster_members_m2_state.json",
+        "1.0_cluster_members_node-1_state.json",
+        "1.0_cluster_members_node-2_state.json",
         "1.0_cluster_members_recursion_1.json",
         "1.0_images_recursion_1_all-projects_true.json",
         "1.0_instances_recursion_2_all-projects_true.json",
@@ -96,16 +96,16 @@ async def test_record_writes_scrubbed_files(settings, lxd, tmp_path):
         "1.0_operations_recursion_1_all-projects_true.json",
         "1.0_profiles_recursion_1_all-projects_true.json",
         "1.0_projects_recursion_1.json",
-        "1.0_resources_target_m1.json",
-        "1.0_resources_target_m2.json",
+        "1.0_resources_target_node-1.json",
+        "1.0_resources_target_node-2.json",
         "1.0_storage-pools_recursion_1.json",
         "1.0_warnings_recursion_1.json",
-        "metrics_m1.txt",
+        "metrics_node-1.txt",
     ]
     everything = "".join(p.read_text() for p in out.iterdir())
     assert "10.20.30.1" not in everything
     assert (out / "1.0_storage-pools_recursion_1.json").read_text() == "not json"
-    res = json.loads((out / "1.0_resources_target_m1.json").read_text())["metadata"]["system"]
+    res = json.loads((out / "1.0_resources_target_node-1.json").read_text())["metadata"]["system"]
     assert res == {"serial": "SCRUBBED", "uuid": "SCRUBBED", "vendor": "X"}
     assert any("FAIL metrics m2" in line for line in log)
     assert log[-1].startswith("Scrubbed ")
@@ -198,3 +198,50 @@ async def test_record_networks_ceph_and_hosts(settings, lxd, tmp_path):
     assert not any(n.startswith("1.0_networks_eth0") for n in names)  # unmanaged
     assert "10.20.30.9" not in (out / "ceph_mgr.txt").read_text()  # scrubbed
     assert any("no node_exporter on" in line for line in log)
+
+
+def test_member_names_and_secret_keys_are_scrubbed():
+    """Real hostnames and secret-carrying config values never reach a fixture (D89)."""
+    from mcui.record import Scrubber, redact
+
+    s = Scrubber()
+    s.names(["gw-a-2", "gw-a-1", "lab.example.com"])
+    assert (
+        s.scrub('{"location": "gw-a-1", "x": "gw-a-10"}')
+        == '{"location": "node-1", "x": "gw-a-10"}'
+    )
+    assert s.scrub("1.0_resources_target_gw-a-2.json") == "1.0_resources_target_node-2.json"
+    assert s.scrub("LAB.example.com:8443") == "node-3:8443"
+    doc = {
+        "config": {
+            "cloud-init.user-data": "#cloud-config\nchpasswd: ...",
+            "user.user-data": "x",
+            "environment.API_TOKEN": "t",
+            "bgp.peers.r1.password": "p",
+            "loki.auth.password": "",
+            "limits.cpu": "2",
+        },
+        "metadata": {"fds": {"0": "s"}},
+    }
+    out = redact(doc)
+    assert out["config"] == {
+        "cloud-init.user-data": "SCRUBBED",
+        "user.user-data": "SCRUBBED",
+        "environment.API_TOKEN": "SCRUBBED",
+        "bgp.peers.r1.password": "SCRUBBED",
+        "loki.auth.password": "",  # empty stays empty
+        "limits.cpu": "2",
+    }
+    assert out["metadata"]["fds"] == "SCRUBBED"
+
+
+def test_disk_ids_and_extra_words():
+    """By-id names keep only their kind; --scrub-word replaces anything else (D90)."""
+    from mcui.record import Scrubber, redact
+
+    assert redact({"device_id": "wwn-0x5001b444a553db8f"}) == {"device_id": "wwn-SCRUBBED"}
+    assert redact({"device_id": "ata-CT120_1234ABCD"}) == {"device_id": "ata-SCRUBBED"}
+    assert redact({"device_id": ""}) == {"device_id": ""}
+    s = Scrubber()
+    s.words(["example.net", ""])
+    assert s.scrub("a.host.EXAMPLE.net DNS") == "a.host.scrubbed-1.example DNS"

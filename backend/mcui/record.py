@@ -59,7 +59,34 @@ class Scrubber:
             return s
         return self._sub("ip6", s, lambda n: f"2001:db8::{n:x}")
 
+    def names(self, members: list[str]) -> None:
+        """Map member names (often real hostnames) to node-1, node-2… (D89)."""
+        for m in sorted(members):
+            self._sub("host", m, lambda n: f"node-{n}")
+
+    def words(self, words: list[str]) -> None:
+        """Other words to replace everywhere (a domain, a name in descriptions), D90."""
+        for w in words:
+            if w:
+                self._sub("word", w, lambda n: f"scrubbed-{n}.example")
+
+    def _hosts(self, text: str) -> str:
+        for key, alias in list(self.map.items()):
+            if key.startswith("word:"):
+                text = re.sub(re.escape(key.split(":", 1)[1]), alias, text, flags=re.I)
+        hosts = sorted(
+            ((k.split(":", 1)[1], v) for k, v in self.map.items() if k.startswith("host:")),
+            key=lambda kv: -len(kv[0]),
+        )
+        for name, alias in hosts:
+            # not inside a longer name; "_" may border it (file names)
+            text = re.sub(
+                rf"(?<![A-Za-z0-9-]){re.escape(name)}(?![A-Za-z0-9-])", alias, text, flags=re.I
+            )
+        return text
+
     def scrub(self, text: str) -> str:
+        text = self._hosts(text)
         text = _PEM.sub(
             lambda m: f"-----BEGIN {m[1]}-----{m[2]}SCRUBBED{m[2]}-----END {m[1]}-----", text
         )
@@ -74,13 +101,34 @@ class Scrubber:
         return _IPV6.sub(self._ipv6, text)
 
 
-REDACT_KEYS = frozenset({"serial", "uuid", "wwn", "machine_id"})
+REDACT_KEYS = frozenset({"serial", "uuid", "wwn", "machine_id", "fds"})
+# /dev/disk/by-id names carry WWNs and serials (wwn-0x…, ata-<model>_<serial>): only the
+# kind stays (D90)
+ID_KEYS = frozenset({"device_id"})
+# config keys that can carry secrets: passwords in cloud-init, tokens in environment
+# variables, BGP and Loki passwords, the websocket secrets of operations (D89)
+SECRET_PREFIXES = ("cloud-init.", "user.user-data", "user.vendor-data", "environment.")
+SECRET_WORDS = ("password", "secret", "token")
+
+
+def _secret(key: str) -> bool:
+    k = key.lower()
+    return k.startswith(SECRET_PREFIXES) or any(w in k for w in SECRET_WORDS)
+
+
+def _redact_item(key: str, value: Any) -> Any:
+    if key in ID_KEYS and isinstance(value, str) and value:
+        return value.split("-", 1)[0] + "-SCRUBBED"
+    if (key in REDACT_KEYS or _secret(key)) and value:
+        return "SCRUBBED"
+    return redact(value)
 
 
 def redact(value: Any) -> Any:
-    """Blank hardware identifiers (serials, UUIDs, WWNs) anywhere in a JSON document."""
+    """Blank hardware identifiers (serials, UUIDs, WWNs) and values of keys that can hold
+    secrets anywhere in a JSON document."""
     if isinstance(value, dict):
-        return {k: "SCRUBBED" if k in REDACT_KEYS and v else redact(v) for k, v in value.items()}
+        return {k: _redact_item(k, v) for k, v in value.items()}
     if isinstance(value, list):
         return [redact(v) for v in value]
     return value
@@ -135,18 +183,22 @@ async def record(
     metrics: LXDClient,
     out_dir: Path,
     log: Callable[[str], None],
+    scrub_words: list[str] | None = None,
 ) -> int:
     """Fetch, scrub and write fixtures. Returns the number of failures."""
     scrub = Scrubber()
+    scrub.words(scrub_words or [])
     failures = 0
     out_dir.mkdir(parents=True, exist_ok=True)  # noqa: ASYNC240 - CLI only
 
     def write(name: str, text: str) -> None:
+        name = scrub.scrub(name)  # member names appear in file names too
         (out_dir / name).write_text(scrub.scrub(text))
         log(f"  wrote {name}")
 
     info = await server_info(api)
     ms = await members(api, info)
+    scrub.names([m.name for m in ms] + ([info.server_name] if info.server_name else []))
     paths = [
         "/1.0",
         "/1.0/cluster/members?recursion=1",

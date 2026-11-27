@@ -71,6 +71,9 @@ class ServerSettings(_Section):
     # proxies whose X-Forwarded-For/-Proto are trusted for the logged client address
     # (comma-separated IPs or CIDRs, or "*"); unset: uvicorn's default, 127.0.0.1
     forwarded_allow_ips: str | None = None
+    # the largest upload (image, ISO, backup, instance file) streamed to LXD; 0: no limit.
+    # Image uploads land on a member's root filesystem, outside project limits (D90)
+    max_upload_bytes: int = Field(default=16 * 2**30, ge=0)
 
     @field_validator("public_url")
     @classmethod

@@ -10,10 +10,13 @@ from mcui.lxd.client import LXDClient, LXDError
 MAX_WAIT = 30  # seconds per wait call; clients poll again for longer operations
 
 # An exec or console operation's metadata carries its websocket secrets ("fds": "0",
-# "control"; seen live on LXD 6.10). LXD's operation websocket takes the secret alone
-# as authentication, so whoever reads it can take the terminal or console over. The app
-# keeps them server-side (D48) and never hands an operation out with them (0.3.4, D88).
+# "control"; seen live on LXD 6.10), and a migration's (instance or volume move or copy)
+# is the secrets map itself ("control", "fs", "criu"; LXD's migrationSourceWs.Metadata).
+# LXD's operation websocket takes the secret alone as authentication, so whoever reads it
+# can take the terminal or the data stream over. The app never hands an operation out
+# with them (D88, D90): a websocket-class operation keeps only these keys.
 SECRET_KEYS = frozenset({"fds", "secret", "secrets"})
+SAFE_WEBSOCKET_KEYS = frozenset({"command", "interactive", "return", "width", "height"})
 
 
 def redact(op: Any) -> Any:
@@ -23,7 +26,10 @@ def redact(op: Any) -> Any:
     out = dict(op)
     md = out.get("metadata")
     if isinstance(md, dict):
-        out["metadata"] = {k: v for k, v in md.items() if k not in SECRET_KEYS}
+        if out.get("class") == "websocket":
+            out["metadata"] = {k: v for k, v in md.items() if k in SAFE_WEBSOCKET_KEYS}
+        else:
+            out["metadata"] = {k: v for k, v in md.items() if k not in SECRET_KEYS}
     if isinstance(out.get("children"), list):
         out["children"] = [redact(c) for c in out["children"]]
     return out

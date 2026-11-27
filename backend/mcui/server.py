@@ -22,8 +22,11 @@ STARTUP_FAILURE = 3  # as uvicorn.run exits when the server never started
 class Server(uvicorn.Server):
     def handle_exit(self, sig: int, frame: FrameType | None) -> None:
         super().handle_exit(sig, frame)
-        if os.getpid() == 1:
-            self._captured_signals.clear()
+        # a private uvicorn attribute (0.29+): if a release renames it, stopping still
+        # works, only as before this fix (D90)
+        captured = getattr(self, "_captured_signals", None)
+        if os.getpid() == 1 and isinstance(captured, list):
+            captured.clear()
 
 
 def serve(app: str, **kwargs: object) -> int:

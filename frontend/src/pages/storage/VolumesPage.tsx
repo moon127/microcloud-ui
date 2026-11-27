@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useCanWrite } from "../../shared";
+import SharedNote from "../../SharedNote";
 import { Link, useNavigate } from "react-router";
 import { createVolume, fetchMembers, fetchStoragePools, fetchVolumes, volumeTarget, type NewVolume, type PoolDriver } from "../../api";
 import { useActions } from "../../actions";
@@ -9,10 +11,8 @@ import { useApi } from "../../useApi";
 import { volumePath } from "./paths";
 import { LOCAL } from "./request";
 import UploadVolume from "./UploadVolume";
-import { useAccess } from "../../access";
 
 export default function VolumesPage() {
-  const access = useAccess();
   const { version } = useActions();
   const project = useCurrentProject();
   const { data, error } = useApi(`volumes:${project}:${version}`, () => fetchVolumes(project), 60_000);
@@ -21,11 +21,13 @@ export default function VolumesPage() {
   const [uploading, setUploading] = useState<"backup" | "iso" | null>(null);
   const pools = [...new Set((data ?? []).map((v) => v.pool))];
   const shown = (data ?? []).filter((v) => !pool || v.pool === pool);
+  const write = useCanWrite(project, "manage", "storage.volumes");
   return (
     <>
       <h1>Custom volumes in {project}</h1>
+      {write.shared && <SharedNote project={project} kind="storage.volumes" />}
       <p className="actions">
-        {access.can(project, "manage") && (
+        {write.can && (
           <>
             <button type="button" className="primary" onClick={() => setCreating(true)}>
               Create volume

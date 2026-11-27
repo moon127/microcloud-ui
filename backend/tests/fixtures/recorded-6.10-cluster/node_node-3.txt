@@ -4052,7 +4052,7 @@ node_udp_queues{ip="v6",queue="rx"} 0
 node_udp_queues{ip="v6",queue="tx"} 0
 # HELP node_uname_info Labeled system information as provided by the uname system call.
 # TYPE node_uname_info gauge
-node_uname_info{domainname="(none)",machine="x86_64",nodename="gw-ips-microcloud-3",release="7.0.0-43-generic",sysname="Linux",version="#43-Ubuntu SMP PREEMPT_DYNAMIC Fri Oct 23 13:25:25 UTC 2026"} 1
+node_uname_info{domainname="(none)",machine="x86_64",nodename="node-3",release="7.0.0-43-generic",sysname="Linux",version="#43-Ubuntu SMP PREEMPT_DYNAMIC Fri Oct 23 13:25:25 UTC 2026"} 1
 # HELP node_vmstat_oom_kill /proc/vmstat information field oom_kill.
 # TYPE node_vmstat_oom_kill untyped
 node_vmstat_oom_kill 0

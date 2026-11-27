@@ -157,7 +157,7 @@ async def test_download_streams_files_only(app):
         await login(c, "admin", "adminpw")
         r = await c.get(f"{U}/download", params={"path": "/x/data.bin"})
         assert r.status_code == 200 and len(r.content) == 70000
-        assert r.headers["content-disposition"] == 'attachment; filename="data.bin"'
+        assert r.headers["content-disposition"].startswith('attachment; filename="data.bin";')
         assert r.headers["content-length"] == "70000"
         r = await c.get(f"{U}/download", params={"path": "/etc"})
         assert r.status_code == 400 and r.json()["detail"] == "not a regular file"
@@ -172,7 +172,10 @@ async def test_download_without_length_and_odd_name(app):
         await login(c, "admin", "adminpw")
         r = await c.get(f"{U}/download", params={"path": '/x/we"ird'})
     assert r.content == b"1"
-    assert r.headers["content-disposition"] == 'attachment; filename="weird"'
+    # a quote, non-ASCII and a newline (D89: they used to give a 500)
+    assert r.headers["content-disposition"] == (
+        "attachment; filename=\"we_ird\"; filename*=UTF-8''we%22ird"
+    )
     assert "content-length" not in r.headers  # LXD sent none: none is promised
 
 

@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useCanWrite } from "../../shared";
+import SharedNote from "../../SharedNote";
 import { Link, useNavigate } from "react-router";
 import { createAcl, fetchAcls } from "../../api";
 import { useActions } from "../../actions";
@@ -6,15 +8,14 @@ import { useCurrentProject } from "../../project";
 import { useApi } from "../../useApi";
 import { NameDialog } from "../instance/Actions";
 import { aclPath } from "./paths";
-import { useAccess } from "../../access";
 
 export default function AclsPage() {
-  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const project = useCurrentProject();
   const { data, error } = useApi(`acls:${project}:${version}`, () => fetchAcls(project));
   const [creating, setCreating] = useState(false);
+  const write = useCanWrite(project, "manage", "networks");
   return (
     <>
       <h1>Network ACLs in {project}</h1>
@@ -22,7 +23,8 @@ export default function AclsPage() {
         Attach an ACL to a network on the network's page, or to an OVN NIC with its <code>security.acls</code> key.{" "}
         <Link to="/networks">Networks</Link>
       </p>
-      {access.can(project, "manage") && (
+      {write.shared && <SharedNote project={project} kind="networks" />}
+      {write.can && (
         <p>
           <button type="button" className="primary" onClick={() => setCreating(true)}>
             Create ACL

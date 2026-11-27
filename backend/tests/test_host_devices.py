@@ -20,7 +20,7 @@ __all__ = ["app", "services"]  # fixtures
 
 INST = f"{EP1}/1.0/instances/c1"
 U = "/api/instances/default/c1/host-devices"
-RECORDED = Path(__file__).parent / "fixtures/recorded/1.0_resources_target_gw-ips-microcloud-1.json"
+RECORDED = Path(__file__).parent / "fixtures/recorded/1.0_resources_target_node-1.json"
 DOC = {"type": "disk", "source": "/srv/nfs", "path": "/mnt/nfs", "readonly": "true"}
 ROOT = {"type": "disk", "path": "/", "pool": "remote"}
 
@@ -336,6 +336,7 @@ async def test_other_routes_guard_host_devices(scoped):
     current = {"name": "c1", "devices": {"nfs": DOC}}
     respx.get(f"{EP1}/1.0/instances/c1").mock(return_value=lxd_ok(current))
     respx.get(f"{EP1}/1.0/profiles/p1").mock(return_value=lxd_ok({"devices": {}}))
+    respx.get(f"{EP1}/1.0/profiles/default").mock(return_value=lxd_ok({"devices": {}}))
     put = respx.put(f"{EP1}/1.0/instances/c1").mock(return_value=async_resp())
     create = respx.post(f"{EP1}/1.0/instances").mock(return_value=async_resp())
     profile_put = respx.put(f"{EP1}/1.0/profiles/p1").mock(return_value=lxd_ok(None))
@@ -396,6 +397,10 @@ class FakeBrowser:
 
     def __init__(self, entries=None, error=None):
         self.entries, self.error, self.calls = entries or [], error, []
+        self.links: dict[str, str] = {}  # path -> where it really leads
+
+    async def resolve(self, member, path, mounts):
+        return self.links.get(path, path)
 
     async def listing(self, member, path, mounts):
         self.calls.append((member, path, mounts))
@@ -457,7 +462,15 @@ async def test_host_files_for_a_cluster_admin(app, services):
                 {"name": "etc", "type": "dir", "size": 4096, "mtime": 1},
                 {"name": "nfs", "type": "dir", "size": 4096, "mtime": 1, "mount": "nfs4"},
             ],
+            "truncated": False,
         }
+        # a huge folder: the first MAX_ENTRIES, said so (D89)
+        from mcui.lxd.hostbrowser import MAX_ENTRIES
+
+        fake.entries = entries(*(f"d{i:05}" for i in range(MAX_ENTRIES + 3)))
+        r = (await c.get(F, params={"path": "/srv"})).json()
+        assert r["truncated"] and len(r["entries"]) == MAX_ENTRIES
+        fake.entries = entries("boot", "etc", "nfs")
         assert fake.calls[-1] == ("m1", "/srv", ["/boot", "/srv/nfs"])
         assert last_audit(services)[:2] == ("host.browse", "m1:/srv")
         r = await c.get(F, params={"path": "/"})  # nothing hidden from a cluster admin
@@ -529,6 +542,13 @@ async def test_host_files_and_paths_for_a_project_admin(tmp_path):
         inv = (await c.get(DEV)).json()
         assert inv["allowed"] == ["/srv/nfs", "/data"]
         assert [m["path"] for m in inv["mounts"]] == ["/srv/nfs"]
+        # a link planted in a writable share, pointing into a hidden folder (D90)
+        fake.links["/srv/nfs/a"] = "/etc"
+        r = await c.get(F, params={"path": "/srv/nfs/a"})
+        assert r.status_code == 403 and "leads to a folder hidden" in r.text
+        fake.links["/srv/nfs/a"] = "/opt/elsewhere"  # outside the allowed folders
+        assert (await c.get(F, params={"path": "/srv/nfs/a"})).status_code == 403
+        fake.links.clear()
         # the admin's own list
         store.set_setting(HIDDEN_KEY, ["/srv/nfs/private"])
         fake.entries = entries("private", "public")
@@ -599,3 +619,101 @@ async def test_cluster_admins_skip_the_device_lookups(app):
         h = await admin(c)
         r = await c.post("/api/instances/default/c1/copy", json={"name": "c2"}, headers=h)
         assert r.status_code == 200 and copy.called
+
+
+# --- the retrospective review (D90) --------------------------------------------------------
+
+
+@respx.mock
+async def test_profiles_volumes_publish_and_paths_for_project_admins(scoped):
+    """pat: admin in web (with the right) and lab (without). Devices arriving through a
+    profile, default's volumes, publishing into default's images, and host paths of every
+    device type (D90)."""
+    cfg = {"restricted": "true", **OWN}
+    respx.get(url__regex=rf"{EP1}/1\.0/projects/(web|lab)$").mock(
+        side_effect=lambda req: lxd_ok({"config": cfg})
+    )
+    respx.get(f"{EP1}/1.0/profiles/default").mock(return_value=lxd_ok({"devices": {}}))
+    respx.get(f"{EP1}/1.0/profiles/shared-data").mock(
+        return_value=lxd_ok({"devices": {"data": {"type": "disk", "source": "/srv", "path": "/d"}}})
+    )
+    respx.get(f"{EP1}/1.0/instances/c1").mock(
+        return_value=lxd_ok({"name": "c1", "devices": {}, "profiles": ["default"]})
+    )
+    create = respx.post(f"{EP1}/1.0/instances").mock(return_value=async_resp())
+    put = respx.put(f"{EP1}/1.0/instances/c1").mock(return_value=async_resp())
+    pub = respx.post(f"{EP1}/1.0/images").mock(return_value=async_resp())
+    img = respx.put(f"{EP1}/1.0/images/" + "a" * 64).mock(return_value=lxd_ok(None))
+    new = {"name": "c2", "image": {"remote": "local", "alias": "a"}}
+    upd = {"config": {}, "devices": {}}
+    async with client(scoped) as c:
+        h = {CSRF_HEADER: await login(c, "pat", "patpw")}
+        # a profile with a host path: without the right, refused on create and on update
+        r = await c.post(
+            "/api/instances",
+            json={**new, "project": "lab", "profiles": ["default", "shared-data"]},
+            headers=h,
+        )
+        assert r.status_code == 403 and "shared-data/data" in r.text and not create.called
+        r = await c.put(
+            "/api/instances/lab/c1", json={**upd, "profiles": ["default", "shared-data"]}, headers=h
+        )
+        assert r.status_code == 403 and not put.called
+        r = await c.put("/api/instances/lab/c1", json={**upd, "profiles": ["default"]}, headers=h)
+        assert r.status_code == 200  # nothing new
+        r = await c.post(
+            "/api/instances", json={**new, "project": "lab", "profiles": ["../x"]}, headers=h
+        )
+        assert r.status_code == 422
+        # with the right: fine
+        r = await c.put(
+            "/api/instances/web/c1", json={**upd, "profiles": ["default", "shared-data"]}, headers=h
+        )
+        assert r.status_code == 200
+        # host paths of other device types, and shift without read-only (with the right)
+        for dev in (
+            {"type": "unix-block", "source": "/dev/sda"},
+            {"type": "unix-char", "path": "/dev/kmsg"},
+            {
+                "type": "proxy",
+                "bind": "instance",
+                "listen": "unix:/x",
+                "connect": "unix:/var/snap/lxd/common/lxd/unix.socket",
+            },
+            {"type": "proxy", "connect": "unix:@abstract", "listen": "tcp:0.0.0.0:1"},
+            {"type": "proxy", "connect": "unix:relative", "listen": "tcp:0.0.0.0:1"},
+            {"type": "disk", "source": "/srv/www", "path": "/w", "shift": "true"},
+            {"type": "disk", "source": "/usr/local/bin", "path": "/b"},
+        ):
+            r = await c.put("/api/instances/web/c1", json={**upd, "devices": {"x": dev}}, headers=h)
+            assert r.status_code == 403, (dev, r.text)
+        ok = {
+            "type": "disk",
+            "source": "/srv/www",
+            "path": "/w",
+            "shift": "true",
+            "readonly": "true",
+        }
+        r = await c.put("/api/instances/web/c1", json={**upd, "devices": {"x": ok}}, headers=h)
+        assert r.status_code == 200
+        # default's volumes through instance devices when the project shares them
+        vol = {"type": "disk", "pool": "remote", "source": "v1", "path": "/v"}
+        cfg.pop("features.storage.volumes")
+        scoped.state.restricted_cache.clear()
+        r = await c.put("/api/instances/web/c1", json={**upd, "devices": {"v": vol}}, headers=h)
+        assert r.status_code == 403 and "storage volumes" in r.text
+        # publishing: into default's images, or public
+        r = await c.post("/api/instances/web/c1/publish", json={"public": True}, headers=h)
+        assert r.status_code == 403 and "cluster admin" in r.text
+        cfg.pop("features.images")
+        scoped.state.restricted_cache.clear()
+        r = await c.post("/api/instances/web/c1/publish", json={}, headers=h)
+        assert r.status_code == 403 and "shares the default project's images" in r.text
+        assert not pub.called
+        cfg["features.images"] = "true"
+        scoped.state.restricted_cache.clear()
+        r = await c.put(f"/api/images/web/{'a' * 64}", json={"public": True}, headers=h)
+        assert r.status_code == 403 and not img.called
+        assert (
+            await c.post("/api/instances/web/c1/publish", json={}, headers=h)
+        ).status_code == 200

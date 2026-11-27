@@ -1,4 +1,6 @@
 import { useRef, useState } from "react";
+import { useCanWrite } from "../../shared";
+import SharedNote from "../../SharedNote";
 import {
   addImageAlias,
   createImageRegistry,
@@ -36,13 +38,15 @@ export default function ImagesPage() {
   const { data, error } = useApi(`images:${project}:${version}`, () => fetchLocalImages(project));
   const [dialog, setDialog] = useState<Dialog>(null);
   const file = useRef<HTMLInputElement>(null);
-  const admin = access.can(project, "manage");
+  const write = useCanWrite(project, "manage", "images");
+  const admin = write.can;
   const close = () => setDialog(null);
   const short = (i: LocalImage) => i.aliases[0] ?? i.fingerprint.slice(0, 12);
 
   return (
     <>
       <h1>Images in {project}</h1>
+      {write.shared && <SharedNote project={project} kind="images" />}
       {admin && (
         <div className="actions" role="toolbar" aria-label="Image actions">
           <button type="button" className="primary" onClick={() => setDialog({ kind: "import" })}>

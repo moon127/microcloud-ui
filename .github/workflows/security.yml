@@ -12,11 +12,11 @@ jobs:
   audit:  # fails the run (and GitHub emails) if anything high or critical turns up
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: "22"
           cache: npm
@@ -33,7 +33,7 @@ jobs:
     env:
       IMAGE: ghcr.io/moon127/microcloud-ui:latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # pinned to a commit, not a tag: trivy-action's tags were rewritten in March 2026
       # (the 0.x tags became v0.x); Dependabot keeps the pin current
       - name: Scan the latest release image
@@ -52,7 +52,7 @@ jobs:
           severity: HIGH,CRITICAL
           format: sarif
           output: trivy.sarif
-      - uses: github/codeql-action/upload-sarif@v4
+      - uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4.39.5
         with:
           sarif_file: trivy.sarif
           category: image

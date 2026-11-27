@@ -157,6 +157,13 @@ async def _config(request: HTTPConnection, lxd: LXDClient, project: str) -> dict
     return value
 
 
+async def project_feature(
+    request: HTTPConnection, lxd: LXDClient, project: str, feature: str
+) -> bool:
+    """Does ``project`` have its own ``feature`` (e.g. ``features.images``)? (D89, D90)"""
+    return (await _config(request, lxd, project)).get(feature) == "true"
+
+
 async def _restricted(request: HTTPConnection, lxd: LXDClient, project: str) -> bool:
     return (await _config(request, lxd, project)).get("restricted") == "true"
 
@@ -255,14 +262,44 @@ def check_host_devices(
     if session.user.is_admin:
         return
     for name in changed:
-        source = new[name].get("source", "")
-        host_path = new[name].get("type") == "disk" and source.startswith("/")
-        if host_path and exposes_hidden(source, hidden_paths or []):
-            raise HTTPException(
-                status_code=403,
-                detail=f"{name}: {source} is, or contains, a folder hidden from project admins"
-                " (Settings → Host devices)",
+        problem = _host_path_problem(new[name], hidden_paths or [])
+        if problem:
+            raise HTTPException(status_code=403, detail=f"{name}: {problem}")
+
+
+def host_paths(dev: dict[str, str]) -> list[str]:
+    """The host paths a device reaches: a disk's source, a unix device's source (or path),
+    a proxy's unix socket on the host side (D90). Abstract sockets count as "@"."""
+    kind = dev.get("type", "")
+    if kind == "disk":
+        source = dev.get("source", "")
+        return [source] if source.startswith("/") else []
+    if kind.startswith("unix-"):
+        return [dev.get("source") or dev.get("path") or "/dev"]
+    if kind == "proxy":
+        out = []
+        for key in ("connect", "listen"):
+            value = dev.get(key, "")
+            if value.startswith("unix:"):
+                out.append(value[5:] or "@")
+        return out
+    return []
+
+
+def _host_path_problem(dev: dict[str, str], hidden_paths: list[str]) -> str | None:
+    """Why a project admin with the host-devices right still can't add ``dev``, if so."""
+    for path in host_paths(dev):
+        if not path.startswith("/"):
+            return f"{path}: only absolute host paths"
+        if exposes_hidden(path, hidden_paths):
+            return (
+                f"{path} is, or contains, a folder hidden from project admins"
+                " (Settings → Host devices)"
             )
+    if dev.get("type") == "disk" and dev.get("shift") == "true" and dev.get("readonly") != "true":
+        # container root would write there as host root (setuid files, cron) (D90)
+        return "shift needs read-only for project admins"
+    return None
 
 
 class InBody:

@@ -36,7 +36,7 @@ from mcui.auth.store import Session
 from mcui.hostfs import hidden, normalize, under
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient, LXDError
-from mcui.lxd.hostbrowser import BrowseError
+from mcui.lxd.hostbrowser import MAX_ENTRIES, BrowseError
 from mcui.metrics.live import SKIP_FSTYPES
 from mcui.metrics.select import NODE_SKIP_MOUNT_PREFIXES
 from mcui.services import Services
@@ -198,7 +198,11 @@ async def host_inventory(
     return {
         "member": member,
         "usb": [_usb(d) for d in (res.get("usb") or {}).get("devices") or []],
-        "disks": [_disk(d) for d in disks if d.get("type") == "usb"],
+        "disks": [
+            d
+            for d in (_disk(d) for d in disks if d.get("type") == "usb")
+            if not hidden(d["source"], hide)  # /dev/sdX without a by-id path (D90)
+        ],
         "mounts": [
             m
             for m in mounts(services, member)
@@ -236,6 +240,11 @@ async def host_files(
     member = _member(await lxd.get(f"/1.0/instances/{name}", project=project))
     mounted = {m["path"]: m["fstype"] for m in mounts(services, member)}
     try:
+        if not session.user.is_admin:
+            # the same checks on the path with its links resolved (D90)
+            real = await services.browser.resolve(member, p, list(mounted))
+            if (allowed and not under(real, allowed)) or hidden(real, hide):
+                raise HTTPException(403, f"{p} leads to a folder hidden from project admins")
         entries = await services.browser.listing(member, p, list(mounted))
     except BrowseError as e:
         raise HTTPException(e.status, str(e)) from e
@@ -245,13 +254,18 @@ async def host_files(
         f"{member or 'host'}:{p}",
         detail={"instance": f"{project}/{name}"},
     )
-    out = []
+    out: list[dict[str, Any]] = []
     for ent in entries:
         full = p.rstrip("/") + "/" + ent.name
         if hidden(full, hide):
             continue
         out.append({**ent.__dict__, **({"mount": mounted[full]} if full in mounted else {})})
-    return {"member": member, "path": p, "entries": out}
+    return {
+        "member": member,
+        "path": p,
+        "entries": out[:MAX_ENTRIES],
+        "truncated": len(out) > MAX_ENTRIES,
+    }
 
 
 @router.post("/{project}/{name}/host-devices")

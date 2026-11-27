@@ -16,9 +16,9 @@
     "description": "Distributed file-system storage using CephFS",
     "driver": "cephfs",
     "locations": [
-      "gw-ips-microcloud-1",
-      "gw-ips-microcloud-3",
-      "gw-ips-microcloud-2"
+      "node-2",
+      "node-1",
+      "node-3"
     ],
     "name": "remote-fs",
     "status": "Created",

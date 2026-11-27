@@ -85,9 +85,13 @@ class ProjectEvents:
 
 
 def redact_event(msg: str | bytes) -> str | bytes:
-    """An operation event without the operation's websocket secrets (0.3.4, D88): every
-    role gets these events, and an exec's secrets let anyone take its terminal over."""
-    if b'"fds"' not in (msg if isinstance(msg, bytes) else msg.encode()):
+    """An operation event without the operation's websocket secrets (D88, D90): every
+    role gets these events, and an exec's or a migration's secrets let anyone take its
+    terminal or data stream over."""
+    raw = msg if isinstance(msg, bytes) else msg.encode()
+    # exec/console fds, migration secrets (websocket class), trust and cluster-join tokens
+    # ("secret"; lxc config trust add, microcloud add) (D88, D90)
+    if not any(k in raw for k in (b'"fds"', b'"websocket"', b'"secret"', b'"secrets"')):
         return msg
     try:
         event = json.loads(msg)

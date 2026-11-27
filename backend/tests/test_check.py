@@ -70,6 +70,25 @@ async def test_node_exporter_problems_only_warn(settings, lxd):
 
 
 @respx.mock
+async def test_node_exporter_credentials_over_http_warn(settings, lxd, tmp_path):
+    mock_good()
+    pw = tmp_path / "pw"
+    pw.write_text("s")
+    pw.chmod(0o600)
+    ne = settings.node_exporter.model_copy(
+        update={"scheme": "http", "username": "mcui", "password_file": pw}
+    )
+    respx.get(url__regex=r"http://192\.0\.2\.\d:9100/metrics").mock(
+        return_value=httpx.Response(200, text="node_x 1\n")
+    )
+    ok, out = await run(settings.model_copy(update={"node_exporter": ne}), lxd)
+    assert ok and "WARN node_exporter credentials are sent over plain http" in out
+    srv = settings.server.model_copy(update={"forwarded_allow_ips": "*"})
+    ok, out = await run(settings.model_copy(update={"server": srv}), lxd)
+    assert 'WARN forwarded_allow_ips is "*"' in out
+
+
+@respx.mock
 async def test_standalone_missing_features_and_metrics_cert(certs, tmp_path, lxd):
     s = make_settings(
         certs, tmp_path, metrics={"cert": str(certs.other_cert), "key": str(certs.other_key)}

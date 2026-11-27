@@ -29,7 +29,7 @@ sudo microceph.ceph mgr module enable prometheus
 > see docs/CEPH-METRICS.md" instead of empty graphs.
 >
 > **Observed with both on (Ceph 19.2.3 squid, 3 mgr hosts):** the active mgr
-> (gw-ips-microcloud-1) returns 267 KiB, 2,784 samples in 656 families, in
+> (node-1) returns 267 KiB, 2,784 samples in 656 families, in
 > ~35 ms; the standbys return HTTP 200 with an empty body. OSD latency is present
 > (`ceph_osd_apply/commit_latency_ms`, `ceph_osd_op_r/w_latency_sum/count`, 6
 > OSDs) and per-image RBD counters cover 34 images in `lxd_remote` (labels

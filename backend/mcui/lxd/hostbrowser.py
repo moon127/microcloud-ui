@@ -37,6 +37,8 @@ MARK_KEY, MARK = "user.mcui.role", "host-browser"
 HOST = "/host"
 # type/size/mtime/path; a file name can't contain "/", so the path is what's left
 STAT_FORMAT = "%F/%s/%Y/%n"
+MAX_OUTPUT = 8 * 2**20  # bytes of a listing read from the helper
+MAX_ENTRIES = 5000  # entries of a folder shown (D89)
 TYPES = {"directory": "dir", "regular file": "file", "regular empty file": "file"}
 
 
@@ -222,7 +224,7 @@ class HostBrowser:
                     params=self._p(),
                     json={"action": "start"},
                 )
-        self.last_used[member] = self.clock()
+            self.last_used[member] = self.clock()  # under the lock: stop_idle checks it
         return name
 
     async def _mount_along(self, name: str, path: str, mounts: list[str]) -> None:
@@ -236,7 +238,14 @@ class HostBrowser:
         inst = await self.lxd.get(f"/1.0/instances/{name}", **self._p())
         have = inst.get("devices") or {}
         add = {
-            mount_device(m): {"type": "disk", "source": m, "path": HOST + m, "readonly": "true"}
+            # not required: an NFS share unmounted later mustn't stop the helper starting
+            mount_device(m): {
+                "type": "disk",
+                "source": m,
+                "path": HOST + m,
+                "readonly": "true",
+                "required": "false",
+            }
             for m in along
             if mount_device(m) not in have
         }
@@ -266,10 +275,24 @@ class HostBrowser:
         md = ((st.operation or {}).get("metadata")) or {}
         out: dict[str, str] = {}
         for fd, log_path in (md.get("output") or {}).items():
-            r = await self.lxd.raw("GET", log_path, params=self._p())
-            out[fd] = r.text
+            out[fd] = await self._read_capped(log_path)
             await self.lxd.raw("DELETE", log_path, params=self._p())
         return int(md.get("return", -1)), out.get("1", ""), out.get("2", "")
+
+    async def _read_capped(self, log_path: str) -> str:
+        """At most ``MAX_OUTPUT`` bytes of a recorded output, whole lines only: a folder
+        with millions of entries mustn't fill the server's memory (D89)."""
+        resp = await self.lxd.open_stream("GET", log_path, params=self._p())
+        buf = bytearray()
+        try:
+            async for chunk in resp.aiter_bytes():
+                buf += chunk
+                if len(buf) >= MAX_OUTPUT:
+                    del buf[buf.rfind(b"\n", 0, MAX_OUTPUT) + 1 :]  # a cut line could mislead
+                    break
+        finally:
+            await resp.aclose()
+        return buf.decode("utf-8", "replace")
 
     async def listing(self, member: str, path: str, mounts: list[str]) -> list[Entry]:
         """The folder ``path`` on ``member`` (normalised and checked by the caller)."""
@@ -284,7 +307,24 @@ class HostBrowser:
             if "Permission denied" in err:
                 raise BrowseError(f"{path} on {member} isn't readable by ordinary users", 403)
             raise BrowseError(f"listing {path} on {member} failed: {err.strip()[:200]}", 502)
+        self.last_used[member] = self.clock()  # a long listing counts as use
         return parse_listing(out)
+
+    async def resolve(self, member: str, path: str, mounts: list[str]) -> str:
+        """``path`` on ``member`` with its symlinks resolved, as the helper sees it: a
+        project admin's hidden and allowed folders are checked against this too, since a
+        link planted in a writable share could point into one (D90). A link leaving the
+        member's folders (an absolute target resolves inside the helper) is refused."""
+        name = await self._ensure_helper(member)
+        await self._mount_along(name, path, mounts)
+        # no "--": busybox realpath takes it for a file (seen live); the path starts /host
+        rc, out, err = await self._exec(name, ["realpath", HOST + path])
+        real = out.strip()
+        if rc != 0 or not real:
+            raise BrowseError(f"{path} doesn't exist on {member}", 404)
+        if real != HOST and not real.startswith(HOST + "/"):
+            raise BrowseError(f"{path} on {member} is a link out of the host's folders", 403)
+        return real[len(HOST) :] or "/"
 
     async def stop_idle(self) -> list[str]:
         """Stop the helpers nobody has used for ``browse_idle_minutes``."""
@@ -293,18 +333,21 @@ class HostBrowser:
         for member, at in list(self.last_used.items()):
             if self.clock() - at < limit:
                 continue
-            self.last_used.pop(member)
-            try:
-                await operations.run(
-                    self.lxd,
-                    "PUT",
-                    f"/1.0/instances/{helper_name(member)}/state",
-                    params=self._p(),
-                    json={"action": "stop", "force": True},
-                )
-                stopped.append(member)
-            except LXDError as e:
-                log.warning("stopping the browser helper on %s: %s", member, e)
+            async with self._lock:  # a listing that just started keeps it (D90)
+                if self.last_used.get(member) != at:
+                    continue
+                self.last_used.pop(member)
+                try:
+                    await operations.run(
+                        self.lxd,
+                        "PUT",
+                        f"/1.0/instances/{helper_name(member)}/state",
+                        params=self._p(),
+                        json={"action": "stop", "force": True},
+                    )
+                    stopped.append(member)
+                except LXDError as e:
+                    log.warning("stopping the browser helper on %s: %s", member, e)
         return stopped
 
     async def remove_all(self) -> bool:

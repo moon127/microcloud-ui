@@ -41,19 +41,32 @@ def _net(name: str) -> str:
 
 @router.get("/networks/{project}/{name}")
 async def get_network(
-    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep, target: MemberName = None
+    project: ProjectName,
+    name: ObjName,
+    session: ProjectReadDep,
+    lxd: LXDDep,
+    target: MemberName = None,
 ) -> dict[str, Any]:
     params: dict[str, Any] = {"project": project}
     if target:
         params["target"] = target
     data: dict[str, Any] = await lxd.get(_net(name), **params)
+    # a shared network lists every project's instances: only the user's (D89)
+    data["used_by"] = Scope.of(session.user).keep_urls(data.get("used_by") or [])
     return data
 
 
 @router.get("/networks/{project}/{name}/state")
 async def network_state(
-    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep, target: MemberName = None
+    project: ProjectName,
+    name: ObjName,
+    session: ProjectReadDep,
+    lxd: LXDDep,
+    target: MemberName = None,
 ) -> dict[str, Any]:
+    if target and session.user.role == "project":
+        # a member's view of a (shared) network is the host's interface (D90)
+        raise HTTPException(status_code=403, detail="a member's view needs a cluster role")
     params: dict[str, Any] = {"project": project}
     if target:
         params["target"] = target

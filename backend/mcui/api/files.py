@@ -18,6 +18,7 @@ from starlette.background import BackgroundTask
 from mcui.api.audited import audited
 from mcui.api.deps import LXDDep, ProjectOperateDep, StoreDep
 from mcui.api.instances import InstName, ProjectName
+from mcui.api.uploads import attachment, capped
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient, LXDError
 
@@ -118,8 +119,7 @@ async def download(
         if r.status_code == 200:
             raise HTTPException(status_code=400, detail="not a regular file")
         raise _error(r)
-    filename = posixpath.basename(path).replace('"', "")
-    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    headers = {"Content-Disposition": attachment(posixpath.basename(path))}
     if "content-length" in r.headers:
         headers["Content-Length"] = r.headers["content-length"]
     return StreamingResponse(
@@ -169,7 +169,7 @@ async def upload(
         store,
         "file.upload",
         f"{project}/{name}",
-        _write(lxd, name, project, path, headers, request.stream()),
+        _write(lxd, name, project, path, headers, capped(request)),
         detail={"path": path},
     )
     return st.as_dict()

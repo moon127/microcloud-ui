@@ -80,3 +80,32 @@ def test_events_relay_strips_secrets(app, services, monkeypatch):
     with ws_client(app).websocket_connect("/api/events", headers=ORIGIN) as ws:
         got = ws.receive_text()
     assert SECRET not in got and json.loads(got)["metadata"]["id"] == "op-exec"
+
+
+MIGRATION = {
+    "id": "op-move",
+    "class": "websocket",
+    "status": "Running",
+    "project": "web",
+    "metadata": {"control": SECRET, "fs": SECRET, "criu": SECRET},
+}
+
+
+def test_migration_secrets_are_redacted_too():
+    """A migration's metadata is the secrets map itself (LXD's migrationSourceWs, D90)."""
+    assert redact(MIGRATION)["metadata"] == {}
+    exec_kept = redact({**EXEC, "metadata": {**EXEC["metadata"], "environment": {"T": "x"}}})
+    assert exec_kept["metadata"] == {"command": ["bash"]}  # no fds, no environment
+    event = json.dumps({"type": "operation", "metadata": MIGRATION})
+    assert SECRET not in redact_event(event)
+    assert redact({"class": "task", "metadata": {"fs": "kept: not a websocket"}})["metadata"]
+
+
+@respx.mock
+async def test_migration_operations_have_no_secrets(app):
+    respx.get(f"{EP1}/1.0/operations").mock(return_value=lxd_ok({"running": [MIGRATION]}))
+    respx.get(f"{EP1}/1.0/operations/op-move").mock(return_value=lxd_ok(MIGRATION))
+    async with client(app) as c:
+        await login(c, "viewer", "viewerpw")
+        for url in ("/api/operations", "/api/operations/op-move"):
+            assert SECRET not in (await c.get(url)).text, url

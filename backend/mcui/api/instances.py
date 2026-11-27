@@ -12,6 +12,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 from pydantic import BaseModel, Field
+from starlette.requests import HTTPConnection
 
 from mcui.api.audited import audited
 from mcui.api.deps import (
@@ -26,6 +27,7 @@ from mcui.api.deps import (
     ServicesDep,
     StoreDep,
     check_host_devices,
+    project_feature,
 )
 from mcui.auth.policy import is_host_device
 from mcui.auth.store import Session, Store
@@ -41,6 +43,7 @@ NAME = r"^[A-Za-z0-9][A-Za-z0-9._-]*$"  # LXD instance, snapshot and project nam
 ProjectName = Annotated[str, Path(pattern=NAME, max_length=63)]
 InstName = Annotated[str, Path(pattern=NAME, max_length=63)]
 SnapName = Annotated[str, Path(pattern=NAME, max_length=63)]
+ProfileName = Annotated[str, Field(pattern=NAME, max_length=63)]
 LogName = Annotated[str, Path(pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$", max_length=255)]
 
 
@@ -63,9 +66,11 @@ class Ctx:
         lxd: LXDClient,
         index: InstanceIndex,
         in_body: InBody | None = None,
+        request: HTTPConnection | None = None,
     ) -> None:
         self.session, self.store, self.lxd, self.index = session, store, lxd, index
         self.in_body = in_body  # creates: check the project named in the body
+        self.request = request  # for the cached project config
 
     async def check_project(self, project: str) -> None:
         if self.in_body is None:  # pragma: no cover - a route wiring error
@@ -127,11 +132,11 @@ async def get_ctx_manage(
     index: IndexDep,
 ) -> Ctx:
     # check_project: a second project the change reaches (a move to another project)
-    return Ctx(session, store, lxd, index, InBody(request, session, lxd))
+    return Ctx(session, store, lxd, index, InBody(request, session, lxd), request)
 
 
 async def get_ctx_create(in_body: InBodyDep, store: StoreDep, lxd: LXDDep, index: IndexDep) -> Ctx:
-    return Ctx(in_body.session, store, lxd, index, in_body)
+    return Ctx(in_body.session, store, lxd, index, in_body, in_body.request)
 
 
 CtxOperateDep = Annotated[Ctx, Depends(get_ctx_operate)]
@@ -160,7 +165,7 @@ class NewInstance(BaseModel):
     target: str | None = Field(default=None, pattern=r"^@?[A-Za-z0-9][A-Za-z0-9._-]*$")
     image: ImageSource | None = None  # none: an empty VM, e.g. to install from an ISO
     description: str = ""
-    profiles: list[str] = Field(default_factory=lambda: ["default"])
+    profiles: list[ProfileName] = Field(default_factory=lambda: ["default"])
     config: dict[str, str] = Field(default_factory=dict)
     devices: dict[str, dict[str, str]] = Field(default_factory=dict)
     start: bool = True
@@ -195,7 +200,7 @@ async def create_instance(
     body: NewInstance, ctx: CtxCreateDep, hidden_paths: HiddenPathsDep
 ) -> dict[str, Any]:
     await ctx.check_project(body.project)
-    check_host_devices(ctx.session, body.project, body.devices, hidden_paths=hidden_paths)
+    await _guard_new_devices(ctx, body.project, body.devices, body.profiles, hidden_paths)
     if body.image is None and body.type != "virtual-machine":
         raise HTTPException(status_code=400, detail="a container needs an image")
     registries = False
@@ -333,7 +338,7 @@ class InstanceUpdate(BaseModel):
     description: str = ""
     config: dict[str, str] = Field(default_factory=dict)
     devices: dict[str, dict[str, str]] = Field(default_factory=dict)
-    profiles: list[str] = Field(default_factory=list)
+    profiles: list[ProfileName] = Field(default_factory=list)
     ephemeral: bool = False
     stateful: bool = False
     architecture: str | None = None
@@ -347,10 +352,9 @@ async def update_instance(
     ctx: CtxManageDep,
     hidden_paths: HiddenPathsDep,
 ) -> dict[str, Any]:
-    if any(is_host_device(d) for d in body.devices.values()):
+    if ctx.session.user.role == "project" or any(is_host_device(d) for d in body.devices.values()):
         current = await ctx.lxd.get(_inst(name), project=project)
-        old = current.get("devices") or {}
-        check_host_devices(ctx.session, project, body.devices, old, hidden_paths)
+        await _guard_new_devices(ctx, project, body.devices, body.profiles, hidden_paths, current)
     return await ctx.change(
         "instance.update",
         project,
@@ -454,6 +458,45 @@ async def move(
         params={"target": body.target} if body.target else None,
         detail=body.model_dump(exclude_none=True),
     )
+
+
+async def _guard_new_devices(
+    ctx: Ctx,
+    project: str,
+    devices: dict[str, dict[str, str]],
+    profiles: list[str],
+    hidden_paths: list[str],
+    current: dict[str, Any] | None = None,
+) -> None:
+    """For a project user's create or update (D86, D90): host devices in ``devices`` or in
+    profiles the instance didn't have (a profile a cluster admin gave host devices hands
+    them to whoever adds it), and pool disks naming another project's volume when the
+    project shares default's volumes."""
+    old = (current or {}).get("devices") or {}
+    if any(is_host_device(d) for d in devices.values()):
+        check_host_devices(ctx.session, project, devices, old, hidden_paths)
+    if ctx.session.user.role != "project":
+        return
+    had = set((current or {}).get("profiles") or [])
+    for name in [p for p in profiles if p not in had]:
+        prof = await ctx.lxd.get(f"/1.0/profiles/{name}", project=project)
+        from_profile = {f"{name}/{k}": d for k, d in (prof.get("devices") or {}).items()}
+        check_host_devices(ctx.session, project, from_profile, None, hidden_paths)
+    volumes = [
+        n
+        for n, d in devices.items()
+        if d.get("type") == "disk" and d.get("pool") and d.get("source") and old.get(n) != d
+    ]
+    if (
+        volumes
+        and ctx.request is not None
+        and not await project_feature(ctx.request, ctx.lxd, project, "features.storage.volumes")
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail=f"{', '.join(volumes)}: project {project} shares the default project's "
+            "storage volumes, so its users can't attach them",
+        )
 
 
 async def _guard_devices(
@@ -647,6 +690,22 @@ class Publish(BaseModel):
 async def publish(
     project: ProjectName, name: InstName, body: Publish, ctx: CtxManageDep
 ) -> dict[str, Any]:
+    if ctx.session.user.role == "project":
+        # without its own images the image (and its alias) would land in default's store,
+        # where default's users launch by alias; public images are downloadable by anyone
+        # who reaches LXD (D90)
+        if ctx.request is not None and not await project_feature(
+            ctx.request, ctx.lxd, project, "features.images"
+        ):
+            raise HTTPException(
+                status_code=403,
+                detail=f"project {project} shares the default project's images, so its users "
+                "can't publish",
+            )
+        if body.public:
+            raise HTTPException(
+                status_code=403, detail="only a cluster admin publishes public images"
+            )
     source: dict[str, str] = (
         {"type": "snapshot", "name": f"{name}/{body.snapshot}"}
         if body.snapshot

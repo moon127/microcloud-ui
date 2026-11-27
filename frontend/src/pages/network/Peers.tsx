@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { useCanWrite } from "../../shared";
 import { Link } from "react-router";
 import { createPeer, deletePeer, fetchNetworks, fetchPeers, fetchProjects, updatePeer, type NetworkPeer } from "../../api";
-import { useAccess } from "../../access";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { useApi } from "../../useApi";
@@ -107,7 +107,6 @@ export default function Peers({ project, network, admin }: { project: string; ne
 }
 
 function AddPeer({ project, network, onClose }: { project: string; network: string; onClose: () => void }) {
-  const access = useAccess();
   const { run } = useActions();
   const projects = useApi("projects", fetchProjects);
   const [target, setTarget] = useState(project);
@@ -117,7 +116,7 @@ function AddPeer({ project, network, onClose }: { project: string; network: stri
   const chosen = other || choices[0]?.name || "";
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const canBack = access.can(target, "manage");
+  const canBack = useCanWrite(target, "manage", "networks").can;
   const [back, setBack] = useState(true);
   const [problem, setProblem] = useState("");
   return (

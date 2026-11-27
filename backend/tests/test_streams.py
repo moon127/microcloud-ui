@@ -369,3 +369,35 @@ def test_live_events_rereads_the_session():
     now[0] = 60
     with pytest.raises(SessionEnded):
         ev('{"project":"web","n":5}')
+
+
+def test_an_open_terminal_ends_with_its_session(app, services, monkeypatch):
+    """Re-checked while open, not only on attach (D90): a logout ends the terminal."""
+    from mcui.api.deps import COOKIE
+
+    ups = Upstreams(data_messages=("hello",))
+    monkeypatch.setattr(services.lxd, "websocket", ups)
+    monkeypatch.setattr("mcui.api.streams.RECHECK_SECONDS", 0.05)
+    stream = add_stream(services)
+    tc = ws_session(app, services, "admin", stream)
+    with tc.websocket_connect("/api/streams/s1", headers=ORIGIN) as ws:
+        assert ws.receive_text() == "hello"
+        services.store.delete_session(tc.cookies[COOKIE])
+        with pytest.raises(WebSocketDisconnect) as e:
+            ws.receive_text()
+    assert e.value.code == 4403 and e.value.reason == "no longer allowed"
+
+
+def test_an_open_terminal_stays_while_allowed(app, services, monkeypatch):
+    ups = Upstreams(data_messages=("hello", "again"))
+    monkeypatch.setattr(services.lxd, "websocket", ups)
+    monkeypatch.setattr("mcui.api.streams.RECHECK_SECONDS", 0.01)
+    stream = add_stream(services)
+    with ws_session(app, services, "admin", stream).websocket_connect(
+        "/api/streams/s1", headers=ORIGIN
+    ) as ws:
+        assert ws.receive_text() == "hello"
+        import time
+
+        time.sleep(0.05)  # a few re-checks pass
+        assert ws.receive_text() == "again"

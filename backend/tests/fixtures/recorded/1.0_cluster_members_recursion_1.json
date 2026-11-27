@@ -16,7 +16,7 @@
         "database-leader",
         "database"
       ],
-      "server_name": "gw-ips-microcloud-1",
+      "server_name": "node-1",
       "status": "Online",
       "url": "https://192.0.2.2:8443"
     },
@@ -33,7 +33,7 @@
       "roles": [
         "database"
       ],
-      "server_name": "gw-ips-microcloud-3",
+      "server_name": "node-3",
       "status": "Online",
       "url": "https://192.0.2.3:8443"
     },
@@ -50,7 +50,7 @@
       "roles": [
         "database"
       ],
-      "server_name": "gw-ips-microcloud-2",
+      "server_name": "node-2",
       "status": "Online",
       "url": "https://192.0.2.4:8443"
     }

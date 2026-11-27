@@ -23,7 +23,8 @@ from mcui.api.deps import (
     check_host_devices,
 )
 from mcui.api.instances import NAME, ProjectName
-from mcui.auth.policy import is_host_device
+from mcui.api.uploads import capped
+from mcui.auth.policy import Scope, is_host_device
 from mcui.auth.store import Session, Store
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient
@@ -97,9 +98,10 @@ class NewProfile(ProfileBody):
 
 @router.get("/profiles/{project}/{name}")
 async def get_profile(
-    project: ProjectName, name: ObjName, _: ProjectReadDep, lxd: LXDDep
+    project: ProjectName, name: ObjName, session: ProjectReadDep, lxd: LXDDep
 ) -> dict[str, Any]:
     data: dict[str, Any] = await lxd.get(f"/1.0/profiles/{name}", project=project)
+    data["used_by"] = Scope.of(session.user).keep_urls(data.get("used_by") or [])
     return data
 
 
@@ -219,6 +221,9 @@ async def update_image(
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
+    if body.public and session.user.role == "project":
+        # downloadable by anyone who reaches LXD, without a certificate (D90)
+        raise HTTPException(status_code=403, detail="only a cluster admin makes images public")
     return await _change(
         session,
         store,
@@ -364,7 +369,7 @@ async def upload_image(
         "/1.0/images",
         params={"project": project},
         headers={"Content-Type": "application/octet-stream", "X-LXD-filename": filename},
-        content=request.stream(),
+        content=capped(request),
     )
     st = await audited(
         session, store, "image.upload", f"{project}/{filename}", call, detail={"alias": alias}
@@ -444,9 +449,20 @@ async def update_project(
     )
 
 
+def _forget_project(request: Request, *names: str) -> None:
+    """Drop the cached config (restricted, features) of renamed or deleted projects (D90)."""
+    for n in names:
+        request.app.state.restricted_cache.pop(n, None)
+
+
 @router.post("/projects/{name}/rename")
 async def rename_project(
-    name: ObjName, body: Rename, session: AdminDep, store: StoreDep, lxd: LXDDep
+    request: Request,
+    name: ObjName,
+    body: Rename,
+    session: AdminDep,
+    store: StoreDep,
+    lxd: LXDDep,
 ) -> dict[str, Any]:
     if name == "default":
         raise HTTPException(status_code=400, detail="the default project can't be renamed")
@@ -458,6 +474,7 @@ async def rename_project(
             await operations.start(lxd, "POST", f"/1.0/projects/{name}", json={"name": body.name}),
         )
         store.rename_project_grants(name, body.name)
+        _forget_project(request, name, body.name)
         return st
 
     st = await audited(session, store, "project.rename", name, call(), detail={"to": body.name})
@@ -466,7 +483,7 @@ async def rename_project(
 
 @router.delete("/projects/{name}")
 async def delete_project(
-    name: ObjName, session: AdminDep, store: StoreDep, lxd: LXDDep
+    request: Request, name: ObjName, session: AdminDep, store: StoreDep, lxd: LXDDep
 ) -> dict[str, Any]:
     if name == "default":
         raise HTTPException(status_code=400, detail="the default project can't be deleted")
@@ -477,6 +494,7 @@ async def delete_project(
         )
         # a later project of the same name mustn't inherit them (D88)
         store.drop_project_grants(name)
+        _forget_project(request, name)
         return st
 
     st = await audited(session, store, "project.delete", name, call())

@@ -27,7 +27,7 @@ def test_summary_from_a_real_mgr():
     assert [m["in_quorum"] for m in s["mons"]] == [True, True, True]
     assert [o["id"] for o in s["osds"]] == [1, 2, 3, 4, 6, 9]
     osd = s["osds"][0]
-    assert osd["host"] == "gw-ips-microcloud-3" and osd["device_class"] == "ssd"
+    assert osd["host"] == "node-3" and osd["device_class"] == "ssd"
     assert osd["up"] is True and osd["in"] is True
     assert "apply_latency_ms" in osd and osd["size"] > osd["used"] > 0
     assert s["pgs"]["total"] == 193

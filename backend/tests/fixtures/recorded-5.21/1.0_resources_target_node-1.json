@@ -32,7 +32,7 @@
             {
               "core": 0,
               "die": 0,
-              "frequency": 799,
+              "frequency": 800,
               "threads": [
                 {
                   "id": 0,
@@ -74,7 +74,7 @@
             {
               "core": 2,
               "die": 0,
-              "frequency": 800,
+              "frequency": 799,
               "threads": [
                 {
                   "id": 2,
@@ -95,7 +95,7 @@
             {
               "core": 3,
               "die": 0,
-              "frequency": 799,
+              "frequency": 800,
               "threads": [
                 {
                   "id": 3,
@@ -156,11 +156,11 @@
           "hugepages_used": 0,
           "numa_node": 0,
           "total": 68719476736,
-          "used": 63230312448
+          "used": 58458791936
         }
       ],
       "total": 68719476736,
-      "used": 20797755392
+      "used": 21339897856
     },
     "network": {
       "cards": [
@@ -172,7 +172,7 @@
           "pci_address": "0000:07:00.0",
           "ports": [
             {
-              "address": "00:16:3e:00:00:01",
+              "address": "00:16:3e:00:00:1f",
               "auto_negotiation": true,
               "id": "eno1",
               "link_detected": false,
@@ -205,7 +205,7 @@
           "pci_address": "0000:08:00.0",
           "ports": [
             {
-              "address": "00:16:3e:00:00:02",
+              "address": "00:16:3e:00:00:20",
               "auto_negotiation": true,
               "id": "eno2",
               "link_detected": false,
@@ -238,7 +238,7 @@
           "pci_address": "0000:0b:00.0",
           "ports": [
             {
-              "address": "00:16:3e:00:00:03",
+              "address": "00:16:3e:00:00:21",
               "auto_negotiation": true,
               "id": "eno3",
               "link_detected": false,
@@ -276,7 +276,7 @@
           "pci_address": "0000:0b:00.1",
           "ports": [
             {
-              "address": "00:16:3e:00:00:04",
+              "address": "00:16:3e:00:00:22",
               "auto_negotiation": true,
               "id": "eno4",
               "link_detected": false,
@@ -314,7 +314,7 @@
           "pci_address": "0000:0b:00.2",
           "ports": [
             {
-              "address": "00:16:3e:00:00:05",
+              "address": "00:16:3e:00:00:23",
               "auto_negotiation": true,
               "id": "eno5",
               "link_detected": false,
@@ -352,7 +352,7 @@
           "pci_address": "0000:0b:00.3",
           "ports": [
             {
-              "address": "00:16:3e:00:00:06",
+              "address": "00:16:3e:00:00:24",
               "auto_negotiation": true,
               "id": "eno6",
               "link_detected": false,
@@ -390,7 +390,7 @@
           "pci_address": "0000:04:00.0",
           "ports": [
             {
-              "address": "00:16:3e:00:00:07",
+              "address": "00:16:3e:00:00:25",
               "auto_negotiation": false,
               "id": "eno7",
               "link_detected": true,
@@ -426,7 +426,7 @@
           "pci_address": "0000:04:00.1",
           "ports": [
             {
-              "address": "00:16:3e:00:00:08",
+              "address": "00:16:3e:00:00:26",
               "auto_negotiation": false,
               "id": "eno8",
               "link_detected": true,
@@ -1464,7 +1464,7 @@
           "block_size": 512,
           "device": "8:0",
           "device_fs_uuid": "60b776da-f23d-4257-9658-f37547dac649",
-          "device_id": "wwn-0x500a0751f00a68a9",
+          "device_id": "wwn-SCRUBBED",
           "device_path": "pci-0000:00:1f.2-ata-4.0",
           "firmware_version": "MU02",
           "id": "sda",
@@ -1483,7 +1483,7 @@
           "block_size": 512,
           "device": "8:16",
           "device_fs_uuid": "",
-          "device_id": "wwn-0x5001b444a553db8f",
+          "device_id": "wwn-SCRUBBED",
           "device_path": "pci-0000:00:1f.2-ata-5.0",
           "firmware_version": "6100",
           "id": "sdb",

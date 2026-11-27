@@ -28,7 +28,7 @@ port = 8000                        # production: 8843, see docs/DEPLOY.md
 [lxd]
 endpoints   = ["https://<member1-ip>:8443", "https://<member2-ip>:8443"]  # any members; used for failover
 server_cert = "~/.config/mcui/certs/lxd-cluster.crt"   # pinned shared cluster cert
-server_name = "gw-ips-microcloud-1"                    # SAN name; we connect by IP
+server_name = "node-1"                    # SAN name; we connect by IP
 client_cert = "~/.config/mcui/certs/client.crt"
 client_key  = "~/.config/mcui/certs/client.key"
 timeout_seconds = 10
@@ -62,6 +62,9 @@ password_file = "~/.config/mcui/node-exporter.pass"   # chmod 600
 member_overrides = {}                       # e.g. { "gw-1" = "https://10.0.0.1:9100" }
 timeout_seconds = 5
 
+# [server] max_upload_bytes = 68719476736   # largest upload (images, ISOs, backups,
+#                                           # instance files); 0: no limit (D90)
+
 [host_devices]                              # host paths and USB devices, see below
 # hidden_paths = ["/home", "/root", "/etc"] # unset: the built-in list
 browse = false                              # the folder browser (helper containers)
@@ -81,9 +84,16 @@ wins over the file, and **Use the config file** goes back to it, so either way w
   Cluster admins aren't limited. Unset, the built-in list hides `/home`, `/root`, `/etc`,
   `/snap`, `/var/snap` (LXD, MicroCeph and MicroOVN keys), `/run` and `/var/run` (the LXD
   socket: mounting it hands over the cluster), `/var/lib`, `/var/log`, `/proc`, `/sys`,
-  `/dev`, `/boot`, `/tmp` and `/var/tmp`. USB disks (`/dev/disk/by-id/usb-…`) are always
-  offered. The check is on the path as written; a project's
-  `restricted.devices.disk.paths` is the hard limit, enforced by LXD.
+  `/dev`, `/boot`, `/tmp`, `/var/tmp`, and the programs and libraries (`/bin`, `/sbin`,
+  `/lib*`, `/usr`), `/var/spool` (cron), `/var/cache`, `/var/backups` and `/var/mail`,
+  where a writable mount could run code as root. USB disks (`/dev/disk/by-id/usb-…`) are
+  always offered. It covers disks, unix devices and a proxy's unix sockets, and a folder
+  containing a hidden one (`/`, `/var`) counts as hidden.
+  The check is on the path as written, and so is LXD's own
+  `restricted.devices.disk.paths` (a prefix match; LXD doesn't resolve symlinks, checked in
+  its source). A link inside a folder an instance can write to can point anywhere on the
+  member, so allow only folders instances can't write to, or have them attached
+  read-only. The folder browser resolves links before its check.
 - **`browse`**: off by default. On, the app keeps a small Alpine container per member in
   `browse_project` (created when switched on, marked `user.mcui.role=host-browser`), with
   the member's `/` mounted read-only, and lists folders through it. Helpers start when
@@ -132,7 +142,7 @@ metrics URL is built from that member's address plus the metrics port:
 |---|---|
 | `port = 8443` (default) | Scrape `/1.0/metrics` on the normal API port. Works with no LXD changes. **Current test cloud setting.** |
 | `port = 8444` | Scrape the dedicated listener created with `core.metrics_address` (see `docs/LXD-CREDENTIALS.md` §5). Must be enabled on **every** member. |
-| `[metrics.member_overrides]` | Optional per-member URL, for members that differ, e.g. `gw-ips-microcloud-2 = "https://10.0.0.12:9444"` |
+| `[metrics.member_overrides]` | Optional per-member URL, for members that differ, e.g. `node-2 = "https://10.0.0.12:9444"` |
 | `fallback_to_api_port = true` | If the metrics port refuses connections, retry on 8443 and raise a UI warning (default `false`) |
 
 The same `server_cert` and `server_name` are used for verification on both
@@ -141,6 +151,6 @@ certificate matched, and whether the metrics cert was accepted.
 
 ### Switching from 8443 to 8444
 1. Enable `core.metrics_address` on every member (LXD-CREDENTIALS §5).
-2. Run `curl … --resolve "gw-ips-microcloud-1:8444:<ip>" https://gw-ips-microcloud-1:8444/1.0/metrics` for each member.
+2. Run `curl … --resolve "node-1:8444:<ip>" https://node-1:8444/1.0/metrics` for each member.
 3. Set `port = 8444` (or `MCUI_METRICS__PORT=8444`) and restart microcloud-ui.
 4. Run `mcui check`; all members should show `metrics: ok (8444)`.

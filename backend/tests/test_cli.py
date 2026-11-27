@@ -202,7 +202,7 @@ def test_record_fixtures(config, tmp_path, capsys):
     )
     out = tmp_path / "rec"
     assert cli.main(["-c", str(config), "record-fixtures", "--out", str(out)]) == 0
-    assert (out / "metrics_solo.txt").read_text() == "a 1\n"
+    assert (out / "metrics_node-1.txt").read_text() == "a 1\n"
     route.return_value = httpx.Response(500)
     assert cli.main(["-c", str(config), "record-fixtures", "--out", str(out)]) == 1
 

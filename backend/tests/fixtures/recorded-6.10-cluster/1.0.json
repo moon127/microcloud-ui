@@ -577,7 +577,7 @@
       "server_clustered": true,
       "server_event_mode": "full-mesh",
       "server_lts": true,
-      "server_name": "gw-ips-microcloud-1",
+      "server_name": "node-1",
       "server_pid": 4082,
       "server_version": "6.10.1",
       "storage": "ceph | cephfs",

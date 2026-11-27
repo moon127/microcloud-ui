@@ -75,7 +75,7 @@ async def test_export(app, services):
         await admin(c)
         r = await c.get(f"{U}/b1/export")
         assert r.content == data
-        assert r.headers["content-disposition"] == 'attachment; filename="v1-b1.tar.zst"'
+        assert r.headers["content-disposition"].startswith('attachment; filename="v1-b1.tar.zst"')
         assert last_audit(services)[0] == "volume.backup.export"
         n = len(services.store.audit_entries(limit=100))
         assert (await c.get(f"{U}/b9/export")).status_code == 404

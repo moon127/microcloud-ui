@@ -19,6 +19,7 @@ import httpx
 
 from mcui.config import NodeExporterSettings
 from mcui.lxd.server import Member
+from mcui.metrics.http import get_text
 from mcui.metrics.live import counted_disk, counter_rate
 from mcui.metrics.prom import Exposition, Sample, parse
 from mcui.metrics.scrape import with_port
@@ -90,7 +91,7 @@ class NodeScraper:
         url = node_url(member, self.settings)
         ext = {"sni_hostname": self.settings.server_name} if self.settings.server_name else {}
         try:
-            r = await self._http.get(url + "/metrics", extensions=ext)
+            status, text = await get_text(self._http, url + "/metrics", extensions=ext)
         except httpx.ConnectError as e:
             if "SSL" in str(e) or "certificate" in str(e).lower():
                 return NodeScrape(member.name, url, False, self.clock(), f"TLS: {e}")
@@ -103,14 +104,14 @@ class NodeScraper:
                 member.name, url, False, self.clock(), msg, isinstance(e, httpx.TimeoutException)
             )
         now = self.clock()
-        if r.status_code == 401:
+        if status == 401:
             return NodeScrape(member.name, url, False, now, "HTTP 401: check username/password")
-        if r.status_code != 200:
-            return NodeScrape(member.name, url, False, now, f"HTTP {r.status_code}")
-        exp = parse(r.text)
+        if status != 200:
+            return NodeScrape(member.name, url, False, now, f"HTTP {status}")
+        exp = parse(text)
         if not any(s.name.startswith("node_") for s in exp.samples):
             return NodeScrape(member.name, url, False, now, "not a node_exporter")
-        return NodeScrape(member.name, url, True, now, exposition=exp, text=r.text)
+        return NodeScrape(member.name, url, True, now, exposition=exp, text=text)
 
     async def scrape_all(self, members: list[Member]) -> list[NodeScrape]:
         res = list(await asyncio.gather(*(self.scrape_member(m) for m in members)))

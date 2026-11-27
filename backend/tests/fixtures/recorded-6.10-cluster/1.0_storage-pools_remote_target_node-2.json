@@ -16,9 +16,9 @@
     "description": "Distributed storage on Ceph",
     "driver": "ceph",
     "locations": [
-      "gw-ips-microcloud-1",
-      "gw-ips-microcloud-3",
-      "gw-ips-microcloud-2"
+      "node-1",
+      "node-3",
+      "node-2"
     ],
     "name": "remote",
     "status": "Created",

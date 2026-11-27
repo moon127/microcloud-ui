@@ -109,7 +109,8 @@ export default function Restrictions({
         )}
         {restricted && anyDisk && !config[PATHS] && (
           <p role="alert">
-            Any host path can be mounted: set allowed paths, or a shifted mount of / gives root on the host.
+            Any host path can be mounted: set allowed paths, or a writable shifted mount of a program folder gives root on the
+            host.
           </p>
         )}
         {restricted && others.length > 0 && (

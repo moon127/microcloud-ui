@@ -55,7 +55,8 @@ async def login(
 ) -> dict[str, Any]:
     store, limiter = services.store, services.logins
     address = request.client.host if request.client else ""
-    wait = limiter.retry_after(address, body.username)
+    # counted before the hash, so parallel attempts can't all slip past the limit (D90)
+    wait = limiter.attempt(address, body.username)
     if wait > 0:
         raise HTTPException(
             status_code=429,
@@ -69,7 +70,6 @@ async def login(
         ok = await asyncio.to_thread(store.verify, stored, body.password)
     user = store.login_finish(row, body.password) if ok else None
     if user is None:
-        limiter.failed(address, body.username)
         # what was typed as a username is sometimes a password: keep only real usernames
         known = row is not None
         store.audit(
@@ -79,7 +79,7 @@ async def login(
             detail=None if known else {"username": "(unknown)"},
         )
         raise HTTPException(status_code=401, detail="invalid username or password")
-    limiter.succeeded(body.username)
+    limiter.succeeded(address, body.username)
     ttl = services.settings.server.session_hours * 3600
     session = store.create_session(user, ttl)
     response.set_cookie(

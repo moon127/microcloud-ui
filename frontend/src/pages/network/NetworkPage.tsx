@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCanWrite } from "../../shared";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router";
 import {
   deleteNetwork,
@@ -24,7 +25,6 @@ import Forwards from "./Forwards";
 import LoadBalancers from "./LoadBalancers";
 import Peers from "./Peers";
 import { aclPath } from "./paths";
-import { useAccess } from "../../access";
 
 interface Draft {
   description: string;
@@ -35,13 +35,12 @@ export default function NetworkPage() {
   const { project = "default", name = "" } = useParams();
   const [params] = useSearchParams();
   const member = params.get("member") ?? undefined; // unmanaged interfaces belong to one member
-  const access = useAccess();
   const { run, version } = useActions();
   const navigate = useNavigate();
   const net = useApi(`network:${project}/${name}:${member}:${version}`, () => fetchNetwork(project, name, member));
   const n = net.data;
   const managed = !!n?.managed;
-  const admin = access.can(project, "manage") && managed;
+  const admin = useCanWrite(project, "manage", "networks").can && managed;
   const features = useApi("server", fetchServer).data?.features ?? {};
   const [draft, setDraft] = useState<Draft | null>(null);
   const [problem, setProblem] = useState<string | null>(null);

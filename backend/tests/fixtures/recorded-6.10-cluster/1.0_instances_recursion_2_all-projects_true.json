@@ -76,7 +76,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:45:43.825942798Z",
-      "location": "gw-ips-microcloud-2",
+      "location": "node-2",
       "name": "CosmosCloud",
       "profiles": [
         "legacy"
@@ -333,7 +333,7 @@
         "volatile.uuid.generation": "1576a1a6-5ac6-4567-9e88-56247e0e7e5e"
       },
       "created_at": "2026-06-07T15:57:29.614599332Z",
-      "description": "import of quasselcore-canonical moon127.net DNS/IRC server from po [LEGACY]",
+      "description": "import of quasselcore-canonical example.org DNS/IRC server from po [LEGACY]",
       "devices": {
         "eth1": {
           "network": "macvlan0",
@@ -381,7 +381,7 @@
         }
       },
       "last_used_at": "2026-11-12T22:29:07.02893968Z",
-      "location": "gw-ips-microcloud-1",
+      "location": "node-1",
       "name": "dns-legacy",
       "profiles": [
         "legacy"
@@ -598,7 +598,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:45:45.647034009Z",
-      "location": "gw-ips-microcloud-2",
+      "location": "node-2",
       "name": "minecraft",
       "profiles": [
         "legacy"
@@ -798,7 +798,7 @@
         }
       },
       "last_used_at": "2026-11-13T07:46:23.791338288Z",
-      "location": "gw-ips-microcloud-1",
+      "location": "node-1",
       "name": "mirrors",
       "profiles": [
         "legacy"
@@ -924,7 +924,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:59:54.188836997Z",
-      "location": "gw-ips-microcloud-3",
+      "location": "node-3",
       "name": "nginx-proxy-manager",
       "profiles": [
         "legacy"
@@ -1143,7 +1143,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:59:56.260800412Z",
-      "location": "gw-ips-microcloud-3",
+      "location": "node-3",
       "name": "podman-1",
       "profiles": [
         "legacy"
@@ -1361,7 +1361,7 @@
         }
       },
       "last_used_at": "2026-11-12T22:53:17.472349837Z",
-      "location": "gw-ips-microcloud-1",
+      "location": "node-1",
       "name": "releases-mirror",
       "profiles": [
         "legacy"
@@ -1554,7 +1554,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:45:47.182449378Z",
-      "location": "gw-ips-microcloud-2",
+      "location": "node-2",
       "name": "route-reflector-1-as211437",
       "profiles": [
         "legacy"
@@ -1763,7 +1763,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:59:58.343531355Z",
-      "location": "gw-ips-microcloud-3",
+      "location": "node-3",
       "name": "runtipi",
       "profiles": [
         "legacy"
@@ -2207,7 +2207,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:38:33.676694695Z",
-      "location": "gw-ips-microcloud-1",
+      "location": "node-1",
       "name": "test-routing",
       "profiles": [
         "legacy"
@@ -2428,7 +2428,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:45:49.017369668Z",
-      "location": "gw-ips-microcloud-2",
+      "location": "node-2",
       "name": "ubuntu-mirror-urc",
       "profiles": [
         "legacy"
@@ -2637,7 +2637,7 @@
         }
       },
       "last_used_at": "2026-11-12T21:59:52.877742136Z",
-      "location": "gw-ips-microcloud-3",
+      "location": "node-3",
       "name": "mcui-test-mc34",
       "profiles": [
         "default"

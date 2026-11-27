@@ -58,8 +58,9 @@ function HostDevices({ s }: { s: HostDeviceSettings }) {
       <p className="muted">
         One per line, with everything inside. Project admins don&apos;t see them in the folder browser or in the list of
         mounted filesystems, and can&apos;t attach a path inside them. USB disks (<code>/dev/disk/by-id/usb-…</code>) are
-        always offered. It&apos;s a check on the path as typed: a symlink in an allowed folder can still point here. A
-        project&apos;s <code>restricted.devices.disk.paths</code> is the hard limit (LXD resolves links).{" "}
+        always offered. Like a project&apos;s <code>restricted.devices.disk.paths</code> in LXD, it&apos;s a check on the
+        path as typed: a symlink in a folder an instance can write to can still point here, so allow folders instances
+        can&apos;t write to. The folder browser resolves links before it checks.{" "}
         <span>Now: {SOURCE[s.hidden_source]}.</span>
       </p>
       <label className="field">
