@@ -250,6 +250,16 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
   and the boot.mode fix. A first tag had to be deleted (the release commit failed a flaky test and
   the script tagged anyway; the version check stopped the run, nothing was published). `main` is
   now 0.1.5.dev0.
+- **Container stop fix 2026-11-27:** as PID 1 in the image, uvicorn's re-raise of SIGTERM
+  after a graceful shutdown failed with `PermissionError`, so every stop or restart left the
+  Quadlet unit failed (exit 1; in 0.3.2 and before). `mcui serve` now runs its own
+  `uvicorn.Server` subclass (`mcui.server`) that skips the re-raise as PID 1 and exits 0;
+  `--reload` still uses `uvicorn.run`. Podman's `--init` was tried and rejected (the
+  server never saw SIGTERM; killed after 10 s). Checked in an Ubuntu 24.04 VM in
+  `mcui-test`: the edge image patched with the fix stops in 0.8 s, Result=success; the
+  bundle (not PID 1) unchanged (stops on SIGTERM, success). Baseline before it, same VM:
+  0.3.2 bundle and images, edge before and after the Dependabot frontend updates (PR #7,
+  landed on `main` with the React Router 8.5.2 notice), all fine apart from this.
 - **0.3.2 released 2026-11-27** (run 45992467564): host paths and USB devices (D86) and
   finding them (D87). `main` is now 0.3.3.dev0.
 - **Finding a host path 2026-11-27 (D87):** mounted filesystems from node_exporter in Add

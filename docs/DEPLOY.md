@@ -429,6 +429,7 @@ stalls HTTPS to LXD. Set the MTU to 1442, using the commented block at the end o
 | Key refused (`chmod 600`) | Keys must be mode 0600 and owned by 8843. Docker or Kubernetes secrets mounted 0444/0644 won't do: mount the file instead |
 | Builds or LXD connections hang inside an LXD instance | The bridge MTU is larger than the host's (§9.1, §9.3) |
 | Switching between the bundle and the container | Both use uid 8843 and the same `/etc/mcui` and `/var/lib/mcui`, and both are `mcui.service`: the bundle's unit in `/etc/systemd/system` hides the Quadlet's. To the container: `sudo ./install.sh --uninstall` (keeps config and data), install the Quadlet, `daemon-reload`, start. Back: remove `/etc/containers/systemd/mcui.container`, `daemon-reload`, run `install.sh`. `install.sh` resets the config's group and the owner of `certs/` on every run |
+| Up to 0.3.2: after `systemctl stop` or `restart`, `mcui.service` shows **failed** (exit 1) with a `PermissionError` traceback after "Application shutdown complete" | The server runs as PID 1 and couldn't re-send itself the stop signal. Harmless: it had already shut down cleanly. Fixed in 0.3.3, which exits 0. Don't add `PodmanArgs=--init`: under Podman's init the server didn't get SIGTERM and was killed after 10 s |
 | `podman run` shows no health status | The image was built in OCI format. `make image` uses `--format docker` with Podman |
 
 ## 10. Behind a reverse proxy (NGINX Proxy Manager, Cosmos, Caddy, nginx)

@@ -9,6 +9,7 @@ import os
 import sys
 from collections.abc import Awaitable, Callable, Sequence
 from pathlib import Path
+from typing import Any
 
 from mcui import __version__
 from mcui.config import (
@@ -90,6 +91,9 @@ def _settings(args: argparse.Namespace) -> Settings:
     return load_settings(args.config)
 
 
+APP = "mcui.main:create_app"
+
+
 def _serve(args: argparse.Namespace) -> int:
     import uvicorn
 
@@ -109,19 +113,22 @@ def _serve(args: argparse.Namespace) -> int:
     tls: dict[str, str] = {}
     if server.tls_cert is not None and server.tls_key is not None:
         tls = {"ssl_certfile": str(server.tls_cert), "ssl_keyfile": str(server.tls_key)}
-    uvicorn.run(
-        "mcui.main:create_app",
-        factory=True,
-        host=args.host or server.host,
-        port=args.port or server.port,
-        reload=args.reload,
+    kwargs: dict[str, Any] = {
+        "factory": True,
+        "host": args.host or server.host,
+        "port": args.port or server.port,
         # one process: the collector and live metrics live in it
-        workers=1,
-        server_header=False,
-        **proxy,  # type: ignore[arg-type]
-        **tls,  # type: ignore[arg-type]
-    )
-    return 0
+        "workers": 1,
+        "server_header": False,
+        **proxy,
+        **tls,
+    }
+    if args.reload:  # development: uvicorn's reloader runs the server in a subprocess
+        uvicorn.run(APP, reload=True, **kwargs)
+        return 0
+    from mcui.server import serve
+
+    return serve(APP, **kwargs)
 
 
 def _with_clients(args: argparse.Namespace, fn: ClientsFn) -> int:

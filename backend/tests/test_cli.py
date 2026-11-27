@@ -55,12 +55,15 @@ def fake_uvicorn(monkeypatch):
     calls = {}
 
     def fake_run(app, **kw):
+        calls.clear()
         calls["app"] = app
         calls.update(kw)
+        return 0
 
     import uvicorn
 
-    monkeypatch.setattr(uvicorn, "run", fake_run)
+    monkeypatch.setattr(uvicorn, "run", fake_run)  # --reload
+    monkeypatch.setattr("mcui.server.serve", fake_run)  # otherwise
     return calls
 
 
@@ -76,6 +79,51 @@ def test_serve_invokes_uvicorn_factory(fake_uvicorn, monkeypatch):
         "workers": 1,
         "server_header": False,
     }
+
+
+def test_serve_without_reload_uses_mcui_server(fake_uvicorn, monkeypatch):
+    monkeypatch.delenv("MCUI_CONFIG", raising=False)
+    assert cli.main(["serve", "--port", "9001"]) == 0
+    assert fake_uvicorn == {
+        "app": "mcui.main:create_app",
+        "factory": True,
+        "host": "127.0.0.1",
+        "port": 9001,
+        "workers": 1,
+        "server_header": False,
+    }
+
+
+def test_server_as_pid_1_doesnt_re_raise_the_stop_signal(monkeypatch):
+    """Seen live: as PID 1 in a container, re-raising SIGTERM after the graceful shutdown
+    fails with PermissionError and the process exits 1."""
+    import signal
+
+    import uvicorn
+
+    from mcui import server as srv
+
+    s = srv.Server(uvicorn.Config("mcui.main:create_app", factory=True))
+    monkeypatch.setattr(srv.os, "getpid", lambda: 4242)
+    s.handle_exit(signal.SIGTERM, None)
+    assert s.should_exit and s._captured_signals == [signal.SIGTERM]  # as uvicorn does
+    s = srv.Server(uvicorn.Config("mcui.main:create_app", factory=True))
+    monkeypatch.setattr(srv.os, "getpid", lambda: 1)
+    s.handle_exit(signal.SIGTERM, None)
+    assert s.should_exit and s._captured_signals == []
+
+
+def test_serve_exit_status(monkeypatch):
+    from mcui import server as srv
+
+    def run(self):
+        self.started = started
+
+    monkeypatch.setattr(srv.Server, "run", run)
+    started = True
+    assert srv.serve("mcui.main:create_app", factory=True) == 0
+    started = False  # e.g. the port is taken
+    assert srv.serve("mcui.main:create_app", factory=True) == srv.STARTUP_FAILURE
 
 
 def test_serve_passes_config_via_env(fake_uvicorn, config, monkeypatch, capsys):
