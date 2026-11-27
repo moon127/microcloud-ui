@@ -165,6 +165,24 @@ describe("instance actions", () => {
     expect(move).toHaveBeenCalledWith("default", "c1", { target: "m2", pool: undefined, live: true });
   });
 
+  it("warns that host devices don't follow a move (D86)", async () => {
+    vi.spyOn(api, "moveInstance").mockResolvedValue(ok);
+    const usb = { type: "usb", vendorid: "0557" };
+    const nfs = { type: "disk", source: "/srv/nfs", path: "/mnt" };
+    const a = open(full({ type: "virtual-machine", devices: { kvm: usb }, expanded_devices: { kvm: usb, nfs } }));
+    fireEvent.click(await screen.findByRole("button", { name: "Move" }));
+    fireEvent.change(await dialog().findByLabelText("To member"), { target: { value: "m2" } });
+    expect(dialog().getByRole("note")).toHaveTextContent("c1 uses m1's own devices (kvm, nfs): the same paths must exist on m2, USB devices stay behind.");
+    fireEvent.click(dialog().getByLabelText("Live migration"));
+    expect(dialog().getByRole("note")).toHaveTextContent("A VM with a host path can't live-migrate.");
+    a.unmount();
+    open(full({ devices: { kvm: usb }, expanded_devices: undefined }));
+    fireEvent.click(await screen.findByRole("button", { name: "Move" }));
+    expect(dialog().queryByRole("note")).toBeNull();
+    fireEvent.change(await dialog().findByLabelText("To member"), { target: { value: "m2" } });
+    expect(dialog().getByRole("note")).toHaveTextContent("c1 uses m1's own devices (kvm): USB devices stay behind.");
+  });
+
   it("moves a stopped container to another pool", async () => {
     const move = vi.spyOn(api, "moveInstance").mockResolvedValue(ok);
     open(full({ status: "Stopped" }));

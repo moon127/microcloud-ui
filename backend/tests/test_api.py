@@ -44,13 +44,18 @@ async def login(c: httpx.AsyncClient, user: str, pw: str) -> str:
 async def test_login_me_logout(app, services):
     async with client(app) as c:
         r = await c.post("/api/auth/login", json={"username": "admin", "password": "adminpw"})
-        assert r.json()["user"] == {"username": "admin", "role": "admin", "grants": {}}
+        assert r.json()["user"] == {
+            "username": "admin",
+            "role": "admin",
+            "grants": {},
+            "host_devices": [],
+        }
         cookie = r.headers["set-cookie"]
         assert "HttpOnly" in cookie and "SameSite=strict" in cookie and "Secure" not in cookie
         csrf = r.json()["csrf"]
         me = await c.get("/api/auth/me")
         assert me.json() == {
-            "user": {"username": "admin", "role": "admin", "grants": {}},
+            "user": {"username": "admin", "role": "admin", "grants": {}, "host_devices": []},
             "csrf": csrf,
         }
         assert (await c.post("/api/auth/logout")).status_code == 403  # no CSRF header
@@ -104,11 +109,12 @@ async def test_user_management(app, services):
             "username": "carol",
             "role": "viewer",
             "grants": {},
+            "host_devices": [],
         }
         dup = await c.post("/api/users", json={"username": "carol", "password": "pw"}, headers=h)
         assert dup.status_code == 409
         r = await c.patch("/api/users/carol", json={"role": "admin", "password": "new"}, headers=h)
-        assert r.json() == {"username": "carol", "role": "admin", "grants": {}}
+        assert r.json() == {"username": "carol", "role": "admin", "grants": {}, "host_devices": []}
         assert services.store.authenticate("carol", "new") is not None
         r = await c.patch("/api/users/carol", json={"role": "admin"}, headers=h)
         assert r.status_code == 200  # no-op change
@@ -135,7 +141,7 @@ async def test_project_grants(app, services):
         r = await c.post(
             "/api/users", json={"username": "pat", "password": "pw", "role": "project"}, headers=h
         )
-        assert r.json() == {"username": "pat", "role": "project", "grants": {}}
+        assert r.json() == {"username": "pat", "role": "project", "grants": {}, "host_devices": []}
         put = lambda u, p, role: c.put(f"/api/users/{u}/grants/{p}", json={"role": role}, headers=h)  # noqa: E731
         r = await put("pat", "web", "operator")
         assert r.status_code == 200 and r.json()["grants"] == {"web": "operator"}
@@ -153,6 +159,16 @@ async def test_project_grants(app, services):
         assert (await c.delete("/api/users/pat/grants/open", headers=h)).status_code == 404
         users = {u["username"]: u for u in (await c.get("/api/users")).json()}
         assert users["pat"]["grants"] == {"web": "operator"}
+        # the host-devices right (D86): admin grants only
+        host = {"role": "operator", "host_devices": True}
+        r = await c.put("/api/users/pat/grants/web", json=host, headers=h)
+        assert r.status_code == 409 and "only an admin grant" in r.text
+        r = await c.put("/api/users/pat/grants/web", json={**host, "role": "admin"}, headers=h)
+        assert r.json()["host_devices"] == ["web"]
+        assert services.store.audit_entries(limit=1)[0]["detail"]["host_devices"] is True
+        r = await put("pat", "web", "admin")  # a grant set again without it loses it
+        assert r.json()["host_devices"] == []
+        await put("pat", "web", "operator")
     async with client(app) as c:
         h = {CSRF_HEADER: await login(c, "viewer", "viewerpw")}
         r = await c.put("/api/users/pat/grants/web", json={"role": "admin"}, headers=h)
@@ -169,7 +185,12 @@ async def test_project_user_signs_in(app, services):
     async with client(app) as c:
         await login(c, "pat", "patpw")
         me = (await c.get("/api/auth/me")).json()["user"]
-        assert me == {"username": "pat", "role": "project", "grants": {"web": "operator"}}
+        assert me == {
+            "username": "pat",
+            "role": "project",
+            "grants": {"web": "operator"},
+            "host_devices": [],
+        }
 
 
 async def test_last_admin_protected(app):

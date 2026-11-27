@@ -12,6 +12,10 @@ interface Key {
   host?: string[];
 }
 
+/** Device keys whose use the app also limits to the host-devices right (D86). */
+const DEVICE_KEYS = new Set(["disk", "gpu", "usb", "pci", "unix-char", "unix-block"].map((d) => `restricted.devices.${d}`));
+const PATHS = "restricted.devices.disk.paths";
+
 const KEYS: Key[] = [
   { key: "restricted.snapshots", label: "Snapshots", default: "block", options: ["block", "allow"] },
   { key: "restricted.backups", label: "Backups", default: "block", options: ["block", "allow"] },
@@ -49,8 +53,7 @@ const KEYS: Key[] = [
 ];
 
 /** The keys set to a value that reaches the host. */
-const hostRoutes = (config: Record<string, string>) =>
-  KEYS.filter((k) => k.host?.includes(config[k.key] ?? "")).map((k) => k.label);
+const hostRoutes = (config: Record<string, string>) => KEYS.filter((k) => k.host?.includes(config[k.key] ?? ""));
 
 export default function Restrictions({
   config,
@@ -69,6 +72,9 @@ export default function Restrictions({
     onChange(next);
   };
   const risky = hostRoutes(config);
+  const devices = risky.filter((k) => DEVICE_KEYS.has(k.key)).map((k) => k.label);
+  const others = risky.filter((k) => !DEVICE_KEYS.has(k.key)).map((k) => k.label);
+  const anyDisk = config["restricted.devices.disk"] === "allow";
   return (
     <section aria-label="Restrictions">
       <h2>Restrictions</h2>
@@ -95,10 +101,27 @@ export default function Restrictions({
             ))}
           </div>
         )}
-        {restricted && risky.length > 0 && (
+        {restricted && anyDisk && (
+          <label className="field">
+            Allowed host paths for disks <span className="muted">({PATHS}; comma-separated prefixes, empty = any)</span>
+            <input value={config[PATHS] ?? ""} placeholder="/srv/nfs,/mnt/san" onChange={(e) => set(PATHS, e.target.value)} />
+          </label>
+        )}
+        {restricted && anyDisk && !config[PATHS] && (
           <p role="alert">
-            Allowed here: {risky.join(", ")}. These let the project&apos;s users reach the host, so its operators and admins
+            Any host path can be mounted: set allowed paths, or a shifted mount of / gives root on the host.
+          </p>
+        )}
+        {restricted && others.length > 0 && (
+          <p role="alert">
+            Allowed here: {others.join(", ")}. These let the project&apos;s users reach the host, so its operators and admins
             effectively have the host too (<code>docs/USERS.md</code>).
+          </p>
+        )}
+        {restricted && devices.length > 0 && (
+          <p className="muted">
+            Allowed here: {devices.join(", ")}. The app lets only cluster admins, and project admins given the host-devices
+            right (Users → Projects), add these to instances or profiles.
           </p>
         )}
       </fieldset>

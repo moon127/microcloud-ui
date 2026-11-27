@@ -197,6 +197,13 @@ def test_grant_and_revoke(config, tmp_path, capsys, monkeypatch):
     assert cli.main([*c, "add", "pat", "--role", "project", "--password-stdin"]) == 0
     assert cli.main([*c, "grant", "pat", "web", "operator"]) == 0
     assert cli.main([*c, "grant", "pat", "open", "viewer"]) == 0
+    assert cli.main([*c, "grant", "pat", "web", "operator", "--host-devices"]) == 1
+    assert "only an admin grant" in capsys.readouterr().err
+    assert cli.main([*c, "grant", "pat", "web", "admin", "--host-devices"]) == 0
+    assert "admin in web, with host devices" in capsys.readouterr().out
+    assert cli.main([*c, "list"]) == 0
+    assert "web:admin+host-devices" in capsys.readouterr().out
+    assert cli.main([*c, "grant", "pat", "web", "operator"]) == 0
     assert cli.main([*c, "grant", "pat", "open", "admin"]) == 1
     assert "isn't restricted" in capsys.readouterr().err
     assert cli.main([*c, "grant", "pat", "gone", "viewer"]) == 1
@@ -215,7 +222,7 @@ def test_grant_and_revoke(config, tmp_path, capsys, monkeypatch):
     assert store.get_user("pat").grants == {"web": "operator"}
     actions = [e["action"] for e in store.audit_entries()]
     store.close()
-    assert actions.count("user.grant") == 2 and "user.revoke" in actions
+    assert actions.count("user.grant") == 4 and "user.revoke" in actions
 
 
 def test_password_mismatch(no_lxd_config, monkeypatch):

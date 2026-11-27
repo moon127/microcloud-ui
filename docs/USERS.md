@@ -61,6 +61,38 @@ A project user has a **grant** per project:
 
 Files, consoles and backup downloads need operator because they can expose secrets.
 
+### The host-devices right
+
+Host paths and USB devices (and the other device types that reach a member's hardware:
+PCI, GPU, unix devices) are for **cluster admins only**, by default. A cluster admin can
+give a project's **admin** the **host-devices** right too:
+- in the app: **Users → Projects**, then **Allow host devices** on an admin grant, or
+  **Also host paths and USB devices** when granting;
+- with the CLI: `mcui user grant pat web admin --host-devices`.
+
+It's per project, and only on admin grants. Granting the project again without it, or
+with another role, takes it away. **Withdraw host devices** does the same.
+
+With the right, a project admin can add and remove host paths and USB devices on the
+project's instances ([how](WORKFLOWS.md#attach-host-paths-and-usb-devices)). Without
+it, the app refuses adding or changing any such device, whether through the **Host
+devices** tab, the YAML editor, the create wizard or a profile. They may still edit an
+instance that keeps the host devices a cluster admin gave it, and may remove them from
+its configuration. Checked live on LXD 6.10.1 on 2026-11-27.
+
+**LXD still has to allow them in the project.** The right is the app's check; the
+project's restrictions are LXD's, and both apply:
+- host paths: `restricted.devices.disk=allow`, and set `restricted.devices.disk.paths`
+  to the folders you mean (for example `/srv/nfs`). Without allowed paths, any host path
+  can be mounted, and a shifted mount of `/` gives root on the host. The Restrictions form
+  has a field for it.
+- USB devices: `restricted.devices.usb=allow`.
+
+So the safe pattern for, say, an NFS share every member mounts: allow disks with the
+share's folder as the only allowed path, then give that project's admins the right.
+Anyone with the right can attach any USB device a member has, so allow USB only where
+you trust the project's admins with the hardware.
+
 ## Preparing a project
 
 **Operator and admin grants need a restricted project** (`restricted=true`). The app
@@ -89,8 +121,11 @@ ticked, unless you untick it.
 **The Restrictions form** on a project's page sets LXD's `restricted.*` keys; "default"
 leaves a key unset, which means LXD's default. Choices marked "reaches the host" (low-level
 options, privileged containers, host disks, unix, USB, PCI and GPU devices, nesting) undo
-what operator and admin grants rely on, and the page says so. Other keys (networks, disk
-paths, idmaps) are in the YAML editor.
+what operator and admin grants rely on, and the page says so. With Disk devices allowed,
+the form also asks for the **allowed host paths**. For disk, USB, PCI, GPU and unix
+devices, the app additionally limits them to cluster admins and admins with the
+[host-devices right](#the-host-devices-right). Other keys (networks, idmaps) are in the
+YAML editor.
 
 **Importing a backup into a restricted project doesn't work** on LXD 6.10.1 (checked
 2026-11-13). LXD counts the backup's own `volatile.*` keys as low-level options and

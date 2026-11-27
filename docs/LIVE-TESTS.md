@@ -150,6 +150,18 @@ left is the browser itself: file pickers, upload progress and downloads.
 | B10 | A volume's **Copy…** to the other pool, then **Move…** to another project | The copy lists in its pool; the moved volume's page opens in the new project |
 | B11 | On a cluster with local pools: **Move** a stopped instance (container and VM) from Ceph to another member's local pool, and back | One request in the UI; it lands on that member's pool and starts. VMs weren't testable in the session (no nested KVM) |
 
+## Host paths and USB devices (D86): yours to run
+
+The session checked a container in `mcui-test-2` through the app (2026-11-27): a host path
+added and removed while running, a USB device node, LXD's refusals in a restricted
+project, and the host-devices right. Evacuation and VMs are left.
+
+| # | Steps | Expect |
+|---|---|---|
+| U1 | On a container with a host path that every member has (e.g. an NFS mount), tick **Every member has this path** (or **Move it instead**), then **Evacuate** its member, then **Restore** | It's stopped, moved, started elsewhere with the path mounted, and comes back on restore. Without `cluster.evacuate=migrate`, it's stopped and stays on the member |
+| U2 | A VM: add a USB device that's safe to take off its member (a spare stick), then a host folder | The device disappears from the member (`lsusb`) and shows in the VM; the folder appears at its path through the agent; **Remove** gives the device back. **Live migration** of the VM is refused while the folder is attached |
+| U3 | As a project admin: without the right, the tab has no Add buttons; give them the right (**Users → Projects → Allow host devices**) | After reload they can add a path under the project's allowed paths, and LXD refuses one outside them |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/

@@ -31,10 +31,17 @@ class UserChange(BaseModel):
 
 class Grant(BaseModel):
     role: ProjectRole
+    # an admin grant may also add host paths and USB devices (D86)
+    host_devices: bool = False
 
 
 def _user(u: User) -> dict[str, Any]:
-    return {"username": u.username, "role": u.role, "grants": u.grants}
+    return {
+        "username": u.username,
+        "role": u.role,
+        "grants": u.grants,
+        "host_devices": sorted(u.host_devices),
+    }
 
 
 def _me(s: Session) -> dict[str, Any]:
@@ -144,12 +151,16 @@ async def set_grant(
             detail=f"project {project!r} isn't restricted (restricted=true), so only a viewer "
             "grant is allowed: without it a project operator or admin could reach the host",
         )
-    store.set_grant(username, project, body.role)
+    if body.host_devices and body.role != "admin":
+        raise HTTPException(
+            status_code=409, detail="only an admin grant can carry the host-devices right"
+        )
+    store.set_grant(username, project, body.role, body.host_devices)
     store.audit(
         session.user.username,
         "user.grant",
         username,
-        detail={"project": project, "role": body.role},
+        detail={"project": project, "role": body.role, "host_devices": body.host_devices},
     )
     return _user(_existing(store, username))
 

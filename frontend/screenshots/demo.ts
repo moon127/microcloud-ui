@@ -6,6 +6,7 @@
 import type {
   AuditEntry,
   Backup,
+  HostInventory,
   CephState,
   Host,
   ImageRegistry,
@@ -185,6 +186,34 @@ export const LIST: Instance[] = INSTANCES.map((d, n) => ({
   nics: (d.status === "Running" ? { eth0: `10.${d.project === "web" ? 20 : 10}.0.${10 + n}` } : {}) as Record<string, string>,
 }));
 
+/** Host paths and USB devices (D86): the CI runner's NFS cache (on every member) and a
+ * hardware signing token on its member. */
+const HOST_DEVICES: Record<string, Record<string, Record<string, string>>> = {
+  "build-runner": {
+    "ci-cache": { type: "disk", source: "/srv/nfs/ci-cache", path: "/mnt/ci-cache" },
+    "signing-token": { type: "usb", vendorid: "1209", productid: "0001", serial: "HT-0042" },
+  },
+};
+
+/** The USB devices of a member (invented: pid.codes test IDs). */
+export const HOST_INVENTORY = (member: string): HostInventory => ({
+  member,
+  usb: [
+    { vendor_id: "1209", product_id: "0001", vendor: "Example Labs", product: "Hardware token", serial: "HT-0042", busnum: 1, devnum: 4, storage: false, drivers: [] },
+    { vendor_id: "1209", product_id: "0003", vendor: "Example Labs", product: "Flash Disk", serial: "FD-7781", busnum: 2, devnum: 2, storage: true, drivers: ["usb-storage"] },
+    { vendor_id: "1209", product_id: "0002", vendor: "Example Labs", product: "Serial console adapter", serial: "", busnum: 1, devnum: 5, storage: false, drivers: ["cp210x"] },
+  ],
+  disks: [
+    {
+      id: "sdc",
+      model: "Flash Disk",
+      size: 64 * GIB,
+      source: "/dev/disk/by-id/usb-Example_Flash_Disk_FD-7781-0:0",
+      partitions: [{ id: "sdc1", size: 64 * GIB, source: "/dev/disk/by-id/usb-Example_Flash_Disk_FD-7781-0:0-part1" }],
+    },
+  ],
+});
+
 export function instanceFull(project: string, name: string): InstanceFull | undefined {
   const d = INSTANCES.find((i) => i.project === project && i.name === name);
   if (!d) return undefined;
@@ -199,10 +228,20 @@ export function instanceFull(project: string, name: string): InstanceFull | unde
     ephemeral: false,
     stateful: false,
     profiles: ["default"],
-    config: { ...limits(d), "image.os": "Ubuntu", "image.release": "resolute", ...(GROUPED[d.name] ? { "placement.group": GROUPED[d.name] } : {}) },
-    devices: {},
+    config: {
+      ...limits(d),
+      "image.os": "Ubuntu",
+      "image.release": "resolute",
+      ...(GROUPED[d.name] ? { "placement.group": GROUPED[d.name] } : {}),
+      ...(d.name === "build-runner" ? { "cluster.evacuate": "migrate" } : {}),
+    },
+    devices: HOST_DEVICES[d.name] ?? {},
     expanded_config: limits(d),
-    expanded_devices: { root: { type: "disk", path: "/", pool: "remote" }, eth0: { type: "nic", network: "default", name: "eth0" } },
+    expanded_devices: {
+      root: { type: "disk", path: "/", pool: "remote" },
+      eth0: { type: "nic", network: "default", name: "eth0" },
+      ...HOST_DEVICES[d.name],
+    },
     created_at: "2026-09-02T10:14:00Z",
     last_used_at: "2026-11-10T07:00:00Z",
     snapshots: [
@@ -868,6 +907,11 @@ export function answer(method: string, url: URL): unknown {
   if (p.startsWith("/api/images/remote/")) return REMOTE_IMAGES;
   let m = /^\/api\/cluster\/members\/[^/]+\/resources$/.exec(p);
   if (m) return RESOURCES;
+  m = /^\/api\/instances\/([^/]+)\/([^/]+)\/host-devices$/.exec(p);
+  if (m) {
+    const i = instanceFull(decodeURIComponent(m[1]), decodeURIComponent(m[2]));
+    return i && HOST_INVENTORY(i.location);
+  }
   m = /^\/api\/instances\/([^/]+)\/([^/]+)\/backups$/.exec(p);
   if (m) return instanceFull(decodeURIComponent(m[1]), decodeURIComponent(m[2])) ? BACKUPS : undefined;
   m = /^\/api\/volumes\/default\/([^/]+)\/([^/]+)(\/snapshots|\/backups)?$/.exec(p);

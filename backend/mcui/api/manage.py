@@ -19,8 +19,10 @@ from mcui.api.deps import (
     ProjectManageDep,
     ProjectReadDep,
     StoreDep,
+    check_host_devices,
 )
 from mcui.api.instances import NAME, ProjectName
+from mcui.auth.policy import is_host_device
 from mcui.auth.store import Session, Store
 from mcui.lxd import operations
 from mcui.lxd.client import LXDClient
@@ -92,6 +94,7 @@ async def create_profile(
 ) -> dict[str, Any]:
     await guard.check(body.project)
     session = guard.session
+    check_host_devices(session, body.project, body.devices)
     return await _change(
         session,
         store,
@@ -114,6 +117,9 @@ async def update_profile(
     store: StoreDep,
     lxd: LXDDep,
 ) -> dict[str, Any]:
+    if any(is_host_device(d) for d in body.devices.values()):
+        current = await lxd.get(f"/1.0/profiles/{name}", project=project)
+        check_host_devices(session, project, body.devices, current.get("devices") or {})
     return await _change(
         session,
         store,

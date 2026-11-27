@@ -96,6 +96,17 @@ export const PAGES: {
     },
   },
   { file: "restrictions.png", path: "/projects/web", wait: "Restrictions", full: true },
+  // host paths and USB devices (D86)
+  { file: "host-devices.png", path: "/instances/default/build-runner?tab=host", wait: "signing-token" },
+  {
+    file: "host-usb.png",
+    path: "/instances/default/build-runner?tab=host",
+    wait: "signing-token",
+    prepare: async (p) => {
+      await p.getByRole("button", { name: "Add USB device" }).click();
+      await p.getByRole("dialog").getByLabel(/Serial console adapter/).check();
+    },
+  },
   // users and project access (D81)
   { file: "users.png", path: "/users", wait: "ops-oncall" },
   { file: "audit.png", path: "/audit", wait: "before-upgrade" },

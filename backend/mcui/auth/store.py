@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS grants (
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     project TEXT NOT NULL,
     role TEXT NOT NULL CHECK (role IN ('viewer', 'operator', 'admin')),
+    host_devices INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (user_id, project)
 );
 CREATE TABLE IF NOT EXISTS sessions (
@@ -57,7 +58,7 @@ CREATE TABLE IF NOT EXISTS audit (
 );
 CREATE INDEX IF NOT EXISTS audit_ts ON audit(ts);
 """
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 # 0 -> 1 (D81): the users.role CHECK gains 'project'. SQLite can't alter a CHECK, so the
 # table is rebuilt; sessions reference it, so foreign keys are off meanwhile.
@@ -78,6 +79,8 @@ PRAGMA user_version = 1;
 COMMIT;
 PRAGMA foreign_keys = ON;
 """
+# 1 -> 2 (D86): an admin grant can carry the host-devices right
+MIGRATE_2 = "ALTER TABLE grants ADD COLUMN host_devices INTEGER NOT NULL DEFAULT 0"
 
 
 class AuthError(Exception):
@@ -91,6 +94,8 @@ class User:
     role: Role
     # project -> role; only used when ``role`` is "project"
     grants: dict[str, ProjectRole] = field(default_factory=dict)
+    # projects whose admin grant also allows host paths and USB devices (D86)
+    host_devices: frozenset[str] = frozenset()
 
     @property
     def is_admin(self) -> bool:
@@ -136,6 +141,8 @@ class Store:
         ).fetchone()
         if version < 1 and not fresh:
             self.db.executescript(MIGRATE_1)
+        if version == 1:  # before 1 there was no grants table: SCHEMA makes it whole
+            self.db.execute(MIGRATE_2)
         self.db.executescript(SCHEMA)
         self.db.execute(f"PRAGMA user_version = {SCHEMA_VERSION}")
 
@@ -162,13 +169,13 @@ class Store:
         return User(cast(int, cur.lastrowid), username, cast(Role, role))
 
     def _user(self, row: sqlite3.Row) -> User:
-        grants = {
-            g["project"]: g["role"]
-            for g in self.db.execute(
-                "SELECT project, role FROM grants WHERE user_id = ? ORDER BY project", (row["id"],)
-            )
-        }
-        return User(row["id"], row["username"], row["role"], grants)
+        rows = self.db.execute(
+            "SELECT project, role, host_devices FROM grants WHERE user_id = ? ORDER BY project",
+            (row["id"],),
+        ).fetchall()
+        grants = {g["project"]: g["role"] for g in rows}
+        host = frozenset(g["project"] for g in rows if g["host_devices"])
+        return User(row["id"], row["username"], row["role"], grants, host)
 
     def get_user(self, username: str) -> User | None:
         row = self.db.execute(
@@ -200,19 +207,23 @@ class Store:
         if cur.rowcount == 0:
             raise AuthError(f"no such user {username!r}")
 
-    def set_grant(self, username: str, project: str, role: str) -> None:
-        """Give ``username`` ``role`` in ``project`` (replacing any it had there)."""
+    def set_grant(self, username: str, project: str, role: str, host_devices: bool = False) -> None:
+        """Give ``username`` ``role`` in ``project`` (replacing any it had there);
+        ``host_devices``: an admin grant may also add host paths and USB devices (D86)."""
         if role not in PROJECT_ROLES:
             raise AuthError(f"project role must be one of {', '.join(PROJECT_ROLES)}")
+        if host_devices and role != "admin":
+            raise AuthError("only an admin grant can carry the host-devices right")
         if not project:
             raise AuthError("project is required")
         user = self.get_user(username)
         if user is None:
             raise AuthError(f"no such user {username!r}")
         self.db.execute(
-            "INSERT INTO grants (user_id, project, role) VALUES (?,?,?) "
-            "ON CONFLICT (user_id, project) DO UPDATE SET role = excluded.role",
-            (user.id, project, role),
+            "INSERT INTO grants (user_id, project, role, host_devices) VALUES (?,?,?,?) "
+            "ON CONFLICT (user_id, project) "
+            "DO UPDATE SET role = excluded.role, host_devices = excluded.host_devices",
+            (user.id, project, role, int(host_devices)),
         )
 
     def remove_grant(self, username: str, project: str) -> None:

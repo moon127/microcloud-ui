@@ -2,7 +2,8 @@
 
 How to do the common jobs in microcloud-ui: backups, installing from an ISO, moving
 instances (between members, between Ceph and local storage, between projects), copying
-and moving volumes, and peering OVN networks.
+and moving volumes, peering OVN networks, and attaching a member's own folders, disks and
+USB devices to an instance.
 
 Each section says who may do it (see [`USERS.md`](USERS.md) for the roles) and what LXD
 itself insists on. Everything here was checked on LXD 6.10 (MicroCloud 3.4); the
@@ -121,6 +122,66 @@ and use **Peers → Add peer**:
 - A peer is **Pending** until the other network peers back. Tick **Also peer back** (shown
   when you can manage the other project) to do both sides at once.
 - **Delete** stops the routing. The other side's peer stays until it's deleted there too.
+
+## Attach host paths and USB devices
+
+**Who:** a cluster admin, or a project admin whose grant carries the **host-devices** right
+(a cluster admin gives it under **Users → Projects**; see
+[`USERS.md`](USERS.md#the-host-devices-right)). Everyone who can see the instance sees
+the list.
+
+These give an instance something on the member it runs on: a folder (say an NFS mount or
+a SAN that every member has), a single disk, or a USB device. Open the instance and its
+**Host devices** tab. It lists the instance's host devices and those from its profiles, and
+says what evacuating its member would do with it.
+
+![An instance's host devices](screenshots/host-devices.png)
+
+**Add host path:**
+- **Path on the member**: a folder, a file, or a block device such as
+  `/dev/disk/by-id/…`. The app can't browse the member's files, so type it; LXD says if
+  it doesn't exist. USB disks plugged into the member are offered from a list.
+- **Path inside**: where it's mounted. A container needs one. A VM gets a folder through
+  its agent at that path; leave it empty to give a VM a block device as a disk.
+- **Read-only** is ticked by default. **Shift** (containers) maps file ownership so the
+  container's users own their files.
+- **Every member has this path** sets `cluster.evacuate=migrate` (below).
+
+**Add USB device:** choose one from the member's live list. Devices already attached are
+greyed out.
+- A **VM** takes the whole device: it disappears from the member while attached. This is
+  how to give a VM a USB disk, a dongle or a serial adapter.
+- A **container** only gets the device's `/dev/bus/usb` node, for programs that use
+  libusb. For a USB disk's files, add the disk as a host path instead: LXD mounts it.
+- It's matched by vendor and product ID, plus its serial number when it has one. Two
+  identical devices without serials are matched by where they're plugged in, which can
+  change after a replug.
+
+![Adding a USB device](screenshots/host-usb.png)
+
+Both kinds are added and removed at once, even while the instance runs (checked on LXD
+6.10 with a container). **Remove** takes the device away immediately.
+
+**What it does to moves and evacuation:**
+- **By default LXD stops the instance when its member is evacuated**, rather than moving
+  it. With `cluster.evacuate` unset (auto), LXD only moves instances whose devices can all
+  move, and host paths and USB devices can't.
+- **If every member has the same paths** (an NFS mount, a SAN, the same folders), tick
+  **Every member has this path** when adding it, or use **Move it instead** on the tab.
+  That sets `cluster.evacuate=migrate`: LXD stops the instance, moves it and starts it on
+  another member, where the paths must exist too.
+- **USB devices never follow.** With `migrate`, the instance moves and starts without the
+  device (LXD's USB devices aren't required to start).
+- **A VM with a host path can't live-migrate.** LXD refuses `migration.stateful` on it.
+- The **Move** dialog names the instance's host devices when you choose another member.
+
+**What LXD insists on in a restricted project** (as every project with project users is):
+- Host paths need `restricted.devices.disk=allow` (project page → **Restrictions** → Disk
+  devices). Also set **Allowed host paths**, for example `/srv/nfs`. Without it any host
+  path can be mounted, and a shifted mount of `/` gives root on the host.
+- USB devices need `restricted.devices.usb=allow`.
+- LXD refuses the device otherwise, even for a cluster admin, and the app shows its
+  message (for example "Disk source path "/etc" not allowed").
 
 ## Restrict a project
 

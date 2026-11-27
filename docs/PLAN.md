@@ -717,6 +717,13 @@ of the remaining parity list testable on the test cloud:
 choices cover it; together they become two LXD moves in the order that copies once.
 Proven on a throwaway two-member cluster in VMs; VMs on local pools untested (no nested KVM).
 
+**Host paths and USB devices (D86, 2026-11-27):** done. An instance's Host devices tab adds a
+member's folders, disks and USB devices (from the member's live list) and removes them while
+it runs; "every member has this path" sets `cluster.evacuate=migrate`. Cluster admins only by
+default; a cluster admin can give a project's admins the host-devices right, which the app
+checks on every route that writes devices. Checked live with a container in `mcui-test-2`;
+evacuation and VMs are the owner's (LIVE-TESTS U1–U3).
+
 **Phase 10: Remaining parity** (was Phase 8, before that 7 and 6; after packaging, which is
 done). Backups, project moves and ISO upload moved to Phase 7 (D83). The rest of PJ-2
 (restriction keys beyond 7e), sriov, peers, zones, ACL logs

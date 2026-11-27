@@ -18,7 +18,7 @@ import Confirm from "../../Confirm";
 import { instancePath } from "../../paths";
 import { useApi } from "../../useApi";
 import { stateActions } from "./state";
-import { useAccess } from "../../access";
+import { isHostDevice, useAccess } from "../../access";
 
 type Dialog = "delete" | "rename" | "copy" | "move" | "publish" | null;
 
@@ -210,6 +210,9 @@ function MoveDialog({ inst, onClose }: { inst: InstanceFull; onClose: () => void
   const others = (projects.data ?? []).filter((p) => p.name !== inst.project && access.can(p.name, "manage"));
   const running = inst.status !== "Stopped";
   const snaps = (inst.snapshots ?? []).length;
+  // host paths and USB devices don't come along (D86)
+  const host = Object.entries(inst.expanded_devices ?? inst.devices ?? {}).filter(([, d]) => isHostDevice(d));
+  const hostPaths = host.some(([, d]) => d.type === "disk");
   return (
     <Confirm
       title={`Move ${inst.name}`}
@@ -235,6 +238,13 @@ function MoveDialog({ inst, onClose }: { inst: InstanceFull; onClose: () => void
       )}
       {running && !live && !project && pool && (
         <p role="alert">Stop {inst.name} first: LXD moves an instance to another pool stopped.</p>
+      )}
+      {target && host.length > 0 && (
+        <p role="note">
+          {inst.name} uses {inst.location}&apos;s own devices ({host.map(([n]) => n).join(", ")}):{" "}
+          {hostPaths ? `the same paths must exist on ${target}, ` : ""}
+          USB devices stay behind.{vm && hostPaths && live ? " A VM with a host path can't live-migrate." : ""}
+        </p>
       )}
       {target && pool && (
         <p className="muted">

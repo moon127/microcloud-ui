@@ -158,7 +158,7 @@ def test_migrates_a_database_from_before_project_users(tmp_path):
     )
     old.close()
     store = Store(path, hasher=PasswordHasher(time_cost=1, memory_cost=8, parallelism=1))
-    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 1
+    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 2
     assert store.get_user("alice").role == "admin"
     assert store.db.execute("SELECT COUNT(*) FROM sessions").fetchone()[0] == 1
     store.add_user("pat", "pw", "project")  # the new role is accepted
@@ -166,3 +166,34 @@ def test_migrates_a_database_from_before_project_users(tmp_path):
     store.close()
     again = Store(path)  # opening again doesn't migrate twice
     assert [u.username for u in again.list_users()] == ["alice", "pat"]
+
+
+def test_migrates_grants_to_the_host_devices_right(tmp_path):
+    """Version 1 grants gain host_devices (D86), off for every existing grant."""
+    import sqlite3
+
+    path = tmp_path / "mcui.db"
+    Store(path).close()
+    old = sqlite3.connect(path)
+    old.executescript(
+        """
+        DROP TABLE grants;
+        CREATE TABLE grants (user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            project TEXT NOT NULL,
+            role TEXT NOT NULL CHECK (role IN ('viewer', 'operator', 'admin')),
+            PRIMARY KEY (user_id, project));
+        INSERT INTO users VALUES (1, 'pat', 'x', 'project', 0);
+        INSERT INTO grants VALUES (1, 'web', 'admin');
+        PRAGMA user_version = 1;
+        """
+    )
+    old.close()
+    store = Store(path)
+    assert store.db.execute("PRAGMA user_version").fetchone()[0] == 2
+    pat = store.get_user("pat")
+    assert pat.grants == {"web": "admin"} and pat.host_devices == frozenset()
+    store.set_grant("pat", "web", "admin", host_devices=True)
+    assert store.get_user("pat").host_devices == {"web"}
+    with pytest.raises(AuthError, match="only an admin grant"):
+        store.set_grant("pat", "web", "operator", host_devices=True)
+    store.close()

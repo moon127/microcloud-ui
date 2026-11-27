@@ -21,6 +21,10 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   as a form (Phase 7); OVN network peers, copying or moving volumes (Phase 10a), and
   moving instances between Ceph and local storage. How-tos with screenshots:
   [`docs/WORKFLOWS.md`](docs/WORKFLOWS.md).
+- **Host paths and USB devices:** attach a member's folders (an NFS mount, a SAN), disks and
+  USB devices to an instance on it, with what that does to moves and evacuations. Cluster
+  admins only, unless they give the right to a project's admins
+  ([`docs/WORKFLOWS.md`](docs/WORKFLOWS.md#attach-host-paths-and-usb-devices)).
 
 Next in the plan: a metric store evaluation, alerts and export (Phase 8). Owner live
 checks: [`docs/LIVE-TESTS.md`](docs/LIVE-TESTS.md). See
@@ -84,6 +88,8 @@ More: [instances](docs/screenshots/instances.png) ·
 [copying a volume](docs/screenshots/volume-copy.png) ·
 [OVN peers](docs/screenshots/peers.png) ·
 [project restrictions](docs/screenshots/restrictions.png) ·
+[host paths and USB devices](docs/screenshots/host-devices.png) ·
+[adding a USB device](docs/screenshots/host-usb.png) ·
 a project user's [Overview](docs/screenshots/project-user.png) and
 [instance page](docs/screenshots/project-user-instance.png) (an operator: only their projects,
 no cluster pages, no rename or delete)
@@ -177,8 +183,8 @@ Sign in at http://127.0.0.1:8000 (`make serve`) or http://localhost:5173 (Vite).
 Pages:
 - **Overview:** hosts, members, top instances and a live table.
 - **Instances:** filters, bulk actions and the create wizard.
-- **An instance page:** graphs, configuration, console and terminal, files, snapshots
-  and logs.
+- **An instance page:** graphs, configuration, console and terminal, files, snapshots,
+  backups, host devices and logs.
 - **Profiles, Images and Projects.**
 - **Member pages:** hardware, graphs, and evacuate/restore.
 - **Storage:** pools with per-member capacity, and custom volumes with snapshots and

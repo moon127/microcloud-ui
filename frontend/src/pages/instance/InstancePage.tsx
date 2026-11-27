@@ -8,6 +8,7 @@ import BackupsTab from "./BackupsTab";
 import ConfigTab from "./ConfigTab";
 import ConsoleTab from "./ConsoleTab";
 import FilesTab from "./FilesTab";
+import HostDevicesTab from "./HostDevicesTab";
 import Graphs from "./Graphs";
 import LogsTab from "./LogsTab";
 import SnapshotsTab from "./SnapshotsTab";
@@ -20,6 +21,7 @@ const TABS = [
   { id: "files", label: "Files" },
   { id: "snapshots", label: "Snapshots" },
   { id: "backups", label: "Backups" },
+  { id: "host", label: "Host devices" },
   { id: "logs", label: "Logs" },
 ] as const;
 
@@ -75,6 +77,7 @@ export default function InstancePage() {
       {tab === "files" && inst && <FilesTab inst={inst} />}
       {tab === "snapshots" && inst && <SnapshotsTab inst={inst} />}
       {tab === "backups" && inst && <BackupsTab inst={inst} />}
+      {tab === "host" && inst && <HostDevicesTab inst={inst} />}
       {tab === "logs" && <LogsTab project={project} name={name} />}
     </>
   );

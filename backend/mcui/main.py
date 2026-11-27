@@ -18,6 +18,7 @@ from mcui.api import (
     ceph,
     cluster,
     files,
+    host_devices,
     hosts,
     instances,
     loadbalancers,
@@ -91,6 +92,7 @@ def create_app(
     app.include_router(catalog.router)
     app.include_router(streams.router)
     app.include_router(files.router)
+    app.include_router(host_devices.router)
     app.include_router(backups.router)
     app.include_router(manage.router)
     app.include_router(networks.router)

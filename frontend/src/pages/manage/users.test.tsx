@@ -86,7 +86,7 @@ describe("UsersPage (D81)", () => {
     fireEvent.change(dialog().getByLabelText("Project"), { target: { value: "web" } });
     expect(dialog().queryByRole("alert")).toBeNull();
     fireEvent.click(dialog().getByRole("button", { name: "Grant" }));
-    expect(grant).toHaveBeenCalledWith("pat", "web", "admin");
+    expect(grant).toHaveBeenCalledWith("pat", "web", "admin", false);
     fireEvent.click(dialog().getByRole("button", { name: "Done" }));
     expect(screen.queryByRole("dialog")).toBeNull();
     // a project user with nothing yet

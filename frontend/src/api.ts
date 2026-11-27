@@ -13,6 +13,8 @@ export interface User {
   role: Role;
   /** project -> role, for "project" users */
   grants?: Record<string, ProjectRole>;
+  /** projects whose admin grant also allows host paths and USB devices (D86) */
+  host_devices?: string[];
 }
 
 // --- users and project grants (cluster admins; AU-2, D81) -------------------------------
@@ -23,8 +25,11 @@ export const createUser = (username: string, password: string, role: Role) =>
 export const updateUser = (username: string, change: { role?: Role; password?: string }) =>
   send<User>("PATCH", userPath(username), change);
 export const deleteUser = (username: string) => send<void>("DELETE", userPath(username));
-export const setGrant = (username: string, project: string, role: ProjectRole) =>
-  send<User>("PUT", `${userPath(username)}/grants/${encodeURIComponent(project)}`, { role });
+export const setGrant = (username: string, project: string, role: ProjectRole, hostDevices = false) =>
+  send<User>("PUT", `${userPath(username)}/grants/${encodeURIComponent(project)}`, {
+    role,
+    ...(hostDevices ? { host_devices: true } : {}),
+  });
 export const removeGrant = (username: string, project: string) =>
   send<User>("DELETE", `${userPath(username)}/grants/${encodeURIComponent(project)}`);
 
@@ -301,6 +306,58 @@ export const updateInstance = (project: string, name: string, body: InstanceUpda
   send<Started>("PUT", inst(project, name), body);
 export const patchInstanceConfig = (project: string, name: string, config: Record<string, string>) =>
   send<Started>("PATCH", `${inst(project, name)}/config`, { config });
+// --- host paths and USB devices (D86) ---------------------------------------------------
+
+/** A USB device on the instance's member, from LXD's /1.0/resources. */
+export interface HostUsb {
+  vendor_id: string;
+  product_id: string;
+  vendor: string;
+  product: string;
+  serial: string;
+  busnum: number | null;
+  devnum: number | null;
+  /** a mass-storage interface */
+  storage: boolean;
+  drivers: string[];
+}
+
+/** A USB disk on the member, with its /dev/disk/by-id paths. */
+export interface HostUsbDisk {
+  id: string;
+  model: string;
+  size: number;
+  source: string;
+  partitions: { id: string; size: number; source: string }[];
+}
+
+export interface HostInventory {
+  /** "" off a cluster */
+  member: string;
+  usb: HostUsb[];
+  disks: HostUsbDisk[];
+}
+
+export type NewHostDevice =
+  | {
+      kind: "path";
+      name: string;
+      source: string;
+      path?: string;
+      readonly: boolean;
+      shift?: boolean;
+      /** the path exists on every member: cluster.evacuate=migrate */
+      everywhere?: boolean;
+    }
+  | { kind: "usb"; name: string; vendorid: string; productid: string; serial?: string; busnum?: number; devnum?: number };
+
+export const fetchHostInventory = (project: string, name: string) =>
+  api<HostInventory>(`${inst(project, name)}/host-devices`);
+export const addHostDevice = (project: string, name: string, body: NewHostDevice) =>
+  send<Started>("POST", `${inst(project, name)}/host-devices`, body);
+export const removeHostDevice = (project: string, name: string, device: string) =>
+  send<Started>("DELETE", `${inst(project, name)}/host-devices/${encodeURIComponent(device)}`);
+
 export const renameInstance = (project: string, name: string, to: string) =>
   send<Started>("POST", `${inst(project, name)}/rename`, { name: to });
 export const moveInstance = (

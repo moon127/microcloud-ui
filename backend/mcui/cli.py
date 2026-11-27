@@ -66,6 +66,11 @@ def build_parser() -> argparse.ArgumentParser:
     gr.add_argument("username")
     gr.add_argument("project")
     gr.add_argument("role", choices=["viewer", "operator", "admin"])
+    gr.add_argument(
+        "--host-devices",
+        action="store_true",
+        help="an admin grant may also add host paths and USB devices (D86)",
+    )
     rv = usub.add_parser("revoke", help="remove a project user's grant on a project")
     rv.add_argument("username")
     rv.add_argument("project")
@@ -192,19 +197,25 @@ def _grant(args: argparse.Namespace) -> int:
             if user is not None and user.role != "project":
                 print(f"mcui: {args.username} has the global {user.role} role", file=sys.stderr)
                 return 1
-            store.set_grant(args.username, args.project, args.role)
+            store.set_grant(args.username, args.project, args.role, args.host_devices)
             store.audit(
                 None,
                 "user.grant",
                 args.username,
-                detail={"project": args.project, "role": args.role, "via": "cli"},
+                detail={
+                    "project": args.project,
+                    "role": args.role,
+                    "host_devices": args.host_devices,
+                    "via": "cli",
+                },
             )
         except AuthError as e:
             print(f"mcui: {e}", file=sys.stderr)
             return 1
         finally:
             store.close()
-        print(f"{args.username} is {args.role} in {args.project}")
+        extra = ", with host devices" if args.host_devices else ""
+        print(f"{args.username} is {args.role} in {args.project}{extra}")
         return 0
 
     return _with_clients(args, fn)
@@ -220,7 +231,10 @@ def _user(args: argparse.Namespace) -> int:
         cmd = args.user_command
         if cmd == "list":
             for u in store.list_users():
-                grants = ", ".join(f"{p}:{r}" for p, r in u.grants.items())
+                grants = ", ".join(
+                    f"{p}:{r}" + ("+host-devices" if p in u.host_devices else "")
+                    for p, r in u.grants.items()
+                )
                 print(f"{u.username}\t{u.role}" + (f"\t{grants}" if grants else ""))
         elif cmd == "add":
             store.add_user(args.username, _read_password(args), args.role)

@@ -12,7 +12,13 @@ from typing import Annotated, Any, TypeVar
 
 from fastapi import Depends, HTTPException, Request
 
-from mcui.auth.policy import Action, Scope, allowed
+from mcui.auth.policy import (
+    Action,
+    Scope,
+    allowed,
+    host_device_changes,
+    may_use_host_devices,
+)
 from mcui.auth.store import Session, Store
 from mcui.lxd.client import LXDClient
 from mcui.metrics.live import LiveMetrics
@@ -167,6 +173,40 @@ def _project_dep(action: Action) -> Callable[..., Awaitable[Session]]:
 ProjectReadDep = Annotated[Session, Depends(_project_dep("read"))]
 ProjectOperateDep = Annotated[Session, Depends(_project_dep("operate"))]
 ProjectManageDep = Annotated[Session, Depends(_project_dep("manage"))]
+
+
+@_policy("project-host-devices")
+async def require_host_devices(
+    request: Request, session: SessionDep, services: ServicesDep
+) -> Session:
+    """Manage in the path's project, and the host-devices right there (D86)."""
+    project = str(request.path_params["project"])
+    await _authorize(request, session, services.lxd, project, "manage")
+    if not may_use_host_devices(session.user, project):
+        raise HTTPException(status_code=403, detail=HOST_DENIED.format(project=project))
+    return session
+
+
+ProjectHostDevicesDep = Annotated[Session, Depends(require_host_devices)]
+HOST_DENIED = "host paths and USB devices need the host-devices right in {project}"
+
+
+def check_host_devices(
+    session: Session,
+    project: str,
+    new: dict[str, dict[str, str]],
+    old: dict[str, dict[str, str]] | None = None,
+) -> None:
+    """Refuse adding or changing host devices without the right (D86): through the YAML
+    editor, the create wizard or a profile, as much as through the host-devices tab."""
+    if may_use_host_devices(session.user, project):
+        return
+    changed = host_device_changes(new, old or {})
+    if changed:
+        raise HTTPException(
+            status_code=403,
+            detail=f"{', '.join(changed)}: " + HOST_DENIED.format(project=project),
+        )
 
 
 class InBody:

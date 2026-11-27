@@ -37,6 +37,18 @@ export const importRefused = (config: Record<string, string> = {}) =>
   (config.restricted === "true" || Object.keys(config).some((k) => k.startsWith("limits."))) &&
   config["restricted.containers.lowlevel"] !== "allow";
 
+// device types that reach the host's hardware; host-path disks too (backend policy.py)
+const HOST_TYPES = new Set(["usb", "pci", "gpu", "unix-char", "unix-block", "unix-hotplug"]);
+
+/** A device that uses the host directly: a hardware type, or a disk from a host path. */
+export const isHostDevice = (d: Record<string, string>) =>
+  HOST_TYPES.has(d.type) || (d.type === "disk" && !d.pool && (d.source ?? "").startsWith("/"));
+
+/** May ``user`` add host paths and USB devices in ``project``? Cluster admins, and project
+ * admins whose grant carries the right (D86). */
+export const mayUseHostDevices = (user: User, project: string) =>
+  user.role === "admin" || (user.grants?.[project] === "admin" && (user.host_devices ?? []).includes(project));
+
 export interface Access {
   user: User;
   /** a global role: cluster-wide pages (members, Ceph, OVN, warnings, storage pools) */
@@ -46,6 +58,8 @@ export interface Access {
   can: (project: string, action: Action) => boolean;
   /** may manage in at least one project, or in ``project`` when given */
   canManageSomewhere: (project?: string) => boolean;
+  /** host paths and USB devices (D86) */
+  hostDevices: (project: string) => boolean;
 }
 
 export function access(user: User): Access {
@@ -58,6 +72,7 @@ export function access(user: User): Access {
       project
         ? can(user, project, "manage")
         : user.role === "admin" || Object.values(user.grants ?? {}).includes("admin"),
+    hostDevices: (project) => mayUseHostDevices(user, project),
   };
 }
 

@@ -85,7 +85,7 @@ export default function UsersPage() {
                     {u.role !== "project"
                       ? "all"
                       : Object.entries(u.grants ?? {})
-                          .map(([p, r]) => `${p}: ${r}`)
+                          .map(([p, r]) => `${p}: ${r}${u.host_devices?.includes(p) ? " + host devices" : ""}`)
                           .join(", ") || "none yet"}
                   </td>
                   <td className="actions">
@@ -197,7 +197,9 @@ function Grants({ user, onClose }: { user: User; onClose: () => void }) {
   const projects = useApi("projects", fetchProjects);
   const [project, setProject] = useState("");
   const [role, setRole] = useState<ProjectRole>("viewer");
+  const [host, setHost] = useState(false);
   const grants = Object.entries(user.grants ?? {});
+  const hasHost = (p: string) => (user.host_devices ?? []).includes(p);
   const restricted = (name: string) => projects.data?.find((p) => p.name === name)?.config.restricted === "true";
   return (
     <Confirm title={`Projects for ${user.username}`} confirmLabel="Done" onCancel={onClose} onConfirm={onClose}>
@@ -209,8 +211,24 @@ function Grants({ user, onClose }: { user: User; onClose: () => void }) {
             {grants.map(([p, r]) => (
               <tr key={p}>
                 <td>{p}</td>
-                <td>{r}</td>
                 <td>
+                  {r}
+                  {hasHost(p) && " + host devices"}
+                </td>
+                <td>
+                  {r === "admin" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        void run(
+                          `${hasHost(p) ? "Withdraw" : "Give"} ${user.username} host devices in ${p}`,
+                          () => setGrant(user.username, p, "admin", !hasHost(p)).then(done),
+                        )
+                      }
+                    >
+                      {hasHost(p) ? "Withdraw host devices" : "Allow host devices"}
+                    </button>
+                  )}{" "}
                   <button type="button" onClick={() => void run(`Remove ${user.username} from ${p}`, () => removeGrant(user.username, p).then(done))}>
                     Remove
                   </button>
@@ -243,6 +261,18 @@ function Grants({ user, onClose }: { user: User; onClose: () => void }) {
           ))}
         </select>
       </label>
+      {role === "admin" && (
+        <label>
+          <input type="checkbox" checked={host} onChange={(e) => setHost(e.target.checked)} /> Also host paths and USB
+          devices on its instances
+        </label>
+      )}
+      {role === "admin" && host && (
+        <p className="muted">
+          These reach the members&apos; files and hardware. LXD also has to allow them in the project: on its page, under
+          Restrictions, set Disks to allow (with allowed paths) and USB devices to allow.
+        </p>
+      )}
       {project && role !== "viewer" && !restricted(project) && (
         <p role="alert">
           {project} isn&apos;t restricted, so only a viewer grant is allowed there. Set <code>restricted=true</code> on the
@@ -253,7 +283,7 @@ function Grants({ user, onClose }: { user: User; onClose: () => void }) {
         <button
           type="button"
           disabled={!project}
-          onClick={() => void run(`Give ${user.username} ${role} in ${project}`, () => setGrant(user.username, project, role).then(done))}
+          onClick={() => void run(`Give ${user.username} ${role} in ${project}`, () => setGrant(user.username, project, role, role === "admin" && host).then(done))}
         >
           Grant
         </button>

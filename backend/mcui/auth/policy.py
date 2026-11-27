@@ -31,6 +31,34 @@ def allowed(user: User, project: str, action: Action) -> bool:
     return role is not None and _RANK[role] >= _NEED[action]
 
 
+def may_use_host_devices(user: User, project: str) -> bool:
+    """Host paths, USB and other host devices (D86): cluster admins, and project admins
+    whose grant a cluster admin marked for them."""
+    if user.role == "admin":
+        return True
+    return user.grants.get(project) == "admin" and project in user.host_devices
+
+
+# device types that reach the host's hardware; host-path disks too (``is_host_device``)
+HOST_TYPES = frozenset({"usb", "pci", "gpu", "unix-char", "unix-block", "unix-hotplug"})
+
+
+def is_host_device(dev: dict[str, str]) -> bool:
+    """A device that uses the host directly: a hardware type, or a disk whose source is a
+    host path (not a pool volume, Ceph or cloud-init)."""
+    if dev.get("type") in HOST_TYPES:
+        return True
+    return dev.get("type") == "disk" and not dev.get("pool") and dev.get("source", "")[:1] == "/"
+
+
+def host_device_changes(
+    new: dict[str, dict[str, str]], old: dict[str, dict[str, str]]
+) -> list[str]:
+    """The host devices ``new`` adds or changes compared with ``old``. Keeping ones a
+    cluster admin added is fine; removing any is too."""
+    return sorted(n for n, d in new.items() if is_host_device(d) and old.get(n) != d)
+
+
 @dataclass(frozen=True)
 class Scope:
     """The projects a user may see: ``None`` for every project (a global role)."""

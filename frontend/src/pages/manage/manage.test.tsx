@@ -403,6 +403,15 @@ describe("projects", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/Allowed here: Container low-level options.*reach the host/);
     fireEvent.change(low, { target: { value: "" } }); // back to LXD's default: the key goes
     expect(screen.queryByRole("alert")).toBeNull();
+    // host disks: allowed paths, and the app's host-devices right (D86)
+    fireEvent.change(screen.getByLabelText("Disk devices"), { target: { value: "allow" } });
+    expect(screen.getByRole("alert")).toHaveTextContent("Any host path can be mounted");
+    expect(screen.getByText(/Allowed here: Disk devices\. The app lets only cluster admins/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Allowed host paths for disks/), { target: { value: "/srv/nfs" } });
+    expect(screen.queryByRole("alert")).toBeNull();
+    fireEvent.change(screen.getByLabelText(/Allowed host paths for disks/), { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText("Disk devices"), { target: { value: "" } });
+    expect(screen.queryByLabelText(/Allowed host paths/)).toBeNull();
     expect((screen.getByLabelText(/Config/) as HTMLTextAreaElement).value).toContain("restricted.backups: allow");
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
     expect(upd).toHaveBeenCalledWith("lab", {
