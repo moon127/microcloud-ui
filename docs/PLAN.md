@@ -741,6 +741,90 @@ batching, critical reminders every 4 h, retries, log, Send test, failing-channel
 (app registration, client credentials, no browser), Google (sign-in through the app, a
 refresh token kept), and a generic token endpoint.
 
+**Phase 11: Signing in with OIDC (AU-4; proposed 2026-11-28, D98, after 0.4.0).** *A plan to
+discuss once 0.4.0 is released; nothing built yet.* People sign in to the app through an
+identity provider: Google Workspace and Microsoft Entra ID first, any standards-based
+OpenID Connect provider in general. This is about signing in to the app only: the app
+keeps talking to LXD with its certificate (LXD's own OIDC for its API is a separate thing).
+
+*How it works:*
+- One generic OIDC login. A cluster admin adds a provider with its issuer URL, a client
+  ID and a client secret; the rest comes from the provider's discovery document
+  (`/.well-known/openid-configuration`). Several providers can be set up, each a button on
+  the sign-in page.
+- The authorization code flow with PKCE, a `state` and a `nonce`; the ID token's `iss`,
+  `aud`, `exp` and `nonce` checked. The token comes straight from the token endpoint over
+  verified TLS, which OIDC Core (3.1.3.7) accepts in place of checking its signature, so
+  no new crypto dependency and the bundle stays as it is. (Revisit if a provider needs the
+  implicit or hybrid flow; we won't support those.)
+- The session cookie is SameSite=strict, so it doesn't come back with the provider's
+  redirect: as for the Google email sign-in (D96), the callback is a page of the app that
+  finishes the sign-in, or the flow uses a short-lived SameSite=Lax cookie of its own for
+  `state`. To decide when building.
+- Needs `[server] public_url` for the redirect URI, which must match what's registered
+  with the provider.
+- Local accounts stay. At least one local cluster admin is kept as a break-glass, and
+  password sign-in can be switched off for everyone else.
+
+*Who may sign in, and as whom:*
+- Each provider has a rule for who may sign in; it doesn't save without one.
+- A person is known by the provider's permanent ID (`iss` plus `sub`; for Entra the
+  tenant and object IDs), never by email address: addresses can be reassigned, and on
+  Entra they've been spoofable ("nOAuth"). The email address is shown, and used only if
+  marked verified.
+- **Google:** limited to a Google Workspace organisation, as SSO into other apps at work,
+  and never "anyone with a Google account". Two layers:
+  - in Google Cloud, the OAuth consent screen's audience **Internal** (the project in the
+    Workspace organisation): Google itself refuses anyone outside it, Gmail included,
+    with no "unverified app" warning or Google review;
+  - in the app, a list of allowed Workspace domains: the ID token's hosted-domain claim
+    (`hd`) must be one of them; personal Gmail accounts have none, so they're refused.
+    The `hd` hint sent to Google only narrows its account picker; the claim decides.
+    Secondary domains are listed too.
+  - Alternatively a list of individual verified addresses (a personal setup).
+- **Entra ID:** the organisation's own tenant (its tenant ID in the issuer), never the
+  shared `common` or `organizations` endpoints that any tenant can use; `tid` checked.
+- **Others:** an allowed list of email domains or addresses, and the provider's own
+  assignment of users to the app.
+
+*What they can do:*
+- First, as today: a new person arrives with no access, and a cluster admin grants a
+  role and project grants (Users page), shown with the provider beside their name.
+- Later, optionally: a groups claim mapped to roles and project grants. Entra sends
+  groups in the token; Google doesn't (Workspace groups need its Directory API and an
+  admin's consent), so for Google it's grants in the app.
+- Removing someone at the provider stops their next sign-in; a session already open in
+  the app lasts until it expires, or until a cluster admin removes the user in the app.
+  An "end their sessions" action on the Users page is worth adding with this.
+
+*Providers:*
+- Tested: Google Workspace, Microsoft Entra ID, Keycloak, Authelia, Dex.
+- Should work, standards-based, not tested: Okta, Auth0, Ping Identity, OneLogin,
+  JumpCloud, AWS Cognito, Authentik, Zitadel, Kanidm, GitLab. (The owner also mentioned
+  "UID Enterprise": to identify.)
+
+*Testing, without spending money:*
+- **Dex in CI:** a single-binary provider with test users in its config file, run inside
+  the GitHub Actions job, so every build signs in through a real provider end to end.
+- **Keycloak and Authelia:** live in a throwaway VM in `mcui-test` (CLAUDE.md limits).
+- **Google:**
+  - fixtures: `hd` present, absent and wrong; email not verified; secondary domains;
+  - the owner's personal Gmail: refused under a Workspace domain rule (no `hd`), and a
+    full sign-in under an individual-address rule, which exercises everything Google
+    does in the flow except a real `hd` being accepted;
+  - optionally **Cloud Identity Free** (Google's free edition of managed accounts, up to
+    50 users, no Gmail) on a spare subdomain of a domain the owner has, verified with a
+    DNS TXT record: real organisation accounts with `hd`, and an Internal consent screen,
+    so the work-style setup is tested for real. To check first: whether sign-up asks
+    for card details, and accounts already using addresses on that domain ("conflicting
+    accounts"). A Workspace trial (14 days) also works but usually wants payment details.
+- **Entra:** a free Entra tenant, with test users.
+
+*To decide when we come to it:* the callback design (above); whether password sign-in
+can be switched off per user or for everyone; group mapping in the first version or
+later; how a person signed in through OIDC appears in the audit log; whether the app also
+offers RP-initiated logout at the provider.
+
 **Phase 10: Remaining parity** (was Phase 8, before that 7 and 6; after packaging, which is
 done). Backups, project moves and ISO upload moved to Phase 7 (D83). The rest of PJ-2
 (restriction keys beyond 7e), sriov, peers, zones, ACL logs
