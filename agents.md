@@ -322,9 +322,13 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - **Edge 0.4.0.dev11 tested in VMs, 2026-11-28** (commit 8da0b86, D97): the same 77
   checks as dev10 on Ubuntu 24.04 (py3.12) and 26.04 (py3.14) bundles and the Podman
   upgrade 0.3.5 -> edge; all passed. VMs and images deleted, limits restored.
-- **Next, after 0.4.0 (owner, 2026-11-28):** the rolled-up live tests (LIVE-TESTS N1–N10,
-  alerts, U1–U3), the 0.4.0 release, then OIDC sign-in (D98, proposed; docs/PLAN.md
-  Phase 11) to discuss before building.
+- **0.4.0 released 2026-11-28** (run 46133051437): alerts in the UI and sent out (D91,
+  D94–D96), host paths and USB devices (D86–D90), the folder browser kept current (D97),
+  Ceph monitors and balance (D92, D93). Released on the owner's call with limited live
+  testing (ntfy.sh, email to a sink); the owner tests Telegram and the other services as
+  he uses them (LIVE-TESTS N1–N10, U1–U3), fixes in patch releases. `main` is 0.4.1.dev0.
+- **Next (owner, 2026-11-28):** OIDC sign-in (D98, proposed; docs/PLAN.md Phase 11), to
+  discuss before building.
 - **Folder browser helpers kept current, 2026-11-28 (D97):** remade from the current
   Alpine build weekly (or on demand), default image a stable release, and a weekly CI
   check of that image. Checked live in `mcui-server` (removed after): made, remade
