@@ -741,11 +741,63 @@ batching, critical reminders every 4 h, retries, log, Send test, failing-channel
 (app registration, client credentials, no browser), Google (sign-in through the app, a
 refresh token kept), and a generic token endpoint.
 
-**Phase 11: Signing in with OIDC (AU-4; proposed 2026-11-28, D98, after 0.4.0).** *A plan to
-discuss once 0.4.0 is released; nothing built yet.* People sign in to the app through an
-identity provider: Google Workspace and Microsoft Entra ID first, any standards-based
-OpenID Connect provider in general. This is about signing in to the app only: the app
-keeps talking to LXD with its certificate (LXD's own OIDC for its API is a separate thing).
+**Phase 11: Signing in: a break-glass account, two-factor for local accounts, and OIDC
+(AU-4; proposed 2026-11-28, D98, D99, after 0.4.0).** *A plan to discuss; nothing built
+yet.* In two parts, each reviewed, documented and shot: **11a** the break-glass account
+and two-factor sign-in for local accounts (it protects today's users and doesn't depend
+on OIDC), then **11b** OIDC.
+
+*11a: the break-glass account (D99):*
+- The first cluster admin, the one made on the host with `mcui user add` when the app is
+  set up, is the **break-glass account** (marked so; `mcui user add --break-glass` or
+  `mcui user break-glass <name>` to mark another). There's always exactly one, and it's
+  always local.
+- It can't be deleted, demoted or switched to OIDC from the app, and it signs in with its
+  password even when password sign-in is off for everyone else.
+- Using it raises an alert ("The break-glass account signed in"), sent to the cluster's
+  notification channels, and it's in the audit log, so its use is never quiet.
+- Lost its password or second factor: on the host, `mcui user passwd` and `mcui user
+  reset-2fa`. Whoever can run those is root on the machine anyway.
+- Local accounts stay a normal choice: a cluster admin can add them whether or not an
+  OIDC provider is set up (service accounts, people without an account at the provider).
+
+*11a: two-factor sign-in for local accounts (D99):*
+- **Authenticator apps (TOTP, RFC 6238):** Google Authenticator, Microsoft Authenticator,
+  1Password, Bitwarden, Aegis, Yubico Authenticator (a YubiKey holding the code) and the
+  like. Set up by scanning a QR code (or typing the key), confirmed with a first code.
+  Codes are checked with a step of leeway either way, each used once, and the attempts
+  throttled like passwords. Python's standard library does the maths; the QR code needs
+  a small frontend library (or the key is shown to type in).
+- **Security keys and passkeys (WebAuthn/FIDO2):** YubiKeys, Windows Hello, Touch ID,
+  phone passkeys. Checking their signatures needs a crypto library (`cryptography`, or
+  `webauthn`, which uses it): a new dependency for the bundle and the image, to agree
+  first. Needs https (or localhost) and a fixed name for the app (`public_url`'s host).
+  Could follow TOTP in a later step.
+- **Recovery codes:** ten single-use codes made when two-factor is set up, shown once,
+  stored hashed (argon2, as passwords are). For a lost phone or key.
+- Not offered: codes by SMS (weak), and codes by email (the app can send email now, but
+  it's a weaker factor; maybe as a fallback later).
+- **Who must:** a setting to require two-factor for cluster admins, or for every local
+  account; someone without it is taken to set it up at their next sign-in.
+- **Managing it:** each user sets up and removes their own on an account page (removing
+  takes a current code). A cluster admin can **reset** someone's two-factor (Users page;
+  audited, and the user must set it up again at next sign-in if it's required), and
+  changing another user's password or two-factor asks for the admin's own password and
+  code again first.
+- Signing in becomes two steps: the password, then a code or key, within a few minutes;
+  the session is made only after both.
+- OIDC accounts: two-factor is the provider's job (Google, Entra and the rest have it);
+  the app doesn't add its own. Later, optionally, require the provider to say it was used
+  (the `amr`/`acr` claims).
+- Testing: fixtures for the codes (RFC 6238's test vectors), recovery codes, throttling
+  and resets; the sign-in pages with Playwright; a real authenticator app by the owner
+  (LIVE-TESTS); WebAuthn with a software authenticator in the browser tests, and the
+  owner's YubiKey if they have one.
+
+*11b: OIDC.* People sign in to the app through an identity provider: Google Workspace and
+Microsoft Entra ID first, any standards-based OpenID Connect provider in general. This is
+about signing in to the app only: the app keeps talking to LXD with its certificate (LXD's
+own OIDC for its API is a separate thing).
 
 *How it works:*
 - One generic OIDC login. A cluster admin adds a provider with its issuer URL, a client
@@ -763,8 +815,9 @@ keeps talking to LXD with its certificate (LXD's own OIDC for its API is a separ
   `state`. To decide when building.
 - Needs `[server] public_url` for the redirect URI, which must match what's registered
   with the provider.
-- Local accounts stay. At least one local cluster admin is kept as a break-glass, and
-  password sign-in can be switched off for everyone else.
+- Local accounts stay, and a cluster admin can still add them. Password sign-in can be
+  switched off for everyone but the break-glass account (11a) and local accounts a
+  cluster admin allows by name.
 
 *Who may sign in, and as whom:*
 - Each provider has a rule for who may sign in; it doesn't save without one.
