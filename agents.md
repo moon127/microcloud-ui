@@ -319,6 +319,9 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - **Edge 0.4.0.dev10 tested in VMs, 2026-11-28** (commit a0a823a, D96): the same runs as
   dev9 plus the Google redirect URI, a Microsoft 365 email channel saved, one pointed at
   another mail server refused, and `/oauth/callback` served; 77 checks passed, none failed.
+- **Edge 0.4.0.dev11 tested in VMs, 2026-11-28** (commit 8da0b86, D97): the same 77
+  checks as dev10 on Ubuntu 24.04 (py3.12) and 26.04 (py3.14) bundles and the Podman
+  upgrade 0.3.5 -> edge; all passed. VMs and images deleted, limits restored.
 - **Next, after 0.4.0 (owner, 2026-11-28):** the rolled-up live tests (LIVE-TESTS N1–N10,
   alerts, U1–U3), the 0.4.0 release, then OIDC sign-in (D98, proposed; docs/PLAN.md
   Phase 11) to discuss before building.
