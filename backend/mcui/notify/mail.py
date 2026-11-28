@@ -228,10 +228,13 @@ class _SMTP(smtplib.SMTP):
         super().__init__(**kw)
 
     def _get_socket(self, host: str, port: int, timeout: float) -> socket.socket:
+        # the name TLS checks (here and in starttls): Python 3.12 sets it only in
+        # __init__, from where no host was given, so it's set here for every version
+        self._host = host
         sock = socket.create_connection((self.pin or host, port), timeout)
         self.session.started(sock)
         if self.implicit is not None:
-            return self.implicit.wrap_socket(sock, server_hostname=self._host)  # type: ignore[attr-defined]
+            return self.implicit.wrap_socket(sock, server_hostname=self._host)
         return sock
 
     def getreply(self) -> tuple[int, bytes]:
