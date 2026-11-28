@@ -769,10 +769,16 @@ on OIDC), then **11b** OIDC.
   throttled like passwords. Python's standard library does the maths; the QR code needs
   a small frontend library (or the key is shown to type in).
 - **Security keys and passkeys (WebAuthn/FIDO2):** YubiKeys, Windows Hello, Touch ID,
-  phone passkeys. Checking their signatures needs a crypto library (`cryptography`, or
-  `webauthn`, which uses it): a new dependency for the bundle and the image, to agree
-  first. Needs https (or localhost) and a fixed name for the app (`public_url`'s host).
-  Could follow TOTP in a later step.
+  phone passkeys. Checking their signatures needs PyCA's `cryptography` (prebuilt wheels
+  for x86_64 and aarch64, about 5 MB), probably with a WebAuthn library on top such as
+  `webauthn` (py_webauthn), its own dependencies checked first. **The owner agreed to the
+  dependency (2026-11-28)**, on condition that it's clear how to get it into the dev venv:
+  `git pull` then `make install` (it's in `backend/pyproject.toml`), checked with
+  `.venv/bin/pip show cryptography`; the commit adding it says so, as do Status and the
+  README's development notes. Bundles, the image and CI pick it up from `pyproject.toml`;
+  Dependabot, `pip-audit` and the weekly image scan watch it (its wheels carry their own
+  OpenSSL). Needs https (or localhost) and a fixed name for the app (`public_url`'s host).
+  Follows TOTP in a later step.
 - **Recovery codes:** ten single-use codes made when two-factor is set up, shown once,
   stored hashed (argon2, as passwords are). For a lost phone or key.
 - Not offered: codes by SMS (weak), and codes by email (the app can send email now, but
