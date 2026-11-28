@@ -84,13 +84,14 @@ browse_idle_minutes = 10                    # a helper stops after this long unu
 ### `[alerts]`: what is checked and when
 
 Rules and their defaults are in [`ALERTS.md`](ALERTS.md). Thresholds, as `[warning,
-critical]` in percent: `ceph_raw` (75, 85), `local_pool` (80, 90), `host_fs` (85, 95),
-`host_memory` (90, 95), `instance_rootfs` (90, 95), `project_limits` (90, 98),
-`ovn_uplink` (80, 95), `network_addresses` (80, 95); `cert_days` is days left (30, 7). Rule
-names for `disabled`: `ceph_health`, `ceph_raw`, `local_pool`, `host_fs`, `host_memory`,
-`host_clock`, `member_status`, `lxd_security`, `instance_oom`, `instance_rootfs`,
-`project_limits`, `ovn_uplink`, `network_addresses`, `cert_expiry`, `collection`. A cluster
-admin can change both on **Settings → Alerts**; values saved there win.
+critical]` in percent: `ceph_raw` (75, 85), `ceph_pool` (80, 90), `local_pool` (80, 90),
+`host_fs` (85, 95), `host_memory` (90, 95), `instance_rootfs` (90, 95), `project_limits`
+(90, 98), `ovn_uplink` (80, 95), `network_addresses` (80, 95); `cert_days` is days left
+(30, 7). Rule names for `disabled`: `ceph_health`, `ceph_raw`, `ceph_pool`, `local_pool`,
+`host_fs`, `host_memory`, `host_clock`, `member_status`, `lxd_security`, `instance_oom`,
+`instance_rootfs`, `project_limits`, `ovn_uplink`, `network_addresses`, `cert_expiry`,
+`collection`. A cluster admin can change both on **Settings → Alerts**; values saved there
+win.
 
 ### `[host_devices]`: what project admins can find and attach (D87)
 

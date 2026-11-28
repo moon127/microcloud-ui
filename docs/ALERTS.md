@@ -37,6 +37,7 @@ only cluster roles see them afterwards.
 |---|---|---|
 | Ceph's health checks | whenever Ceph raises one: `OSD_NEARFULL`, `OSD_FULL`, `POOL_NEARFULL`, `OSD_DOWN`, `MON_DOWN`, `MON_DISK_LOW`, `PG_DEGRADED`, `SLOW_OPS`, `MON_CLOCK_SKEW`, `RECENT_CRASH` and any other; `HEALTH_ERR` ones are critical. Each links to its part of the Ceph page: monitor checks to Monitors, OSD and pool checks to their tables | the Ceph mgr |
 | Ceph filling up | raw capacity used ≥ 75% (critical 85%), before Ceph's own warnings | the Ceph mgr |
+| Ceph pools filling up | a pool ≥ 80% (90%) used as Ceph counts it (`ceph df`'s %USED): its copies, and space only up to the OSD that would be full first. This can be high while raw use looks comfortable, e.g. when a bigger host's extra space can't be used ([`CEPH-METRICS.md`](CEPH-METRICS.md#balance-and-capacity)). It warns before Ceph's own `POOL_NEARFULL`, which comes with an OSD at nearfull. Pool quotas aren't counted (LXD doesn't set them) | the Ceph mgr |
 | Local storage pools | ZFS, LVM, btrfs or dir pool on a member ≥ 80% (90%) | LXD |
 | Host filesystems | any real filesystem on a member ≥ 85% (95%), counted as `df` does | node_exporter |
 | Host memory | ≥ 90% (95%) in use | node_exporter |

@@ -210,6 +210,7 @@ class HostDevicesSettings(_Section):
 # so lower is worse)
 DEFAULT_THRESHOLDS: dict[str, tuple[float, float]] = {
     "ceph_raw": (75, 85),
+    "ceph_pool": (80, 90),
     "local_pool": (80, 90),
     "host_fs": (85, 95),
     "host_memory": (90, 95),

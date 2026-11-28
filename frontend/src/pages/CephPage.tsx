@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { fetchCeph, fetchMembers, fetchRbdTop, type CephMon, type CephState, type RbdMetric, type RbdRow } from "../api";
+import { fetchCeph, fetchMembers, fetchRbdTop, type CephMon, type CephOsd, type CephState, type RbdMetric, type RbdRow } from "../api";
 import MetricPanel from "../chart/MetricPanel";
 import { ratioSeries } from "../chart/panel";
 import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
@@ -89,6 +89,13 @@ function Now({ s }: { s: CephState }) {
   const cap = s.capacity ?? { total: null, used_raw: null };
   const ratios = s.full_ratios ?? RATIOS;
   const states = Object.entries(s.pgs?.states ?? {});
+  const hosts = hostFill(osds);
+  const avg = pct(
+    hosts.reduce((a, h) => a + h.used, 0),
+    hosts.reduce((a, h) => a + h.size, 0),
+  );
+  // most clusters never change it: shown once an OSD that's in has another (out is 0)
+  const reweighted = osds.some((o) => o.in !== false && o.weight != null && o.weight !== 1);
   const health = s.health?.status ?? "UNKNOWN";
   return (
     <>
@@ -157,6 +164,7 @@ function Now({ s }: { s: CephState }) {
               <th>Host</th>
               <th>Class</th>
               <th>State</th>
+              {reweighted && <th className="num">Reweight</th>}
               <th className="num">PGs</th>
               {s.perf_counters !== false && (
                 <>
@@ -164,6 +172,9 @@ function Now({ s }: { s: CephState }) {
                   <th className="num">Size</th>
                   <th className="num">% used</th>
                   <th />
+                  <th className="num">
+                    <abbr title="Variance: % used against the cluster's average, as ceph osd df shows it">VAR</abbr>
+                  </th>
                 </>
               )}
               <th className="num">Apply</th>
@@ -179,6 +190,7 @@ function Now({ s }: { s: CephState }) {
                 <td>
                   {o.up ? "up" : <strong role="alert">down</strong>}, {o.in ? "in" : <strong>out</strong>}
                 </td>
+                {reweighted && <td className="num">{o.weight != null ? o.weight.toFixed(2) : "–"}</td>}
                 <td className="num">{o.pgs ?? "–"}</td>
                 {s.perf_counters !== false && (
                   <>
@@ -201,6 +213,9 @@ function Now({ s }: { s: CephState }) {
                         />
                       ) : null}
                     </td>
+                    <td className="num">
+                      <Var osd={o} avg={avg} host={hosts.find((h) => h.host === o.host)} />
+                    </td>
                   </>
                 )}
                 <td className="num">{o.apply_latency_ms != null ? ms(o.apply_latency_ms) : "–"}</td>
@@ -210,6 +225,7 @@ function Now({ s }: { s: CephState }) {
           </tbody>
         </table>
       </div>
+      <HostFill hosts={hosts} replicas={mainReplicas(s.pools ?? [])} />
       <h2 id="pools">Pools</h2>
       <div className="scroll">
         <table>
@@ -250,6 +266,83 @@ function Now({ s }: { s: CephState }) {
           </tbody>
         </table>
       </div>
+    </>
+  );
+}
+
+interface Host {
+  host: string;
+  used: number;
+  size: number;
+  /** null when an OSD on it has no PG count: no even spread can be worked out */
+  pgs: number | null;
+}
+
+/** An OSD that counts towards averages and hosts, as in ``ceph osd df``: in, with a host,
+ * a size and its use (an out OSD's space isn't in CRUSH; D93 review). */
+const counted = (o: CephOsd) => o.in !== false && !!o.host && !!o.size && o.used != null;
+
+/** OSDs' use summed by host. */
+function hostFill(osds: CephOsd[]): Host[] {
+  const by = new Map<string, Host>();
+  for (const o of osds.filter(counted)) {
+    const h = by.get(o.host!) ?? { host: o.host!, used: 0, size: 0, pgs: 0 };
+    h.used += o.used!;
+    h.size += o.size!;
+    h.pgs = h.pgs != null && o.pgs != null ? h.pgs + o.pgs : null;
+    by.set(h.host, h);
+  }
+  return [...by.values()].sort((a, b) => a.host.localeCompare(b.host));
+}
+
+/** The copies of the pool holding the most data ("replica:3" in Ceph's description), so
+ * a small pool's count doesn't speak for the cluster; 0 when it isn't replicated. */
+function mainReplicas(pools: { description?: string; stored?: number }[]): number {
+  const main = [...pools].sort((a, b) => (b.stored ?? 0) - (a.stored ?? 0))[0];
+  return Number(/replica:(\d+)/.exec(main?.description ?? "")?.[1] ?? 0);
+}
+
+/** ``ceph osd df``'s VAR, flagged from 1.2; the hover says how its PGs (all pools) compare
+ * with an even spread by size across its host's OSDs. The upmap balancer allows 5 either
+ * way in each pool. */
+function Var({ osd, avg, host }: { osd: CephOsd; avg: number; host?: Host }) {
+  if (!counted(osd) || !avg) return <>–</>;
+  const v = pct(osd.used!, osd.size!) / avg;
+  const even = host?.pgs != null && host.size ? Math.round((host.pgs * osd.size!) / host.size) : null;
+  const spread = osd.pgs != null && even != null ? `${osd.pgs} PGs; ${even} if ${host!.host}'s were spread by size` : "";
+  return (
+    <span title={spread || undefined}>
+      {v >= 1.2 ? <strong>{v.toFixed(2)}</strong> : v.toFixed(2)}
+      {/* the hover's figures and the emphasis, for screen readers too */}
+      {(spread || v >= 1.2) && <span className="sr-only">{`${v >= 1.2 ? ", high" : ""}${spread ? `, ${spread}` : ""}`}</span>}
+    </span>
+  );
+}
+
+/** Use by host and, when there are as many hosts as the main pool has copies, why the fullest one sets
+ * the limit: each holds a full copy, so a bigger host's extra space can't be used. */
+function HostFill({ hosts, replicas }: { hosts: Host[]; replicas: number }) {
+  if (hosts.length < 2) return null;
+  const smallest = Math.min(...hosts.map((h) => h.size));
+  const bigger = hosts.filter((h) => h.size > smallest * 1.1).map((h) => h.host);
+  return (
+    <>
+      <p className="muted" aria-label="Use by host">
+        By host:{" "}
+        {hosts.map((h, i) => (
+          <span key={h.host}>
+            {i > 0 && " · "}
+            {h.host} {formatPercent(pct(h.used, h.size))} ({formatBytes(h.used)} of {formatBytes(h.size)})
+          </span>
+        ))}
+      </p>
+      {replicas === hosts.length && bigger.length > 0 && (
+        <p className="muted">
+          With {hosts.length} hosts and {replicas} copies, each host holds a full copy (with MicroCeph's default rule,
+          which puts copies on different hosts once it has three), so the fullest host sets the limit and the extra space on {bigger.join(", ")} can't be used. Each pool's
+          Available, below, is Ceph's estimate of what more fits; see <code>docs/CEPH-METRICS.md</code> on balancing.
+        </p>
+      )}
     </>
   );
 }

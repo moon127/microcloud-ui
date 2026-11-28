@@ -16,6 +16,56 @@ monitor can run on a host that isn't an LXD member, or has no node_exporter: it 
 "not monitored". The mgr's health metric names only the check, so this is where to see
 *which* monitor is low.
 
+### Balance and capacity
+
+The OSD table helps answer "why is this OSD nearly full when the cluster isn't?":
+
+- **VAR** is an OSD's % used over the cluster's average, as `ceph osd df` shows it;
+  1.2 or more is in bold. OSDs that are out are left out of the average and the hosts. Hover it for the OSD's placement groups against an even spread
+  by size across its host's OSDs.
+- **Reweight** appears only when an OSD that's in has a reweight other than 1.
+- **By host**, under the table: each host's OSDs added up. With as many hosts as the
+  pool holding the most data has copies
+  (three hosts, three copies: MicroCeph puts copies on different hosts once it has three),
+  every host holds a full copy of the data. The fullest host sets the limit, and the
+  extra space on a bigger host can't be used; the page says so. The pools' **Available**
+  is Ceph's own estimate of what more fits, and the `ceph_pool` alert
+  ([`ALERTS.md`](ALERTS.md)) watches it. Raw capacity can look comfortable meanwhile.
+
+The mgr doesn't export CRUSH weights, so they aren't shown (`ceph osd df` has them).
+microcloud-ui only reads Ceph; it doesn't change weights or balancer settings.
+
+**The balancer.** Ceph's balancer module evens out placement groups between OSDs,
+moving a few at a time. On our MicroCloud test cloud it was on, in `upmap` mode;
+check yours:
+
+```bash
+sudo ceph balancer status      # want: "active": true, "mode": "upmap"
+sudo ceph osd df               # %USE, VAR and PGS per OSD
+```
+
+It balances placement-group *counts*, not bytes, and is content once every OSD is within
+`upmap_max_deviation` placement groups of its share in each pool (default 5; the page's
+hover counts all pools together). On a small OSD, five
+extra placement groups is a lot: on the test cloud a 112 GiB OSD sharing a host with a
+250 GiB one had 65 placement groups against a share of 60, about 7 GiB more, and sat at
+84% (VAR 1.26) while the balancer reported "no optimization needed". Tightening it lets
+the balancer move those few:
+
+```bash
+sudo ceph config set mgr mgr/balancer/upmap_max_deviation 1
+sudo ceph balancer eval        # lower is better; run before and after
+# undo
+sudo ceph config rm mgr mgr/balancer/upmap_max_deviation
+```
+
+Moves keep copies on different hosts; with as many hosts as copies they happen within
+each host. Each one copies data while it runs, so do it while no OSD is near full. Prefer
+this to `ceph osd reweight` or `reweight-by-utilization`, the older way of evening out
+OSDs: with the upmap balancer in charge, reweights are best left at 1 so the two don't
+pull in different directions. It can't help when a whole host is the limit (above); only
+more disk in the smaller hosts can.
+
 microcloud-ui reads Ceph metrics from the ceph-mgr `prometheus` module:
 plain HTTP on port 9283 on each mgr host, served by the **active** mgr only,
 with **no authentication or TLS**. Reference: https://docs.ceph.com/en/squid/mgr/prometheus/

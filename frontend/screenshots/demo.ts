@@ -252,12 +252,13 @@ export const ALERTS_HISTORY: AlertRow[] = [
   A(1, "host_clock", "node-1", "warning", "node-1's clock isn't synchronised", "The kernel reports the clock unsynchronised (check chrony or systemd-timesyncd); Ceph and OVN need it", "/members/node-1", 259200, { resolved_at: 1794400000 - 258900 }),
 ];
 const THRESHOLDS: Record<string, [number, number]> = {
-  ceph_raw: [75, 85], local_pool: [80, 90], host_fs: [85, 95], host_memory: [90, 95], instance_rootfs: [90, 95],
+  ceph_raw: [75, 85], ceph_pool: [80, 90], local_pool: [80, 90], host_fs: [85, 95], host_memory: [90, 95], instance_rootfs: [90, 95],
   project_limits: [90, 98], ovn_uplink: [80, 95], network_addresses: [80, 95], cert_days: [30, 7],
 };
 const RULE_INFO: [string, string, string | null, number][] = [
   ["ceph_health", "Ceph's own health checks (OSD nearfull, down, degraded, slow...)", null, 0],
   ["ceph_raw", "Raw Ceph capacity used (%)", "ceph_raw", 60],
+  ["ceph_pool", "Ceph pools used, as Ceph counts it: copies and the fullest OSD (%)", "ceph_pool", 60],
   ["local_pool", "Local storage pools on each member (%)", "local_pool", 60],
   ["host_fs", "Host filesystems, with node_exporter (%)", "host_fs", 60],
   ["host_memory", "Host memory in use, with node_exporter (%)", "host_memory", 120],
@@ -672,11 +673,16 @@ export function top(metric: string, keep: (project: string) => boolean = () => t
 
 const CEPH_POOLS = [
   { id: 1, name: ".mgr", stored: 1.9e6, objects: 2, pgs: 1, pct: 0.0001 },
-  { id: 2, name: "lxd_remote", stored: 1.31e12, objects: 341_208, pgs: 128, pct: 0.41 },
+  { id: 2, name: "lxd_remote", stored: 1.31e12, objects: 341_208, pgs: 128, pct: 0.21 },
   { id: 3, name: "lxd_cephfs_meta", stored: 2.1e8, objects: 1_904, pgs: 16, pct: 0.0001 },
-  { id: 4, name: "lxd_cephfs_data", stored: 1.84e11, objects: 51_377, pgs: 32, pct: 0.09 },
+  { id: 4, name: "lxd_cephfs_data", stored: 1.84e11, objects: 51_377, pgs: 32, pct: 0.036 },
 ];
 const OSDS = [0, 1, 2, 3, 4, 5];
+// node-3's disks are half as big again: each host holds a full copy, so its extra space
+// can't be used (the OSD table's note); osd.2 a little ahead of its host-mate (VAR)
+const OSD_SIZE = [3.638e12, 3.638e12, 3.638e12, 3.638e12, 5.457e12, 5.457e12];
+const OSD_USED = [0.7e12, 0.79e12, 0.8e12, 0.69e12, 0.72e12, 0.77e12];
+const RAW_TOTAL = OSD_SIZE.reduce((a, b) => a + b, 0);
 
 export const CEPH: CephState = {
   enabled: true,
@@ -707,21 +713,21 @@ export const CEPH: CephState = {
     device_class: "nvme",
     up: true,
     in: true,
-    pgs: 88 + ((id * 7) % 11),
-    size: 2 * 1.819e12,
-    used: (0.33 + ((id * 13) % 9) / 100) * 2 * 1.819e12,
+    pgs: [61, 66, 68, 59, 63, 64][id],
+    size: OSD_SIZE[id],
+    used: OSD_USED[id],
     apply_latency_ms: 1 + (id % 3),
     commit_latency_ms: 1 + (id % 3),
   })),
   pgs: { total: 177, states: { active: 177, clean: 177 } },
-  capacity: { total: 12 * 1.819e12, used_raw: 4.48e12 },
+  capacity: { total: RAW_TOTAL, used_raw: OSD_USED.reduce((a, b) => a + b, 0) },
   pools: CEPH_POOLS.map((p) => ({
     id: p.id,
     name: p.name,
     type: "replicated",
     description: "replica:3",
     stored: p.stored,
-    max_avail: 2.36e12,
+    max_avail: 4.9e12,
     percent_used: p.pct,
     objects: p.objects,
     pgs: p.pgs,
@@ -898,7 +904,7 @@ const SPECS: Record<string, Spec> = {
   node_pressure_cpu_waiting_seconds_total: perHost((i) => [0.009, 0.024, 0.01][i], 0.6),
   node_pressure_memory_waiting_seconds_total: perHost(() => 0.0002, 0.5),
   node_pressure_io_waiting_seconds_total: perHost((i) => [0.004, 0.031, 0.01][i], 0.6),
-  ceph_cluster_total_bytes: { sets: [{}], base: () => 12 * 1.819e12, wobble: 0 },
+  ceph_cluster_total_bytes: { sets: [{}], base: () => RAW_TOTAL, wobble: 0 },
   ceph_cluster_total_used_raw_bytes: { sets: [{}], base: () => 4.48e12, wobble: 0.01 },
   ceph_pool_stored: { sets: CEPH_POOLS.map((p) => ({ pool_id: String(p.id) })), base: (l) => CEPH_POOLS[Number(l.pool_id) - 1].stored, wobble: 0.01 },
   ceph_pool_rd_bytes: cephPools((p) => p.stored / 2e5),

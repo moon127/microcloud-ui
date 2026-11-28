@@ -16,6 +16,7 @@ from mcui.alerts.rules import (
     Context,
     NoData,
     ceph_health,
+    ceph_pool,
     ceph_raw,
     cert_days,
     cert_expiry,
@@ -223,6 +224,41 @@ async def test_ceph_rules():
     s = svc()
     s.collector.ceph_last = SimpleNamespace(ok=True, exposition=parse("ceph_x 1\n"))
     assert await ceph_raw(ctx(s)) == []
+
+
+CLUSTER_MGR = Path(__file__).parent / "fixtures" / "recorded-6.10-cluster" / "ceph_mgr.txt"
+
+
+async def test_ceph_pool():
+    """Pools as Ceph counts them (copies, the fullest OSD): the live cluster had raw use
+    at 67% while lxd_remote was 85.7% used, 44 GiB from an OSD full (D93)."""
+    exp = parse(
+        """ceph_pool_metadata{pool_id="1",name="lxd_remote"} 1.0
+ceph_pool_metadata{pool_id="2",name=""} 1.0
+ceph_pool_percent_used{pool_id="1"} 0.857
+ceph_pool_max_avail{pool_id="1"} 47029631795.0
+ceph_pool_percent_used{pool_id="2"} 0.95
+ceph_pool_percent_used{pool_id="3"} 0.1
+ceph_pool_stored{pool_id="1"} 1.0
+"""
+    )
+    s = svc()
+    s.collector.ceph_last = SimpleNamespace(ok=True, exposition=exp)
+    remote, other = await ceph_pool(ctx(s))
+    assert (remote.subject, remote.severity) == ("lxd_remote", "warning")
+    assert remote.link == "/ceph#pools"
+    assert remote.title == "Ceph pool lxd_remote is filling up"
+    assert remote.detail == (
+        "Pool lxd_remote, counting its copies and the fullest OSD; 44 GiB more fits before "
+        "an OSD is full (86%; warning at 80%, critical at 90%)"
+    )
+    assert (other.subject, other.severity) == ("pool 2", "critical")
+    assert other.detail.startswith("Pool pool 2, counting its copies and the fullest OSD (95%")
+    assert await ceph_pool(ctx(svc(ceph=None))) == []
+    # as a real mgr exports it (a fraction): lxd_remote at 82.5%, the rest near 0 (review)
+    s.collector.ceph_last = SimpleNamespace(ok=True, exposition=parse(CLUSTER_MGR.read_text()))
+    [real] = await ceph_pool(ctx(s))
+    assert (real.subject, real.severity, real.data["value"]) == ("lxd_remote", "warning", 82.5)
 
 
 async def test_ceph_mon_disk_names_the_monitor():

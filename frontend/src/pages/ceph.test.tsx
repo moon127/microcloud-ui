@@ -203,6 +203,69 @@ describe("CephPage", () => {
     expect(await screen.findByRole("heading", { name: "Monitors" })).toBeInTheDocument();
   });
 
+  it("shows VAR, use by host and why the fullest host sets the limit", async () => {
+    // the shape of the test cloud on 2026-11-28: a small OSD next to a big one, a bigger host
+    const G = 1024 ** 3;
+    const osd = (id: number, host: string, size: number, used: number, pgs: number, weight = 1): api.CephOsd => ({ id, host, up: true, in: true, size: size * G, used: used * G, pgs, weight });
+    vi.spyOn(api, "fetchCeph").mockResolvedValue({
+      ...state,
+      osds: [osd(3, "h1", 112, 83, 61), osd(4, "h1", 250, 184, 132), osd(2, "h2", 112, 94, 65), osd(9, "h2", 250, 173, 128), osd(1, "h3", 224, 118, 89), osd(6, "h3", 250, 148, 104, 0.9)],
+      pools: [{ id: 1, name: "lxd_remote", description: "replica:3" }, { id: 2, name: "other" }],
+    });
+    renderAt(<CephPage />);
+    const row = (id: number) => screen.getByText(`osd.${id}`).closest("tr")!;
+    await screen.findByText("osd.2");
+    // VAR against the cluster's average (800 / 1198 GiB): osd.2 flagged, with PGs on hover
+    expect(within(row(2)).getByText("1.26").tagName).toBe("STRONG");
+    expect(within(row(2)).getByTitle("65 PGs; 60 if h2's were spread by size")).toBeInTheDocument();
+    expect(within(row(1)).getByText("0.79").tagName).not.toBe("STRONG");
+    // someone changed a reweight: the column shows
+    expect(screen.getByRole("columnheader", { name: "Reweight" })).toBeInTheDocument();
+    expect(row(6)).toHaveTextContent("0.90");
+    expect(screen.getByLabelText("Use by host")).toHaveTextContent("h1 73.8% (267 GiB of 362 GiB) · h2 73.8% (267 GiB of 362 GiB) · h3 56.1% (266 GiB of 474 GiB)");
+    expect(screen.getByText(/With 3 hosts and 3 copies, each host holds a full copy/)).toHaveTextContent("the extra space on h3 can't be used");
+  });
+
+  it("leaves out reweight and the full-copy note when they don't apply", async () => {
+    const osd = (id: number, host: string): api.CephOsd => ({ id, host, up: true, in: true, size: 100, used: 50, pgs: 10, weight: 1 });
+    vi.spyOn(api, "fetchCeph").mockResolvedValue({ ...state, osds: [osd(1, "a"), osd(2, "b")], pools: [{ id: 1, description: "replica:3" }] });
+    renderAt(<CephPage />);
+    expect(await screen.findByLabelText("Use by host")).toHaveTextContent("a 50.0% (50 B of 100 B) · b 50.0%");
+    expect(screen.queryByRole("columnheader", { name: "Reweight" })).toBeNull();
+    expect(screen.queryByText(/each host holds a full copy/)).toBeNull(); // 2 hosts, 3 copies; same sizes
+  });
+
+  it("counts only OSDs that are in and have a host and their use, and the main pool's copies", async () => {
+    const osd = (o: Partial<api.CephOsd> & { id: number }): api.CephOsd => ({ up: true, in: true, size: 100, used: 50, pgs: 10, weight: 1, ...o });
+    vi.spyOn(api, "fetchCeph").mockResolvedValue({
+      ...state,
+      osds: [
+        osd({ id: 1, host: "a" }),
+        osd({ id: 2, host: "a", pgs: undefined }), // no PG count: a's even spread unknown
+        osd({ id: 3, host: "b" }),
+        osd({ id: 4, host: "c", size: 1000, used: 1, in: false, weight: 0 }), // being drained: out
+        osd({ id: 5, host: "c" }),
+        osd({ id: 6, host: "" }), // no metadata
+        osd({ id: 7, host: "b", used: undefined }), // a partial scrape
+      ],
+      // the main pool keeps 2 copies; only the small one has 3
+      pools: [
+        { id: 1, description: "replica:2", stored: 900 },
+        { id: 2, description: "replica:3", stored: 1 },
+      ],
+    });
+    renderAt(<CephPage />);
+    const row = (id: number) => screen.getByText(`osd.${id}`).closest("tr")!;
+    expect(await screen.findByLabelText("Use by host")).toHaveTextContent("By host: a 50.0% (100 B of 200 B) · b 50.0% (50 B of 100 B) · c 50.0% (50 B of 100 B)");
+    expect(row(1)).toHaveTextContent("1.00"); // the out OSD doesn't drag the average down
+    expect(within(row(1)).queryByTitle(/PGs/)).toBeNull();
+    expect(within(row(3)).getByTitle("10 PGs; 10 if b's were spread by size")).toBeInTheDocument();
+    expect(row(3)).toHaveTextContent(", 10 PGs; 10 if b's were spread by size"); // for screen readers
+    for (const id of [4, 6, 7]) expect(row(id).lastElementChild?.previousElementSibling?.previousElementSibling).toHaveTextContent("–");
+    expect(screen.queryByRole("columnheader", { name: "Reweight" })).toBeNull(); // out's 0 isn't a reweight
+    expect(screen.queryByText(/each host holds a full copy/)).toBeNull();
+  });
+
   it("hides OSD size and per-op latency when the mgr leaves out perf counters (Tentacle)", async () => {
     vi.spyOn(api, "fetchCeph").mockResolvedValue({ ...state, perf_counters: false });
     renderAt(<CephPage />);

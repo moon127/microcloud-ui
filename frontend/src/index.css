@@ -128,3 +128,13 @@ a.chip { text-decoration: none; color: inherit; }
 .badge.warning { background: var(--warning); color: var(--on-warning); }
 .badge.critical { background: var(--error); }
 .narrow { width: 5rem; }
+
+/* read by screen readers, not shown */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

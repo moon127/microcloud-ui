@@ -25,6 +25,7 @@ router = APIRouter(prefix="/api")
 DESCRIPTIONS: dict[str, str] = {
     "ceph_health": "Ceph's own health checks (OSD nearfull, down, degraded, slow...)",
     "ceph_raw": "Raw Ceph capacity used (%)",
+    "ceph_pool": "Ceph pools used, as Ceph counts it: copies and the fullest OSD (%)",
     "local_pool": "Local storage pools on each member (%)",
     "host_fs": "Host filesystems, with node_exporter (%)",
     "host_memory": "Host memory in use, with node_exporter (%)",

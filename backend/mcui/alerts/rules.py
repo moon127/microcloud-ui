@@ -247,6 +247,48 @@ async def ceph_raw(ctx: Context) -> list[Alert]:
     return [a] if a else []
 
 
+async def ceph_pool(ctx: Context) -> list[Alert]:
+    """Each pool's use as Ceph reports it (``ceph df``'s %USED): raw bytes used (with its
+    copies) over those plus MAX AVAIL in raw bytes, about stored over stored plus MAX
+    AVAIL; MAX AVAIL stops at the OSD that would be full first. Quotas aren't counted.
+    Raw use can look comfortable while this is high: with as many hosts as copies, each
+    host holds a full copy, so the fullest host sets the limit (D93)."""
+    exp = _ceph(ctx)
+    if exp is None:
+        return []
+    names: dict[str, str] = {}
+    pct: dict[str, float] = {}
+    avail: dict[str, float] = {}
+    for s in exp.samples:
+        pid = s.labels.get("pool_id")
+        if pid is None:
+            continue
+        if s.name == "ceph_pool_metadata":
+            names[pid] = s.labels.get("name", "") or f"pool {pid}"
+        elif s.name == "ceph_pool_percent_used":
+            pct[pid] = s.value
+        elif s.name == "ceph_pool_max_avail":
+            avail[pid] = s.value
+    out = []
+    for pid, value in sorted(pct.items()):
+        name = names.get(pid, f"pool {pid}")
+        more = ""
+        if pid in avail:
+            more = f"; {avail[pid] / 2**30:.0f} GiB more fits before an OSD is full"
+        a = _threshold_alert(
+            ctx,
+            "ceph_pool",
+            name,
+            100.0 * value,
+            f"Ceph pool {name} is filling up",
+            f"Pool {name}, counting its copies and the fullest OSD{more}",
+            "/ceph#pools",
+        )
+        if a:
+            out.append(a)
+    return out
+
+
 # --- LXD members, pools, hosts ---------------------------------------------------------
 
 
@@ -790,6 +832,7 @@ Rule = Callable[[Context], Awaitable[list[Alert]]]
 RULES: dict[str, tuple[Rule, float]] = {
     "ceph_health": (ceph_health, 0),  # Ceph debounces its own checks
     "ceph_raw": (ceph_raw, 60),
+    "ceph_pool": (ceph_pool, 60),
     "local_pool": (local_pool, 60),
     "host_fs": (host_fs, 60),
     "host_memory": (host_memory, 120),
