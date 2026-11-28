@@ -282,9 +282,19 @@ const NOTIFY_KINDS = {
   telegram: { label: "Telegram", config: ["chat_id"], secrets: ["token"], required: ["chat_id", "token"], defaults: {} },
   ntfy: { label: "ntfy", config: ["server", "topic", "username"], secrets: ["token", "password"], required: ["server", "topic"], defaults: { server: "https://ntfy.sh" } },
   smtp: {
-    label: "Email (SMTP)", config: ["host", "port", "security", "username", "sender", "to"], secrets: ["password"],
-    required: ["host", "port", "security", "sender", "to"], defaults: { port: "587", security: "starttls" },
-    choices: { security: ["starttls", "tls", "none"] },
+    label: "Email (SMTP)",
+    config: ["host", "port", "security", "auth", "username", "tenant", "client_id", "token_url", "scope", "sender", "to"],
+    secrets: ["password", "client_secret"],
+    required: ["host", "port", "security", "sender", "to"], defaults: { port: "587", security: "starttls", auth: "password" },
+    choices: { security: ["starttls", "tls", "none"], auth: ["password", "microsoft", "google", "oauth2"] },
+    when: {
+      tenant: { field: "auth", values: ["microsoft"] },
+      client_id: { field: "auth", values: ["microsoft", "google", "oauth2"] },
+      client_secret: { field: "auth", values: ["microsoft", "google", "oauth2"] },
+      token_url: { field: "auth", values: ["oauth2"] },
+      scope: { field: "auth", values: ["oauth2"] },
+      password: { field: "auth", values: ["password"] },
+    },
   },
 };
 const CH = (id: number, name: string, kind: string, over: Record<string, unknown> = {}) => ({
@@ -297,6 +307,7 @@ const NOTIFY_CHANNELS = [
   CH(2, "on-call phone", "ntfy", { min_severity: "critical", config: { server: "https://ntfy.sh", topic: "mcui-5f0c2a9e41d7b38c6a" }, secrets_set: ["token"] }),
   CH(3, "status-hook", "webhook", { reminder_hours: 0, exclude_rules: ["lxd_security"], last: { status: "failed", error: "HTTP 503: Service Unavailable", created_at: 1794400000 - 3600, sent_at: null } }),
   CH(5, "ops-mail", "smtp", { config: { host: "mail.example.org", port: "587", security: "starttls", username: "alerts@example.org", sender: "alerts@example.org", to: "ops@example.org" }, secrets_set: ["password"] }),
+  CH(6, "web-gmail", "smtp", { project: "web", config: { host: "smtp.gmail.com", port: "587", security: "starttls", auth: "google", client_id: "1234-demo.apps.googleusercontent.com", username: "web-alerts@example.org", sender: "web-alerts@example.org", to: "web-team@example.org" }, secrets_set: ["client_secret"], created_by: "ops-oncall", last: null }),
   CH(4, "web-team", "telegram", { project: "web", config: { chat_id: "-1001234567890" }, secrets_set: ["token"], created_by: "ops-oncall" }),
 ];
 
@@ -1017,6 +1028,7 @@ export function answer(method: string, url: URL): unknown {
     "/api/settings/host-devices": HOST_SETTINGS,
     "/api/settings/alerts": ALERT_SETTINGS,
     "/api/notify/kinds": NOTIFY_KINDS,
+    "/api/notify/oauth": { redirect_uri: "https://mcui.example.org/oauth/callback" },
     "/api/notify/channels": NOTIFY_CHANNELS,
     "/api/projects/web/notify/channels": NOTIFY_CHANNELS.filter((c) => c.project === "web"),
     "/api/audit": signedIn.role === "project" ? AUDIT.filter((e) => mine(String(e.target).split("/")[0]) && e.target?.includes("/")) : AUDIT,

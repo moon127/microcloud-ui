@@ -32,6 +32,7 @@ import VolumePage from "./pages/storage/VolumePage";
 import VolumesPage from "./pages/storage/VolumesPage";
 import AlertsPage from "./pages/AlertsPage";
 import AuditPage from "./pages/AuditPage";
+import OAuthCallbackPage from "./pages/OAuthCallbackPage";
 import { ProjectProvider } from "./ProjectProvider";
 import { SessionContext } from "./session";
 import "./index.css";
@@ -75,6 +76,7 @@ export function AppRoutes() {
         <Route path="warnings" element={<Navigate to="/alerts?tab=lxd" replace />} />
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="audit" element={<AuditPage />} />
+        <Route path="oauth/callback" element={<OAuthCallbackPage />} />
         <Route path="*" element={<p>Page not found.</p>} />
       </Route>
     </Routes>

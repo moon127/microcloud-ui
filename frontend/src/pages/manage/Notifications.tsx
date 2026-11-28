@@ -5,7 +5,9 @@ import {
   fetchChannels,
   fetchDeliveries,
   fetchNotifyKinds,
+  fetchOAuthInfo,
   findTelegramChats,
+  startSignIn,
   testChannel,
   updateChannel,
   type NotifyChannel,
@@ -32,7 +34,21 @@ const FIELDS: Record<string, string> = {
   security: "Security",
   sender: "From address",
   to: "To (up to 10 addresses, comma-separated)",
+  auth: "Sign-in",
+  tenant: "Tenant (directory) ID, or its domain",
+  client_id: "Client (application) ID",
+  client_secret: "Client secret",
+  token_url: "Token URL",
+  scope: "Scope (optional; space-separated)",
 };
+const AUTH: Record<string, string> = {
+  password: "Password, or none",
+  microsoft: "Microsoft 365 (OAuth2, an app registration)",
+  google: "Google (OAuth2, sign in through the app)",
+  oauth2: "OAuth2 client credentials (any token endpoint)",
+};
+// the mail server that goes with a sign-in, filled in if none was typed
+const AUTH_HOST: Record<string, string> = { microsoft: "smtp.office365.com", google: "smtp.gmail.com" };
 const SECURITY: Record<string, string> = {
   starttls: "STARTTLS (usually port 587)",
   tls: "TLS (usually port 465)",
@@ -74,6 +90,14 @@ export default function Notifications({ project }: { project?: string }) {
       setTested((t) => ({ ...t, [c.id]: `Failed: ${(e as Error).message}` }));
     }
   };
+  const signIn = async (c: NotifyChannel) => {
+    try {
+      const { url } = await startSignIn(project, c.id);
+      window.location.assign(url); // to Google, then back to /oauth/callback
+    } catch (e) {
+      setTested((t) => ({ ...t, [c.id]: `Sign-in failed: ${(e as Error).message}` }));
+    }
+  };
   return (
     <section aria-label="Notifications">
       <h2 id="notifications">Notifications</h2>
@@ -104,6 +128,9 @@ export default function Notifications({ project }: { project?: string }) {
                 <tr key={c.id}>
                   <td>
                     {c.name} {!c.enabled && <span className="muted">(off)</span>}
+                    {needsSignIn(c) && !c.secrets_set.includes("refresh_token") && (
+                      <span className="muted"> (not signed in)</span>
+                    )}
                   </td>
                   <td>{kinds.data?.[c.kind]?.label ?? c.kind}</td>
                   {!project && <td>{c.project ?? (c.projects.length ? `only ${c.projects.join(", ")}` : "all")}</td>}
@@ -126,6 +153,12 @@ export default function Notifications({ project }: { project?: string }) {
                   </td>
                   <td>
                     <span className="actions">
+                      {/* a project's channel is signed in to from its project's page */}
+                      {needsSignIn(c) && (project !== undefined || c.project === null) && (
+                        <button type="button" onClick={() => void signIn(c)}>
+                          {c.secrets_set.includes("refresh_token") ? "Sign in again" : "Sign in"}
+                        </button>
+                      )}
                       <button type="button" onClick={() => void test(c)}>
                         Send test
                       </button>
@@ -179,6 +212,8 @@ export default function Notifications({ project }: { project?: string }) {
   );
 }
 
+const needsSignIn = (c: NotifyChannel) => c.kind === "smtp" && c.config.auth === "google";
+
 const randomTopic = () => {
   const b = new Uint8Array(9);
   crypto.getRandomValues(b);
@@ -204,13 +239,21 @@ function ChannelDialog({
   const [minSeverity, setMinSeverity] = useState(channel?.min_severity ?? "warning");
   const [reminder, setReminder] = useState(String(channel?.reminder_hours ?? 4));
   const [config, setConfig] = useState<Record<string, string>>(
-    channel?.config ?? { ...spec.defaults, ...(kind === "ntfy" ? { topic: randomTopic() } : {}) },
+    // a channel saved before a setting existed gets its default (D96 review: an email
+    // channel from before sign-ins would otherwise lose its password field)
+    channel ? { ...spec.defaults, ...channel.config } : { ...spec.defaults, ...(kind === "ntfy" ? { topic: randomTopic() } : {}) },
   );
   const [secrets, setSecrets] = useState<Record<string, string>>({});
   const [projects, setProjects] = useState((channel?.projects ?? []).join(", "));
   const [exclude, setExclude] = useState((channel?.exclude_rules ?? []).join(", "));
   const [chats, setChats] = useState<{ id: string; type: string; name: string }[] | string | null>(null);
   const saved = new Set(channel?.secrets_set ?? []);
+  const shown = (f: string) => {
+    const w = spec.when?.[f];
+    return !w || w.values.includes(config[w.field] ?? "");
+  };
+  const google = kind === "smtp" && config.auth === "google";
+  const oauthInfo = useApi(`notify:oauth:${google}`, () => (google ? fetchOAuthInfo() : Promise.resolve(null)));
   const pickKind = (k: NotifyKind) => {
     setKind(k);
     setConfig({ ...kinds[k].defaults, ...(k === "ntfy" ? { topic: randomTopic() } : {}) });
@@ -224,6 +267,8 @@ function ChannelDialog({
         ? "Bot token (from @BotFather)"
         : kind === "smtp" && f === "password"
           ? "Password (with a username)"
+          : kind === "smtp" && f === "username" && config.auth && config.auth !== "password"
+            ? "Mailbox (the address it signs in as)"
           : (FIELDS[f] ?? f);
   // the usual port follows the security picked, unless a port of its own was typed
   const setChoice = (f: string, v: string) =>
@@ -231,6 +276,7 @@ function ChannelDialog({
       ...config,
       [f]: v,
       ...(kind === "smtp" && f === "security" && Object.values(PORTS).includes(config.port ?? "") ? { port: PORTS[v] } : {}),
+      ...(kind === "smtp" && f === "auth" && !config.host && AUTH_HOST[v] ? { host: AUTH_HOST[v] } : {}),
     });
   const missing = spec.required.filter((f) => !(config[f] || secrets[f] || (saved.has(f) && secrets[f] !== "")));
   const hours = Number(reminder);
@@ -252,9 +298,13 @@ function ChannelDialog({
       kind,
       enabled,
       min_severity: minSeverity,
-      config: Object.fromEntries(spec.config.map((f) => [f, config[f] ?? ""]).filter(([, v]) => v !== "")),
+      config: Object.fromEntries(
+        spec.config.filter(shown).map((f) => [f, config[f] ?? ""]).filter(([, v]) => v !== ""),
+      ),
       // only what was typed (or cleared): the rest stays as saved
-      secrets: Object.fromEntries(Object.entries(secrets).filter(([f, v]) => v !== "" || saved.has(f))),
+      secrets: Object.fromEntries(
+        Object.entries(secrets).filter(([f, v]) => shown(f) && (v !== "" || saved.has(f))),
+      ),
       reminder_hours: hours,
       exclude_rules: list(exclude),
       projects: project ? [] : list(projects),
@@ -292,7 +342,7 @@ function ChannelDialog({
           Name
           <input value={name} onChange={(e) => setName(e.target.value)} />
         </label>
-        {spec.config.map((f) =>
+        {spec.config.filter(shown).map((f) =>
           spec.choices?.[f] ? (
             <label className="field" key={f}>
               {label(f)}
@@ -300,7 +350,7 @@ function ChannelDialog({
                 {/* a project's email must be encrypted: the server refuses None */}
                 {spec.choices[f].filter((c) => !(project && kind === "smtp" && c === "none")).map((c) => (
                   <option key={c} value={c}>
-                    {(f === "security" && SECURITY[c]) || c}
+                    {(f === "security" && SECURITY[c]) || (f === "auth" && AUTH[c]) || c}
                   </option>
                 ))}
               </select>
@@ -348,7 +398,20 @@ function ChannelDialog({
             )}
           </div>
         )}
-        {spec.secrets.map((f) => (
+        {google && (
+          <p className="muted">
+            In Google Cloud: an OAuth client of type Web application, with the Gmail API on and this redirect URI:{" "}
+            <code>{oauthInfo.data?.redirect_uri ?? "…"}</code>. Save the channel, then Sign in on its row.
+            {oauthInfo.data?.warning && <strong> {oauthInfo.data.warning}.</strong>}
+          </p>
+        )}
+        {kind === "smtp" && config.auth === "microsoft" && (
+          <p className="muted">
+            An app registration with the SMTP.SendAsApp permission, its service principal allowed to send as the mailbox
+            (docs/ALERTS.md has the steps).
+          </p>
+        )}
+        {spec.secrets.filter(shown).map((f) => (
           <label className="field" key={f}>
             {label(f)}
             <span className="actions">

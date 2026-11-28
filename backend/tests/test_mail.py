@@ -35,7 +35,7 @@ def cert(tmp_path_factory):
             "openssl", "req", "-x509", "-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:prime256v1",
             "-nodes", "-keyout", d / "key.pem", "-out", d / "cert.pem", "-days", "2",
             "-subj", "/CN=mail.test",
-            "-addext", "subjectAltName=DNS:localhost,DNS:mail.test",
+            "-addext", "subjectAltName=DNS:localhost,DNS:mail.test,DNS:smtp.office365.com",
             "-addext", "keyUsage=critical,digitalSignature,keyCertSign",
         ],
         check=True,
@@ -48,10 +48,17 @@ class Smtp:
     """What the fake server saw, and how it behaves."""
 
     def __init__(
-        self, cert, implicit=False, starttls=True, silent=False, flood=False, hangup=False
+        self,
+        cert,
+        implicit=False,
+        starttls=True,
+        silent=False,
+        flood=False,
+        hangup=False,
+        auth="PLAIN XOAUTH2",
     ):
         self.cert, self.implicit, self.starttls, self.silent = cert, implicit, starttls, silent
-        self.flood, self.hangup = flood, hangup
+        self.flood, self.hangup, self.auth_offered = flood, hangup, auth
         self.mail: list[dict] = []
         self.helo: list[str] = []
         self.auth: list[tuple[str, str]] = []
@@ -98,8 +105,8 @@ class Handler(socketserver.StreamRequestHandler):
                 ext = ["250-fake"]
                 if s.starttls and not secure:
                     ext.append("250-STARTTLS")
-                if secure:
-                    ext.append("250-AUTH PLAIN")
+                if secure and s.auth_offered:
+                    ext.append(f"250-AUTH {s.auth_offered}")
                 self.say("\r\n".join([*ext, "250 8BITMIME"]))
             elif verb == "STARTTLS":
                 self.say("220 go ahead")
@@ -107,6 +114,18 @@ class Handler(socketserver.StreamRequestHandler):
                 self.rfile = self.request.makefile("rb")
                 self.wfile = self.request.makefile("wb")
                 secure = True
+            elif verb == "AUTH" and not s.auth_offered:
+                s.auth.append(("refused", cmd.split(" ")[1]))
+                self.say("503 5.5.1 Error: authentication not enabled")  # as Postfix
+            elif verb == "AUTH" and cmd.split(" ")[1] == "XOAUTH2":
+                said = base64.b64decode(cmd.split(" ")[2]).decode()
+                s.auth.append(("xoauth2", said))
+                if said.endswith("auth=Bearer good\x01\x01"):
+                    self.say("235 ok")
+                else:  # as Google does: a challenge with the error, then 535
+                    self.say("334 eyJzdGF0dXMiOiI0MDAifQ==")
+                    s.auth.append(("reply", self.rfile.readline().decode().strip()))
+                    self.say(f"535 5.7.8 bad token {cmd.split(' ')[2]}")
             elif verb == "AUTH":
                 parts = base64.b64decode(cmd.split(" ")[2]).split(b"\0")
                 s.auth.append((parts[1].decode(), parts[2].decode()))
@@ -473,8 +492,13 @@ async def test_api(app, svc):  # noqa: F811
     async with client(app) as c:
         h = {CSRF_HEADER: await login(c, "admin", "adminpw")}
         kinds_ = (await c.get("/api/notify/kinds")).json()
-        assert kinds_["smtp"]["choices"] == {"security": ["starttls", "tls", "none"]}
-        assert kinds_["smtp"]["defaults"] == {"port": "587", "security": "starttls"}
+        assert kinds_["smtp"]["choices"]["security"] == ["starttls", "tls", "none"]
+        assert kinds_["smtp"]["defaults"] == {
+            "port": "587",
+            "security": "starttls",
+            "auth": "password",
+        }
+        assert kinds_["smtp"]["when"]["tenant"] == {"field": "auth", "values": ["microsoft"]}
         config = {k: v for k, v in cfg(587, username="u").items() if k not in ("port", "security")}
         body = {"name": "Ops mail", "kind": "smtp", "config": config, "secrets": {"password": "pw"}}
         r = await c.post("/api/notify/channels", json=body, headers=h)

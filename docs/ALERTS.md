@@ -97,8 +97,8 @@ Every change and every acknowledgement is in the audit log.
 ## Sending alerts out
 
 Alerts can also go to chat (Slack, Mattermost, Discord, Microsoft Teams), Telegram, a
-phone through ntfy, email, or any URL as JSON (Phase 8b, D94, D95). Signing in to
-Microsoft 365 and Google with OAuth2 comes next.
+phone through ntfy, email (with a password, or OAuth2 for Microsoft 365, Google and
+others), or any URL as JSON (Phase 8b, D94–D96).
 
 ![Notification channels on Settings](screenshots/notifications.png)
 
@@ -239,15 +239,89 @@ Providers:
   address without a sign-in.
 - **Google (Gmail, Workspace):** `smtp.gmail.com`, STARTTLS, port 587, your address and
   an **app password** (Google Account → Security → 2-Step Verification → App passwords;
-  your normal password doesn't work). Workspace admins may have app passwords switched
-  off, and can offer an SMTP relay (`smtp-relay.gmail.com`) instead.
+  your normal password doesn't work), or **Sign-in: Google** ([below](#email-with-oauth2)).
+  Workspace admins may have app passwords switched off, and can offer an SMTP relay
+  (`smtp-relay.gmail.com`) instead.
 - **Microsoft 365:** `smtp.office365.com`, STARTTLS, port 587. Microsoft is retiring
   passwords (basic authentication) for SMTP, and it's switched off by default for new
-  tenants, so this may only work where an admin has enabled SMTP AUTH for the mailbox.
-  Signing in with OAuth2 (Phase 8b step 3) is the lasting answer.
+  tenants: use **Sign-in: Microsoft 365** ([below](#email-with-oauth2)).
 - **Transactional services** (Amazon SES, Mailgun, SendGrid, Postmark and the like):
   their SMTP host, port 587 and the SMTP credentials they give you, with a From address
   on a domain you've verified with them.
+
+#### Email with OAuth2
+
+Instead of a password, an email channel can sign in with OAuth2 (**Sign-in** in the
+form; D96). The app gets a short-lived access token and gives it to the mail server
+(SASL XOAUTH2); the mailbox is the **Mailbox** field, usually the From address too.
+OAuth2 always needs STARTTLS or TLS. Tokens are kept in memory until shortly before they
+expire; a refused one is fetched again for the next message. A project's channel may use
+OAuth2 too: its token endpoint must be public, like its mail server.
+
+![An email channel signing in to Microsoft 365](screenshots/notification-m365.png)
+
+**Microsoft 365** (an app registration; nobody signs in, nothing expires but the secret):
+
+1. In the Microsoft Entra admin center, **App registrations → New registration**, single
+   tenant. Note its **Application (client) ID** and **Directory (tenant) ID**.
+2. **Certificates & secrets → New client secret**; copy its **Value** (shown once). It
+   expires (at most after 24 months): put a new one in the channel before then.
+3. **API permissions → Add a permission → APIs my organization uses → Office 365 Exchange
+   Online → Application permissions → SMTP.SendAsApp**, then **Grant admin consent**.
+4. In Exchange Online PowerShell (`Connect-ExchangeOnline`), let the app send as the
+   mailbox. The object ID is the one on **Enterprise applications** for the app (not the
+   app registration's):
+
+   ```powershell
+   New-ServicePrincipal -AppId <client ID> -ObjectId <enterprise app object ID>
+   Add-MailboxPermission -Identity alerts@example.org -User <enterprise app object ID> -AccessRights FullAccess
+   Set-CASMailbox -Identity alerts@example.org -SmtpClientAuthenticationDisabled $false
+   ```
+
+   The last line switches SMTP AUTH on for that mailbox, which OAuth2 needs too where
+   it's off for the organisation.
+5. In the app: **Email (SMTP)**, server `smtp.office365.com` (the only server a
+   Microsoft 365 token goes to), STARTTLS, 587,
+   **Sign-in: Microsoft 365**, the mailbox, the tenant (its ID or domain), the client ID
+   and secret, From the mailbox. **Send test**.
+
+**Google** (Gmail or Workspace; someone signs in once through the app):
+
+1. In the Google Cloud console, pick or make a project; **APIs & Services → Enable APIs**:
+   the **Gmail API**.
+2. **OAuth consent screen** (Google Auth Platform): for Workspace, audience **Internal**
+   (no review by Google). For a personal Gmail account it has to be **External**. A new
+   app starts in *Testing*, where Google ends every sign-in after **7 days**; press
+   **Publish app** (Audience) to move it to *In production*, and the sign-in then lasts
+   until it's revoked. An app only you use needs no review by Google: on sign-in Google
+   shows "Google hasn't verified this app", and **Advanced → Go to …** goes past it. An
+   app password is simpler for a personal account.
+3. **Credentials → Create credentials → OAuth client ID → Web application**, with the
+   **Authorized redirect URI** the channel form shows: `public_url` followed by
+   `/oauth/callback` (e.g. `https://mcui.example.org/oauth/callback`). Google takes only
+   https, a name rather than an IP address, and a name under a real top-level domain
+   (not `.lan` or `.internal`); the address needn't be reachable from the internet, as
+   it's your browser that goes there. So set `[server] public_url`: the form warns when
+   the URI it shows won't do. Copy the client ID and secret.
+4. In the app: **Email (SMTP)**, `smtp.gmail.com` (the only server a Google sign-in
+   goes to), STARTTLS, 587, **Sign-in: Google**,
+   the mailbox, client ID and secret; **Save**. The row says "(not signed in)": press
+   **Sign in**, sign in to Google as that mailbox and allow mail access. You come back to
+   the channel list, and **Send test** works.
+
+The sign-in is finished by the same app user who started it, within 10 minutes; a
+sign-in link sent to someone else doesn't work for them. A project's Google channel is
+signed in to from the project's page, by its admins. Google's code is in the address
+the browser comes back to, so it appears in web server and proxy logs; it's useless
+without what the app keeps. Changing the mailbox, the client
+ID or secret, or the sign-in kind needs a new sign-in. Google ends a sign-in when the
+account's password changes or the access is removed (myaccount.google.com → Security →
+Third-party access): messages then fail with "invalid_grant": **Sign in again**.
+
+**Any OAuth2 provider** (**Sign-in: OAuth2 client credentials**): a token endpoint
+(`https://`) that gives the client ID and secret an access token for SMTP (the client
+credentials grant), with the scope it needs, if any. The mail server must offer XOAUTH2;
+one that doesn't is refused rather than sent to without a sign-in.
 
 **Webhook (JSON)** for anything else. The app POSTs:
 

@@ -39,6 +39,8 @@ class Kind:
     required: tuple[str, ...] = ()
     defaults: dict[str, str] = field(default_factory=dict)
     choices: dict[str, tuple[str, ...]] = field(default_factory=dict)  # a select, not a box
+    # shown only when another setting has one of these values: {field: (setting, values)}
+    when: dict[str, tuple[str, tuple[str, ...]]] = field(default_factory=dict)
 
 
 KINDS: dict[str, Kind] = {
@@ -58,11 +60,34 @@ KINDS: dict[str, Kind] = {
     ),
     "smtp": Kind(
         "Email (SMTP)",
-        config=("host", "port", "security", "username", "sender", "to"),
-        secrets=("password",),
+        config=(
+            "host",
+            "port",
+            "security",
+            "auth",
+            "username",
+            "tenant",
+            "client_id",
+            "token_url",
+            "scope",
+            "sender",
+            "to",
+        ),
+        secrets=("password", "client_secret"),
         required=("host", "port", "security", "sender", "to"),
-        defaults={"port": "587", "security": "starttls"},
-        choices={"security": ("starttls", "tls", "none")},
+        defaults={"port": "587", "security": "starttls", "auth": "password"},
+        choices={
+            "security": ("starttls", "tls", "none"),
+            "auth": ("password", "microsoft", "google", "oauth2"),
+        },
+        when={
+            "tenant": ("auth", ("microsoft",)),
+            "client_id": ("auth", ("microsoft", "google", "oauth2")),
+            "client_secret": ("auth", ("microsoft", "google", "oauth2")),
+            "token_url": ("auth", ("oauth2",)),
+            "scope": ("auth", ("oauth2",)),
+            "password": ("auth", ("password",)),
+        },
     ),
 }
 # their settings that are URLs the app will send to
@@ -118,9 +143,10 @@ def targets(kind: str, config: dict[str, str], secrets: dict[str, str]) -> list[
     if kind == "telegram":
         return [TELEGRAM_API]
     if kind == "smtp":
-        from mcui.notify import mail
+        from mcui.notify import mail, oauth
 
-        return [mail.target(config)]
+        token = oauth.token_url(config)
+        return [mail.target(config), *([token] if token else [])]
     return [v for n, v in {**config, **secrets}.items() if n in URL_FIELDS and v]
 
 
@@ -399,14 +425,22 @@ async def send(
     elif kind == "ntfy":
         await _ntfy(http, config, secrets, events, app_url)
     elif kind == "smtp":
-        from mcui.notify import mail
+        from mcui.notify import mail, oauth
 
         # keyed as the check keys them: the URL's host name, in lower case (D95 review)
         host = urlsplit(mail.target(config)).hostname or ""
         pin = None
         if pins is not None and (pin := pins.get(host)) is None:
             raise NotifyError(f"{config['host']} wasn't checked")
-        await mail.send(config, secrets, events, app_url, pin)
+        token = None
+        if oauth.oauth(config):
+            token = await oauth.access_token(http, config, secrets, time.time())
+        try:
+            await mail.send(config, secrets, events, app_url, pin, token)
+        except NotifyError:
+            if token is not None:
+                oauth.forget(config, secrets)  # a new one next time
+            raise
     else:  # pragma: no cover - kinds are checked when saved
         raise NotifyError(f"unknown kind {kind}")
 

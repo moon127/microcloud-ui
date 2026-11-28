@@ -86,6 +86,8 @@ export interface NotifyKindSpec {
   defaults: Record<string, string>;
   /** settings picked from a list */
   choices?: Record<string, string[]>;
+  /** settings shown only when another one has one of these values */
+  when?: Record<string, { field: string; values: string[] }>;
 }
 export interface NotifyChannel {
   id: number;
@@ -137,6 +139,13 @@ export const testChannel = (project: string | undefined, id: number) =>
   send<{ ok: boolean; error?: string }>("POST", `${notifyBase(project)}/channels/${id}/test`);
 export const fetchDeliveries = (project: string | undefined, id: number) =>
   api<NotifyDelivery[]>(`${notifyBase(project)}/channels/${id}/deliveries`);
+/** Signing in to a Google mailbox (D96): where to send the browser, then the callback's
+ * code and state, finished as the signed-in user. */
+export const startSignIn = (project: string | undefined, id: number) =>
+  send<{ url: string }>("POST", `${notifyBase(project)}/channels/${id}/sign-in`);
+export const finishSignIn = (state: string, code: string) =>
+  send<{ channel: string; path: string }>("POST", "/api/notify/oauth/finish", { state, code });
+export const fetchOAuthInfo = () => api<{ redirect_uri: string; warning: string | null }>("/api/notify/oauth");
 export const findTelegramChats = (project: string | undefined, who: { token?: string; channel_id?: number }) =>
   send<{ id: string; type: string; name: string }[]>("POST", `${notifyBase(project)}/telegram-chats`, who);
 

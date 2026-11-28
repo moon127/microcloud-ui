@@ -152,6 +152,24 @@ export const PAGES: {
       await d.getByLabel(/^To/).fill("ops@example.org, oncall@example.org");
     },
   },
+  {
+    file: "notification-m365.png",
+    path: "/settings#notifications",
+    wait: "on-call phone",
+    prepare: async (p) => {
+      await p.getByRole("button", { name: "Add channel" }).click();
+      const d = p.getByRole("dialog");
+      await d.getByLabel("Kind").selectOption("smtp");
+      await d.getByLabel("Sign-in").selectOption("microsoft");
+      await d.getByLabel("Name", { exact: true }).fill("ops-m365");
+      await d.getByLabel(/Mailbox/).fill("alerts@example.org");
+      await d.getByLabel(/Tenant/).fill("example.org");
+      await d.getByLabel(/Client \(application\) ID/).fill("00000000-0000-0000-0000-000000000000");
+      await d.getByLabel("Client secret").fill("demo-client-secret");
+      await d.getByLabel("From address").fill("alerts@example.org");
+      await d.getByLabel(/^To/).fill("ops@example.org");
+    },
+  },
   // alerts (D91): the page, the bell and the critical banner
   { file: "alerts.png", path: "/alerts", wait: "An OSD is nearly full" },
   // users and project access (D81)

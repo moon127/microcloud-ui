@@ -34,7 +34,7 @@ from email.utils import formataddr, formatdate, make_msgid
 from typing import Any
 from urllib.parse import urlsplit
 
-from mcui.notify import kinds
+from mcui.notify import kinds, oauth
 
 SECURITY = ("starttls", "tls", "none")
 PORTS = {"starttls": "587", "tls": "465", "none": "25"}
@@ -60,23 +60,25 @@ def check(config: dict[str, str], secrets: dict[str, str], *, cluster: bool) -> 
     if not (port.isascii() and port.isdigit() and 1 <= int(port) <= 65535):
         raise ValueError("port: a number from 1 to 65535")
     security = config.get("security", "")
+    password = config.get("auth", "password") == "password"  # not OAuth2
     if security not in SECURITY:
         raise ValueError("security: starttls, tls or none")
     if security == "none" and not cluster:
         raise ValueError("a project's email channel must use STARTTLS or TLS")
-    if not cluster and not config.get("username"):
+    if not cluster and password and not config.get("username"):
         # a project can't use the cluster's address to send unsigned mail: straight to
         # someone's mail server, or through a relay that trusts it (D95 review)
         raise ValueError("a project's email channel needs a username and password")
-    if security == "none" and (config.get("username") or secrets.get("password")):
+    if password and security == "none" and (config.get("username") or secrets.get("password")):
         raise ValueError("a username and password need STARTTLS or TLS")
-    if bool(config.get("username")) != bool(secrets.get("password")):
+    if password and bool(config.get("username")) != bool(secrets.get("password")):
         raise ValueError("a username needs a password, and the other way round")
     if not ADDRESS.fullmatch(config.get("sender", "")):
         raise ValueError("sender: one email address, such as alerts@example.org")
     to = recipients(config.get("to", ""))
     if not to or len(to) > MAX_TO or not all(ADDRESS.fullmatch(a) for a in to):
         raise ValueError(f"to: 1 to {MAX_TO} email addresses, separated by commas")
+    oauth.check(config, secrets)
 
 
 def _is_ip(host: str) -> bool:
@@ -276,6 +278,7 @@ def _send(
     helo: str,
     pin: str | None,
     session: _Session,
+    token: str | None = None,
 ) -> None:
     security = config["security"]
     ctx = tls_context()
@@ -292,7 +295,23 @@ def _send(
         if security == "starttls":
             smtp.starttls(context=ctx)  # fails if the server doesn't offer it
             smtp.ehlo()
-        if config.get("username"):
+        if token is not None:
+            # SASL XOAUTH2; a refusal comes as a 334 challenge, answered with an empty line.
+            # Only a server that offers it, and only 235 counts: smtplib also takes 503
+            # ("already signed in", or Postfix's "authentication not enabled"), which would
+            # send unsigned mail (D96 review)
+            offered = (smtp.esmtp_features.get("auth") or "").upper().split()
+            if "XOAUTH2" not in offered:
+                raise kinds.NotifyError("the server doesn't offer XOAUTH2 sign-in")
+            response = oauth.xoauth2(config["username"], token)
+            code, _ = smtp.auth(
+                "XOAUTH2",
+                lambda challenge=None: response if challenge is None else "",
+                initial_response_ok=True,
+            )
+            if code != 235:
+                raise kinds.NotifyError(f"SMTP {code}: the sign-in wasn't accepted")
+        elif config.get("username"):
             smtp.login(config["username"], secrets.get("password", ""))
         refused = smtp.send_message(msg, config["sender"], recipients(config["to"]))
         if refused:
@@ -307,17 +326,20 @@ def _send(
         session.close()
 
 
-def _hide(text: str, config: dict[str, str], secrets: dict[str, str]) -> str:
-    """A server's reply without the password, nor the AUTH line that carries it."""
-    password = secrets.get("password")
-    if password:
-        user = config.get("username", "")
-        for form in (
-            password,
-            base64.b64encode(password.encode()).decode(),
-            base64.b64encode(f"\0{user}\0{password}".encode()).decode(),
-        ):
-            text = text.replace(form, "***")
+def _hide(
+    text: str, config: dict[str, str], secrets: dict[str, str], token: str | None = None
+) -> str:
+    """A server's reply without the password or token, nor the AUTH line that carries
+    it."""
+    user = config.get("username", "")
+    forms = []
+    if password := secrets.get("password"):
+        forms += [password, f"\0{user}\0{password}"]
+    if token:
+        forms += [token, oauth.xoauth2(user, token)]
+    for form in forms:
+        for shown in (form, base64.b64encode(form.encode()).decode()):
+            text = text.replace(shown, "***")
     return text
 
 
@@ -327,14 +349,16 @@ async def send(
     events: list[dict[str, Any]],
     app_url: str | None,
     pin: str | None = None,
+    token: str | None = None,
 ) -> None:
-    """Send one email; ``pin`` (a project's channel) is the address to connect to."""
+    """Send one email; ``pin`` (a project's channel) is the address to connect to;
+    ``token``, an OAuth2 access token to sign in with."""
     helo = await _helo_name(app_url, project=pin is not None)
     msg = message(config, events, app_url, helo.strip("[]").removeprefix("IPv6:"))
     session = _Session()
     loop = asyncio.get_running_loop()
     try:
-        await loop.run_in_executor(_pool, _send, config, secrets, msg, helo, pin, session)
+        await loop.run_in_executor(_pool, _send, config, secrets, msg, helo, pin, session, token)
     except asyncio.CancelledError:
         # out of time: the thread's read or write ends now, or it doesn't connect
         session.stop()
@@ -343,7 +367,7 @@ async def send(
         # the server's own words, on one line (a reply can quote what was sent)
         why = e.smtp_error
         why = why.decode("utf-8", "replace") if isinstance(why, bytes) else str(why)
-        why = _hide(_CONTROL.sub(" ", why).strip(), config, secrets)
+        why = _hide(_CONTROL.sub(" ", why).strip(), config, secrets, token)
         raise kinds.NotifyError(f"SMTP {e.smtp_code}: {why}"[:300]) from e
     except smtplib.SMTPRecipientsRefused as e:
         raise kinds.NotifyError(f"refused for {', '.join(sorted(e.recipients))}") from e

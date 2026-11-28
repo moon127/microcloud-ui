@@ -28,6 +28,8 @@ SESSION_ONLY = {
     ("GET", "/api/storage-pools"),
     ("GET", "/api/images/remote/{remote}"),
     ("GET", "/api/image-registries"),
+    # finishing an email sign-in: checked against who started it and their rights (D96)
+    ("POST", "/api/notify/oauth/finish"),
 }
 
 

@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from mcui.notify import kinds
+from mcui.notify import kinds, oauth
 from mcui.notify.net import PinnedTransport, check_public
 from mcui.notify.store import NotifyStore
 
@@ -63,6 +63,7 @@ class Notifier:
         self.http = httpx.AsyncClient(timeout=15, transport=transport, follow_redirects=False)
         self.task: asyncio.Task[int] | None = None
         self.tested: dict[int, float] = {}  # channel: when Send test last ran (monotonic)
+        self.sign_ins = oauth.SignIns()
         # httpx logs each request's URL at INFO, and webhook URLs and bot tokens are
         # secrets (D94 review)
         logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -136,9 +137,6 @@ class Notifier:
             await kinds.send(self.http, *args)
             return
         pins = await check_public(kinds.targets(ch["kind"], ch["config"], ch["secrets"]))
-        if ch["kind"] == "smtp":
-            await kinds.send(self.http, *args, pins=pins)
-            return
         inner = self.transport or httpx.AsyncHTTPTransport()
         async with httpx.AsyncClient(
             timeout=15,
@@ -146,7 +144,7 @@ class Notifier:
             follow_redirects=False,
             trust_env=False,
         ) as http:
-            await kinds.send(http, *args)
+            await kinds.send(http, *args, pins=pins)
 
     def kick(self) -> None:
         """Send what's due in the background, so a slow server never holds up the alert

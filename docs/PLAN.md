@@ -737,7 +737,7 @@ on Settings. The rest of Phase 8 (metric store, export, quota history) waits.
 documented and shot. (1) ✅ Chat webhooks (Slack/Mattermost, Discord, Teams Workflows),
 Telegram (BotFather, Find chat), ntfy, JSON webhooks; cluster and project channels;
 batching, critical reminders every 4 h, retries, log, Send test, failing-channel alert.
-(2) ✅ SMTP (D95): no auth or user/password, plain, STARTTLS or TLS. (3) SMTP OAuth2: Microsoft 365
+(2) ✅ SMTP (D95): no auth or user/password, plain, STARTTLS or TLS. (3) ✅ SMTP OAuth2 (D96): Microsoft 365
 (app registration, client credentials, no browser), Google (sign-in through the app, a
 refresh token kept), and a generic token endpoint.
 

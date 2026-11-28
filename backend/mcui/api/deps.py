@@ -200,6 +200,9 @@ async def _authorize(
             break
 
 
+authorize = _authorize  # for a route whose project is found from what it's given
+
+
 def _project_dep(action: Action) -> Callable[..., Awaitable[Session]]:
     @_policy(f"project-{action}")
     async def dep(request: Request, session: SessionDep, services: ServicesDep) -> Session:

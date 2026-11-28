@@ -8,21 +8,30 @@ write-only: the API says which are set, never what they are.
 
 from __future__ import annotations
 
+import ipaddress
 import time
 from typing import Annotated, Any, Literal
 
 import httpx
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Request
 from pydantic import BaseModel, Field
 
 from mcui.alerts.rules import RULES
-from mcui.api.deps import AdminDep, ProjectManageDep, ScopeDep, ServicesDep, StoreDep
+from mcui.api.deps import (
+    AdminDep,
+    ProjectManageDep,
+    ScopeDep,
+    ServicesDep,
+    SessionDep,
+    StoreDep,
+    authorize,
+)
 from mcui.api.instances import NAME, ProjectName
 from mcui.auth.store import Session, Store
-from mcui.notify import kinds
+from mcui.notify import kinds, oauth
 from mcui.notify.kinds import KINDS
-from mcui.notify.net import NotPublic, check_public
-from mcui.notify.service import DEFAULT_REMINDER_HOURS, Notifier
+from mcui.notify.net import NotPublic, PinnedTransport, check_public
+from mcui.notify.service import DEFAULT_REMINDER_HOURS, Notifier, scrub
 from mcui.services import Services
 
 router = APIRouter(prefix="/api")
@@ -102,13 +111,26 @@ async def _clean(
             secrets[k] = v.strip()
         else:
             secrets.pop(k, None)
+    # a saved secret this sign-in doesn't use goes (a password, after a switch to OAuth2)
+    for k, (setting, values) in kind.when.items():
+        if k in secrets and k not in body.secrets and config.get(setting) not in values:
+            del secrets[k]
+    if saved and "refresh_token" in secrets:
+        # a sign-in is for one app, one mailbox and one way in: changing any of them means
+        # signing in again (D96)
+        keys = ("auth", "client_id", "username")
+        if any(saved["config"].get(k) != config.get(k) for k in keys) or (
+            "client_secret" in body.secrets
+        ):
+            del secrets["refresh_token"]
     if saved:
         # a saved token or password goes only where it was meant for: pointing the channel
         # at another server needs it typed again (D94 review)
         before = kinds.targets(body.kind, saved["config"], saved["secrets"])
         if kinds.targets(body.kind, config, secrets) != before:
             kept = sorted(k for k in saved["secrets"] if k in secrets and k not in body.secrets)
-            kept = [k for k in kept if k not in kinds.URL_FIELDS]
+            secrets.pop("refresh_token", None)
+            kept = [k for k in kept if k not in kinds.URL_FIELDS and k != "refresh_token"]
             if kept:
                 raise HTTPException(
                     400, f"the server changed: enter {', '.join(kept)} again, or remove it"
@@ -275,6 +297,7 @@ async def channel_kinds(_: ScopeDep) -> dict[str, Any]:
             "required": list(k.required),
             "defaults": k.defaults,
             "choices": {f: list(c) for f, c in k.choices.items()},
+            "when": {f: {"field": s, "values": list(v)} for f, (s, v) in k.when.items()},
         }
         for name, k in KINDS.items()
     }
@@ -396,3 +419,144 @@ async def project_telegram_chats(
     project: ProjectName, body: TelegramChats, _: ProjectManageDep, services: ServicesDep
 ) -> list[dict[str, Any]]:
     return await _telegram(services, project, body)
+
+
+# --- signing in to a mail server (OAuth2, D96) -------------------------------------------
+
+
+class SignInDone(BaseModel):
+    state: Annotated[str, Field(min_length=20, max_length=200)]
+    code: Annotated[str, Field(min_length=1, max_length=2000)]
+
+
+def _redirect_uri(services: Services, request: Request) -> str:
+    """Where Google sends the browser back: the app's own page. ``public_url`` when set,
+    as it must match what's registered with Google exactly."""
+    base = services.settings.server.public_url or str(request.base_url).rstrip("/")
+    return f"{base}/oauth/callback"
+
+
+def _sign_in(
+    services: Services,
+    store: Store,
+    session: Session,
+    project: str | None,
+    channel_id: int,
+    request: Request,
+) -> dict[str, Any]:
+    n = _notifier(services)
+    ch = _get(n, channel_id, project)
+    if ch["kind"] != "smtp" or ch["config"].get("auth") != "google":
+        raise HTTPException(400, "only a Google email channel signs in through the browser")
+    if project is None and ch["project"] is not None:
+        # signing in puts the signer's mailbox behind the channel: a project's channel
+        # is signed in to by its own admins, on the project's page (D96 review)
+        raise HTTPException(400, "sign in to a project's channel from the project's page")
+    url = n.sign_ins.start(ch, session.user.username, _redirect_uri(services, request), n.clock())
+    store.audit(session.user.username, "notify.sign_in", _target(ch))
+    return {"url": url}
+
+
+@router.get("/notify/oauth")
+async def oauth_info(_: ScopeDep, services: ServicesDep, request: Request) -> dict[str, Any]:
+    """What to register with Google: the redirect URI, and why Google may refuse it."""
+    uri = _redirect_uri(services, request)
+    host = httpx.URL(uri).host
+    warning = None
+    if not uri.startswith("https://") and host != "localhost":
+        warning = "Google takes only https redirect URIs: set [server] public_url"
+    elif _is_address(host):
+        warning = "Google doesn't take an IP address here: set [server] public_url to a name"
+    return {"redirect_uri": uri, "warning": warning}
+
+
+def _is_address(host: str) -> bool:
+    try:
+        ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return True
+
+
+@router.post("/notify/channels/{channel_id}/sign-in")
+async def sign_in_channel(
+    channel_id: ChannelId,
+    session: AdminDep,
+    services: ServicesDep,
+    store: StoreDep,
+    request: Request,
+) -> dict[str, Any]:
+    return _sign_in(services, store, session, None, channel_id, request)
+
+
+@router.post("/projects/{project}/notify/channels/{channel_id}/sign-in")
+async def sign_in_project_channel(
+    project: ProjectName,
+    channel_id: ChannelId,
+    session: ProjectManageDep,
+    services: ServicesDep,
+    store: StoreDep,
+    request: Request,
+) -> dict[str, Any]:
+    return _sign_in(services, store, session, project, channel_id, request)
+
+
+@router.post("/notify/oauth/finish")
+async def finish_sign_in(
+    body: SignInDone,
+    session: SessionDep,
+    services: ServicesDep,
+    store: StoreDep,
+    request: Request,
+) -> dict[str, Any]:
+    """The callback page's second half: as the user who started the sign-in, whose right
+    to change the channel is checked again."""
+    n = _notifier(services)
+    try:
+        s = n.sign_ins.take(body.state, session.user.username, n.clock())
+    except PermissionError as e:
+        raise HTTPException(403, str(e)) from e
+    except ValueError as e:
+        raise HTTPException(400, str(e)) from e
+    ch = n.store.channel(s.channel_id)
+    if ch is None or ch["kind"] != "smtp" or ch["config"].get("auth") != "google":
+        raise HTTPException(404, "no such channel")
+    if oauth.settings(ch) != s.settings:
+        raise HTTPException(409, "the channel changed during the sign-in: sign in again")
+    # their right to change it, again: taken away meanwhile, or a project no longer
+    # restricted (read-only for its users), as the project routes check (D96 review)
+    if ch["project"] is None:
+        if not session.user.is_admin:
+            raise HTTPException(404, "no such channel")
+    else:
+        await authorize(request, session, services.lxd, ch["project"], "manage")
+    try:
+        refresh = await _oauth_finish(n, ch, s, body.code)
+    except (kinds.NotifyError, NotPublic, httpx.HTTPError) as e:
+        store.audit(session.user.username, "notify.signed_in", _target(ch), ok=False)
+        raise HTTPException(502, scrub(str(e) or type(e).__name__, ch["secrets"])) from e
+    # the channel as it is now (it may have been edited during the exchange): the token
+    # only goes on if it's still for the same app, mailbox and server (D96 review)
+    now = n.store.channel(ch["id"])
+    if now is None:
+        raise HTTPException(404, "no such channel")
+    if oauth.settings(now) != s.settings:
+        raise HTTPException(409, "the channel changed during the sign-in: sign in again")
+    n.store.update(now["id"], {**now, "secrets": {**now["secrets"], "refresh_token": refresh}})
+    store.audit(session.user.username, "notify.signed_in", _target(ch))
+    path = f"/projects/{ch['project']}" if ch["project"] else "/settings"
+    return {"channel": ch["name"], "path": f"{path}#notifications"}
+
+
+async def _oauth_finish(n: Notifier, ch: dict[str, Any], s: oauth.SignIn, code: str) -> str:
+    """Swap the code, through the pinned client for a project's channel."""
+    if ch["project"] is None:
+        return await oauth.finish(n.http, ch, s, code)
+    pins = await check_public([oauth.GOOGLE_TOKEN])
+    async with httpx.AsyncClient(
+        timeout=15,
+        transport=PinnedTransport(pins, n.transport or httpx.AsyncHTTPTransport()),
+        follow_redirects=False,
+        trust_env=False,
+    ) as http:
+        return await oauth.finish(http, ch, s, code)

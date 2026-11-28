@@ -26,7 +26,7 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   addresses and OVN ranges, certificates. A bell, toasts and a banner on every page, an
   Alerts page with history, thresholds on Settings (Phase 8a,
   [`docs/ALERTS.md`](docs/ALERTS.md)). Sent out to Slack, Mattermost, Discord, Teams,
-  Telegram, ntfy, email (SMTP) or any webhook, for the cluster or per project, with reminders of
+  Telegram, ntfy, email (SMTP, with OAuth2 for Microsoft 365 and Google) or any webhook, for the cluster or per project, with reminders of
   critical alerts nobody has acknowledged (Phase 8b).
 - **Host paths and USB devices:** attach a member's folders (an NFS mount, a SAN), disks and
   USB devices to an instance on it, with what that does to moves and evacuations. Pick a

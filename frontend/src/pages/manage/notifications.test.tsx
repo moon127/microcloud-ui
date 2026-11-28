@@ -19,11 +19,19 @@ const KINDS: Record<api.NotifyKind, api.NotifyKindSpec> = {
   },
   smtp: {
     label: "Email (SMTP)",
-    config: ["host", "port", "security", "username", "sender", "to"],
-    secrets: ["password"],
+    config: ["host", "port", "security", "auth", "username", "tenant", "client_id", "token_url", "scope", "sender", "to"],
+    secrets: ["password", "client_secret"],
     required: ["host", "port", "security", "sender", "to"],
-    defaults: { port: "587", security: "starttls" },
-    choices: { security: ["starttls", "tls", "none"] },
+    defaults: { port: "587", security: "starttls", auth: "password" },
+    choices: { security: ["starttls", "tls", "none"], auth: ["password", "microsoft", "google", "oauth2"] },
+    when: {
+      tenant: { field: "auth", values: ["microsoft"] },
+      client_id: { field: "auth", values: ["microsoft", "google", "oauth2"] },
+      client_secret: { field: "auth", values: ["microsoft", "google", "oauth2"] },
+      token_url: { field: "auth", values: ["oauth2"] },
+      scope: { field: "auth", values: ["oauth2"] },
+      password: { field: "auth", values: ["password"] },
+    },
   },
 };
 const chan = (over: Partial<api.NotifyChannel> = {}): api.NotifyChannel => ({
@@ -193,11 +201,92 @@ describe("Notifications (D94)", () => {
         undefined,
         expect.objectContaining({
           kind: "smtp",
-          config: { host: "mail.example.org", port: "2525", security: "starttls", sender: "a@example.org", to: "ops@example.org" },
+          config: { host: "mail.example.org", port: "2525", security: "starttls", auth: "password", sender: "a@example.org", to: "ops@example.org" },
           secrets: { password: "pw" },
         }),
       ),
     );
+  });
+
+  it("signs in to Microsoft 365 and Google with OAuth2", async () => {
+    vi.spyOn(api, "fetchChannels").mockResolvedValue([
+      chan({ id: 7, name: "gmail", kind: "smtp", config: { auth: "google" }, secrets_set: ["client_secret"] }),
+      chan({ id: 8, name: "gmail2", kind: "smtp", config: { auth: "google" }, secrets_set: ["client_secret", "refresh_token"] }),
+      // a project's: signed in to from its own page, not from Settings
+      chan({ id: 9, name: "webmail", kind: "smtp", project: "web", config: { auth: "google" }, secrets_set: ["client_secret"] }),
+    ]);
+    vi.spyOn(api, "fetchOAuthInfo").mockResolvedValue({
+      redirect_uri: "https://mcui.example.org/oauth/callback",
+      warning: "Google takes only https redirect URIs: set [server] public_url",
+    });
+    const add = vi.spyOn(api, "addChannel").mockResolvedValue(chan());
+    const start = vi.spyOn(api, "startSignIn").mockResolvedValueOnce({ url: "https://accounts.google.com/x" }).mockRejectedValueOnce(new Error("nope"));
+    const assign = vi.fn();
+    vi.stubGlobal("location", { ...window.location, assign });
+    renderAt(<Notifications />);
+    const row = (await screen.findByText("gmail")).closest("tr")!;
+    expect(row).toHaveTextContent("(not signed in)");
+    fireEvent.click(within(row).getByRole("button", { name: "Sign in" }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith("https://accounts.google.com/x"));
+    expect(start).toHaveBeenCalledWith(undefined, 7);
+    expect(within(screen.getByText("webmail").closest("tr")!).queryByRole("button", { name: "Sign in" })).toBeNull();
+    const row2 = screen.getByText("gmail2").closest("tr")!;
+    expect(row2).not.toHaveTextContent("(not signed in)");
+    fireEvent.click(within(row2).getByRole("button", { name: "Sign in again" }));
+    expect(await within(row2).findByText("Sign-in failed: nope")).toBeInTheDocument();
+    vi.unstubAllGlobals();
+
+    fireEvent.click(screen.getByRole("button", { name: "Add channel" }));
+    fireEvent.change(dialog().getByLabelText("Kind"), { target: { value: "smtp" } });
+    expect(dialog().getByLabelText("Password (with a username)")).toBeInTheDocument();
+    expect(dialog().queryByLabelText("Client secret")).toBeNull();
+    fireEvent.change(dialog().getByLabelText("Sign-in"), { target: { value: "microsoft" } });
+    expect(dialog().getByLabelText("SMTP server")).toHaveValue("smtp.office365.com");
+    expect(dialog().queryByLabelText("Password (with a username)")).toBeNull();
+    expect(dialog().getByText(/SMTP.SendAsApp/)).toBeInTheDocument();
+    fireEvent.change(dialog().getByLabelText("Sign-in"), { target: { value: "google" } });
+    expect(dialog().getByLabelText("SMTP server")).toHaveValue("smtp.office365.com"); // typed (filled) already
+    expect(await dialog().findByText("https://mcui.example.org/oauth/callback")).toBeInTheDocument();
+    expect(dialog().getByText(/Google takes only https/)).toBeInTheDocument();
+    expect(dialog().queryByLabelText(/Tenant/)).toBeNull();
+    fireEvent.change(dialog().getByLabelText("Sign-in"), { target: { value: "microsoft" } });
+    fireEvent.change(dialog().getByLabelText("Name"), { target: { value: "m365" } });
+    fireEvent.change(dialog().getByLabelText(/Tenant/), { target: { value: "contoso.example" } });
+    fireEvent.change(dialog().getByLabelText(/Client \(application\) ID/), { target: { value: "app-1" } });
+    fireEvent.change(dialog().getByLabelText("Client secret"), { target: { value: "cs" } });
+    fireEvent.change(dialog().getByLabelText(/Mailbox/), { target: { value: "alerts@example.org" } });
+    fireEvent.change(dialog().getByLabelText("From address"), { target: { value: "alerts@example.org" } });
+    fireEvent.change(dialog().getByLabelText(/^To/), { target: { value: "ops@example.org" } });
+    fireEvent.click(dialog().getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(add).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({
+          config: {
+            host: "smtp.office365.com",
+            port: "587",
+            security: "starttls",
+            auth: "microsoft",
+            username: "alerts@example.org",
+            tenant: "contoso.example",
+            client_id: "app-1",
+            sender: "alerts@example.org",
+            to: "ops@example.org",
+          },
+          secrets: { client_secret: "cs" },
+        }),
+      ),
+    );
+  });
+
+  it("keeps the password field of an email channel saved before sign-ins existed", async () => {
+    vi.spyOn(api, "fetchChannels").mockResolvedValue([
+      chan({ kind: "smtp", config: { host: "mail.example.org", port: "587", security: "starttls", username: "u" }, secrets_set: ["password"] }),
+    ]);
+    renderAt(<Notifications />);
+    fireEvent.click(await screen.findByRole("button", { name: "Edit" }));
+    expect(dialog().getByLabelText("Password (with a username)")).toHaveAttribute("placeholder", "saved: leave empty to keep");
+    expect(dialog().getByLabelText("Sign-in")).toHaveValue("password");
   });
 
   it("doesn't offer unencrypted email to a project", async () => {
