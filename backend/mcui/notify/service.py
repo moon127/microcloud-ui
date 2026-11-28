@@ -62,6 +62,7 @@ class Notifier:
         # no redirects: a channel sends where it was set to, and only there
         self.http = httpx.AsyncClient(timeout=15, transport=transport, follow_redirects=False)
         self.task: asyncio.Task[int] | None = None
+        self.tested: dict[int, float] = {}  # channel: when Send test last ran (monotonic)
         # httpx logs each request's URL at INFO, and webhook URLs and bot tokens are
         # secrets (D94 review)
         logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -135,6 +136,9 @@ class Notifier:
             await kinds.send(self.http, *args)
             return
         pins = await check_public(kinds.targets(ch["kind"], ch["config"], ch["secrets"]))
+        if ch["kind"] == "smtp":
+            await kinds.send(self.http, *args, pins=pins)
+            return
         inner = self.transport or httpx.AsyncHTTPTransport()
         async with httpx.AsyncClient(
             timeout=15,
@@ -222,4 +226,6 @@ def _reason(e: Exception) -> str:
         return "timed out"
     if isinstance(e, httpx.ConnectError):
         return f"can't connect: {e}"[:300]
+    if isinstance(e, OSError) and not isinstance(e, TimeoutError):  # email: socket errors
+        return f"can't connect: {e.strerror or e}"[:300]
     return str(e) or type(e).__name__

@@ -859,7 +859,9 @@ async def notify_failing(ctx: Context) -> list[Alert]:
                 "notify_failing",
                 str(ch["id"]),
                 "warning",
-                f"Notifications to {ch['name']} are failing",
+                # a word joiner after each dot: a name like "login-example.com" isn't made
+                # a link by mail or chat clients (D95 review)
+                f"Notifications to {ch['name'].replace('.', '.' + chr(0x2060))} are failing",
                 f"Messages fail ({short_reason(f['error'] or '')}; its Log has more). They're "
                 "retried for about 30 minutes, then dropped; after fixing it, use Send test",
                 f"/projects/{project}#notifications" if project else "/settings#notifications",

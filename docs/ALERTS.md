@@ -4,7 +4,7 @@ microcloud-ui checks the cluster every 30 seconds and raises an alert when somet
 needs attention: a Ceph OSD nearly full, a storage pool or host disk filling up, a member
 offline, a network running out of addresses. Alerts show on every page and are recorded,
 so you can see what happened while you weren't looking. (Phase 8a, D91.) They can also be
-sent to chat, Telegram, ntfy or a webhook ([below](#sending-alerts-out)).
+sent to chat, Telegram, ntfy, email or a webhook ([below](#sending-alerts-out)).
 
 ![The Alerts page, with a critical alert in the banner](screenshots/alerts.png)
 
@@ -97,7 +97,8 @@ Every change and every acknowledgement is in the audit log.
 ## Sending alerts out
 
 Alerts can also go to chat (Slack, Mattermost, Discord, Microsoft Teams), Telegram, a
-phone through ntfy, or any URL as JSON (Phase 8b, D94). Email comes next.
+phone through ntfy, email, or any URL as JSON (Phase 8b, D94, D95). Signing in to
+Microsoft 365 and Google with OAuth2 comes next.
 
 ![Notification channels on Settings](screenshots/notifications.png)
 
@@ -122,7 +123,8 @@ Everything one check finds goes out as one message per channel, so a member goin
 doesn't send ten. Links in messages lead back to the app if `[server] public_url` is set
 ([`CONFIGURATION.md`](CONFIGURATION.md)); without it messages carry no links.
 
-**Send test** sends a sample message straight away and shows whether it worked. **Log**
+**Send test** sends a sample message straight away and shows whether it worked (once
+every 10 seconds per channel). **Log**
 lists the recent messages, with each failure's reason. A message that can't be sent is
 retried for about 30 minutes (after 30 s, 1, 2, 5, 10 and 15 min) and then dropped; the
 channel then raises its own alert, "Notifications to … are failing", which clears once a
@@ -139,11 +141,11 @@ audit log; errors never include a secret.
 _`. Alert text is sent as plain text: it can't mention `@channel`/`@everyone` or add a
 link in Slack, Mattermost, Discord, Teams or Telegram.
 
-**Project channels** may only send over https, to public addresses: not to anything on
-the cluster's own networks. That's checked when the channel is saved and before each
+**Project channels** may only send over https (email: STARTTLS or TLS), to public
+addresses: not to anything on the cluster's own networks. That's checked when the channel is saved and before each
 message, and the message then goes to the very address that was checked. Cluster
 channels may use a server on your network: a self-hosted ntfy or webhook receiver, also
-over plain http (chat services need https).
+over plain http (chat services need https), or a mail relay without TLS.
 
 Messages leave from the machine running microcloud-ui, each given 20 seconds (a slow
 server doesn't hold up the alert checks, which go on meanwhile). Behind a proxy, set
@@ -199,6 +201,53 @@ account on the server, an **access token** (or a username and password) lets you
 topic protected by the server's access control (on ntfy.sh, reserved topics). Critical
 alerts are sent at ntfy's top priority (5), warnings at the default (3), clearings low
 (2).
+
+**Email (SMTP).**
+
+![Adding an email channel](screenshots/notification-email.png)
+
+- **SMTP server** and **Port**: your mail server or a provider's relay, by name (or
+  address), without the port.
+- **Security**: **STARTTLS** (usually port 587, the default), **TLS** from the start
+  (usually 465), or **None** for a relay on your own network (usually 25; cluster
+  channels only, and without a password). The port changes with it unless you typed one
+  of your own. The server's certificate is always checked against its name, against the
+  system's trusted certificates (a server with a certificate from your own CA needs that
+  CA installed on the machine running the app). If STARTTLS was picked and the server
+  doesn't offer it, the message fails rather than going out unencrypted.
+- **Username** and **Password**, if the server wants a sign-in (both or neither). A
+  project's email channel must sign in: a project can't use the cluster's address to
+  send unsigned mail, straight to someone's mail server or through a relay that trusts
+  the cluster.
+- **From address**: one address, sent as "microcloud-ui &lt;address&gt;". Most servers
+  only let an account send from its own addresses.
+- **To**: up to 10 addresses, separated by commas. Every message goes to all of them.
+
+Each message has a plain-text and an HTML part, with links to the app if `public_url`
+is set, and is marked `Auto-Submitted: auto-generated` so out-of-office replies leave it
+alone. The app names itself to the server (EHLO) with `public_url`'s host name; without
+one, a cluster channel uses the machine's own name and a project's channel
+`microcloud-ui.invalid` (the machine's name stays inside). If the server refuses some of the addresses but takes the rest, the
+message counts as sent (so the others don't get it twice); the refusal is in the app's
+log. When the server refuses all of them, or the sign-in, the reason it gave is in the
+channel's **Log**.
+
+Providers:
+
+- **Your own server or relay** (Postfix, Exchange on-premises, a smart host): any of the
+  three. A cluster channel can use a relay on your network that accepts the cluster's
+  address without a sign-in.
+- **Google (Gmail, Workspace):** `smtp.gmail.com`, STARTTLS, port 587, your address and
+  an **app password** (Google Account → Security → 2-Step Verification → App passwords;
+  your normal password doesn't work). Workspace admins may have app passwords switched
+  off, and can offer an SMTP relay (`smtp-relay.gmail.com`) instead.
+- **Microsoft 365:** `smtp.office365.com`, STARTTLS, port 587. Microsoft is retiring
+  passwords (basic authentication) for SMTP, and it's switched off by default for new
+  tenants, so this may only work where an admin has enabled SMTP AUTH for the mailbox.
+  Signing in with OAuth2 (Phase 8b step 3) is the lasting answer.
+- **Transactional services** (Amazon SES, Mailgun, SendGrid, Postmark and the like):
+  their SMTP host, port 587 and the SMTP credentials they give you, with a From address
+  on a domain you've verified with them.
 
 **Webhook (JSON)** for anything else. The app POSTs:
 

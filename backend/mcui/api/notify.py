@@ -8,6 +8,7 @@ write-only: the API says which are set, never what they are.
 
 from __future__ import annotations
 
+import time
 from typing import Annotated, Any, Literal
 
 import httpx
@@ -25,6 +26,7 @@ from mcui.notify.service import DEFAULT_REMINDER_HOURS, Notifier
 from mcui.services import Services
 
 router = APIRouter(prefix="/api")
+TEST_SECONDS = 10
 ChannelId = Annotated[int, Path(ge=1)]
 Value = Annotated[str, Field(max_length=2000)]
 # a channel's name shows in alerts sent to other channels: plain words only (D94 review)
@@ -34,7 +36,7 @@ Project = Annotated[str, Field(pattern=NAME, max_length=63)]
 
 class ChannelIn(BaseModel):
     name: ChannelName
-    kind: Literal["slack", "discord", "teams", "webhook", "telegram", "ntfy"]
+    kind: Literal["slack", "discord", "teams", "webhook", "telegram", "ntfy", "smtp"]
     enabled: bool = True
     min_severity: Literal["warning", "critical"] = "warning"
     config: dict[str, Value] = Field(default_factory=dict, max_length=10)
@@ -204,6 +206,12 @@ async def _test(
 ) -> dict[str, Any]:
     n = _notifier(services)
     ch = _get(n, channel_id, project)
+    # one at a time and one every TEST_SECONDS per channel: Send test can't be used to
+    # flood a server or someone's inbox from the cluster (D95 review)
+    now = time.monotonic()
+    if now - n.tested.get(channel_id, -TEST_SECONDS) < TEST_SECONDS:
+        raise HTTPException(429, f"wait {TEST_SECONDS} seconds between tests of a channel")
+    n.tested[channel_id] = now
     try:
         await n.test(ch)
     except kinds.NotifyError as e:
@@ -266,6 +274,7 @@ async def channel_kinds(_: ScopeDep) -> dict[str, Any]:
             "secrets": list(k.secrets),
             "required": list(k.required),
             "defaults": k.defaults,
+            "choices": {f: list(c) for f, c in k.choices.items()},
         }
         for name, k in KINDS.items()
     }

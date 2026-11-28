@@ -200,6 +200,8 @@ is checked against recorded request formats. These need your accounts:
 | N4 | ntfy on your phone, subscribed to the channel's random topic; lower a threshold so a real alert fires, then put it back | A push notification when it fires and a low-priority one when it clears; one message for several alerts in the same check |
 | N5 | A project admin (a test user) adds a channel on their project's page | Accepted for a public https URL; refused for an address on your network; the channel gets only that project's alerts |
 | N6 | Break a channel (revoke the Slack webhook) and wait ~35 minutes with an alert firing | Log shows the retries; "Notifications to … are failing" on Alerts; Send test after fixing it clears it |
+| N7 | Email: a channel to your mail server or provider (STARTTLS on 587 with a sign-in; Gmail with an app password if you have one) → Send test | "Sent"; the email arrives with a plain and an HTML part, From "microcloud-ui", links to the app; a wrong password shows the server's "535 …" in the Log |
+| N8 | Email: a cluster channel to a relay on your network with Security None (port 25), if you have one | Sent without a sign-in; a project admin isn't offered None, and needs a username and password |
 
 ## Already verified live by the session (for reference)
 

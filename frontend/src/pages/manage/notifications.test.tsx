@@ -17,6 +17,14 @@ const KINDS: Record<api.NotifyKind, api.NotifyKindSpec> = {
     required: ["server", "topic"],
     defaults: { server: "https://ntfy.sh" },
   },
+  smtp: {
+    label: "Email (SMTP)",
+    config: ["host", "port", "security", "username", "sender", "to"],
+    secrets: ["password"],
+    required: ["host", "port", "security", "sender", "to"],
+    defaults: { port: "587", security: "starttls" },
+    choices: { security: ["starttls", "tls", "none"] },
+  },
 };
 const chan = (over: Partial<api.NotifyChannel> = {}): api.NotifyChannel => ({
   id: 1,
@@ -157,6 +165,48 @@ describe("Notifications (D94)", () => {
     expect(dialog().getByRole("button", { name: "Will be removed" })).toBeDisabled();
     fireEvent.click(dialog().getByRole("button", { name: "Save" }));
     await waitFor(() => expect(upd).toHaveBeenCalledWith(undefined, 1, expect.objectContaining({ secrets: { token: "" } })));
+  });
+
+  it("sets up email: the port follows the security unless one was typed", async () => {
+    vi.spyOn(api, "fetchChannels").mockResolvedValue([]);
+    const add = vi.spyOn(api, "addChannel").mockResolvedValue(chan());
+    renderAt(<Notifications />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add channel" }));
+    fireEvent.change(dialog().getByLabelText("Kind"), { target: { value: "smtp" } });
+    const port = dialog().getByLabelText("Port");
+    expect(port).toHaveValue("587");
+    fireEvent.change(dialog().getByLabelText("Security"), { target: { value: "tls" } });
+    expect(port).toHaveValue("465");
+    fireEvent.change(port, { target: { value: "2525" } });
+    fireEvent.change(dialog().getByLabelText("Security"), { target: { value: "starttls" } });
+    expect(port).toHaveValue("2525");
+    expect(within(dialog().getByLabelText("Security")).getAllByRole("option")).toHaveLength(3);
+    expect(dialog().getByText(/Needed: .*SMTP server, From address, To/)).toBeInTheDocument();
+    fireEvent.change(dialog().getByLabelText("Name"), { target: { value: "mail" } });
+    fireEvent.change(dialog().getByLabelText("SMTP server"), { target: { value: "mail.example.org" } });
+    fireEvent.change(dialog().getByLabelText("From address"), { target: { value: "a@example.org" } });
+    fireEvent.change(dialog().getByLabelText(/^To/), { target: { value: "ops@example.org" } });
+    fireEvent.change(dialog().getByLabelText("Password (with a username)"), { target: { value: "pw" } });
+    fireEvent.click(dialog().getByRole("button", { name: "Save" }));
+    await waitFor(() =>
+      expect(add).toHaveBeenCalledWith(
+        undefined,
+        expect.objectContaining({
+          kind: "smtp",
+          config: { host: "mail.example.org", port: "2525", security: "starttls", sender: "a@example.org", to: "ops@example.org" },
+          secrets: { password: "pw" },
+        }),
+      ),
+    );
+  });
+
+  it("doesn't offer unencrypted email to a project", async () => {
+    vi.spyOn(api, "fetchChannels").mockResolvedValue([]);
+    renderAt(<Notifications project="web" />);
+    fireEvent.click(await screen.findByRole("button", { name: "Add channel" }));
+    fireEvent.change(dialog().getByLabelText("Kind"), { target: { value: "smtp" } });
+    const options = within(dialog().getByLabelText("Security")).getAllByRole("option");
+    expect(options.map((o) => o.getAttribute("value"))).toEqual(["starttls", "tls"]);
   });
 
   it("finds a Telegram chat for a project's channel", async () => {

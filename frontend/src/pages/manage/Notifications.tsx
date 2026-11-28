@@ -27,7 +27,18 @@ const FIELDS: Record<string, string> = {
   topic: "Topic",
   username: "Username (optional)",
   password: "Password",
+  host: "SMTP server",
+  port: "Port",
+  security: "Security",
+  sender: "From address",
+  to: "To (up to 10 addresses, comma-separated)",
 };
+const SECURITY: Record<string, string> = {
+  starttls: "STARTTLS (usually port 587)",
+  tls: "TLS (usually port 465)",
+  none: "None: a relay on your network (usually port 25)",
+};
+const PORTS: Record<string, string> = { starttls: "587", tls: "465", none: "25" };
 const NTFY_TOKEN = "Access token (optional)";
 const HINT: Record<NotifyKind, string> = {
   slack: "In Slack: an app with Incoming Webhooks, added to the channel. Mattermost's incoming webhooks take the same.",
@@ -36,6 +47,7 @@ const HINT: Record<NotifyKind, string> = {
   webhook: "A JSON POST to any URL (docs/ALERTS.md has its format).",
   telegram: "Make a bot with @BotFather, write to it (or add it to a group), then Find chat.",
   ntfy: "Anyone who knows a topic on a public server can read it: keep the random topic, or use an access token.",
+  smtp: "Your mail server, or a provider's SMTP service (docs/ALERTS.md has the usual settings for Google, Microsoft 365 and others).",
 };
 const WHEN = (c: NotifyChannel) =>
   `${c.min_severity === "critical" ? "critical only" : "warnings and critical"}` +
@@ -67,8 +79,8 @@ export default function Notifications({ project }: { project?: string }) {
       <h2 id="notifications">Notifications</h2>
       <p className="muted">
         {project
-          ? `Alerts about project ${project} (its instances, limits and networks) sent to chat, Telegram or ntfy.`
-          : "Alerts sent to chat, Telegram or ntfy. Projects can add their own channels for their alerts."}{" "}
+          ? `Alerts about project ${project} (its instances, limits and networks) sent to chat, Telegram, ntfy or email.`
+          : "Alerts sent to chat, Telegram, ntfy or email. Projects can add their own channels for their alerts."}{" "}
         A channel gets an alert when it fires, when a warning turns critical and when it clears; critical alerts nobody
         has acknowledged are sent again. Secrets are never shown again once saved.
       </p>
@@ -206,7 +218,20 @@ function ChannelDialog({
     setChats(null);
   };
   const label = (f: string) =>
-    kind === "ntfy" && f === "token" ? NTFY_TOKEN : kind === "telegram" && f === "token" ? "Bot token (from @BotFather)" : (FIELDS[f] ?? f);
+    kind === "ntfy" && f === "token"
+      ? NTFY_TOKEN
+      : kind === "telegram" && f === "token"
+        ? "Bot token (from @BotFather)"
+        : kind === "smtp" && f === "password"
+          ? "Password (with a username)"
+          : (FIELDS[f] ?? f);
+  // the usual port follows the security picked, unless a port of its own was typed
+  const setChoice = (f: string, v: string) =>
+    setConfig({
+      ...config,
+      [f]: v,
+      ...(kind === "smtp" && f === "security" && Object.values(PORTS).includes(config.port ?? "") ? { port: PORTS[v] } : {}),
+    });
   const missing = spec.required.filter((f) => !(config[f] || secrets[f] || (saved.has(f) && secrets[f] !== "")));
   const hours = Number(reminder);
   // as the server checks: a name that shows in other channels' messages, plain words only
@@ -267,28 +292,42 @@ function ChannelDialog({
           Name
           <input value={name} onChange={(e) => setName(e.target.value)} />
         </label>
-        {spec.config.map((f) => (
-          <label className="field" key={f}>
-            {label(f)}
-            <span className="actions">
-              <input
-                value={config[f] ?? ""}
-                autoComplete="off"
-                onChange={(e) => setConfig({ ...config, [f]: e.target.value })}
-              />
-              {kind === "ntfy" && f === "topic" && (
-                <button type="button" onClick={() => setConfig({ ...config, topic: randomTopic() })}>
-                  Random
-                </button>
-              )}
-              {kind === "telegram" && f === "chat_id" && (
-                <button type="button" disabled={!secrets.token && !saved.has("token")} onClick={() => void findChats()}>
-                  Find chat
-                </button>
-              )}
-            </span>
-          </label>
-        ))}
+        {spec.config.map((f) =>
+          spec.choices?.[f] ? (
+            <label className="field" key={f}>
+              {label(f)}
+              <select value={config[f] ?? ""} onChange={(e) => setChoice(f, e.target.value)}>
+                {/* a project's email must be encrypted: the server refuses None */}
+                {spec.choices[f].filter((c) => !(project && kind === "smtp" && c === "none")).map((c) => (
+                  <option key={c} value={c}>
+                    {(f === "security" && SECURITY[c]) || c}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            <label className="field" key={f}>
+              {label(f)}
+              <span className="actions">
+                <input
+                  value={config[f] ?? ""}
+                  autoComplete="off"
+                  onChange={(e) => setConfig({ ...config, [f]: e.target.value })}
+                />
+                {kind === "ntfy" && f === "topic" && (
+                  <button type="button" onClick={() => setConfig({ ...config, topic: randomTopic() })}>
+                    Random
+                  </button>
+                )}
+                {kind === "telegram" && f === "chat_id" && (
+                  <button type="button" disabled={!secrets.token && !saved.has("token")} onClick={() => void findChats()}>
+                    Find chat
+                  </button>
+                )}
+              </span>
+            </label>
+          ),
+        )}
         {kind === "telegram" && chats !== null && (
           <div role="status">
             {typeof chats === "string" ? (

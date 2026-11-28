@@ -76,7 +76,7 @@ export const updateAlertSettings = (change: AlertSettingsChange) =>
   send<AlertSettingsView>("PUT", "/api/settings/alerts", change);
 
 /** Where alerts are sent (D94): a cluster channel, or a project's. */
-export type NotifyKind = "slack" | "discord" | "teams" | "webhook" | "telegram" | "ntfy";
+export type NotifyKind = "slack" | "discord" | "teams" | "webhook" | "telegram" | "ntfy" | "smtp";
 export interface NotifyKindSpec {
   label: string;
   config: string[];
@@ -84,6 +84,8 @@ export interface NotifyKindSpec {
   secrets: string[];
   required: string[];
   defaults: Record<string, string>;
+  /** settings picked from a list */
+  choices?: Record<string, string[]>;
 }
 export interface NotifyChannel {
   id: number;

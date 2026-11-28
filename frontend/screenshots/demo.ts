@@ -281,6 +281,11 @@ const NOTIFY_KINDS = {
   webhook: { label: "Webhook (JSON)", config: [], secrets: ["url", "signing_secret"], required: ["url"], defaults: {} },
   telegram: { label: "Telegram", config: ["chat_id"], secrets: ["token"], required: ["chat_id", "token"], defaults: {} },
   ntfy: { label: "ntfy", config: ["server", "topic", "username"], secrets: ["token", "password"], required: ["server", "topic"], defaults: { server: "https://ntfy.sh" } },
+  smtp: {
+    label: "Email (SMTP)", config: ["host", "port", "security", "username", "sender", "to"], secrets: ["password"],
+    required: ["host", "port", "security", "sender", "to"], defaults: { port: "587", security: "starttls" },
+    choices: { security: ["starttls", "tls", "none"] },
+  },
 };
 const CH = (id: number, name: string, kind: string, over: Record<string, unknown> = {}) => ({
   id, name, kind, project: null, enabled: true, min_severity: "warning", config: {}, secrets_set: ["url"], reminder_hours: 4,
@@ -291,6 +296,7 @@ const NOTIFY_CHANNELS = [
   CH(1, "ops-chat", "slack"),
   CH(2, "on-call phone", "ntfy", { min_severity: "critical", config: { server: "https://ntfy.sh", topic: "mcui-5f0c2a9e41d7b38c6a" }, secrets_set: ["token"] }),
   CH(3, "status-hook", "webhook", { reminder_hours: 0, exclude_rules: ["lxd_security"], last: { status: "failed", error: "HTTP 503: Service Unavailable", created_at: 1794400000 - 3600, sent_at: null } }),
+  CH(5, "ops-mail", "smtp", { config: { host: "mail.example.org", port: "587", security: "starttls", username: "alerts@example.org", sender: "alerts@example.org", to: "ops@example.org" }, secrets_set: ["password"] }),
   CH(4, "web-team", "telegram", { project: "web", config: { chat_id: "-1001234567890" }, secrets_set: ["token"], created_by: "ops-oncall" }),
 ];
 

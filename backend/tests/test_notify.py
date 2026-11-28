@@ -365,7 +365,9 @@ async def test_flush_retries_and_gives_up(svc):
     n = svc.notifier
     ok = channel(n, name="ok")
     bad = channel(n, name="bad", secrets={"url": "https://down.example.org/x"})
-    web = channel(n, name="web", project="web", secrets={"url": "https://internal.example.org/x"})
+    web = channel(
+        n, name="login.example", project="web", secrets={"url": "https://internal.example.org/x"}
+    )
     respx.post(SLACK).mock(return_value=httpx.Response(200))
     down = respx.post("https://down.example.org/x").mock(side_effect=httpx.ConnectError("refused"))
     inside = respx.post("https://internal.example.org/x").mock(return_value=httpx.Response(200))
@@ -389,6 +391,8 @@ async def test_flush_retries_and_gives_up(svc):
     assert out[str(bad)].title == "Notifications to bad are failing"
     assert out[str(bad)].detail.startswith("Messages fail (can't connect; its Log has more)")
     assert out[str(web)].detail.startswith("Messages fail (not a public address;")
+    # not a link in a mail or chat client (D95 review)
+    assert out[str(web)].title == "Notifications to login.\u2060example are failing"
     assert out[str(bad)].link == "/settings#notifications"
     assert out[str(web)].project == "web" and out[str(web)].link == "/projects/web#notifications"
     # switched off: its queue is dropped, and it isn't "failing"
@@ -518,6 +522,7 @@ async def test_cluster_channels_api(app, svc):
         assert r.status_code == 201 and r.json()["config"]["server"] == "http://10.0.0.5:8080"
         route = respx.post(SLACK).mock(return_value=httpx.Response(200))
         assert (await c.post(f"/api/notify/channels/{cid}/test", headers=h)).json() == {"ok": True}
+        svc.notifier.tested.clear()  # past the 10 s between tests
         route.mock(return_value=httpx.Response(404, text="no_service"))
         r = await c.post(f"/api/notify/channels/{cid}/test", headers=h)
         assert r.json() == {"ok": False, "error": "HTTP 404: no_service"}

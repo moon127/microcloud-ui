@@ -136,6 +136,22 @@ export const PAGES: {
       await d.getByLabel("Bot token (from @BotFather)").fill("1234567890:demo");
     },
   },
+  {
+    file: "notification-email.png",
+    path: "/settings#notifications",
+    wait: "on-call phone",
+    prepare: async (p) => {
+      await p.getByRole("button", { name: "Add channel" }).click();
+      const d = p.getByRole("dialog");
+      await d.getByLabel("Kind").selectOption("smtp");
+      await d.getByLabel("Name", { exact: true }).fill("ops-mail");
+      await d.getByLabel("SMTP server").fill("mail.example.org");
+      await d.getByLabel("Username (optional)").fill("alerts@example.org");
+      await d.getByLabel("Password (with a username)").fill("demo-app-password");
+      await d.getByLabel("From address").fill("alerts@example.org");
+      await d.getByLabel(/^To/).fill("ops@example.org, oncall@example.org");
+    },
+  },
   // alerts (D91): the page, the bell and the critical banner
   { file: "alerts.png", path: "/alerts", wait: "An OSD is nearly full" },
   // users and project access (D81)

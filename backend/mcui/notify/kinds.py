@@ -38,6 +38,7 @@ class Kind:
     secrets: tuple[str, ...] = ()  # write-only
     required: tuple[str, ...] = ()
     defaults: dict[str, str] = field(default_factory=dict)
+    choices: dict[str, tuple[str, ...]] = field(default_factory=dict)  # a select, not a box
 
 
 KINDS: dict[str, Kind] = {
@@ -54,6 +55,14 @@ KINDS: dict[str, Kind] = {
         secrets=("token", "password"),
         required=("server", "topic"),
         defaults={"server": "https://ntfy.sh"},
+    ),
+    "smtp": Kind(
+        "Email (SMTP)",
+        config=("host", "port", "security", "username", "sender", "to"),
+        secrets=("password",),
+        required=("host", "port", "security", "sender", "to"),
+        defaults={"port": "587", "security": "starttls"},
+        choices={"security": ("starttls", "tls", "none")},
     ),
 }
 # their settings that are URLs the app will send to
@@ -96,6 +105,10 @@ def check(kind: str, config: dict[str, str], secrets: dict[str, str], *, cluster
             raise ValueError("use an access token or a username and password, not both")
         if bool(config.get("username")) != bool(secrets.get("password")):
             raise ValueError("a username needs a password, and the other way round")
+    if kind == "smtp":
+        from mcui.notify import mail
+
+        mail.check(config, secrets, cluster=cluster)
     if kind == "telegram" and not CHAT_ID.fullmatch(config.get("chat_id", "")):
         raise ValueError("chat_id: a number such as -1001234567890, or @channelname")
 
@@ -104,6 +117,10 @@ def targets(kind: str, config: dict[str, str], secrets: dict[str, str]) -> list[
     """The URLs a channel sends to, for the address check."""
     if kind == "telegram":
         return [TELEGRAM_API]
+    if kind == "smtp":
+        from mcui.notify import mail
+
+        return [mail.target(config)]
     return [v for n, v in {**config, **secrets}.items() if n in URL_FIELDS and v]
 
 
@@ -350,8 +367,11 @@ async def send(
     secrets: dict[str, str],
     events: list[dict[str, Any]],
     app_url: str | None,
+    pins: dict[str, str] | None = None,
 ) -> None:
-    """Send one message; raises ``NotifyError`` (or ``httpx.HTTPError``) on failure."""
+    """Send one message; raises ``NotifyError`` (or ``httpx.HTTPError``) on failure.
+    ``pins`` (a project's channel): the checked address of each host; HTTP kinds get them
+    through their client's transport."""
     if kind == "slack":
         await _post(http, secrets["url"], json=slack(events, app_url))
     elif kind == "discord":
@@ -378,6 +398,15 @@ async def send(
         )
     elif kind == "ntfy":
         await _ntfy(http, config, secrets, events, app_url)
+    elif kind == "smtp":
+        from mcui.notify import mail
+
+        # keyed as the check keys them: the URL's host name, in lower case (D95 review)
+        host = urlsplit(mail.target(config)).hostname or ""
+        pin = None
+        if pins is not None and (pin := pins.get(host)) is None:
+            raise NotifyError(f"{config['host']} wasn't checked")
+        await mail.send(config, secrets, events, app_url, pin)
     else:  # pragma: no cover - kinds are checked when saved
         raise NotifyError(f"unknown kind {kind}")
 
