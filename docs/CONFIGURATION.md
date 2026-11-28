@@ -22,7 +22,8 @@ port = 8000                        # production: 8843, see docs/DEPLOY.md
 # tls_cert = "/etc/mcui/certs/ui.crt"   # serve HTTPS directly; set both or neither
 # tls_key  = "/etc/mcui/certs/ui.key"   # key: chmod 600
 # public_url = "https://mcui.example.org"   # behind a proxy that rewrites Host or drops its port:
-#                                          # also accepted as the websocket Origin (DEPLOY.md §10)
+#                                          # also accepted as the websocket Origin (DEPLOY.md §10),
+#                                          # and the links in notifications (ALERTS.md)
 # forwarded_allow_ips = "192.0.2.20"        # proxies trusted for X-Forwarded-For (IPs/CIDRs, "*")
 
 [lxd]

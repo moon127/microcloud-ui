@@ -138,3 +138,6 @@ a.chip { text-decoration: none; color: inherit; }
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* a dialog's long form scrolls inside it */
+.tall { max-height: 65vh; overflow-y: auto; }

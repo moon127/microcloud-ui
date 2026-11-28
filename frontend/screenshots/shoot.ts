@@ -121,6 +121,21 @@ export const PAGES: {
     },
   },
   { file: "settings.png", path: "/settings", wait: "Folder browser", full: true },
+  // sending alerts out (D94): the channels, and adding one
+  { file: "notifications.png", path: "/settings#notifications", wait: "on-call phone" },
+  {
+    file: "notification-channel.png",
+    path: "/settings#notifications",
+    wait: "on-call phone",
+    prepare: async (p) => {
+      await p.getByRole("button", { name: "Add channel" }).click();
+      const d = p.getByRole("dialog");
+      await d.getByLabel("Kind").selectOption("telegram");
+      await d.getByLabel("Name", { exact: true }).fill("ops-telegram");
+      await d.getByLabel("Chat ID").fill("-1001234567890");
+      await d.getByLabel("Bot token (from @BotFather)").fill("1234567890:demo");
+    },
+  },
   // alerts (D91): the page, the bell and the critical banner
   { file: "alerts.png", path: "/alerts", wait: "An OSD is nearly full" },
   // users and project access (D81)

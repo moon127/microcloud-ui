@@ -47,9 +47,26 @@ class AlertService:
         ctx = Context(self.services, self.engine.open_severities(), self.thresholds(), self.clock())
         results = await evaluate(ctx, self.disabled())
         fired = self.engine.apply(results, {n: f for n, (_, f) in RULES.items()}, ctx.unknown)
+        await self.notify()
         if self.clock() - self._pruned > PRUNE_EVERY:
-            self.store.prune(self.services.settings.alerts.retention_days)
+            days = self.services.settings.alerts.retention_days
+            self.store.prune(days)
+            if self.services.notifier is not None:
+                self.services.notifier.store.prune(days)
             self._pruned = self.clock()
         for a in fired:
             log.warning("alert: %s %s: %s", a["severity"], a["key"], a["title"])
         return fired
+
+    async def notify(self) -> None:
+        """Queue this round's changes and reminders, and send them in the background
+        (D94); a failure here mustn't stop alerting."""
+        n = self.services.notifier
+        if n is None:
+            return
+        try:
+            n.handle(self.engine.changes)
+            n.reminders(list(self.store.open().values()))
+            n.kick()
+        except Exception:
+            log.exception("notifications")

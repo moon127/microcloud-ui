@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useLocation } from "react-router";
+import { useState } from "react";
+import { Link } from "react-router";
 import { fetchCeph, fetchMembers, fetchRbdTop, type CephMon, type CephOsd, type CephState, type RbdMetric, type RbdRow } from "../api";
 import MetricPanel from "../chart/MetricPanel";
 import { ratioSeries } from "../chart/panel";
+import { useHashScroll } from "../hashScroll";
 import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
 import { MemberLink } from "../links";
 import { instancePath } from "../paths";
@@ -37,18 +38,7 @@ const MON_CRIT = 5;
 export default function CephPage() {
   const range = useRange();
   const { data, error } = useApi("ceph", fetchCeph, 15_000);
-  // an alert's link to a section (/ceph#monitors): scroll there once the section is drawn,
-  // once per visit (each click on a link is a new location key), not on every refresh
-  const { hash, key } = useLocation();
-  const scrolled = useRef("");
-  useEffect(() => {
-    if (!hash || scrolled.current === key || !data?.ok) return;
-    const el = document.getElementById(hash.slice(1));
-    if (el) {
-      el.scrollIntoView?.();
-      scrolled.current = key;
-    }
-  }, [hash, key, data]);
+  useHashScroll(data?.ok ? data : null);
   return (
     <>
       <h1>Ceph</h1>

@@ -5,7 +5,7 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
 
 ## Read first
 
-1. [`agents.md`](agents.md): the ground rules, the **design-decision log (D1–D93)** and
+1. [`agents.md`](agents.md): the ground rules, the **design-decision log (D1–D94)** and
    **Status** (what's built and what's next), plus working conventions and test-cloud facts.
    Read Status and the latest decisions before changing anything.
 2. `docs/REQUIREMENTS.md` (requirement IDs), `docs/PLAN.md` (phases).
@@ -83,8 +83,10 @@ MicroOVN). Backend FastAPI (Python ≥3.12), frontend React 19 + TS + Vite + uPl
   (users and project access, D81) is done and released (0.2.0). **Phase 7** (backups,
   project moves, ISO upload, restriction keys; D83) is done, towards release 0.3.0.
   **Phase 8a** (alerts in the UI, D91) is the owner's go-ahead for alerts (2026-11-27);
-  the rest of Phase 8 (metric-store evaluation, export, quota history, sending alerts out)
-  waits for the owner. Don't start it unprompted.
+  **Phase 8b** (sending alerts out, D94) is the owner's go-ahead (2026-11-28): chat,
+  Telegram, ntfy and webhooks done; SMTP and its OAuth2 next. The rest of Phase 8
+  (metric-store evaluation, export, quota history) waits for the owner. Don't start it
+  unprompted.
 
 ## Environment (owner's Mac)
 

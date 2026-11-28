@@ -1,6 +1,6 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { Route, Routes } from "react-router";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as api from "../../api";
 import { renderAt, session } from "../../test/render";
 import ImagesPage from "./ImagesPage";
@@ -9,6 +9,11 @@ import ProfilesPage from "./ProfilesPage";
 import ProjectPage from "./ProjectPage";
 import ProjectsPage from "./ProjectsPage";
 
+beforeEach(() => {
+  // the project page's notification channels (D94), tested in notifications.test.tsx
+  vi.spyOn(api, "fetchNotifyKinds").mockReturnValue(new Promise(() => {}));
+  vi.spyOn(api, "fetchChannels").mockReturnValue(new Promise(() => {}));
+});
 afterEach(() => {
   vi.restoreAllMocks();
   localStorage.removeItem("mcui.project");

@@ -216,7 +216,9 @@ can't, for example, choose which member an instance runs on.
   Alerts. No Storage, Ceph, LXD's warnings or Users.
 - **Alerts:** only their projects' (instances out of memory or root disk, the project
   near its limits, the project's own networks running out of addresses); a project admin
-  can acknowledge them, for everyone ([`ALERTS.md`](ALERTS.md)).
+  can acknowledge them, for everyone ([`ALERTS.md`](ALERTS.md)). A project admin can
+  also send them out, to chat, Telegram, ntfy or a webhook, from the project's page
+  (only to public servers, over https).
 - **Project picker:** only their projects. "All projects" means all of theirs.
 - **Overview:** their instances only, with no hosts or members table.
 - **Instance pages:** actions and tabs by their role. A viewer gets no Console or Files

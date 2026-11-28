@@ -482,6 +482,8 @@ async def rename_project(
         store.rename_project_grants(name, body.name)
         if alerts := _alerts(request):  # its alerts follow it too (D91)
             alerts.rename_project(name, body.name)
+        if notifier := request.app.state.services.notifier:  # and its channels (D94)
+            notifier.store.rename_project(name, body.name)
         _forget_project(request, name, body.name)
         return st
 
@@ -504,6 +506,8 @@ async def delete_project(
         store.drop_project_grants(name)
         if alerts := _alerts(request):
             alerts.forget_project(name)
+        if notifier := request.app.state.services.notifier:
+            notifier.store.forget_project(name)
         _forget_project(request, name)
         return st
 

@@ -39,6 +39,7 @@ DESCRIPTIONS: dict[str, str] = {
     "network_addresses": "IPv4 addresses in use on bridge and OVN networks (%)",
     "cert_expiry": "Certificates expiring (days left)",
     "collection": "Metric collection failing (Ceph mgr, node_exporter, LXD)",
+    "notify_failing": "Notification channels failing to send",
 }
 THRESHOLD_OF = {"cert_expiry": "cert_days"}  # rule -> its threshold, when not its own name
 

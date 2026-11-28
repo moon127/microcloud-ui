@@ -27,6 +27,7 @@ from mcui.api import (
     manage,
     metrics,
     networks,
+    notify,
     ops,
     ovn,
     peers,
@@ -139,6 +140,7 @@ def create_app(
     app.include_router(registries.router)
     app.include_router(admin_settings.router)
     app.include_router(alerts.router)
+    app.include_router(notify.router)
     app.include_router(storage.router)
     app.include_router(volumes.router)
     app.include_router(volume_backups.router)

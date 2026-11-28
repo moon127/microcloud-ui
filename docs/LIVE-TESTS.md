@@ -185,6 +185,22 @@ Left: the same from real events on your hosts.
 | A2 | Stop node_exporter or the active Ceph mgr on a member for a few minutes | A "Collecting … fails" warning; the Ceph and host alerts already open stay rather than clearing |
 | A3 | A member offline (reboot one at a quiet time) | A critical alert and the banner within about a minute; cleared once it's back |
 
+## Sending alerts out (Phase 8b, D94): yours to run
+
+The session sent to a random topic on the public ntfy.sh (2026-11-28, demo content only):
+a single critical alert arrived at priority 5 with its link, two changes as one message;
+the single message repeated its title in the body, fixed and seen again. Everything else
+is checked against recorded request formats. These need your accounts:
+
+| # | Steps | Expect |
+|---|---|---|
+| N1 | Settings → Notifications → Add channel → Slack (an incoming webhook to a test channel) → Send test | "Sent"; the message in Slack with a yellow bar, linking to the app if `public_url` is set |
+| N2 | The same for Discord and for a Teams **Workflows** webhook | A Discord embed; an Adaptive Card in Teams (Teams says "Sent" once the workflow accepts it: check it posted) |
+| N3 | Telegram: a bot from @BotFather, Start it, then Find chat → Use → Save → Send test | The chat listed by name; the message in Telegram |
+| N4 | ntfy on your phone, subscribed to the channel's random topic; lower a threshold so a real alert fires, then put it back | A push notification when it fires and a low-priority one when it clears; one message for several alerts in the same check |
+| N5 | A project admin (a test user) adds a channel on their project's page | Accepted for a public https URL; refused for an address on your network; the channel gets only that project's alerts |
+| N6 | Break a channel (revoke the Slack webhook) and wait ~35 minutes with an alert firing | Log shows the retries; "Notifications to … are failing" on Alerts; Send test after fixing it clears it |
+
 ## Already verified live by the session (for reference)
 
 Sandbox `mcui-test` (D41): instance create (local and remote images), start/stop/

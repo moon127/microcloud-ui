@@ -273,6 +273,27 @@ const RULE_INFO: [string, string, string | null, number][] = [
   ["cert_expiry", "Certificates expiring (days left)", "cert_days", 0],
   ["collection", "Metric collection failing (Ceph mgr, node_exporter, LXD)", null, 0],
 ];
+/** Where alerts go (D94): the kinds as the backend lists them, and a few channels. */
+const NOTIFY_KINDS = {
+  slack: { label: "Slack (or Mattermost)", config: [], secrets: ["url"], required: ["url"], defaults: {} },
+  discord: { label: "Discord", config: [], secrets: ["url"], required: ["url"], defaults: {} },
+  teams: { label: "Microsoft Teams (Workflows)", config: [], secrets: ["url"], required: ["url"], defaults: {} },
+  webhook: { label: "Webhook (JSON)", config: [], secrets: ["url", "signing_secret"], required: ["url"], defaults: {} },
+  telegram: { label: "Telegram", config: ["chat_id"], secrets: ["token"], required: ["chat_id", "token"], defaults: {} },
+  ntfy: { label: "ntfy", config: ["server", "topic", "username"], secrets: ["token", "password"], required: ["server", "topic"], defaults: { server: "https://ntfy.sh" } },
+};
+const CH = (id: number, name: string, kind: string, over: Record<string, unknown> = {}) => ({
+  id, name, kind, project: null, enabled: true, min_severity: "warning", config: {}, secrets_set: ["url"], reminder_hours: 4,
+  exclude_rules: [], projects: [], created_by: "admin", created_at: 1794400000 - 30 * 86400,
+  last: { status: "sent", error: null, created_at: 1794400000 - 1500, sent_at: 1794400000 - 1499 }, ...over,
+});
+const NOTIFY_CHANNELS = [
+  CH(1, "ops-chat", "slack"),
+  CH(2, "on-call phone", "ntfy", { min_severity: "critical", config: { server: "https://ntfy.sh", topic: "mcui-5f0c2a9e41d7b38c6a" }, secrets_set: ["token"] }),
+  CH(3, "status-hook", "webhook", { reminder_hours: 0, exclude_rules: ["lxd_security"], last: { status: "failed", error: "HTTP 503: Service Unavailable", created_at: 1794400000 - 3600, sent_at: null } }),
+  CH(4, "web-team", "telegram", { project: "web", config: { chat_id: "-1001234567890" }, secrets_set: ["token"], created_by: "ops-oncall" }),
+];
+
 export const ALERT_SETTINGS: AlertSettingsView = {
   rules: RULE_INFO.map(([name, description, threshold, for_seconds]) => ({ name, description, threshold, for_seconds })),
   thresholds: THRESHOLDS, default_thresholds: THRESHOLDS, thresholds_saved: false,
@@ -989,6 +1010,9 @@ export function answer(method: string, url: URL): unknown {
     "/api/users": USERS,
     "/api/settings/host-devices": HOST_SETTINGS,
     "/api/settings/alerts": ALERT_SETTINGS,
+    "/api/notify/kinds": NOTIFY_KINDS,
+    "/api/notify/channels": NOTIFY_CHANNELS,
+    "/api/projects/web/notify/channels": NOTIFY_CHANNELS.filter((c) => c.project === "web"),
     "/api/audit": signedIn.role === "project" ? AUDIT.filter((e) => mine(String(e.target).split("/")[0]) && e.target?.includes("/")) : AUDIT,
     "/api/placement-groups": PLACEMENT,
     "/api/networks/default/default": NETWORK_DETAIL,

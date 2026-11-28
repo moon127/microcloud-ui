@@ -8,6 +8,8 @@ import YamlEditor from "../../YamlEditor";
 import { NameDialog } from "../instance/Actions";
 import { asConfig } from "../instance/state";
 import { useAccess } from "../../access";
+import { useHashScroll } from "../../hashScroll";
+import Notifications from "./Notifications";
 import Restrictions from "./Restrictions";
 
 export default function ProjectPage() {
@@ -23,6 +25,7 @@ export default function ProjectPage() {
   const admin = access.clusterAdmin;
   const p = proj.data;
   const isDefault = name === "default";
+  useHashScroll(p);
 
   // take the loaded values into the form as they arrive, during render rather than in an
   // effect, so the form never shows a render's worth of stale values
@@ -78,6 +81,7 @@ export default function ProjectPage() {
           />
           {problem && <p role="alert">{problem}</p>}
           <p className="muted">Used by {p.used_by.length} objects (instances, profiles, images, volumes, networks).</p>
+          {access.can(name, "manage") && <Notifications project={name} />}
         </>
       )}
       {dialog === "rename" && (

@@ -25,7 +25,9 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   disks and memory, members, instances out of memory or disk, project limits, network
   addresses and OVN ranges, certificates. A bell, toasts and a banner on every page, an
   Alerts page with history, thresholds on Settings (Phase 8a,
-  [`docs/ALERTS.md`](docs/ALERTS.md)).
+  [`docs/ALERTS.md`](docs/ALERTS.md)). Sent out to Slack, Mattermost, Discord, Teams,
+  Telegram, ntfy or any webhook, for the cluster or per project, with reminders of
+  critical alerts nobody has acknowledged (Phase 8b).
 - **Host paths and USB devices:** attach a member's folders (an NFS mount, a SAN), disks and
   USB devices to an instance on it, with what that does to moves and evacuations. Pick a
   member's mounts from a list or, opt-in, browse its folders. Cluster admins only, unless

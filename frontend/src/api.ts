@@ -75,6 +75,69 @@ export const fetchAlertSettings = () => api<AlertSettingsView>("/api/settings/al
 export const updateAlertSettings = (change: AlertSettingsChange) =>
   send<AlertSettingsView>("PUT", "/api/settings/alerts", change);
 
+/** Where alerts are sent (D94): a cluster channel, or a project's. */
+export type NotifyKind = "slack" | "discord" | "teams" | "webhook" | "telegram" | "ntfy";
+export interface NotifyKindSpec {
+  label: string;
+  config: string[];
+  /** write-only: the API says only whether each is set */
+  secrets: string[];
+  required: string[];
+  defaults: Record<string, string>;
+}
+export interface NotifyChannel {
+  id: number;
+  name: string;
+  kind: NotifyKind;
+  project: string | null;
+  enabled: boolean;
+  min_severity: "warning" | "critical";
+  config: Record<string, string>;
+  secrets_set: string[];
+  reminder_hours: number;
+  exclude_rules: string[];
+  projects: string[];
+  created_by: string;
+  created_at: number;
+  last: { status: string; error: string | null; created_at: number; sent_at: number | null } | null;
+}
+export interface NotifyChannelIn {
+  name: string;
+  kind: NotifyKind;
+  enabled: boolean;
+  min_severity: "warning" | "critical";
+  config: Record<string, string>;
+  /** left out: keep what's saved; "": remove it */
+  secrets: Record<string, string>;
+  reminder_hours: number;
+  exclude_rules: string[];
+  projects: string[];
+}
+export interface NotifyDelivery {
+  id: number;
+  status: "pending" | "sending" | "sent" | "failed";
+  attempts: number;
+  created_at: number;
+  sent_at: number | null;
+  error: string | null;
+  events: { event: string; severity: string; title: string }[];
+}
+const notifyBase = (project?: string) => (project ? `/api/projects/${encodeURIComponent(project)}/notify` : "/api/notify");
+export const fetchNotifyKinds = () => api<Record<NotifyKind, NotifyKindSpec>>("/api/notify/kinds");
+export const fetchChannels = (project?: string) => api<NotifyChannel[]>(`${notifyBase(project)}/channels`);
+export const addChannel = (project: string | undefined, body: NotifyChannelIn) =>
+  send<NotifyChannel>("POST", `${notifyBase(project)}/channels`, body);
+export const updateChannel = (project: string | undefined, id: number, body: NotifyChannelIn) =>
+  send<NotifyChannel>("PUT", `${notifyBase(project)}/channels/${id}`, body);
+export const deleteChannel = (project: string | undefined, id: number) =>
+  send<void>("DELETE", `${notifyBase(project)}/channels/${id}`);
+export const testChannel = (project: string | undefined, id: number) =>
+  send<{ ok: boolean; error?: string }>("POST", `${notifyBase(project)}/channels/${id}/test`);
+export const fetchDeliveries = (project: string | undefined, id: number) =>
+  api<NotifyDelivery[]>(`${notifyBase(project)}/channels/${id}/deliveries`);
+export const findTelegramChats = (project: string | undefined, who: { token?: string; channel_id?: number }) =>
+  send<{ id: string; type: string; name: string }[]>("POST", `${notifyBase(project)}/telegram-chats`, who);
+
 // --- settings a cluster admin changes in the app (D87) --------------------------------
 
 export type SettingSource = "app" | "config" | "default";

@@ -826,6 +826,49 @@ async def collection(ctx: Context) -> list[Alert]:
     return out
 
 
+def short_reason(error: str) -> str:
+    """The kind of failure, without what the server said: the alert goes to other channels
+    and to the project's viewers, and a project admin's server chooses its reply (D94
+    review); the channel's log has the rest."""
+    if error.startswith("HTTP "):
+        return error.split(":")[0][:12]  # "HTTP 503"
+    for marker, short in (
+        ("timed out", "timed out"),
+        ("can't connect", "can't connect"),
+        ("isn't a public address", "not a public address"),
+    ):
+        if marker in error:
+            return short
+    return "see the log"
+
+
+async def notify_failing(ctx: Context) -> list[Alert]:
+    """Channels whose latest message couldn't be sent, even after retrying (D94). Clears
+    once one gets through (Send test counts)."""
+    n = ctx.services.notifier
+    if n is None:
+        return []
+    out = []
+    for f in n.store.failing():
+        ch = n.store.channel(f["channel_id"])
+        if ch is None or not ch["enabled"]:
+            continue
+        project = ch["project"]
+        out.append(
+            Alert(
+                "notify_failing",
+                str(ch["id"]),
+                "warning",
+                f"Notifications to {ch['name']} are failing",
+                f"Messages fail ({short_reason(f['error'] or '')}; its Log has more). They're "
+                "retried for about 30 minutes, then dropped; after fixing it, use Send test",
+                f"/projects/{project}#notifications" if project else "/settings#notifications",
+                project,
+            )
+        )
+    return out
+
+
 Rule = Callable[[Context], Awaitable[list[Alert]]]
 
 # name -> (rule, seconds it must hold before firing)
@@ -846,6 +889,7 @@ RULES: dict[str, tuple[Rule, float]] = {
     "network_addresses": (network_addresses, 60),
     "cert_expiry": (cert_expiry, 0),
     "collection": (collection, 0),
+    "notify_failing": (notify_failing, 0),
 }
 
 

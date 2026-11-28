@@ -3,8 +3,8 @@
 microcloud-ui checks the cluster every 30 seconds and raises an alert when something
 needs attention: a Ceph OSD nearly full, a storage pool or host disk filling up, a member
 offline, a network running out of addresses. Alerts show on every page and are recorded,
-so you can see what happened while you weren't looking. (Phase 8a, D91.) They aren't sent
-anywhere outside the app yet.
+so you can see what happened while you weren't looking. (Phase 8a, D91.) They can also be
+sent to chat, Telegram, ntfy or a webhook ([below](#sending-alerts-out)).
 
 ![The Alerts page, with a critical alert in the banner](screenshots/alerts.png)
 
@@ -93,3 +93,146 @@ alert at the next start. The same settings in `[alerts]` of the config file:
 [`CONFIGURATION.md`](CONFIGURATION.md#alerts-what-is-checked-and-when).
 
 Every change and every acknowledgement is in the audit log.
+
+## Sending alerts out
+
+Alerts can also go to chat (Slack, Mattermost, Discord, Microsoft Teams), Telegram, a
+phone through ntfy, or any URL as JSON (Phase 8b, D94). Email comes next.
+
+![Notification channels on Settings](screenshots/notifications.png)
+
+**Where:** cluster admins set up the cluster's channels on **Settings → Notifications**;
+a project's admins set up their project's on the project's page (**Projects → the
+project → Notifications**), and those get only that project's alerts. Cluster admins see
+every channel on Settings.
+
+**What a channel gets:**
+
+- an alert firing, a warning turning critical, and the alert clearing (only if the
+  channel was told it fired);
+- at its minimum severity or above: **warnings and critical**, or **critical only**;
+- a reminder of each critical alert nobody has acknowledged, every 4 hours (per channel;
+  0 switches it off);
+- a cluster channel can be limited to some projects' alerts, and any channel can leave
+  rules out (by name, as on Settings → Alerts). The filters follow a renamed project; a
+  deleted one is taken out of them, and a channel left with no project is switched off
+  (an empty list would mean every alert).
+
+Everything one check finds goes out as one message per channel, so a member going down
+doesn't send ten. Links in messages lead back to the app if `[server] public_url` is set
+([`CONFIGURATION.md`](CONFIGURATION.md)); without it messages carry no links.
+
+**Send test** sends a sample message straight away and shows whether it worked. **Log**
+lists the recent messages, with each failure's reason. A message that can't be sent is
+retried for about 30 minutes (after 30 s, 1, 2, 5, 10 and 15 min) and then dropped; the
+channel then raises its own alert, "Notifications to … are failing", which clears once a
+message gets through (a successful **Send test** counts).
+
+**Secrets** (webhook URLs, tokens, passwords) are stored in the app's database
+(`mcui.db`, readable only by the app's user) and never shown again, to anyone: editing a
+channel, leave them empty to keep them. Pointing a channel at another server (ntfy's
+server, a webhook's URL) needs its token, password or signing secret typed again, so a
+saved one never follows to a server it wasn't meant for. Every change and test is in the
+audit log; errors never include a secret.
+
+**Names and text:** a channel's name may hold letters, digits, spaces and `. , ( ) + ' -
+_`. Alert text is sent as plain text: it can't mention `@channel`/`@everyone` or add a
+link in Slack, Mattermost, Discord, Teams or Telegram.
+
+**Project channels** may only send over https, to public addresses: not to anything on
+the cluster's own networks. That's checked when the channel is saved and before each
+message, and the message then goes to the very address that was checked. Cluster
+channels may use a server on your network: a self-hosted ntfy or webhook receiver, also
+over plain http (chat services need https).
+
+Messages leave from the machine running microcloud-ui, each given 20 seconds (a slow
+server doesn't hold up the alert checks, which go on meanwhile). Behind a proxy, set
+`HTTPS_PROXY` in its environment (the systemd unit or container); cluster channels use
+it. **Project channels don't**: they connect directly to the checked address, so on a
+machine that can only reach the internet through a proxy, project channels can't send.
+
+### Setting up each kind
+
+![Adding a Telegram channel](screenshots/notification-channel.png)
+
+**Slack.** At api.slack.com/apps, **Create New App** → From scratch, pick the workspace;
+**Incoming Webhooks** → on → **Add New Webhook** (to Workspace), pick the channel, copy the
+URL (`https://hooks.slack.com/services/…`). **Mattermost** takes the same messages:
+Integrations → Incoming Webhooks → Add, pick the channel, and choose Slack as the kind.
+
+**Discord.** In the channel's settings (the cog), **Integrations → Webhooks → New
+Webhook**, then **Copy Webhook URL**. Messages can't mention `@everyone` or anyone else.
+
+**Microsoft Teams.** Teams takes webhooks through **Workflows**; Microsoft has been
+replacing the older "Incoming Webhook" connectors with them, and those aren't supported. In the channel,
+**⋯ → Workflows**, pick the template **Post to a channel when a webhook request is
+received**, choose the team and channel, and copy the URL it gives. Messages arrive as
+Adaptive Cards, posted as the workflow is set to (its owner or the Flow bot). A workflow
+accepts the message before it posts it, so **Send test** saying "Sent" means Teams took
+it: check it appears, and the workflow's run history if it doesn't.
+
+**Telegram.**
+
+1. In Telegram, open a chat with **@BotFather** and send `/newbot`. Give it a name
+   (shown in chats, e.g. "Cluster alerts") and a username ending in `bot`
+   (e.g. `example_cluster_alerts_bot`). BotFather replies with the bot's **token**
+   (`1234567890:AA…`); treat it as a password.
+2. Tell the bot where to write:
+   - just you: open the bot (BotFather links it) and press **Start**;
+   - a group: add the bot to the group (that's enough for Find chat), or send
+     `/start@yourbot` in it (with the bot's default privacy mode, it doesn't see other
+     messages);
+   - a channel: add the bot as an administrator that may post, and post something.
+3. In the app, **Add channel → Telegram**, paste the token, then **Find chat**: it lists
+   the chats the bot has seen in the last 24 hours; **Use** one. (Or type the chat ID:
+   positive for a person, negative for a group, `-100…` for a supergroup or channel, or
+   `@channelname` for a public channel.) Find chat doesn't work for a bot that has a
+   webhook of its own set (Telegram then answers "Conflict"). A group that becomes a
+   supergroup gets a new chat ID: messages then fail with "migrated", and Find chat
+   again picks up the new one.
+
+**ntfy** (push notifications to the ntfy app on a phone or desktop). The default server
+is the public `https://ntfy.sh`; your own ntfy server works too. On a public server
+**anyone who knows a topic's name can read it**, so the app suggests a random topic
+(`mcui-` and 18 hex digits): keep it, and subscribe to it in the ntfy app. With an
+account on the server, an **access token** (or a username and password) lets you use a
+topic protected by the server's access control (on ntfy.sh, reserved topics). Critical
+alerts are sent at ntfy's top priority (5), warnings at the default (3), clearings low
+(2).
+
+**Webhook (JSON)** for anything else. The app POSTs:
+
+```json
+{
+  "source": "microcloud-ui",
+  "sent_at": 1795838511.2,
+  "summary": "🔴 CRITICAL: An OSD is nearly full",
+  "events": [
+    {
+      "event": "fired",
+      "url": "https://mcui.example.org/ceph#osds",
+      "alert": {"id": 12, "key": "ceph_health:OSD_NEARFULL", "rule": "ceph_health",
+                "subject": "OSD_NEARFULL", "severity": "critical", "title": "…",
+                "detail": "…", "link": "/ceph#osds", "project": null,
+                "fired_at": 1795838480.0, "last_seen": 1795838511.0,
+                "resolved_at": null, "ack_by": null, "ack_at": null,
+                "data": {"value": 86.0, "warning": 85, "critical": 95}}
+    }
+  ]
+}
+```
+
+`event` is `fired`, `escalated` (a warning turned critical), `resolved` or `reminder`.
+With a **signing secret**, each request carries `X-MCUI-Signature: sha256=<hex>`, the
+HMAC-SHA256 of the request body with the secret. To check it in Python:
+
+```python
+import hashlib, hmac
+expected = "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+assert hmac.compare_digest(expected, request.headers["X-MCUI-Signature"])
+```
+
+The signature covers the body, `sent_at` included, but there's no separate timestamp:
+to refuse a replayed request, also refuse one whose `sent_at` is more than a few minutes
+old. Any 2xx answer counts as delivered; a redirect counts as a failure (it isn't
+followed).

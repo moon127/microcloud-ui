@@ -6,6 +6,8 @@ import SettingsPage from "./SettingsPage";
 
 beforeEach(() => {
   vi.spyOn(api, "fetchAlertSettings").mockReturnValue(new Promise(() => {}));
+  vi.spyOn(api, "fetchNotifyKinds").mockReturnValue(new Promise(() => {}));
+  vi.spyOn(api, "fetchChannels").mockReturnValue(new Promise(() => {}));
 });
 afterEach(() => vi.restoreAllMocks());
 

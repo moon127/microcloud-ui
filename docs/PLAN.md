@@ -731,8 +731,15 @@ set in the config file or on a new Settings page.
 collects (Ceph's health checks, capacity, pools, hosts, members, instances, project
 limits, OVN ranges, network addresses, certificates, collection), recorded with history,
 a bell, toasts and a banner on every page, an Alerts page replacing Warnings, thresholds
-on Settings. The rest of Phase 8 (sending alerts out, metric store, export, quota history)
-waits.
+on Settings. The rest of Phase 8 (metric store, export, quota history) waits.
+
+**Phase 8b: Sending alerts out (D94, owner 2026-11-28):** in three steps, each reviewed,
+documented and shot. (1) ✅ Chat webhooks (Slack/Mattermost, Discord, Teams Workflows),
+Telegram (BotFather, Find chat), ntfy, JSON webhooks; cluster and project channels;
+batching, critical reminders every 4 h, retries, log, Send test, failing-channel alert.
+(2) SMTP: no auth or user/password, plain, STARTTLS or TLS. (3) SMTP OAuth2: Microsoft 365
+(app registration, client credentials, no browser), Google (sign-in through the app, a
+refresh token kept), and a generic token endpoint.
 
 **Phase 10: Remaining parity** (was Phase 8, before that 7 and 6; after packaging, which is
 done). Backups, project moves and ISO upload moved to Phase 7 (D83). The rest of PJ-2

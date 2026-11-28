@@ -27,6 +27,9 @@ class AlertEngine:
     def __init__(self, store: AlertStore, clock: Callable[[], float]) -> None:
         self.store, self.clock = store, clock
         self.pending: dict[str, float] = {}  # key -> when first seen, before firing
+        # the last round's changes, for notifications (D94): (event, alert row), event one
+        # of "fired", "escalated" (warning to critical) or "resolved"
+        self.changes: list[tuple[str, dict[str, Any]]] = []
 
     def open_severities(self) -> dict[str, str]:
         """Open alerts' keys and severities, for hysteresis."""
@@ -43,6 +46,7 @@ class AlertEngine:
         now = self.clock()
         current = self.store.open()
         fired = []
+        self.changes = []
         for rule, alerts in results.items():
             if alerts is None:  # couldn't look: leave its alerts, restart its timers
                 for key in [k for k in self.pending if k.startswith(f"{rule}:")]:
@@ -52,13 +56,17 @@ class AlertEngine:
             for a in alerts:
                 seen.add(a.key)
                 if a.key in current:
-                    self.store.touch(current[a.key]["id"], a)
+                    row = current[a.key]
+                    self.store.touch(row["id"], a)
+                    if row["severity"] != "critical" and a.severity == "critical":
+                        self._change("escalated", row["id"])
                     continue
                 first = self.pending.setdefault(a.key, now)
                 if now - first >= for_seconds.get(rule, 0):
                     self.pending.pop(a.key)
                     alert_id = self.store.fire(a)
                     fired.append(self.store.get(alert_id))
+                    self._change("fired", alert_id)
             for key, row in current.items():
                 # an exact key, or a prefix ending in ":" or "/" (so m1 doesn't hide m10)
                 hidden = any(
@@ -66,6 +74,12 @@ class AlertEngine:
                 )
                 if row["rule"] == rule and key not in seen and not hidden:
                     self.store.resolve(row["id"])
+                    self._change("resolved", row["id"])
             for key in [k for k in self.pending if k.startswith(f"{rule}:") and k not in seen]:
                 self.pending.pop(key)
         return [f for f in fired if f]
+
+    def _change(self, event: str, alert_id: int) -> None:
+        row = self.store.get(alert_id)
+        if row is not None:
+            self.changes.append((event, row))

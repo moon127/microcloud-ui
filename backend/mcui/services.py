@@ -22,6 +22,7 @@ from mcui.metrics.live import LiveMetrics
 from mcui.metrics.node import NodeScraper
 from mcui.metrics.scrape import Scraper
 from mcui.metrics.store import H1, M1, RAW, MetricStore
+from mcui.notify.service import Notifier
 from mcui.streams import StreamRegistry
 
 log = logging.getLogger(__name__)
@@ -44,6 +45,7 @@ class Services:
     streams: StreamRegistry = field(default_factory=StreamRegistry)
     browser: HostBrowser | None = None
     alerts: AlertService | None = None
+    notifier: Notifier | None = None
     logins: LoginLimiter = field(default_factory=LoginLimiter)
     hashing: asyncio.Semaphore = field(default_factory=lambda: asyncio.Semaphore(2))
     _housekeeping: asyncio.Task[None] | None = None
@@ -106,6 +108,8 @@ class Services:
                 await scraper.aclose()
         if self.remotes is not None:
             await self.remotes.aclose()
+        if self.notifier is not None:
+            await self.notifier.aclose()
         if self.metrics is not None:
             await self.metrics.aclose()
         self.store.close()
@@ -159,6 +163,7 @@ def build_services(
     clients = clients or lxd_clients(settings)
     if clients is None:
         svc = Services(settings, store)
+        svc.notifier = Notifier(svc)
         svc.alerts = AlertService(svc)
         return svc
     api, metrics = clients
@@ -181,5 +186,6 @@ def build_services(
         node,
         browser=HostBrowser(api, settings.host_devices),
     )
+    svc.notifier = Notifier(svc)
     svc.alerts = AlertService(svc)
     return svc

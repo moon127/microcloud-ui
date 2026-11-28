@@ -13,6 +13,8 @@ import { useAccess } from "../../access";
 import { useActions } from "../../actions";
 import Confirm from "../../Confirm";
 import { useApi } from "../../useApi";
+import { useHashScroll } from "../../hashScroll";
+import Notifications from "./Notifications";
 
 const SOURCE: Record<SettingSource, string> = {
   app: "saved here",
@@ -27,6 +29,7 @@ export default function SettingsPage() {
   const { version } = useActions();
   const s = useApi(`settings:host-devices:${version}`, fetchHostDeviceSettings);
   const al = useApi(`settings:alerts:${version}`, fetchAlertSettings);
+  useHashScroll(al.data);
   if (!access.clusterAdmin) return <p role="alert">Settings need the cluster admin role.</p>;
   return (
     <>
@@ -39,6 +42,7 @@ export default function SettingsPage() {
       {!s.data && !s.error && <p role="status">Loading…</p>}
       {al.error && <p role="alert">{al.error}</p>}
       {al.data && <Alerts key={JSON.stringify(al.data)} s={al.data} />}
+      <Notifications />
       {s.data && <HostDevices key={JSON.stringify(s.data)} s={s.data} />}
     </>
   );
