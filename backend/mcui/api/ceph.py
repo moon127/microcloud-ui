@@ -12,7 +12,7 @@ from fastapi import APIRouter, Query
 from mcui.api.deps import ClusterReadDep, ServicesDep
 from mcui.api.metrics import StoreDep
 from mcui.lxd.client import LXDError
-from mcui.metrics.ceph_view import rbd_owner, summarize
+from mcui.metrics.ceph_view import node_pages, rbd_owner, summarize
 from mcui.metrics.top import RbdMetric, rbd_top
 
 router = APIRouter(prefix="/api/ceph")
@@ -33,7 +33,7 @@ async def ceph_state(_: ClusterReadDep, services: ServicesDep) -> dict[str, Any]
         "ok": True,
         "mgr": last.url,
         "scraped_at": c.ceph_at,
-        **summarize(last.exposition),
+        **summarize(last.exposition, node_pages(services.node)),
     }
 
 

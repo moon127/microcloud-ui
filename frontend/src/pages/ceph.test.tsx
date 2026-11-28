@@ -4,6 +4,7 @@ import * as api from "../api";
 import { ratioSeries } from "../chart/panel";
 import { renderAt } from "../test/render";
 import { plots } from "../test/uplotMock";
+import { Link } from "react-router";
 import CephPage from "./CephPage";
 
 const result = (name: string, series: api.Series[]): api.QueryResult => ({
@@ -138,13 +139,77 @@ describe("CephPage", () => {
     expect(meter).toHaveAttribute("optimum", "0");
   });
 
+  it("lists monitors with their hosts and free space, and scrolls to an alert's section", async () => {
+    const disk = (free: number, state: "ok" | "low" | "critical") => ({ mountpoint: "/", size: 100 * 1024 ** 3, avail: free * 1024 ** 3, free_percent: free, state });
+    vi.spyOn(api, "fetchCeph").mockResolvedValue({
+      ...state,
+      mons: [
+        { name: "gw-1", in_quorum: true, host: "gw-1", rank: 0, address: "192.0.2.11", member: "gw-1", disk: disk(30, "low") },
+        { name: "gw-2", in_quorum: false, host: "gw-2", rank: 1, member: "gw-2", disk: disk(5, "critical") },
+        { name: "gw-3", in_quorum: true, host: "gw-3", rank: 3, member: "gw-3", disk: disk(31, "ok") },
+        { name: "ceph-9", in_quorum: true, host: "ceph-9", rank: 2, member: null, disk: null },
+        { name: "old", in_quorum: true },
+      ],
+    });
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll; // jsdom has none
+    try {
+      renderAt(
+        <>
+          <CephPage />
+          <Link to="/ceph">Ceph</Link>
+          <Link to="/ceph#monitors">MON_DISK_LOW</Link>
+        </>,
+        { url: "/ceph#monitors" },
+      );
+      const row = (name: string) => screen.getByText(`mon.${name}`).closest("tr")!;
+      const heading = await screen.findByRole("heading", { name: "Monitors" });
+      expect(heading).toHaveAttribute("id", "monitors");
+      await vi.waitFor(() => expect(scroll).toHaveBeenCalledTimes(1));
+      expect(scroll.mock.contexts[0]).toBe(heading);
+      expect(await within(row("gw-1")).findByRole("link", { name: "gw-1" })).toHaveAttribute("href", "/members/gw-1");
+      expect(row("gw-1")).toHaveTextContent("192.0.2.11");
+      expect(row("gw-1")).toHaveTextContent("/ 30.0 GiB free of 100 GiB");
+      expect(row("gw-1")).toHaveTextContent("30% low");
+      const meter = within(row("gw-1")).getByRole("meter", { name: "mon.gw-1 free" });
+      expect(meter).toHaveAttribute("low", "6");
+      expect(meter).toHaveAttribute("high", "31");
+      expect(row("gw-2")).toHaveTextContent("out");
+      expect(row("gw-2")).toHaveTextContent("5% critically low");
+      expect(row("gw-3")).toHaveTextContent("31%");
+      expect(row("gw-3")).not.toHaveTextContent("low");
+      // the bell announces these; a refreshed figure mustn't interrupt again (review)
+      expect(within(heading.nextElementSibling!.nextElementSibling as HTMLElement).queryAllByRole("alert")).toEqual([]);
+      expect(row("ceph-9")).toHaveTextContent("ceph-9");
+      expect(within(row("ceph-9")).queryByRole("link")).toBeNull(); // not an LXD member
+      expect(row("ceph-9")).toHaveTextContent("not monitored");
+      expect(row("old")).toHaveTextContent("mon.old––in");
+      expect(screen.getByRole("heading", { name: "OSDs" })).toHaveAttribute("id", "osds");
+      expect(screen.getByRole("heading", { name: "Pools" })).toHaveAttribute("id", "pools");
+      // away and back, and the same link again: each visit scrolls (review)
+      fireEvent.click(screen.getByRole("link", { name: "Ceph" }));
+      fireEvent.click(screen.getByRole("link", { name: "MON_DISK_LOW" }));
+      await vi.waitFor(() => expect(scroll).toHaveBeenCalledTimes(2));
+      fireEvent.click(screen.getByRole("link", { name: "MON_DISK_LOW" }));
+      await vi.waitFor(() => expect(scroll).toHaveBeenCalledTimes(3));
+    } finally {
+      delete (Element.prototype as { scrollIntoView?: unknown }).scrollIntoView;
+    }
+  });
+
+  it("ignores a hash that names no section", async () => {
+    vi.spyOn(api, "fetchCeph").mockResolvedValue(state);
+    renderAt(<CephPage />, { url: "/ceph#%" });
+    expect(await screen.findByRole("heading", { name: "Monitors" })).toBeInTheDocument();
+  });
+
   it("hides OSD size and per-op latency when the mgr leaves out perf counters (Tentacle)", async () => {
     vi.spyOn(api, "fetchCeph").mockResolvedValue({ ...state, perf_counters: false });
     renderAt(<CephPage />);
     expect(await screen.findByText(/doesn't export OSD performance counters/)).toHaveTextContent(
       "sudo ceph config set mgr mgr/prometheus/exclude_perf_counters false",
     );
-    const osdTable = screen.getAllByRole("table")[0];
+    const osdTable = screen.getByText("osd.1").closest("table")!;
     expect(within(osdTable).queryByRole("columnheader", { name: "Size" })).toBeNull();
     expect(within(osdTable).getByRole("columnheader", { name: "Apply" })).toBeInTheDocument();
     expect(screen.getByText("OSD apply latency")).toBeInTheDocument();

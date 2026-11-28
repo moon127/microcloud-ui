@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Link } from "react-router";
-import { fetchCeph, fetchMembers, fetchRbdTop, type CephState, type RbdMetric, type RbdRow } from "../api";
+import { useEffect, useRef, useState } from "react";
+import { Link, useLocation } from "react-router";
+import { fetchCeph, fetchMembers, fetchRbdTop, type CephMon, type CephState, type RbdMetric, type RbdRow } from "../api";
 import MetricPanel from "../chart/MetricPanel";
 import { ratioSeries } from "../chart/panel";
 import { formatBytes, formatNumber, formatPercent, formatRate } from "../format";
@@ -29,10 +29,26 @@ function OsdUsed({ percent, nearfull, full }: { percent: number; nearfull: numbe
   );
 }
 const count = (v: number) => Math.round(v).toLocaleString("en");
+// Ceph's defaults (mon_data_avail_warn, mon_data_avail_crit): MON_DISK_LOW at 30% free or
+// less, MON_DISK_CRIT at 5% or less, in whole percent (the backend says which applies)
+const MON_WARN = 30;
+const MON_CRIT = 5;
 
 export default function CephPage() {
   const range = useRange();
   const { data, error } = useApi("ceph", fetchCeph, 15_000);
+  // an alert's link to a section (/ceph#monitors): scroll there once the section is drawn,
+  // once per visit (each click on a link is a new location key), not on every refresh
+  const { hash, key } = useLocation();
+  const scrolled = useRef("");
+  useEffect(() => {
+    if (!hash || scrolled.current === key || !data?.ok) return;
+    const el = document.getElementById(hash.slice(1));
+    if (el) {
+      el.scrollIntoView?.();
+      scrolled.current = key;
+    }
+  }, [hash, key, data]);
   return (
     <>
       <h1>Ceph</h1>
@@ -122,7 +138,8 @@ function Now({ s }: { s: CephState }) {
           </dd>
         </dl>
       </div>
-      <h2>OSDs</h2>
+      <Monitors mons={mons} members={names} />
+      <h2 id="osds">OSDs</h2>
       {s.perf_counters === false ? (
         <PerfCountersHint />
       ) : (
@@ -193,7 +210,7 @@ function Now({ s }: { s: CephState }) {
           </tbody>
         </table>
       </div>
-      <h2>Pools</h2>
+      <h2 id="pools">Pools</h2>
       <div className="scroll">
         <table>
           <thead>
@@ -234,6 +251,91 @@ function Now({ s }: { s: CephState }) {
         </table>
       </div>
     </>
+  );
+}
+
+/** Each monitor, its host and the free space where it keeps its data (MON_DISK_LOW). */
+function Monitors({ mons, members }: { mons: CephMon[]; members: Set<string> }) {
+  if (mons.length === 0) return null;
+  return (
+    <>
+      <h2 id="monitors">Monitors</h2>
+      <p className="muted">
+        Free space on the filesystem holding each monitor's data (<code>/var/snap/microceph/common/data/mon</code>), from
+        its host's node_exporter, in whole percent as Ceph counts it. By default Ceph warns at {MON_WARN}% free or less (
+        <code>MON_DISK_LOW</code>) and raises an error at {MON_CRIT}% or less (<code>MON_DISK_CRIT</code>).
+      </p>
+      <div className="scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Monitor</th>
+              <th>Host</th>
+              <th className="num">Rank</th>
+              <th>Quorum</th>
+              <th>Data filesystem</th>
+              <th className="num">Free</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {mons.map((m) => (
+              <tr key={m.name}>
+                <td>mon.{m.name}</td>
+                <td>
+                  {m.member && members.has(m.member) ? <MemberLink name={m.member} /> : m.host || "–"}
+                  {m.address && <span className="muted"> {m.address}</span>}
+                </td>
+                <td className="num">{m.rank ?? "–"}</td>
+                <td>{m.in_quorum ? "in" : <strong>out</strong>}</td>
+                {m.disk ? (
+                  <>
+                    <td>
+                      <code>{m.disk.mountpoint}</code>{" "}
+                      <span className="muted">
+                        {formatBytes(m.disk.avail)} free of {formatBytes(m.disk.size)}
+                      </span>
+                    </td>
+                    <td className="num">
+                      <MonFree percent={m.disk.free_percent} state={m.disk.state} />
+                    </td>
+                    <td>
+                      {/* whole percent: green above 30% free, amber at 30 or less, red at 5 or less */}
+                      <meter
+                        min={0}
+                        max={100}
+                        low={MON_CRIT + 1}
+                        high={MON_WARN + 1}
+                        optimum={100}
+                        value={m.disk.free_percent}
+                        aria-label={`mon.${m.name} free`}
+                      />
+                    </td>
+                  </>
+                ) : (
+                  <td colSpan={3} className="muted" title="No node_exporter data for this host">
+                    not monitored
+                  </td>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+/** Not an alert region: the figure changes with every refresh, and the bell already
+ * announces MON_DISK_LOW (D92 review). */
+function MonFree({ percent, state }: { percent: number; state?: string }) {
+  const label = state === "critical" ? "critically low" : state === "low" ? "low" : "";
+  return label ? (
+    <strong>
+      {percent}% {label}
+    </strong>
+  ) : (
+    <>{percent}%</>
   );
 }
 

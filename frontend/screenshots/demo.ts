@@ -242,7 +242,7 @@ const A = (id: number, rule: string, subject: string, severity: "warning" | "cri
   fired_at: 1794400000 - firedAgo, last_seen: 1794400000, resolved_at: null, ack_by: null, ack_at: null, data: {}, ...extra,
 });
 export const ALERTS_ACTIVE: AlertRow[] = [
-  A(6, "ceph_health", "OSD_NEARFULL", "warning", "An OSD is nearly full", "Ceph health check OSD_NEARFULL (HEALTH_WARN). Details: ceph health detail", "/ceph", 1500),
+  A(6, "ceph_health", "OSD_NEARFULL", "warning", "An OSD is nearly full", "Ceph health check OSD_NEARFULL (HEALTH_WARN). Details: ceph health detail", "/ceph#osds", 1500),
   A(5, "local_pool", "node-2/local", "critical", "Storage pool local on node-2 is filling up", "Pool local on node-2 (92%; warning at 80%, critical at 90%)", "/storage/pools/local", 3600),
   A(4, "network_addresses", "default/default", "warning", "Network default is running out of addresses", "205 of 253 IPv4 addresses in 10.10.0.1/24 in use (81%; warning at 80%, critical at 95%)", "/networks/default/default", 7200, { ack_by: "admin" }),
   A(3, "instance_rootfs", "web/db-primary", "warning", "db-primary's root disk is filling up", "Root filesystem of web/db-primary (91%; warning at 90%, critical at 95%)", "/instances/web/db-primary", 86400, { project: "web" }),
@@ -686,7 +686,20 @@ export const CEPH: CephState = {
   health: { status: "HEALTH_OK", checks: [] },
   version: "20.2.1 tentacle",
   full_ratios: { nearfull: 0.85, full: 0.95, default: false }, // Tentacle exports them
-  mons: HOSTS.map((name) => ({ name, in_quorum: true })),
+  // each monitor's data on its host's root filesystem (MON_DISK_LOW at 30% free or less)
+  mons: HOSTS.map((name, i) => {
+    const size = 480e9;
+    const avail = [0.62, 0.41, 0.57][i] * size;
+    return {
+      name,
+      in_quorum: true,
+      host: name,
+      rank: i,
+      address: `192.0.2.${11 + i}`,
+      member: name,
+      disk: { mountpoint: "/", size, avail, free_percent: Math.floor((avail / size) * 100), state: "ok" as const },
+    };
+  }),
   mgrs: HOSTS.map((name, i) => ({ name: `${name}.mgr`, active: i === 1 })),
   osds: OSDS.map((id) => ({
     id,

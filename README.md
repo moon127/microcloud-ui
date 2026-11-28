@@ -77,7 +77,7 @@ Light, Dark and System (follows the OS).
 **Instance:** actions, tabs, history graphs
 ![Instance page](docs/screenshots/instance.png)
 
-**Ceph:** health, OSDs, pools, history, busiest disks mapped to instances
+**Ceph:** health, monitors and their disk space, OSDs, pools, history, busiest disks mapped to instances
 ![Ceph](docs/screenshots/ceph.png)
 
 More: [instances](docs/screenshots/instances.png) ·
@@ -199,7 +199,8 @@ Pages:
 - **Member pages:** hardware, graphs, and evacuate/restore.
 - **Storage:** pools with per-member capacity, and custom volumes with snapshots and
   attach/detach.
-- **Ceph:** health, OSDs, pools, latency and the busiest disks.
+- **Ceph:** health, monitors (and which one is low on disk), OSDs, pools, latency and the
+  busiest disks.
 - **Networks:** create and edit per member, ACLs, forwards, load balancers, leases and the
   OVN overview.
 - **Operations and Alerts** (with LXD's warnings).

@@ -83,10 +83,10 @@ class AlertStore:
         return int(cur.lastrowid or 0)
 
     def touch(self, alert_id: int, a: Alert) -> None:
-        """Still true: the latest severity, text and value. Turning critical undoes an
-        acknowledgement: that's news (D91 review)."""
+        """Still true: the latest severity, text, link and value. Turning critical undoes
+        an acknowledgement: that's news (D91 review)."""
         self.db.execute(
-            "UPDATE alerts SET title = ?, detail = ?, data = ?, last_seen = ?, "
+            "UPDATE alerts SET title = ?, detail = ?, link = ?, data = ?, last_seen = ?, "
             "ack_by = CASE WHEN severity != 'critical' AND ? = 'critical' "
             "THEN NULL ELSE ack_by END, "
             "ack_at = CASE WHEN severity != 'critical' AND ? = 'critical' "
@@ -95,6 +95,7 @@ class AlertStore:
             (
                 a.title,
                 a.detail,
+                a.link,
                 json.dumps(a.data),
                 self.clock(),
                 a.severity,

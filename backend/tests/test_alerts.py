@@ -80,6 +80,11 @@ def test_store_and_engine():
     eng.apply({"r": [alert(severity="critical", value=2)]}, {"r": 60})
     row = store.list(True)[0]
     assert row["severity"] == "critical" and row["data"] == {"v": 2} and row["last_seen"] == clock.t
+    # a new link (an upgrade pointing it at a section) reaches the open alert
+    moved = alert(severity="critical", value=2)
+    moved.link = "/x#part"
+    eng.apply({"r": [moved]}, {"r": 60})
+    assert store.list(True)[0]["link"] == "/x#part"
     # a rule that couldn't look leaves it alone
     eng.apply({"r": None}, {"r": 60})
     assert store.list(True)
@@ -201,6 +206,8 @@ async def test_ceph_rules():
     ]
     assert out[0].title == "A Ceph monitor's disk is low on space"
     assert out[2].title == "Ceph reports NEW_CHECK"
+    # each check links to its part of the Ceph page
+    assert [a.link for a in out] == ["/ceph#monitors", "/ceph#osds", "/ceph"]
     [raw] = await ceph_raw(ctx(svc()))
     assert raw.severity == "warning" and raw.data["value"] == 80.0  # 75 <= 80 < 85
     # no Ceph monitored: nothing; stale or failed: couldn't look
@@ -216,6 +223,51 @@ async def test_ceph_rules():
     s = svc()
     s.collector.ceph_last = SimpleNamespace(ok=True, exposition=parse("ceph_x 1\n"))
     assert await ceph_raw(ctx(s)) == []
+
+
+async def test_ceph_mon_disk_names_the_monitor():
+    """MON_DISK_LOW and MON_DISK_CRIT say which monitor and how much is free, from its
+    host's node_exporter: the mgr exports only the check's name."""
+    exp = parse(
+        """ceph_health_detail{name="MON_DISK_LOW",severity="HEALTH_WARN"} 1.0
+ceph_health_detail{name="MON_DISK_CRIT",severity="HEALTH_ERR"} 1.0
+ceph_mon_metadata{ceph_daemon="mon.a",hostname="h1"} 1.0
+ceph_mon_metadata{ceph_daemon="mon.h2",hostname="h2"} 1.0
+ceph_mon_metadata{ceph_daemon="mon.h3",hostname="h3"} 1.0
+"""
+    )
+
+    def page(avail):
+        return SimpleNamespace(
+            ok=True,
+            exposition=parse(
+                f'node_filesystem_size_bytes{{fstype="ext4",mountpoint="/"}} 100\n'
+                f'node_filesystem_avail_bytes{{fstype="ext4",mountpoint="/"}} {avail}\n'
+            ),
+        )
+
+    node = SimpleNamespace(
+        last={"h1": page(30.5), "h2": page(4), "h3": page(80), "x": SimpleNamespace(ok=False)}
+    )
+    s = svc(node=node)
+    s.collector.ceph_last = SimpleNamespace(ok=True, exposition=exp)
+    low, crit = await ceph_health(ctx(s))
+    # 30.5% is 30 to Ceph, so low; mon.h2 is critical and named only there (review)
+    assert low.detail == (
+        "mon.a on h1: 30% free on / (by Ceph's default, MON_DISK_LOW at 30% free or less). "
+        "Ceph health check MON_DISK_LOW (HEALTH_WARN)"
+    )
+    assert crit.detail.startswith("mon.h2: 4% free on / (by Ceph's default, MON_DISK_CRIT at 5%")
+    assert crit.severity == "critical" and crit.link == "/ceph#monitors"
+    # the cluster's limits differ from Ceph's defaults: the one with least free
+    node.last = {"h1": page(40), "h3": page(80)}
+    low, _ = await ceph_health(ctx(s))
+    assert low.detail.startswith("lowest mon.a on h1: 40% free on / (by Ceph's default")
+    # no node_exporter: Ceph's own words
+    s = svc()
+    s.collector.ceph_last = SimpleNamespace(ok=True, exposition=exp)
+    low, _ = await ceph_health(ctx(s))
+    assert low.detail == "Ceph health check MON_DISK_LOW (HEALTH_WARN). Details: ceph health detail"
 
 
 def test_hysteresis():

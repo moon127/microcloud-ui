@@ -1,7 +1,20 @@
 # MicroCeph metrics setup for microcloud-ui
 
-microcloud-ui shows these on its **Ceph** page (`/ceph`): health, OSDs, pools, latency
-history and the busiest instance disks/volumes (from the per-RBD-image stats below).
+microcloud-ui shows these on its **Ceph** page (`/ceph`): health, monitors, OSDs, pools,
+latency history and the busiest instance disks/volumes (from the per-RBD-image stats below).
+
+**Monitors** lists each monitor with its host, rank, address and whether it's in quorum,
+from the mgr. Its free disk space comes from node_exporter on its host (see
+[`HOST-METRICS.md`](HOST-METRICS.md)): the filesystem holding
+`/var/snap/microceph/common/data/mon/ceph-<name>`, counted as Ceph counts it (space
+available over size, in whole percent). By default Ceph raises `MON_DISK_LOW` at 30% free
+or less and `MON_DISK_CRIT` at 5% or less (`mon_data_avail_warn`, `mon_data_avail_crit`);
+the page flags the same, as the mgr doesn't export the cluster's own values. A monitor's
+host is matched to an LXD member by the host's own name as node_exporter reports it
+(`uname -n`), else by the member's name, ignoring case and, failing that, the domain. In a bigger cluster a
+monitor can run on a host that isn't an LXD member, or has no node_exporter: it shows
+"not monitored". The mgr's health metric names only the check, so this is where to see
+*which* monitor is low.
 
 microcloud-ui reads Ceph metrics from the ceph-mgr `prometheus` module:
 plain HTTP on port 9283 on each mgr host, served by the **active** mgr only,

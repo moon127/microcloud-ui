@@ -21,6 +21,7 @@ from mcui.alerts.store import Alert, Severity
 from mcui.config import DEFAULT_THRESHOLDS
 from mcui.lxd.client import LXDError
 from mcui.lxd.server import Member, members, release
+from mcui.metrics.ceph_view import MON_AVAIL_CRIT, MON_AVAIL_WARN, mons, node_pages
 from mcui.metrics.live import SKIP_FSTYPES
 from mcui.metrics.prom import Exposition
 from mcui.metrics.select import NODE_SKIP_MOUNT_PREFIXES
@@ -160,6 +161,34 @@ def _ceph(ctx: Context) -> Exposition | None:
     return last.exposition
 
 
+def _ceph_link(check: str) -> str:
+    """The part of the Ceph page that shows a check's subject."""
+    for prefix, section in (("MON_", "monitors"), ("OSD_", "osds"), ("POOL_", "pools")):
+        if check.startswith(prefix):
+            return f"/ceph#{section}"
+    return "/ceph"
+
+
+def _mon_disks(ctx: Context, exp: Exposition, state: str) -> str:
+    """Which monitors are low (or critical) on disk, as Ceph's MON_DISK_* checks don't say
+    (the mgr exports only the check's name). None by Ceph's default limits (the cluster's
+    may differ): the one with least free. "" when none can be told."""
+    disks = [m for m in mons(exp, node_pages(ctx.services.node)) if m["disk"]]
+
+    def text(m: dict[str, Any]) -> str:
+        on = f" on {m['host']}" if m["host"] and m["host"] != m["name"] else ""
+        return (
+            f"mon.{m['name']}{on}: {m['disk']['free_percent']}% free on {m['disk']['mountpoint']}"
+        )
+
+    low = [text(m) for m in disks if m["disk"]["state"] == state]
+    if low:
+        return "; ".join(low)
+    if disks:
+        return "lowest " + text(min(disks, key=lambda m: m["disk"]["free_percent"]))
+    return ""
+
+
 async def ceph_health(ctx: Context) -> list[Alert]:
     """Ceph's own health checks, as Ceph raises them (OSD_NEARFULL and the rest)."""
     exp = _ceph(ctx)
@@ -170,14 +199,27 @@ async def ceph_health(ctx: Context) -> list[Alert]:
         if s.name != "ceph_health_detail" or not s.value:
             continue
         name, sev = s.labels.get("name", "?"), s.labels.get("severity", "")
+        detail = f"Ceph health check {name} ({sev}). Details: ceph health detail"
+        mon = {
+            "MON_DISK_LOW": ("low", MON_AVAIL_WARN),
+            "MON_DISK_CRIT": ("critical", MON_AVAIL_CRIT),
+        }
+        if name in mon:
+            state, limit = mon[name]
+            low = _mon_disks(ctx, exp, state)
+            if low:
+                detail = (
+                    f"{low} (by Ceph's default, {name} at {limit}% free or less). "
+                    f"Ceph health check {name} ({sev})"
+                )
         out.append(
             Alert(
                 "ceph_health",
                 name,
                 "critical" if sev == "HEALTH_ERR" else "warning",
                 CEPH_CHECKS.get(name, f"Ceph reports {name}"),
-                f"Ceph health check {name} ({sev}). Details: ceph health detail",
-                "/ceph",
+                detail,
+                _ceph_link(name),
             )
         )
     return out

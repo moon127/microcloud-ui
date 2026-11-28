@@ -35,7 +35,7 @@ only cluster roles see them afterwards.
 
 | Alert | When (defaults) | From |
 |---|---|---|
-| Ceph's health checks | whenever Ceph raises one: `OSD_NEARFULL`, `OSD_FULL`, `POOL_NEARFULL`, `OSD_DOWN`, `MON_DOWN`, `MON_DISK_LOW`, `PG_DEGRADED`, `SLOW_OPS`, `MON_CLOCK_SKEW`, `RECENT_CRASH` and any other; `HEALTH_ERR` ones are critical | the Ceph mgr |
+| Ceph's health checks | whenever Ceph raises one: `OSD_NEARFULL`, `OSD_FULL`, `POOL_NEARFULL`, `OSD_DOWN`, `MON_DOWN`, `MON_DISK_LOW`, `PG_DEGRADED`, `SLOW_OPS`, `MON_CLOCK_SKEW`, `RECENT_CRASH` and any other; `HEALTH_ERR` ones are critical. Each links to its part of the Ceph page: monitor checks to Monitors, OSD and pool checks to their tables | the Ceph mgr |
 | Ceph filling up | raw capacity used ≥ 75% (critical 85%), before Ceph's own warnings | the Ceph mgr |
 | Local storage pools | ZFS, LVM, btrfs or dir pool on a member ≥ 80% (90%) | LXD |
 | Host filesystems | any real filesystem on a member ≥ 85% (95%), counted as `df` does | node_exporter |
@@ -50,6 +50,16 @@ only cluster roles see them afterwards.
 | Network addresses | IPv4 addresses in use in a bridge or OVN network's subnet ≥ 80% (95%): instances' leases and static addresses, and forwards or load balancers that use the subnet | LXD |
 | Certificates | the LXD cluster certificate, the app's client, metrics and HTTPS certificates expire within 30 days (7) | the files |
 | Collection | collecting Ceph, host or LXD metrics keeps failing | the app |
+
+The Ceph mgr gives only a check's name, not Ceph's detail (`ceph health detail` on a
+member has that). For `MON_DISK_LOW` and `MON_DISK_CRIT` the alert names the monitors
+at Ceph's default limits (30% and 5% free or less) and their free space, e.g.
+"mon.node-2: 27% free on /", from node_exporter on their hosts; the Ceph page's
+**Monitors** table shows every monitor's ([`CEPH-METRICS.md`](CEPH-METRICS.md)). If your
+cluster's limits differ, the list follows the defaults: with a lower limit it can name a
+monitor Ceph isn't complaining about, and when none is at the default it names the one
+with least free ("lowest mon.node-2: 33% free on /"). Without node_exporter on the
+monitors' hosts, the alert gives Ceph's check alone.
 
 Rules without node_exporter or Ceph simply find nothing. On a plain standalone LXD server
 (not MicroCloud, which always clusters LXD) local storage pools aren't checked: LXD has

@@ -8,10 +8,13 @@ are mapped back to the LXD instance or volume they belong to (D56).
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
-from typing import Any
+from collections.abc import Iterable, Mapping
+from typing import TYPE_CHECKING, Any
 
 from mcui.metrics.prom import Exposition
+
+if TYPE_CHECKING:
+    from mcui.metrics.node import NodeScraper
 
 HEALTH = {0: "HEALTH_OK", 1: "HEALTH_WARN", 2: "HEALTH_ERR"}
 # pool-level PG counts worth showing when non-zero (besides total/active/clean)
@@ -29,16 +32,13 @@ def _one(exp: Exposition, name: str) -> float | None:
     return None
 
 
-def summarize(exp: Exposition) -> dict[str, Any]:
+def summarize(exp: Exposition, nodes: Mapping[str, Exposition] | None = None) -> dict[str, Any]:
+    """``nodes``: members' latest node_exporter pages, for monitors' free disk space."""
     status = _one(exp, "ceph_health_status")
     checks = [
         {"name": s.labels.get("name", ""), "severity": s.labels.get("severity", "")}
         for s in exp.samples
         if s.name == "ceph_health_detail" and s.value
-    ]
-    mons = [
-        {"name": d.removeprefix("mon."), "in_quorum": bool(v)}
-        for d, v in sorted(_by(exp, "ceph_mon_quorum_status", "ceph_daemon").items())
     ]
     mgrs = [
         {"name": d.removeprefix("mgr."), "active": bool(v)}
@@ -50,7 +50,7 @@ def summarize(exp: Exposition) -> dict[str, Any]:
             "checks": checks,
         },
         "version": _version(exp),
-        "mons": mons,
+        "mons": mons(exp, nodes or {}),
         "mgrs": mgrs,
         "osds": _osds(exp),
         "perf_counters": _perf_counters(exp),
@@ -61,6 +61,106 @@ def summarize(exp: Exposition) -> dict[str, Any]:
             "used_raw": _one(exp, "ceph_cluster_total_used_raw_bytes"),
         },
         "pools": _pools(exp),
+    }
+
+
+# MicroCeph keeps a monitor's store in MON_DATA/ceph-<name>. Ceph raises MON_DISK_LOW when
+# the filesystem holding it has mon_data_avail_warn (30) percent free or less, MON_DISK_CRIT
+# at mon_data_avail_crit (5) or less, counting whole percent (an int): Ceph's defaults,
+# which the mgr doesn't export (HealthMonitor::check_member_health, D92)
+MON_DATA = "/var/snap/microceph/common/data/mon"
+MON_AVAIL_WARN, MON_AVAIL_CRIT = 30, 5
+# filesystems that can't hold a monitor's data
+_NOT_DATA = frozenset({"proc", "sysfs", "nsfs", "devtmpfs", "squashfs"})
+
+
+def node_pages(node: NodeScraper | None) -> dict[str, Exposition]:
+    """Members' latest node_exporter pages that were read, for ``mons``."""
+    return {m: s.exposition for m, s in node.last.items() if s.ok} if node else {}
+
+
+def mons(exp: Exposition, nodes: Mapping[str, Exposition]) -> list[dict[str, Any]]:
+    """Each monitor: its host, whether it's in quorum, and the free space on the
+    filesystem holding its data, from that host's node_exporter (``disk`` is ``None``
+    when the host has none: in a bigger cluster monitors needn't be on LXD members)."""
+    meta = {
+        s.labels.get("ceph_daemon", ""): s.labels
+        for s in exp.samples
+        if s.name == "ceph_mon_metadata"
+    }
+    quorum = _by(exp, "ceph_mon_quorum_status", "ceph_daemon")
+    out = []
+    for d in sorted(set(meta) | set(quorum)):
+        labels = meta.get(d, {})
+        name = d.removeprefix("mon.")
+        host = labels.get("hostname", "")
+        member = _member(host, nodes)
+        rank = labels.get("rank", "")
+        out.append(
+            {
+                "name": name,
+                "in_quorum": bool(quorum.get(d)),
+                "host": host,
+                "rank": int(rank) if rank.isdigit() else None,
+                "address": labels.get("public_addr", ""),
+                "member": member,
+                "disk": _mon_disk(nodes[member], f"{MON_DATA}/ceph-{name}") if member else None,
+            }
+        )
+    return out
+
+
+def _member(host: str, nodes: Mapping[str, Exposition]) -> str | None:
+    """The member a Ceph host is. Ceph names the host as ``uname -n`` does, so that's
+    tried first (members can be renamed), then the member's name, each in full and then
+    without the domain, ignoring case; a name two members share matches neither."""
+    if not host:
+        return None
+    uname = {
+        member: s.labels.get("nodename", "")
+        for member, exp in nodes.items()
+        for s in exp.samples
+        if s.name == "node_uname_info"
+    }
+
+    def norm(n: str, short: bool) -> str:
+        return (n.split(".")[0] if short else n).lower()
+
+    for short in (False, True):
+        for names in (uname, {m: m for m in nodes}):
+            found = [m for m, n in names.items() if n and norm(n, short) == norm(host, short)]
+            if len(found) == 1:
+                return found[0]
+    return None
+
+
+def _mon_disk(exp: Exposition, path: str) -> dict[str, Any] | None:
+    """The filesystem holding ``path``: the longest mount point above it. Free is counted
+    as Ceph does: available to non-root over the filesystem's size, in whole percent."""
+    size: dict[str, float] = {}
+    avail: dict[str, float] = {}
+    for s in exp.samples:
+        mp = s.labels.get("mountpoint", "")
+        if s.labels.get("fstype", "") in _NOT_DATA:
+            continue
+        if not (mp == path or path.startswith(mp.rstrip("/") + "/")):
+            continue
+        if s.name == "node_filesystem_size_bytes":
+            size[mp] = s.value
+        elif s.name == "node_filesystem_avail_bytes":
+            avail[mp] = s.value
+    known = [mp for mp in size if mp in avail and size[mp]]
+    if not known:
+        return None
+    mp = max(known, key=len)
+    ceph = int(100.0 * avail[mp] / size[mp])  # as Ceph's int avail_percent
+    state = "critical" if ceph <= MON_AVAIL_CRIT else "low" if ceph <= MON_AVAIL_WARN else "ok"
+    return {
+        "mountpoint": mp,
+        "size": size[mp],
+        "avail": avail[mp],
+        "free_percent": ceph,
+        "state": state,
     }
 
 

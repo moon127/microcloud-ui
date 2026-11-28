@@ -37,6 +37,69 @@ def test_summary_from_a_real_mgr():
     assert lxd["type"] == "replicated" and lxd["pgs"] == 128 and lxd["stored"] > 0
 
 
+def _fs(mp, size, avail, fstype="ext4"):
+    return (
+        f'node_filesystem_size_bytes{{fstype="{fstype}",mountpoint="{mp}"}} {size}\n'
+        f'node_filesystem_avail_bytes{{fstype="{fstype}",mountpoint="{mp}"}} {avail}\n'
+    )
+
+
+def test_monitors_and_their_disks():
+    """Each monitor's host, rank, quorum and free space where its data lives (from that
+    host's node_exporter), counted as Ceph does; a host that isn't a member has none."""
+    nodes = {
+        "node-1": parse(_fs("/", 100, 30.9) + _fs("/boot", 10, 9) + _fs("/var/snap/micro", 9, 9)),
+        # a member named differently from its host, the monitor's store on its own disk
+        "m2": parse(
+            'node_uname_info{nodename="node-2.example.org"} 1\n'
+            + _fs("/", 100, 10)
+            + _fs("/var/snap/microceph/common", 200, 150)
+            + _fs("/var/snap/microceph/common/data/mon/ceph-node-2", 50, 2, "xfs")
+            + _fs("/var/snap/microceph/common/data", 50, 50, "squashfs")
+        ),
+    }
+    s = summarize(parse(FIXTURE.read_text()), nodes)
+    by = {m["name"]: m for m in s["mons"]}
+    assert by["node-1"] == {
+        "name": "node-1",
+        "in_quorum": True,
+        "host": "node-1",
+        "rank": 0,
+        "address": "192.0.2.2",
+        "member": "node-1",
+        # 30.9% is 30 to Ceph (whole percent), so MON_DISK_LOW: "low" (review)
+        "disk": {"mountpoint": "/", "size": 100, "avail": 30.9, "free_percent": 30, "state": "low"},
+    }
+    assert by["node-2"]["member"] == "m2"
+    assert by["node-2"]["disk"]["mountpoint"] == "/var/snap/microceph/common/data/mon/ceph-node-2"
+    assert by["node-2"]["disk"]["free_percent"] == 4
+    assert by["node-2"]["disk"]["state"] == "critical"
+    assert by["node-3"]["member"] is None and by["node-3"]["disk"] is None
+    # a member whose node_exporter shows no usable filesystem
+    s = summarize(parse(FIXTURE.read_text()), {"node-3": parse(_fs("/", 0, 0))})
+    assert next(m for m in s["mons"] if m["name"] == "node-3")["disk"] is None
+    # quorum without metadata (an older mgr): still listed
+    [m] = summarize(parse('ceph_mon_quorum_status{ceph_daemon="mon.a"} 0.0\n'))["mons"]
+    assert m["host"] == "" and m["rank"] is None and m["member"] is None and not m["in_quorum"]
+
+
+def _host(host, nodes):
+    exp = parse(f'ceph_mon_metadata{{ceph_daemon="mon.x",hostname="{host}"}} 1.0\n')
+    return summarize(exp, nodes)["mons"][0]["member"]
+
+
+def test_monitor_hosts_to_members():
+    """Ceph's hostname is the host's own (uname -n): that's matched before the member's
+    name, then both without the domain, ignoring case; ambiguous names match nothing."""
+    uname = lambda n: parse(f'node_uname_info{{nodename="{n}"}} 1\n')  # noqa: E731
+    # renamed members: member a is host b, member b is host c
+    assert _host("b", {"a": uname("b"), "b": uname("c")}) == "a"
+    assert _host("NODE-1.lan", {"node-1": parse("node_load1 1\n")}) == "node-1"  # no uname
+    assert _host("node-1.lan", {"m1": uname("node-1.example.org")}) == "m1"
+    assert _host("node-1", {"m1": uname("node-1.a"), "m2": uname("node-1.b")}) is None
+    assert _host("other", {"m1": uname("node-1")}) is None
+
+
 def test_summary_of_nothing():
     s = summarize(parse(""))
     assert s["health"]["status"] == "UNKNOWN" and s["osds"] == [] and s["pools"] == []

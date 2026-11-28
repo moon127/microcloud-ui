@@ -1467,6 +1467,19 @@ export interface CephPool {
   pgs?: number;
 }
 
+export interface CephMon {
+  name: string;
+  in_quorum: boolean;
+  host?: string;
+  rank?: number | null;
+  address?: string;
+  /** the LXD member the monitor runs on, when it's one */
+  member?: string | null;
+  /** the filesystem holding its data, from the host's node_exporter; null without one.
+   * ``free_percent`` in whole percent and ``state`` as Ceph counts them (MON_DISK_LOW, _CRIT) */
+  disk?: { mountpoint: string; size: number; avail: number; free_percent: number; state: "ok" | "low" | "critical" } | null;
+}
+
 export interface CephState {
   enabled: boolean;
   ok?: boolean;
@@ -1475,7 +1488,7 @@ export interface CephState {
   scraped_at?: number;
   health?: { status: string; checks: { name: string; severity: string }[] };
   version?: string | null;
-  mons?: { name: string; in_quorum: boolean }[];
+  mons?: CephMon[];
   mgrs?: { name: string; active: boolean }[];
   osds?: CephOsd[];
   /** false: the mgr leaves out OSD perf counters (Ceph Tentacle's default) */
