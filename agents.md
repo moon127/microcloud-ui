@@ -325,8 +325,8 @@ Statuses: *Proposed* → *Accepted* once the owner confirms; *Superseded by Dn* 
 - **0.4.0 released 2026-11-28** (run 46133051437): alerts in the UI and sent out (D91,
   D94–D96), host paths and USB devices (D86–D90), the folder browser kept current (D97),
   Ceph monitors and balance (D92, D93). Released on the owner's call with limited live
-  testing (ntfy.sh, email to a sink); the owner tests Telegram and the other services as
-  he uses them (LIVE-TESTS N1–N10, U1–U3), fixes in patch releases. `main` is 0.4.1.dev0.
+  testing (ntfy.sh, email to a sink); the owner tests Telegram and the other services
+  in use (LIVE-TESTS N1–N10, U1–U3), fixes in patch releases. `main` is 0.4.1.dev0.
 - **Next (owner, 2026-11-28):** OIDC sign-in (D98, proposed; docs/PLAN.md Phase 11), to
   discuss before building.
 - **Folder browser helpers kept current, 2026-11-28 (D97):** remade from the current
