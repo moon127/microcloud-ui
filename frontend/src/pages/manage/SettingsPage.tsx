@@ -3,6 +3,7 @@ import {
   fetchAlertSettings,
   fetchHostDeviceSettings,
   updateAlertSettings,
+  rebuildBrowserHelpers,
   updateHostDeviceSettings,
   type AlertSettingsChange,
   type AlertSettingsView,
@@ -15,6 +16,12 @@ import Confirm from "../../Confirm";
 import { useApi } from "../../useApi";
 import { useHashScroll } from "../../hashScroll";
 import Notifications from "./Notifications";
+
+/** How long ago a timestamp (seconds) was, roughly. */
+const age = (t: number) => {
+  const h = Math.max(0, (Date.now() / 1000 - t) / 3600);
+  return h < 48 ? `${Math.max(1, Math.round(h))} h` : `${Math.round(h / 24)} days`;
+};
 
 const SOURCE: Record<SettingSource, string> = {
   app: "saved here",
@@ -161,6 +168,7 @@ function HostDevices({ s }: { s: HostDeviceSettings }) {
   const { run } = useActions();
   const [text, setText] = useState(s.hidden_paths.join("\n"));
   const [off, setOff] = useState(false);
+  const [rebuild, setRebuild] = useState(false);
   const paths = text
     .split("\n")
     .map((p) => p.trim())
@@ -222,6 +230,12 @@ function HostDevices({ s }: { s: HostDeviceSettings }) {
         <code>/root</code> or private home folders). Every listing is in the audit log. Switching it off deletes the helpers,
         their image and the project. Now: {s.browse ? "on" : "off"} ({SOURCE[s.browse_source]}).
       </p>
+      <p className="muted">
+        Helpers have no network and aren&apos;t updated in place: one older than {s.browse_refresh_days} days is made again
+        from the newest build of <code>{b?.image ?? "its image"}</code> the next time it starts. Rebuild helpers does it now
+        for all of them, after a security fix you don&apos;t want to wait for.
+      </p>
+      {b?.image_warning && <p role="alert">{b.image_warning}.</p>}
       {b?.error && <p role="alert">Helpers unavailable: {b.error}</p>}
       {b && !b.error && (
         <p>
@@ -232,8 +246,39 @@ function HostDevices({ s }: { s: HostDeviceSettings }) {
               ? "exists but isn't the app's (no user.mcui.role=host-browser): choose another browse_project in the config file."
               : (b.helpers ?? []).length === 0
                 ? "there, no helpers yet."
-                : (b.helpers ?? []).map((h) => `${h.member}: ${h.status.toLowerCase()}`).join(", ")}
+                : null}
         </p>
+      )}
+      {b && !b.error && (b.helpers ?? []).length > 0 && (
+        <div className="scroll">
+          <table aria-label="Browser helpers">
+            <thead>
+              <tr>
+                <th>Member</th>
+                <th>Status</th>
+                <th>Made from</th>
+                <th>Made</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(b.helpers ?? []).map((h) => (
+                <tr key={h.name}>
+                  <td>{h.member}</td>
+                  <td>{h.status.toLowerCase()}</td>
+                  <td>{h.image || <span className="muted">unknown</span>}</td>
+                  <td>
+                    {h.created_at ? `${age(h.created_at)} ago` : "?"}
+                    {h.stale && (
+                      <span className="muted">
+                        {h.status === "Running" ? " (made again after it stops)" : " (made again when next used)"}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       <p className="actions">
         {s.browse ? (
@@ -245,12 +290,34 @@ function HostDevices({ s }: { s: HostDeviceSettings }) {
             Switch on
           </button>
         )}
+        {b?.ours && (b.helpers ?? []).length > 0 && (
+          <button type="button" onClick={() => setRebuild(true)}>
+            Rebuild helpers
+          </button>
+        )}
         {s.browse_source === "app" && (
           <button type="button" onClick={() => save("Folder browser as in the config file", { reset_browse: true })}>
             Use the config file ({s.config_browse ? "on" : "off"})
           </button>
         )}
       </p>
+      {rebuild && (
+        <Confirm
+          title="Rebuild the browser helpers?"
+          confirmLabel="Rebuild"
+          onCancel={() => setRebuild(false)}
+          onConfirm={() => {
+            setRebuild(false);
+            void run("Rebuild the browser helpers", () => rebuildBrowserHelpers().then(() => undefined));
+          }}
+        >
+          <p>
+            The helpers and their image are deleted; each is made again from the image server&apos;s newest build the next time
+            someone browses on its member (that needs the image server to be reachable). One in use right now is made again
+            once it stops.
+          </p>
+        </Confirm>
+      )}
       {off && (
         <Confirm
           title="Switch the folder browser off?"

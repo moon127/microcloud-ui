@@ -78,8 +78,9 @@ retention_days = 90                         # how long cleared alerts are kept
 browse = false                              # the folder browser (helper containers)
 browse_project = "mcui-server"              # the LXD project the helpers live in
 # browse_pool = "remote"                    # unset: the default profile's root pool
-browse_image = "alpine/edge"                # from the images server
+browse_image = "alpine/3.24"                # from the images server (a stable release)
 browse_idle_minutes = 10                    # a helper stops after this long unused
+browse_refresh_days = 7                     # a helper is made again from the current image
 ```
 
 ### `[alerts]`: what is checked and when
@@ -121,6 +122,16 @@ wins over the file, and **Use the config file** goes back to it, so either way w
   here (at the next start), deletes the helpers, their image and the project. The app
   never touches a project of that name without its marker. See
   [`WORKFLOWS.md`](WORKFLOWS.md#find-a-path-on-the-member).
+- **`browse_image`** and **`browse_refresh_days`** (D97): helpers have no network and
+  aren't updated in place. A stopped helper made more than `browse_refresh_days` ago (7),
+  or from another image than `browse_image`, is made again when next used, and images no
+  helper uses are deleted. LXD makes it from its copy of the image, which it refreshes
+  from the image server every few hours (`images.auto_update_interval`, 6 by default; the
+  app switches on `images.auto_update_cached` for its project). `browse_image` is a stable
+  Alpine release, which images.lxd.canonical.com rebuilds daily with Alpine's fixes; a new
+  release of the app moves the default on when Alpine releases a new one. Settings warns
+  when it's set to anything else, since the weekly check in the project's CI watches the
+  default only.
 
 History lives in `<data_dir>/metrics.db`. Expect roughly 0.5–0.7 GB a year
 for a three-member cluster with ~10 instances and Ceph at the defaults; see

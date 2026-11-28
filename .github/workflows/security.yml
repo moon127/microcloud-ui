@@ -1,7 +1,8 @@
 name: Security
 # Weekly, or by hand (D76): known vulnerabilities in the dependencies, and fixable ones in
 # the published image. Fixable image CVEs open (or update) one "Rebuild needed" issue,
-# closed again when a scan comes back clean; the fix is a patch release.
+# closed again when a scan comes back clean; the fix is a patch release. The folder
+# browser helpers' Alpine image is checked the same way (D97), with its own issue.
 on:
   schedule:
     - cron: "17 6 * * 1"  # Mondays 06:17 UTC
@@ -71,4 +72,47 @@ jobs:
               --label rebuild-needed --body "$body"
           elif [ -n "$open" ]; then
             gh issue close "$open" --comment "The latest scan found no fixable HIGH or CRITICAL vulnerabilities."
+          fi
+  helper-image:  # the folder browser helpers' Alpine image, as LXD pulls it today (D97)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false  # unpacking downloaded data: no token in .git/config
+      - name: Fetch the image (checked against the image server's sha256)
+        run: |
+          python3 scripts/helper_image.py fetch helper
+          command -v unsquashfs >/dev/null || {
+            sudo apt-get -qq update && sudo apt-get -qq install -y squashfs-tools >/dev/null; }
+          # as the runner's user, not root: device nodes and ownership don't matter to Trivy
+          unsquashfs -q -no-xattrs -ignore-errors -d helper/rootfs helper/rootfs.squashfs || true
+          test -e helper/rootfs/etc/alpine-release
+      - name: Scan it
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25  # v0.36.0
+        with:
+          scan-type: rootfs
+          scan-ref: helper/rootfs
+          ignore-unfixed: true
+          list-all-pkgs: true  # so the report can show it really read the apk database
+          severity: HIGH,CRITICAL
+          format: json
+          output: helper-trivy.json
+      - name: Open, update or close the "Folder browser helper image" issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          body=$(python3 scripts/helper_image.py report helper-trivy.json helper/image.json)
+          gh label create helper-image --color fbca04 \
+            --description "The folder browser helpers' image needs attention" 2>/dev/null || true
+          open=$(gh issue list --label helper-image --state open --json number -q '.[0].number')
+          if [ -n "$body" ] && [ -n "$open" ]; then
+            gh issue edit "$open" --body "$body"
+          elif [ -n "$body" ]; then
+            gh issue create --title "Folder browser helper image needs attention" \
+              --label helper-image --body "$body"
+          elif [ -n "$open" ]; then
+            gh issue close "$open" --comment "The latest check found nothing to do."
           fi

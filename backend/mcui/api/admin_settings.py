@@ -47,6 +47,7 @@ async def _view(services: Services) -> dict[str, Any]:
         "browse_source": fs.browse_source,
         "config_browse": cfg.browse,
         "browse_idle_minutes": cfg.browse_idle_minutes,
+        "browse_refresh_days": cfg.browse_refresh_days,
         "browser": browser,
     }
 
@@ -94,4 +95,23 @@ async def change_host_devices(
                 store.set_setting(BROWSE_KEY, was)
             status = e.status if isinstance(e, BrowseError) else 502
             raise HTTPException(status, str(e)) from e
+    return await _view(services)
+
+
+@router.post("/host-devices/browser/rebuild")
+async def rebuild_browser(session: AdminDep, services: ServicesDep) -> dict[str, Any]:
+    """Delete the folder browser's helpers and images now; they're made again from the
+    current image when next used (D97)."""
+    if services.browser is None:
+        raise HTTPException(409, "the folder browser isn't available")
+    done, failed = await services.browser.rebuild_all()  # goes on past a member's refusal
+    services.store.audit(
+        session.user.username,
+        "host-browser.rebuild",
+        services.browser.project,
+        detail={"helpers": done, **({"failed": failed} if failed else {})},
+        ok=not failed,
+    )
+    if failed:
+        raise HTTPException(502, "not all rebuilt: " + "; ".join(failed)[:500])
     return await _view(services)

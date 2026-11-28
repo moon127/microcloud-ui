@@ -47,6 +47,10 @@ class FakeBrowser:
         gone, self.exists = self.exists, False
         return gone
 
+    async def rebuild_all(self):
+        self.calls.append("rebuild")
+        return (1, ["browse-node-2: boom"]) if self.fail else (2, [])
+
     async def stop_idle(self):
         self.calls.append("stop_idle")
         if self.fail:
@@ -172,3 +176,34 @@ def test_store_settings_survive(tmp_path, key):
     s.set_setting(key, [1, "a"])
     s.close()
     assert Store(tmp_path / "mcui.db").get_setting(key) == [1, "a"]
+
+
+async def test_rebuild_helpers(app, services, tmp_path):
+    """Settings → Rebuild helpers (D97): a cluster admin's, audited."""
+    fake = services.browser = FakeBrowser()
+    async with client(app) as c:
+        # a viewer with a valid CSRF token: refused for the role, not the token
+        hv = {CSRF_HEADER: await login(c, "viewer", "viewerpw")}
+        r = await c.post(f"{U}/browser/rebuild", headers=hv)
+        assert r.status_code == 403 and fake.calls == []
+        h = await admin(c)
+        r = await c.post(f"{U}/browser/rebuild", headers=h)
+        assert r.status_code == 200 and fake.calls == ["rebuild"]
+        assert r.json()["browse_refresh_days"] == 7
+        assert last_audit(services)[:2] == ("host-browser.rebuild", "mcui-server")
+        # a member refused: the rest still done, and audited as such
+        fake.fail = LXDError("boom", 500)
+        r = await c.post(f"{U}/browser/rebuild", headers=h)
+        assert r.status_code == 502 and "browse-node-2: boom" in r.text
+        action, _, ok, _, detail = last_audit(services)
+        assert action == "host-browser.rebuild" and not ok
+        assert detail == {"helpers": 1, "failed": ["browse-node-2: boom"]}
+    from mcui.main import create_app
+
+    store = fast_store()
+    store.add_user("admin", "adminpw", "admin")
+    settings = Settings(server={"data_dir": str(tmp_path), "secure_cookies": False})
+    a = create_app(services=build_services(settings, store=store), static_dir=None)
+    async with client(a) as c:
+        h = {CSRF_HEADER: await login(c, "admin", "adminpw")}
+        assert (await c.post(f"{U}/browser/rebuild", headers=h)).status_code == 409

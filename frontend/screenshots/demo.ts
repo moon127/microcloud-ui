@@ -327,13 +327,16 @@ export const HOST_SETTINGS: HostDeviceSettings = {
   browse_source: "app",
   config_browse: false,
   browse_idle_minutes: 10,
+  browse_refresh_days: 7,
   browser: {
     project: "mcui-server",
     exists: true,
     ours: true,
+    image: "alpine/3.24",
+    refresh_days: 7,
     helpers: [
-      { name: "browse-node-1", member: "node-1", status: "Stopped" },
-      { name: "browse-node-3", member: "node-3", status: "Running" },
+      { name: "browse-node-1", member: "node-1", status: "Stopped", image: "Alpine 3.24 (default), build 20261119_0052", created_at: 1794400000 - 9 * 86400, stale: true },
+      { name: "browse-node-3", member: "node-3", status: "Running", image: "Alpine 3.24 (default), build 20261127_0052", created_at: 1794400000 - 3 * 3600 },
     ],
   },
 };

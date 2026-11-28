@@ -30,7 +30,8 @@ container image) is too. Checked live on a three-member MicroCloud 3.4 cluster; 
   critical alerts nobody has acknowledged (Phase 8b).
 - **Host paths and USB devices:** attach a member's folders (an NFS mount, a SAN), disks and
   USB devices to an instance on it, with what that does to moves and evacuations. Pick a
-  member's mounts from a list or, opt-in, browse its folders. Cluster admins only, unless
+  member's mounts from a list or, opt-in, browse its folders (through small helper
+  containers kept on a current Alpine build). Cluster admins only, unless
   they give the right to a project's admins, who don't see the folders hidden on
   **Settings** ([`docs/WORKFLOWS.md`](docs/WORKFLOWS.md#attach-host-paths-and-usb-devices)).
 

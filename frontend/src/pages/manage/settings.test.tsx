@@ -21,6 +21,7 @@ const settings = (over: Partial<api.HostDeviceSettings> = {}): api.HostDeviceSet
   browse_source: "default",
   config_browse: false,
   browse_idle_minutes: 10,
+  browse_refresh_days: 7,
   browser: { project: "mcui-server", exists: false, ours: false, helpers: [] },
   ...over,
 });
@@ -80,11 +81,37 @@ describe("SettingsPage (D87)", () => {
         browse: true,
         browse_source: "config",
         config_browse: true,
-        browser: { project: "mcui-server", exists: true, ours: true, helpers: [{ name: "browse-m1", member: "m1", status: "Running" }] },
+        browser: {
+          project: "mcui-server",
+          exists: true,
+          ours: true,
+          image: "alpine/3.23",
+          image_warning: "browse_image alpine/3.23 isn't the default (alpine/3.24), which the checks watch",
+          helpers: [
+            { name: "browse-m1", member: "m1", status: "Running", image: "Alpine 3.24 (default), build 20261127_0052", created_at: Date.now() / 1000 - 7200 },
+            { name: "browse-m2", member: "m2", status: "Stopped", image: "", created_at: Date.now() / 1000 - 9 * 86400, stale: true },
+            { name: "browse-m3", member: "m3", status: "Stopped" },
+            { name: "browse-m4", member: "m4", status: "Running", image: "", created_at: Date.now() / 1000 - 9 * 86400, stale: true },
+          ],
+        },
       }),
     );
+    const rebuild = vi.spyOn(api, "rebuildBrowserHelpers").mockResolvedValue(settings());
     const b = renderAt(<SettingsPage />);
-    expect(await screen.findByText(/^Project/)).toHaveTextContent("m1: running");
+    const table = await screen.findByRole("table", { name: "Browser helpers" });
+    expect(table).toHaveTextContent("m1running" + "Alpine 3.24 (default), build 20261127_0052" + "2 h ago");
+    expect(table).toHaveTextContent("9 days ago (made again when next used)");
+    expect(table).toHaveTextContent("unknown");
+    expect(table).toHaveTextContent("(made again after it stops)");
+    expect(screen.getByText(/one older than 7 days is made again/)).toHaveTextContent("alpine/3.23");
+    expect(screen.getByRole("alert")).toHaveTextContent("isn't the default (alpine/3.24)");
+    fireEvent.click(screen.getByRole("button", { name: "Rebuild helpers" }));
+    expect(dialog().getByText(/needs the image server to be reachable/)).toBeInTheDocument();
+    fireEvent.click(dialog().getByRole("button", { name: "Cancel" }));
+    expect(rebuild).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Rebuild helpers" }));
+    fireEvent.click(dialog().getByRole("button", { name: "Rebuild" }));
+    await waitFor(() => expect(rebuild).toHaveBeenCalled());
     expect(screen.getByRole("button", { name: /Use the config file \(it sets none/ })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Switch off and remove the helpers" }));
     expect(dialog().getByText(/are deleted/)).toBeInTheDocument();

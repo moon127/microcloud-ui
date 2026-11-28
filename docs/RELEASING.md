@@ -75,7 +75,7 @@ To follow edge on a host, see docs/DEPLOY.md §9.1.
 
 ## Security updates
 
-Five things watch for known vulnerabilities (D76):
+Six things watch for known vulnerabilities (D76, D97):
 
 | What | Where | When | What happens |
 |---|---|---|---|
@@ -84,6 +84,7 @@ Five things watch for known vulnerabilities (D76):
 | **Dependabot version updates** | `.github/dependabot.yml` | weekly | one grouped pull request each for npm, pip and GitHub Actions; minor and patch versions only (a major upgrade is planned work) |
 | **`make audit`** in CI | `ci.yml` job `audit` | every push, and before every release | fails on any known vulnerability in the backend's runtime dependencies (`pip-audit`), or a high or critical one in the frontend packages that ship (`npm audit`) |
 | **Weekly scan** | `security.yml` | Mondays, or **Actions → Security → Run workflow** | the same audits, plus build tools (high and up). Trivy scans the published `:latest` image for fixable high or critical CVEs, reports them on the Security tab, and opens one issue labelled `rebuild-needed` |
+| **Folder browser helper image** | `security.yml` job `helper-image` | Mondays, with the scan | downloads today's amd64 build of `browse_image`'s default from images.lxd.canonical.com (an integrity check against the index's sha256: the same trust LXD places in that server), scans it with Trivy, and checks Alpine's releases; opens one issue labelled `helper-image` for fixable high or critical CVEs, a newer Alpine release, the default's end of support within 90 days, or the server's builds stalled for a week. It fails, rather than reporting all clear, if Trivy finds no Alpine packages |
 
 `pip-audit` has no severity data, so any known vulnerability in a runtime dependency fails
 CI. If one has no fix yet and doesn't affect us, add `--ignore-vuln <ID>` to the
@@ -95,6 +96,14 @@ pins only minimums) and the image is built on a fresh `ubuntu:26.04`, so a rebui
 up the fixes. The next weekly scan closes the issue once `:latest` is clean; run the
 workflow by hand to close it sooner. A fix in an npm package arrives as a Dependabot pull
 request first: merge it, then release.
+
+**When the `helper-image` issue appears:** for a newer Alpine release or an end of
+support, move `browse_image`'s default in `backend/mcui/config.py` (and the docs) to the
+new release in the next release; installations made from another image are rebuilt on
+their next use. For CVEs in today's build, nothing is needed in the app: helpers are
+made again from the current build within `browse_refresh_days`, or at once with
+**Rebuild helpers**; if the build itself lags Alpine's fix, wait a day for the image
+server's next build, or move to a newer release.
 
 Hosts running the bundle take Ubuntu's own security updates through `apt` as usual. Only
 the app's virtualenv comes from the bundle.

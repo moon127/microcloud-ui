@@ -194,7 +194,12 @@ class HostDevicesSettings(_Section):
     browse_project: str = Field(default="mcui-server", pattern=r"^[A-Za-z0-9][A-Za-z0-9_-]*$")
     # empty: the pool of the default project's root disk
     browse_pool: str | None = Field(default=None, pattern=r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
-    browse_image: str = "alpine/edge"
+    # a stable Alpine release (D97): fixes come as backports, and images.lxd.canonical.com
+    # rebuilds it daily. The weekly security check says when a newer release is out
+    browse_image: str = "alpine/3.24"
+    # a stopped helper older than this is made again from the current image when next
+    # used, so its packages stay current (it has no network to update itself; D97)
+    browse_refresh_days: int = Field(default=7, ge=1, le=90)
     # a helper is stopped once nobody has browsed with it for this long
     browse_idle_minutes: int = Field(default=10, ge=1)
 

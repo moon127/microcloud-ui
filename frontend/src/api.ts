@@ -158,7 +158,21 @@ export interface BrowserStatus {
   exists?: boolean;
   /** carries the app's marker, so the app may remove it */
   ours?: boolean;
-  helpers?: { name: string; member: string; status: string }[];
+  helpers?: {
+    name: string;
+    member: string;
+    status: string;
+    /** the image it was made from, as LXD describes it */
+    image?: string;
+    created_at?: number | null;
+    /** to be made again from the current image when next used (D97) */
+    stale?: boolean;
+  }[];
+  /** browse_image, and how many days a helper is kept before it's made again */
+  image?: string;
+  refresh_days?: number;
+  /** browse_image isn't a numbered Alpine release, or isn't the default the checks watch */
+  image_warning?: string | null;
   error?: string;
 }
 
@@ -171,6 +185,7 @@ export interface HostDeviceSettings {
   browse_source: SettingSource;
   config_browse: boolean;
   browse_idle_minutes: number;
+  browse_refresh_days: number;
   /** null without LXD */
   browser: BrowserStatus | null;
 }
@@ -185,6 +200,8 @@ export interface HostDeviceSettingsChange {
 export const fetchHostDeviceSettings = () => api<HostDeviceSettings>("/api/settings/host-devices");
 export const updateHostDeviceSettings = (change: HostDeviceSettingsChange) =>
   send<HostDeviceSettings>("PUT", "/api/settings/host-devices", change);
+/** Delete the browser helpers and their images now; made again when next used (D97). */
+export const rebuildBrowserHelpers = () => send<HostDeviceSettings>("POST", "/api/settings/host-devices/browser/rebuild");
 
 // --- users and project grants (cluster admins; AU-2, D81) -------------------------------
 export const fetchUsers = () => api<User[]>("/api/users");

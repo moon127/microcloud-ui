@@ -173,7 +173,20 @@ What the browser shows:
 creates an LXD project (`mcui-server` by default) and, on first use on each member, a
 small Alpine container there (64 MiB, no network, the member's `/` mounted read-only).
 They stop after 10 idle minutes. **Switch off and remove the helpers** deletes them, their
-image and the project. The same settings are in the config file
+image and the project.
+
+**Keeping the helpers current:** a helper runs nothing but `find`, `stat` and `realpath`
+(busybox) on the member's file names, unprivileged, without network, and only while
+someone browses. It isn't updated in place: once it's a week old (`browse_refresh_days`)
+it's made again the next time it starts, from LXD's copy of the Alpine image (LXD
+refreshes it from the image server every few hours), and the old image is deleted. If the
+image server can't be reached then, it's made from the image it had, and tried again
+next time. Settings lists each helper with the build it was made from and its age.
+**Rebuild helpers** deletes them all and their image now, so each is made from the image
+server's newest build on its next use (which needs the server to be reachable); one in use
+at that moment is made again once it stops. A weekly check in the project's CI scans
+that build for known vulnerabilities and watches Alpine's releases
+([`RELEASING.md`](RELEASING.md#security-updates)). The same settings are in the config file
 ([`CONFIGURATION.md`](CONFIGURATION.md)); a value saved in the app wins.
 
 ![Settings: hidden folders and the folder browser](screenshots/settings.png)
